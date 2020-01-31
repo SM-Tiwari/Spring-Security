@@ -1,0 +1,21 @@
+package com.gnv.vnm.selfcare.core.model;
+
+public class BonusResponse {
+	
+	private String resultCode;
+	private String errorDescription;
+	
+	public String getResultCode() {
+		return resultCode;
+	}
+	public void setResultCode(String resultCode) {
+		this.resultCode = resultCode;
+	}
+	public String getErrorDescription() {
+		return errorDescription;
+	}
+	public void setErrorDescription(String errorDescription) {
+		this.errorDescription = errorDescription;
+	}
+
+}

@@ -1,0 +1,62 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class BonstriPoinDto implements DTO {
+    String stotalPoin;
+    String stotalBonusPoin;
+    String serrorCode;
+    String serrorDesc;
+
+    List<BonstriMonsterDto> listbonstriMonsterDto;
+
+    public BonstriPoinDto() {
+        listbonstriMonsterDto = new ArrayList<BonstriMonsterDto>();
+    }
+
+    public String getStotalPoin() {
+        return stotalPoin;
+    }
+
+    public void setStotalPoin(String stotalPoin) {
+        this.stotalPoin = stotalPoin;
+    }
+
+    public String getStotalBonusPoin() {
+        return stotalBonusPoin;
+    }
+
+    public void setStotalBonusPoin(String stotalBonusPoin) {
+        this.stotalBonusPoin = stotalBonusPoin;
+    }
+
+    public String getSerrorCode() {
+        return serrorCode;
+    }
+
+    public void setSerrorCode(String serrorCode) {
+        this.serrorCode = serrorCode;
+    }
+
+    public String getSerrorDesc() {
+        return serrorDesc;
+    }
+
+    public void setSerrorDesc(String serrorDesc) {
+        this.serrorDesc = serrorDesc;
+    }
+
+    public List<BonstriMonsterDto> getListbonstriMonsterDto() {
+        return listbonstriMonsterDto;
+    }
+
+    public void setListbonstriMonsterDto(List<BonstriMonsterDto> listbonstriMonsterDto) {
+        this.listbonstriMonsterDto = listbonstriMonsterDto;
+    }
+    public void addBonstriMonsterDto(BonstriMonsterDto bonstriMonsterDto) {
+        listbonstriMonsterDto.add(bonstriMonsterDto);
+    }
+}

@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Date;
+
+public interface DwhStatsSubDetailDeviceService {
+
+    void saveOrUpdate(Date date, int android, int ios);
+
+}

@@ -1,0 +1,27 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.stereotype.Service;
+
+@Service
+@Configuration
+@PropertySources({
+		@PropertySource("classpath:app-config.properties"),
+		
+})
+public class GetRequestServiceImpl implements GetRequestService {
+
+	@Value(value = "${user.mode}")
+	 String user_mode ;
+	
+	@Override
+	public String getRequestMode() {
+		// TODO Auto-generated method stub
+		String usermode=user_mode;
+		return usermode;
+	}
+
+}

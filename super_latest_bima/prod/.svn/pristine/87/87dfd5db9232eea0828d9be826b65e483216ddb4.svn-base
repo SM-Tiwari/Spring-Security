@@ -1,0 +1,52 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.DeeplinkDto;
+import id.gnvsolution.d3.api.service.DeeplinkService;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.DeeplinkController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 10, 2018 2:44:53 PM
+ *
+ */
+
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Controller
+public class DeeplinkController {
+
+    @Autowired
+    private DeeplinkService deeplinkService;
+    
+    @RequestMapping(value="/{endpoint}", method = RequestMethod.GET)
+    public String getProduct(@PathVariable String endpoint, ModelMap modelMap) {
+    	System.out.println("Endpoint is: "+ endpoint);
+        String urlReal = deeplinkService.getDeeplinkUrl(endpoint);
+        System.out.println("Real url:::::"+ urlReal);
+        return "redirect:"+urlReal;
+    }
+    
+    @RequestMapping(value="/{endpoint}", method = RequestMethod.POST)
+    public String postProduct(@PathVariable String endpoint, ModelMap modelMap) {
+        String urlReal = deeplinkService.getDeeplinkUrl(endpoint);
+        return "redirect:"+urlReal;
+    }
+    
+    @RequestMapping(value="/api/v1/product/get-deeplink", method = RequestMethod.POST)
+    public @ResponseBody Map getDeeplink(@RequestBody DeeplinkDto request) {
+        return deeplinkService.getDeeplink(request);
+    }
+    
+}

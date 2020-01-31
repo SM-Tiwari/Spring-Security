@@ -1,0 +1,122 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by rips on 4/12/17.
+ */
+public class PackageDto implements DTO {
+
+    public void setDetail(List<PackageDetailDto> detail) {
+		this.detail = detail;
+	}
+
+	private boolean isRenewable = false;
+    private boolean isProductBuy = false;
+    private boolean isMore = false;
+    private boolean isShareQuota = false;
+    private String name;
+    private String linkProductBuyType = "-";
+    private String linkProductBuyValue = "-";
+    private String productId = "";
+    private List<PackageDetailDto> detail;
+    private String groupId = "-";;
+
+    public PackageDto(){
+        this.detail = new ArrayList<>();
+    }
+
+    public PackageDto(boolean isRenewable, boolean isProductBuy, boolean isMore, String name, String linkProductBuyType, String linkProductBuyValue, List<PackageDetailDto> detail, String groupId) {
+        this.isRenewable = isRenewable;
+        this.isProductBuy = isProductBuy;
+        this.isMore = isMore;
+        this.name = name;
+        this.linkProductBuyType = linkProductBuyType;
+        this.linkProductBuyValue = linkProductBuyValue;
+        this.detail = detail;
+        this.groupId = groupId;
+    }
+
+    public boolean getIsRenewable() {
+        return isRenewable;
+    }
+
+    public void setIsRenewable(boolean renewable) {
+        isRenewable = renewable;
+    }
+
+    public boolean getIsProductBuy() {
+        return isProductBuy;
+    }
+
+    public void setIsProductBuy(boolean productBuy) {
+        isProductBuy = productBuy;
+    }
+
+    public boolean getIsMore() {
+        return isMore;
+    }
+
+    public void setIsMore(boolean more) {
+        isMore = more;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLinkProductBuyType() {
+        return linkProductBuyType;
+    }
+
+    public void setLinkProductBuyType(String linkProductBuyType) {
+        this.linkProductBuyType = linkProductBuyType;
+    }
+
+    public String getLinkProductBuyValue() {
+        return linkProductBuyValue;
+    }
+
+    public void setLinkProductBuyValue(String linkProductBuyValue) {
+        this.linkProductBuyValue = linkProductBuyValue;
+    }
+
+    public List<PackageDetailDto> getDetail() {
+        return detail;
+    }
+
+    public boolean addPackageDetail(PackageDetailDto detailDto){
+        return this.detail.add(detailDto);
+    }
+
+    public boolean getIsShareQuota() {
+        return isShareQuota;
+    }
+
+    public void setIsShareQuota(boolean shareQuota) {
+        isShareQuota = shareQuota;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+}

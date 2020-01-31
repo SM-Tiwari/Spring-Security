@@ -1,0 +1,437 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.model.TrxPostpaidPayment;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.utils.Helpers;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import java.math.BigInteger;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestHeader;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.DokuController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 18, 2017 3:46:23 PM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Controller
+@RequestMapping("/api/v1/doku")
+@ApiIgnore
+public class DokuController {
+    private final ExternalPayment externalPayment;
+    
+    private final Logger logger = LoggerFactory.getLogger("pg");
+    
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    
+    @Autowired
+    public DokuController(ExternalPayment externalPayment){
+        this.externalPayment = externalPayment;
+    }
+    
+    /**
+     * 
+     * @param modelMap
+     * @param params
+     * @param httpHeaders
+     * @param request
+     * @param PRODUCTNAME
+     * @param AMOUNT
+     * @param MSISDN
+     * @param PRODUCTID
+     * @param VENDORID
+     * @param SERVICEPLAN
+     * @param PAYMENTMETHOD
+     * @param POSTPAID
+     * @param BILLAMOUNT
+     * @param ACCOUNTNUMBER
+     * @param HYBRID
+     * @param SUBCATEGORY
+     * @param CATEGORY
+     * @param NAME
+     * @param EMAIL
+     * @param URL
+     * @return 
+     */
+    @RequestMapping(value = "/dokubuy-cc", method = RequestMethod.GET)
+    public String dokubuyCC(ModelMap modelMap, 
+                                        @RequestParam Map<String, String> params,
+                                        @RequestHeader HttpHeaders httpHeaders,
+                                        HttpServletRequest request,
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String EMAIL,
+                                        @RequestParam(required = false) String URL) {
+        
+        try {
+        generateDoku(POSTPAID, MSISDN, PRODUCTID, PAYMENTMETHOD, AMOUNT, VENDORID, SERVICEPLAN, ACCOUNTNUMBER, BILLAMOUNT, NAME, EMAIL, SUBCATEGORY, CATEGORY, modelMap, PRODUCTNAME, params, httpHeaders, HYBRID, request);
+        modelMap.put("PAYMENTCHANNEL", Constants.CREDITCARD); // credit card
+        
+        return "dokubuy";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "error";
+        }
+    }
+    
+    @RequestMapping(value = "/dokubuy-mandiri", method = RequestMethod.GET)
+    public String dokubuyMandiri(ModelMap modelMap, 
+                                        @RequestParam Map<String, String> params,
+                                        @RequestHeader HttpHeaders httpHeaders,
+                                        HttpServletRequest request,
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String EMAIL) throws Exception {
+        
+        try {
+        generateDoku(POSTPAID, MSISDN, PRODUCTID, PAYMENTMETHOD, AMOUNT, VENDORID, SERVICEPLAN, ACCOUNTNUMBER, BILLAMOUNT, NAME, EMAIL, SUBCATEGORY, CATEGORY, modelMap, PRODUCTNAME, params, httpHeaders, HYBRID, request);
+        modelMap.put("PAYMENTCHANNEL", Constants.MANDIRI); // Mandiri Click Pay
+        
+        return "dokubuy";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "error";}
+    }
+    
+    
+
+    @RequestMapping(value = "/dokubuy-danamon", method = RequestMethod.GET)
+    public String dokubuyDanamon(ModelMap modelMap, 
+                                        @RequestParam Map<String, String> params,
+                                        @RequestHeader HttpHeaders httpHeaders,
+                                        HttpServletRequest request,
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String EMAIL)  throws Exception {
+        
+        try {
+        generateDoku(POSTPAID, MSISDN, PRODUCTID, PAYMENTMETHOD, AMOUNT, VENDORID, SERVICEPLAN, ACCOUNTNUMBER, BILLAMOUNT, NAME, EMAIL, SUBCATEGORY, CATEGORY, modelMap, PRODUCTNAME, params, httpHeaders, HYBRID, request);
+        modelMap.put("PAYMENTCHANNEL", Constants.DANAMON); // Danamon
+        
+        return "dokubuy";
+    } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "error";}
+    }
+    
+    
+
+    @RequestMapping(value = "/dokubuy-permatanet", method = RequestMethod.GET)
+    public String dokubuyPermataNet(ModelMap modelMap, 
+                                        @RequestParam Map<String, String> params,
+                                        @RequestHeader HttpHeaders httpHeaders,
+                                        HttpServletRequest request,
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String EMAIL)  throws Exception {
+        
+        try {
+        
+        generateDoku(POSTPAID, MSISDN, PRODUCTID, PAYMENTMETHOD, AMOUNT, VENDORID, SERVICEPLAN, ACCOUNTNUMBER, BILLAMOUNT, NAME, EMAIL, SUBCATEGORY, CATEGORY, modelMap, PRODUCTNAME, params, httpHeaders, HYBRID, request);
+        modelMap.put("PAYMENTCHANNEL", Constants.PERMATANET); // Permata Net
+
+        return "dokubuy";
+    } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "error";}
+    }
+    
+
+    @RequestMapping(value = "/dokubuy-dokuwallet", method = RequestMethod.GET)
+    public String dokuDokuWallet(ModelMap modelMap, 
+                                        @RequestParam Map<String, String> params,
+                                        @RequestHeader HttpHeaders httpHeaders,
+                                        HttpServletRequest request,
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String EMAIL)  throws Exception {
+        
+        try {
+        
+        generateDoku(POSTPAID, MSISDN, PRODUCTID, PAYMENTMETHOD, AMOUNT, VENDORID, SERVICEPLAN, ACCOUNTNUMBER, BILLAMOUNT, NAME, EMAIL, SUBCATEGORY, CATEGORY, modelMap, PRODUCTNAME, params, httpHeaders, HYBRID, request);
+        modelMap.put("PAYMENTCHANNEL", Constants.DOKUWALLET); //Doku Wallet
+
+        return "dokubuy";
+    } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "error";}
+    }
+    
+    @RequestMapping(value = "/dokubuy-ibmuamalat", method = RequestMethod.GET)
+    public String dokubuyIbMuamalat(ModelMap modelMap, 
+                                        @RequestParam Map<String, String> params,
+                                        @RequestHeader HttpHeaders httpHeaders,
+                                        HttpServletRequest request,
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String EMAIL)  throws Exception {
+        
+        try {
+        generateDoku(POSTPAID, MSISDN, PRODUCTID, PAYMENTMETHOD, AMOUNT, VENDORID, SERVICEPLAN, ACCOUNTNUMBER, BILLAMOUNT, NAME, EMAIL, SUBCATEGORY, CATEGORY, modelMap, PRODUCTNAME, params, httpHeaders, HYBRID, request);
+        modelMap.put("PAYMENTCHANNEL", Constants.IBMUAMALAT); // IB Muamalat
+
+        return "dokubuy";
+    } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "error";}
+    }
+    
+    
+    @RequestMapping(value = "/dokubuy-bri", method = RequestMethod.GET)
+    public String dokubuyBri(ModelMap modelMap, 
+                                        @RequestParam Map<String, String> params,
+                                        @RequestHeader HttpHeaders httpHeaders,
+                                        HttpServletRequest request,
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String EMAIL)  throws Exception {
+        
+        try {
+        generateDoku(POSTPAID, MSISDN, PRODUCTID, PAYMENTMETHOD, AMOUNT, VENDORID, SERVICEPLAN, ACCOUNTNUMBER, BILLAMOUNT, NAME, EMAIL, SUBCATEGORY, CATEGORY, modelMap, PRODUCTNAME, params, httpHeaders, HYBRID, request);
+        modelMap.put("PAYMENTCHANNEL", Constants.BRI); // ePay Bri
+        
+        return "dokubuy";
+    } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "error";
+    }
+    }
+
+    private void generateDoku(String POSTPAID, 
+                            String MSISDN, 
+                            String PRODUCTID, 
+                            String PAYMENTMETHOD, 
+                            String AMOUNT, 
+                            String VENDORID, 
+                            String SERVICEPLAN, 
+                            String ACCOUNTNUMBER, 
+                            String BILLAMOUNT, 
+                            String NAME, 
+                            String EMAIL, 
+                            String SUBCATEGORY, 
+                            String CATEGORY, 
+                            ModelMap modelMap, 
+                            String PRODUCTNAME, 
+                            Map<String, String> params,
+                            HttpHeaders httpHeaders,
+                            String HYBRID, 
+                            HttpServletRequest request) throws NumberFormatException, Exception {
+        // generate trxid
+        String transactionId = "";
+        
+        // PURCHASE
+        if(POSTPAID == null && HYBRID == null) {
+            
+            // check first whether product is having a valid charging or not
+            ProductCharging productCharging = externalPayment.getProductCharging(PRODUCTID, VENDORID, SERVICEPLAN, PAYMENTMETHOD, (long)Double.parseDouble(AMOUNT));
+            if(productCharging == null)
+                throw new Exception("INVALID CHARGING "+PRODUCTID+" "+ VENDORID+" "+ SERVICEPLAN+" "+ PAYMENTMETHOD);
+            
+            transactionId = externalPayment.generateTrxNumber();
+            
+            TrxSubscriberPurchase subscriberPurchase = new TrxSubscriberPurchase();
+            subscriberPurchase.setTransactionId(transactionId);
+            subscriberPurchase.setSubscriberMsisdn(MSISDN);
+            subscriberPurchase.setProductId(PRODUCTID);
+            subscriberPurchase.setPaymentMethodCode(PAYMENTMETHOD);
+            subscriberPurchase.setMenuCategoryName(CATEGORY);
+            subscriberPurchase.setMenuSubCategoryName(SUBCATEGORY);
+            subscriberPurchase.setPrice((long)Double.parseDouble(AMOUNT));
+            subscriberPurchase.setIsPromo(false);
+            subscriberPurchase.setVendorId(VENDORID);
+            subscriberPurchase.setServicePlan(SERVICEPLAN);
+
+            // save invoice
+            externalPayment.saveToTrxSubscriberPurchase(subscriberPurchase);
+        } 
+        
+        // POSTPAID
+        if(POSTPAID != null) {
+            transactionId = externalPayment.generateTrxNumberPostpaid();
+            
+            // POSTPAID
+            TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+            trxPostpaidPayment.setTransactionId(transactionId);
+            trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+            trxPostpaidPayment.setPaymentMethodCode(PAYMENTMETHOD);
+            trxPostpaidPayment.setAccountNumber(ACCOUNTNUMBER);
+            trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountName(NAME);
+            trxPostpaidPayment.setAccountEmail(EMAIL);
+            
+            // save invoice
+            externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+        } 
+        
+        // HYBRID
+        if(HYBRID != null) {
+            transactionId = externalPayment.generateTrxNumberHybrid();
+            
+            TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+            trxPostpaidPayment.setTransactionId(transactionId);
+            trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+            trxPostpaidPayment.setPaymentMethodCode(PAYMENTMETHOD);
+            trxPostpaidPayment.setAccountNumber(ACCOUNTNUMBER);
+            trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountName(NAME);
+            trxPostpaidPayment.setAccountEmail(EMAIL);
+            
+            // save invoice
+            externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+        } 
+        
+        // make sure AMOUNT ends with .00
+        if(!AMOUNT.endsWith(".00")) {
+            AMOUNT = AMOUNT+".00";
+        }
+        
+        // send to page
+        modelMap.put("URL", Constants.DOKU_URL+"/Suite/Receive");
+        modelMap.put("MALLID", Constants.MALLID);
+        modelMap.put("CHAINMERCHANT", "NA");
+        modelMap.put("PURCHASEAMOUNT", AMOUNT);
+        modelMap.put("TRANSIDMERCHANT", transactionId);
+        modelMap.put("WORDS", Helpers.getSHA1(AMOUNT+Constants.MALLID+ Constants.SHAREDKEY + transactionId));
+        modelMap.put("REQUESTDATETIME", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+        modelMap.put("CURRENCY", "360");
+        modelMap.put("PURCHASECURRENCY", "360");
+        modelMap.put("SESSIONID", transactionId);
+        modelMap.put("NAME", NAME);
+        modelMap.put("EMAIL", EMAIL);
+        modelMap.put("BASKET", PRODUCTNAME+","+AMOUNT+",1,"+AMOUNT);
+        modelMap.put("AMOUNT", AMOUNT);
+        
+        HashMap<String, String> mapHeaderInfo = new HashMap<>();
+        Enumeration headerNames = ((HttpServletRequest)request).getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = ((HttpServletRequest)request).getHeader(key);
+            mapHeaderInfo.put(key, value);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n========== START =============== \r\n"); 
+        sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+        sb.append("Real IP\t\t:\t").append(httpHeaders.get("X-Forwarded-For")).append("\r\n");
+        sb.append("Accessing\t:\t").append(((HttpServletRequest)request).getRequestURI()).append("\r\n");
+        sb.append("PG\t\t:\t").append("DOKU").append("\r\n");
+        sb.append("MSISDN\t\t:\t").append(MSISDN).append("\r\n");
+        sb.append("PRODUCTNAME\t:\t").append(PRODUCTNAME).append("\r\n");
+        sb.append("Ref No\t\t:\t").append(transactionId).append("\r\n");
+        sb.append("Amount\t\t:\t").append(AMOUNT).append("\r\n");
+        sb.append("Parameters\t:\t").append(params).append("\r\n");
+        sb.append("Headers\t\t:\t").append(mapHeaderInfo).append("\r\n");
+        sb.append("==========  END  =============== \r\n"); 
+        
+        logger.debug(sb.toString());
+    }
+}

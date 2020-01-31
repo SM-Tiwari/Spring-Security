@@ -1,0 +1,122 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.CustomerUiTypeDto;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.dto.response.CustomerUiTypeResponseDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.model.CustomerUiType;
+import id.gnvsolution.d3.api.service.CustomerUiTypeService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ *  <pre>
+ *      LIGHT = 0
+ *      FULL = 1
+ *      DEFAULT IS 1 (FULL)
+ *  </pre>
+ * 
+ * @author RA0C68364
+ */
+@Service
+@Transactional
+public class CustomerUiTypeServiceImpl extends BaseService implements CustomerUiTypeService {
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(CustomerUiTypeServiceImpl.class);
+  
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    
+    
+    @Override
+    public CustomerUiTypeResponseDto getCustomerUiTypeResponseDto(CustomerUiTypeDto customerUiTypeDto) {
+        
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(customerUiTypeDto.getMsisdn(), customerUiTypeDto.getSecretKey())) {
+            return new CustomerUiTypeResponseDto(false, "");
+        }
+        
+        LOGGER.info("#getCustomerUiTypeResponseDto------getting CustomerUiType data based on msisdn::::",customerUiTypeDto.getMsisdn());
+        
+        BaseDao<CustomerUiType> customerUiTypeDao = new BaseDao<>(sessionFactoryDef, CustomerUiType.class);
+        List<CustomerUiType> customerUiTypes = customerUiTypeDao.find("msisdn = :msisdn", new HashMap<String, Object>() {{
+            put("msisdn", customerUiTypeDto.getMsisdn());
+        }});
+        
+        // no customer, default is FULL (1)
+        if (customerUiTypes.isEmpty()) {
+            return new CustomerUiTypeResponseDto(true, "1");
+        }
+        
+        if (customerUiTypes.get(0).getUiType().isEmpty()) {
+            return new CustomerUiTypeResponseDto(false,  "1");
+        }
+        
+        return new CustomerUiTypeResponseDto(true,  customerUiTypes.get(0).getUiType());
+    }
+    
+    @Override
+    public Map save(CustomerUiTypeDto customerUiTypeDto) {
+        
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(customerUiTypeDto.getMsisdn(), customerUiTypeDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        LOGGER.info("------save CustomerUiType data based on msisdn::::",customerUiTypeDto.getMsisdn());
+        
+        BaseDao<CustomerUiType> customerUiTypeDao = new BaseDao<>(sessionFactoryDef, CustomerUiType.class);
+        List<CustomerUiType> customerUiTypes = customerUiTypeDao.find("msisdn = :msisdn ", new HashMap<String, Object>() {
+            {
+                put("msisdn", customerUiTypeDto.getMsisdn());
+            }
+        });
+        CustomerUiType customerUiType = null;
+        
+        //insert or update
+        if (customerUiTypes.isEmpty()) {
+            customerUiType = new CustomerUiType();
+        } else {
+            customerUiType = customerUiTypes.get(0);
+        }
+        customerUiType.setMsisdn(customerUiTypeDto.getMsisdn());
+        customerUiType.setUiType(customerUiTypeDto.getUiType());
+        customerUiTypeDao.saveOrUpdate(customerUiType);
+        
+        return JSONResultFilter.filter(new BoolStatusOutDto(true)).include("status").build();
+    }
+
+    @Override
+    public Boolean isFull(String msisdn) {
+        BaseDao<CustomerUiType> customerUiTypeDao = new BaseDao<>(sessionFactoryDef, CustomerUiType.class);
+        List<CustomerUiType> customerUiTypes = customerUiTypeDao.find("msisdn = :msisdn ", new HashMap<String, Object>() {
+            {
+                put("msisdn", msisdn);
+            }
+        });
+        
+        // default FULL
+        if(customerUiTypes.isEmpty())
+            return true;
+        return "1".equals(customerUiTypes.get(0).getUiType());
+    }
+
+    @Override
+    public Boolean isFull(Integer isFull) {
+        if(isFull == null)
+            return true;
+        return isFull == 1;
+    }
+}

@@ -1,0 +1,71 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.CustomerCareDto;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.service.CustomerCareService;
+
+@Service
+@Transactional
+public class CustomerCareServiceImpl implements CustomerCareService{
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(CustomerCareServiceImpl.class);
+
+	@Autowired
+    @Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Override
+	public Map<String, Object> custDetails() {
+		/*if (!isMsisdnValid(customerCareDto.getMsisdn(), customerCareDto.getSecretKey())) {
+	        return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+	    }*/
+		
+		
+		
+		BaseDao<CustomerCareDto> profileMappingDao = new BaseDao<>(sessionFactoryDef, CustomerCareDto.class);
+        List<CustomerCareDto> customerCareDetail = profileMappingDao.listData();
+        
+		
+		//String queryString = "SELECT * FROM CUSTOMERCARE ";
+		//Query query = sessionFactoryDef.getCurrentSession().createQuery(queryString);	
+		
+		//List<CustomerCareDto> customerCareDetail=null;
+		//customerCareDetail =query.list();
+		Map<String, Object> map = new HashMap<String, Object>();
+		Iterator<?> it = customerCareDetail.iterator();
+
+		while(it.hasNext())
+		{
+			Object obj = (Object)it.next();
+			CustomerCareDto custC = (CustomerCareDto)obj;
+			
+			
+			map.put("cEmail", custC.getcEmail());
+			map.put("cEmailSubject", custC.getcEmailSubject());
+			map.put("cPhone", custC.getcPhone());
+			map.put("ChatURL", custC.getChatURL());
+			LOGGER.info("#custDetails---return cutomer details-----Product id : "+custC.getcEmail());
+			
+		}		
+		/*customerCareDto.setcEmail(customerCareDto.getcEmail());
+		customerCareDto.setcEmailSubject(customerCareDto.getcEmailSubject());
+		customerCareDto.setcPhone(customerCareDto.getcPhone());
+		customerCareDto.setChatURL(customerCareDto.getChatURL());*/
+		
+		
+		return map;
+	}}

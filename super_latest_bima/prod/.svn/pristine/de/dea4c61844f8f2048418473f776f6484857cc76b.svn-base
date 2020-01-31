@@ -1,0 +1,197 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "BROADCAST")
+public class Broadcast {
+    private long broadcastId;
+    private Timestamp broadcastDatetime;
+    private String productId;
+    private Long subMenuCategoryId;
+    private String boardcastMessage;
+    private String broadcastStatus;
+    private long createdBy;
+    private Timestamp createdAt;
+    private Long updatedBy;
+    private Timestamp updatedAt;
+    private long isActive;
+    private Product productByProductId;
+    private SubMenuCategory subMenuCategoryBySubMenuCategoryId;
+
+    @Id
+    @Column(name = "BROADCAST_ID", nullable = false, precision = 0)
+    public long getBroadcastId() {
+        return broadcastId;
+    }
+
+    public void setBroadcastId(long broadcastId) {
+        this.broadcastId = broadcastId;
+    }
+
+    @Basic
+    @Column(name = "BROADCAST_DATETIME", nullable = true)
+    public Timestamp getBroadcastDatetime() {
+        return broadcastDatetime;
+    }
+
+    public void setBroadcastDatetime(Timestamp broadcastDatetime) {
+        this.broadcastDatetime = broadcastDatetime;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_ID", nullable = true, length = 50)
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    @Basic
+    @Column(name = "SUB_MENU_CATEGORY_ID", nullable = true, precision = 0)
+    public Long getSubMenuCategoryId() {
+        return subMenuCategoryId;
+    }
+
+    public void setSubMenuCategoryId(Long subMenuCategoryId) {
+        this.subMenuCategoryId = subMenuCategoryId;
+    }
+
+    @Basic
+    @Column(name = "BOARDCAST_MESSAGE", nullable = true, length = 255)
+    public String getBoardcastMessage() {
+        return boardcastMessage;
+    }
+
+    public void setBoardcastMessage(String boardcastMessage) {
+        this.boardcastMessage = boardcastMessage;
+    }
+
+    @Basic
+    @Column(name = "BROADCAST_STATUS", nullable = true, length = 10)
+    public String getBroadcastStatus() {
+        return broadcastStatus;
+    }
+
+    public void setBroadcastStatus(String broadcastStatus) {
+        this.broadcastStatus = broadcastStatus;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY", nullable = false, precision = 0)
+    public long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY", nullable = true, precision = 0)
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE", nullable = false, precision = 0)
+    public long getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(long isActive) {
+        this.isActive = isActive;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Broadcast broadcast = (Broadcast) o;
+
+        if (broadcastId != broadcast.broadcastId) return false;
+        if (createdBy != broadcast.createdBy) return false;
+        if (isActive != broadcast.isActive) return false;
+        if (broadcastDatetime != null ? !broadcastDatetime.equals(broadcast.broadcastDatetime) : broadcast.broadcastDatetime != null)
+            return false;
+        if (productId != null ? !productId.equals(broadcast.productId) : broadcast.productId != null) return false;
+        if (subMenuCategoryId != null ? !subMenuCategoryId.equals(broadcast.subMenuCategoryId) : broadcast.subMenuCategoryId != null)
+            return false;
+        if (boardcastMessage != null ? !boardcastMessage.equals(broadcast.boardcastMessage) : broadcast.boardcastMessage != null)
+            return false;
+        if (broadcastStatus != null ? !broadcastStatus.equals(broadcast.broadcastStatus) : broadcast.broadcastStatus != null)
+            return false;
+        if (createdAt != null ? !createdAt.equals(broadcast.createdAt) : broadcast.createdAt != null) return false;
+        if (updatedBy != null ? !updatedBy.equals(broadcast.updatedBy) : broadcast.updatedBy != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(broadcast.updatedAt) : broadcast.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (broadcastId ^ (broadcastId >>> 32));
+        result = 31 * result + (broadcastDatetime != null ? broadcastDatetime.hashCode() : 0);
+        result = 31 * result + (productId != null ? productId.hashCode() : 0);
+        result = 31 * result + (subMenuCategoryId != null ? subMenuCategoryId.hashCode() : 0);
+        result = 31 * result + (boardcastMessage != null ? boardcastMessage.hashCode() : 0);
+        result = 31 * result + (broadcastStatus != null ? broadcastStatus.hashCode() : 0);
+        result = 31 * result + (int) (createdBy ^ (createdBy >>> 32));
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedBy != null ? updatedBy.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        result = 31 * result + (int) (isActive ^ (isActive >>> 32));
+        return result;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "PRODUCT_ID", referencedColumnName = "PRODUCT_ID", updatable = false, insertable = false)
+    public Product getProductByProductId() {
+        return productByProductId;
+    }
+
+    public void setProductByProductId(Product productByProductId) {
+        this.productByProductId = productByProductId;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "SUB_MENU_CATEGORY_ID", referencedColumnName = "SUB_MENU_CATEGORY_ID", updatable = false, insertable = false)
+    public SubMenuCategory getSubMenuCategoryBySubMenuCategoryId() {
+        return subMenuCategoryBySubMenuCategoryId;
+    }
+
+    public void setSubMenuCategoryBySubMenuCategoryId(SubMenuCategory subMenuCategoryBySubMenuCategoryId) {
+        this.subMenuCategoryBySubMenuCategoryId = subMenuCategoryBySubMenuCategoryId;
+    }
+}

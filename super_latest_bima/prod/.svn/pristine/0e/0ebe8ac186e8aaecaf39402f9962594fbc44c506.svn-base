@@ -1,0 +1,16 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.response.MenuDto;
+
+import java.util.List;
+
+/**
+ * Created by rips on 4/23/17.
+ */
+public interface MenuService {
+
+    List<MenuDto> getMenu();
+
+	String getCategoryIdBySubCategoryId(String subCategoryId);
+
+}

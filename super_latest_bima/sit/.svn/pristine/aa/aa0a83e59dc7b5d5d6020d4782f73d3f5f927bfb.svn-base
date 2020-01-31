@@ -1,0 +1,342 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+import javax.persistence.Version;
+import javax.xml.stream.events.DTD;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+@Entity
+@Table(name = "postpaid_payment_history")
+@SequenceGenerator(name = "POSTPAID_PAYMENT_HISTORY_SEQ", sequenceName = "POSTPAID_PAYMENT_HISTORY_SEQ", allocationSize = 1)
+public class PostPaidPaymentHistoryEntity{
+
+	public String getBrought_forward_charges() {
+		return brought_forward_charges;
+	}
+
+	public void setBrought_forward_charges(String brought_forward_charges) {
+		this.brought_forward_charges = brought_forward_charges;
+	}
+
+	@Id
+	/*@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "msisdn_token_seq")
+*/	@Column(name = "id")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "POSTPAID_PAYMENT_HISTORY_SEQ")
+	private Integer id;
+	
+	@Column(length = 20)
+	private String invoice;
+	
+	@Version
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "last_modified_timestamp", nullable = false)
+	protected Date lastModifiedTime;
+	
+	 
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "create_timestamp", updatable = false, nullable = false)
+	protected Date createTimestamp = new Date();
+	
+	@Column(name="brought_forward_charges")
+	private String brought_forward_charges;
+	
+	
+	@Column(name="service_registration_fees")
+	private String service_registration_fees;
+	
+	@Column(name="monthly_fee")
+	private String monthly_fee;
+	
+	@Column(name="call_charges")
+	private String call_charges;
+	
+	@Column(name="domestic_call_charges")
+	private String domestic_call_charges;
+	
+	@Column(name="international_call_charges")
+	private String international_call_charges;
+	
+	@Column(name="international_roaming_charges")
+	private String international_roaming_charges;
+	
+	@Column(name="visited_network_charges")
+	private String visited_network_charges;
+	
+	
+	@Column(name="vietnamobile_administration_fee")
+	private String vietnamobile_administration_fee;
+	
+	@Column(name="video_call_and_3G_services_charges")
+	private String video_call_and_3G_services_charges;
+	
+	@Column(name="value_added_services")
+	private String value_added_services;
+	
+	@Column(name="reduced_tariff")
+	private String reduced_tariff;
+	
+	@Column(name="promotion")
+	private String promotion;
+	
+	@Column(name="adjustment")
+	private String adjustment;
+	
+	@Column(name="residual_commited_amount")
+	private String residual_commited_amount;
+	
+	
+	@Column(name="total_current_bill_charge_before_tax")
+	private String total_current_bill_charge_before_tax;
+	
+	@Column(name="VAT")
+	private String VAT;
+	
+	@Column(name="total_current_bill_charge_after_tax")
+	private String total_current_bill_charge_after_tax;
+	
+	@Column(name="total_amount_due")
+	private String total_amount_due;
+	
+	@Column(name="totalAmoutDuedate")
+	private String totalAmoutDuedate;
+	
+	@Column(name="BillPeriod")
+	private String BillPeriod;
+	
+	@Column(name="issuedDate")
+	private String issuedDate;
+	
+	@Column(name="depositAmount")
+	private String depositAmount;
+
+	
+	
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	
+
+	
+	public String getInvoice() {
+		return invoice;
+	}
+
+	public void setInvoice(String invoice) {
+		this.invoice = invoice;
+	}
+
+	public Date getLastModifiedTime() {
+		return lastModifiedTime;
+	}
+
+	public void setLastModifiedTime(Date lastModifiedTime) {
+		this.lastModifiedTime = lastModifiedTime;
+	}
+
+	public Date getCreateTimestamp() {
+		return createTimestamp;
+	}
+
+	public void setCreateTimestamp(Date createTimestamp) {
+		this.createTimestamp = createTimestamp;
+	}
+
+	
+
+	public String getService_registration_fees() {
+		return service_registration_fees;
+	}
+
+	public void setService_registration_fees(String service_registration_fees) {
+		this.service_registration_fees = service_registration_fees;
+	}
+
+	public String getMonthly_fee() {
+		return monthly_fee;
+	}
+
+	public void setMonthly_fee(String monthly_fee) {
+		this.monthly_fee = monthly_fee;
+	}
+
+	public String getCall_charges() {
+		return call_charges;
+	}
+
+	public void setCall_charges(String call_charges) {
+		this.call_charges = call_charges;
+	}
+
+	public String getDomestic_call_charges() {
+		return domestic_call_charges;
+	}
+
+	public void setDomestic_call_charges(String domestic_call_charges) {
+		this.domestic_call_charges = domestic_call_charges;
+	}
+
+	public String getInternational_call_charges() {
+		return international_call_charges;
+	}
+
+	public void setInternational_call_charges(String international_call_charges) {
+		this.international_call_charges = international_call_charges;
+	}
+
+	public String getInternational_roaming_charges() {
+		return international_roaming_charges;
+	}
+
+	public void setInternational_roaming_charges(String international_roaming_charges) {
+		this.international_roaming_charges = international_roaming_charges;
+	}
+
+	public String getVisited_network_charges() {
+		return visited_network_charges;
+	}
+
+	public void setVisited_network_charges(String visited_network_charges) {
+		this.visited_network_charges = visited_network_charges;
+	}
+
+	public String getVietnamobile_administration_fee() {
+		return vietnamobile_administration_fee;
+	}
+
+	public void setVietnamobile_administration_fee(String vietnamobile_administration_fee) {
+		this.vietnamobile_administration_fee = vietnamobile_administration_fee;
+	}
+
+	public String getVideo_call_and_3G_services_charges() {
+		return video_call_and_3G_services_charges;
+	}
+
+	public void setVideo_call_and_3G_services_charges(String video_call_and_3G_services_charges) {
+		this.video_call_and_3G_services_charges = video_call_and_3G_services_charges;
+	}
+
+	public String getValue_added_services() {
+		return value_added_services;
+	}
+
+	public void setValue_added_services(String value_added_services) {
+		this.value_added_services = value_added_services;
+	}
+
+	public String getReduced_tariff() {
+		return reduced_tariff;
+	}
+
+	public void setReduced_tariff(String reduced_tariff) {
+		this.reduced_tariff = reduced_tariff;
+	}
+
+	public String getPromotion() {
+		return promotion;
+	}
+
+	public void setPromotion(String promotion) {
+		this.promotion = promotion;
+	}
+
+	public String getAdjustment() {
+		return adjustment;
+	}
+
+	public void setAdjustment(String adjustment) {
+		this.adjustment = adjustment;
+	}
+
+	public String getResidual_commited_amount() {
+		return residual_commited_amount;
+	}
+
+	public void setResidual_commited_amount(String residual_commited_amount) {
+		this.residual_commited_amount = residual_commited_amount;
+	}
+
+	public String getTotal_current_bill_charge_before_tax() {
+		return total_current_bill_charge_before_tax;
+	}
+
+	public void setTotal_current_bill_charge_before_tax(String total_current_bill_charge_before_tax) {
+		this.total_current_bill_charge_before_tax = total_current_bill_charge_before_tax;
+	}
+
+	public String getVAT() {
+		return VAT;
+	}
+
+	public void setVAT(String vAT) {
+		VAT = vAT;
+	}
+
+	public String getTotal_current_bill_charge_after_tax() {
+		return total_current_bill_charge_after_tax;
+	}
+
+	public void setTotal_current_bill_charge_after_tax(String total_current_bill_charge_after_tax) {
+		this.total_current_bill_charge_after_tax = total_current_bill_charge_after_tax;
+	}
+
+	public String getTotal_amount_due() {
+		return total_amount_due;
+	}
+
+	public void setTotal_amount_due(String total_amount_due) {
+		this.total_amount_due = total_amount_due;
+	}
+
+	public String getTotalAmoutDuedate() {
+		return totalAmoutDuedate;
+	}
+
+	public void setTotalAmoutDuedate(String totalAmoutDuedate) {
+		this.totalAmoutDuedate = totalAmoutDuedate;
+	}
+
+	public String getBillPeriod() {
+		return BillPeriod;
+	}
+
+	public void setBillPeriod(String billPeriod) {
+		BillPeriod = billPeriod;
+	}
+
+	public String getIssuedDate() {
+		return issuedDate;
+	}
+
+	public void setIssuedDate(String issuedDate) {
+		this.issuedDate = issuedDate;
+	}
+
+	public String getDepositAmount() {
+		return depositAmount;
+	}
+
+	public void setDepositAmount(String depositAmount) {
+		this.depositAmount = depositAmount;
+	}
+	
+	
+	
+}

@@ -1,0 +1,41 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.VersionDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Oct 2, 2017 8:44:45 PM
+ *
+ */
+public class VersionDto extends BaseRequestDto {
+
+    private String os;
+    private String version;
+
+    public VersionDto() {
+    }
+
+    public VersionDto(String os, String version) {
+        this.os = os;
+        this.version = version;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+    
+}

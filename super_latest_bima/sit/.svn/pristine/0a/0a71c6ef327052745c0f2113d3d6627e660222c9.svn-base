@@ -1,0 +1,44 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package id.gnvsolution.d3.test;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+/**
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ */
+public class StringUtility {
+    
+    public StringUtility() {
+    }
+    
+    @BeforeClass
+    public static void setUpClass() {
+    }
+    
+    @AfterClass
+    public static void tearDownClass() {
+    }
+    
+    @Before
+    public void setUp() {
+    }
+    
+    @After
+    public void tearDown() {
+    }
+
+     @Test
+     public void hello() {
+         assertEquals("69BFC4EF467B367E3515CDCF693E65DB", id.gnvsolution.d3.api.utils.StringUtility.getMD5("lele"));
+     }
+}

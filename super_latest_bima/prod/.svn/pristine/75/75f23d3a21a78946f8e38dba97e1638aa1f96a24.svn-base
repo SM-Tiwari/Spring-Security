@@ -1,0 +1,457 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Date;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.DwhUserTransactions 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 21, 2017 7:44:22 PM
+ *
+ */
+@Entity
+@Table(name = "DWH_USER_TRANSACTIONS")
+public class DwhUserTransactions implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_DWH_USER", sequenceName = "SEQ_DWH_USER", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_DWH_USER", strategy = GenerationType.SEQUENCE)
+    private BigInteger id;
+    @Column(name = "TRX_ID")
+    private String trxId;
+    @Column(name = "TRX_MSISDN")
+    private String trxMsisdn;
+    @Column(name = "LOCATION")
+    private String location = "Jakarta";
+    @Column(name = "REGIONAL")
+    private String regional = "DKI Jakarta";
+    @Column(name = "CONTROLLER_NAME")
+    private String controllerName;
+    @Column(name = "TRX_PACKAGE")
+    private String trxPackage;
+    @Column(name = "TRX_PRICE")
+    private BigInteger trxPrice;
+    @Column(name = "TRX_CURRENCY")
+    private String trxCurrency;
+    @Column(name = "TRX_CHANNEL")
+    private String trxChannel;
+    @Column(name = "TRX_DATETIME")
+    private Timestamp trxDatetime;
+    @Column(name = "TRX_LAST_MODIFIED")
+    private Timestamp trxLastModified;
+    @Column(name = "BRAND")
+    private String brand;
+    @Column(name = "MODEL")
+    private String model;
+    @Column(name = "TRX_STATUS")
+    private BigInteger trxStatus;
+    @Column(name = "TRX_STATUSDESC")
+    private String trxStatusdesc;
+    @Column(name = "TRX_DATA")
+    private String trxData;
+    @Column(name = "TRX_ERRORCODE")
+    private String trxErrorcode;
+    @Column(name = "TRX_ERRORDESC")
+    private String trxErrordesc;
+    @Column(name = "TRX_ERRORTEXT")
+    private String trxErrortext;
+    @Column(name = "TRX_SOURCE")
+    private String trxSource;
+    @Column(name = "TRX_DESTINATION")
+    private String trxDestination;
+    @Column(name = "TRX_PAYER")
+    private String trxPayer;
+    @Column(name = "TRX_PKG_NAME")
+    private String trxPkgName;
+    @Column(name = "UT_TYPE")
+    private String utType;
+    @Column(name = "UT_CHANNEL")
+    private String utChannel;
+    @Column(name = "UT_STATUS")
+    private BigInteger utStatus;
+    @Column(name = "FAIL_DESCRIPTION")
+    private String failDescription;
+    @Column(name = "UT_PACKAGE")
+    private String utPackage;
+    @Column(name = "UT_MSISDN_TYPE")
+    private String utMsisdnType;
+    @Column(name = "UT_BRAND")
+    private String utBrand;
+    @Column(name = "UT_MODEL")
+    private String utModel;
+    @Column(name = "UT_PURCHASE_ITEM")
+    private String utPurchaseItem;
+    @Column(name = "SPECIAL_PKG")
+    private Integer specialPkg;
+    @Column(name = "PROMO_PKG")
+    private Integer promoPkg;
+    @Column(name = "SSO_CHANNEL")
+    private String ssoChannel;
+    @Column(name = "ACTION_TYPE")
+    private String actionType;
+
+    public DwhUserTransactions() {
+    }
+    
+    public DwhUserTransactions(String trxId, String trxMsisdn, String trxPackage, BigInteger trxPrice, String trxCurrency, String trxChannel, String brand, String model,
+                               String trxData, String trxErrorcode, String trxErrordesc, String trxErrortext, String trxPkgName, Integer promoPkg, BigInteger trxStatus) {
+        this(trxId,trxMsisdn,trxPackage,trxPrice,trxCurrency,trxChannel,brand,model,trxData,trxErrorcode,trxErrordesc,trxErrortext,trxPkgName,promoPkg,trxStatus,"");
+
+        this.trxDatetime = new Timestamp(new Date().getTime());
+        this.utStatus = BigInteger.ONE;
+        this.specialPkg = 0;
+    }
+
+    public DwhUserTransactions(String trxId, String trxMsisdn, String trxPackage, BigInteger trxPrice, String trxCurrency, String trxChannel, String brand, String model,
+                               String trxData, String trxErrorcode, String trxErrordesc, String trxErrortext, String trxPkgName, Integer promoPkg, BigInteger trxStatus, String actionType) {
+        this.trxId = trxId;
+        this.trxMsisdn = trxMsisdn;
+        this.trxPackage = trxPackage;
+        this.trxPrice = trxPrice;
+        this.trxCurrency = trxCurrency;
+        this.trxChannel = trxChannel;
+        this.brand = brand;
+        this.model = model;
+        this.trxData = trxData;
+        this.trxErrorcode = trxErrorcode;
+        this.trxErrordesc = trxErrordesc;
+        this.trxErrortext = trxErrortext;
+        this.trxPkgName = trxPkgName;
+        this.promoPkg = promoPkg;
+        this.ssoChannel = trxChannel;
+        this.trxStatus = trxStatus;
+
+        this.trxDatetime = new Timestamp(new Date().getTime());
+        this.utStatus = BigInteger.ONE;
+        this.specialPkg = 0;
+        
+        this.actionType = actionType;
+    }
+
+    public DwhUserTransactions(BigInteger id) {
+        this.id = id;
+    }
+
+    public BigInteger getId() {
+        return id;
+    }
+
+    public void setId(BigInteger id) {
+        this.id = id;
+    }
+
+    public String getTrxId() {
+        return trxId;
+    }
+
+    public void setTrxId(String trxId) {
+        this.trxId = trxId;
+    }
+
+    public String getTrxMsisdn() {
+        return trxMsisdn;
+    }
+
+    public void setTrxMsisdn(String trxMsisdn) {
+        this.trxMsisdn = trxMsisdn;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getRegional() {
+        return regional;
+    }
+
+    public void setRegional(String regional) {
+        this.regional = regional;
+    }
+
+    public String getControllerName() {
+        return controllerName;
+    }
+
+    public void setControllerName(String controllerName) {
+        this.controllerName = controllerName;
+    }
+
+    public String getTrxPackage() {
+        return trxPackage;
+    }
+
+    public void setTrxPackage(String trxPackage) {
+        this.trxPackage = trxPackage;
+    }
+
+    public BigInteger getTrxPrice() {
+        return trxPrice;
+    }
+
+    public void setTrxPrice(BigInteger trxPrice) {
+        this.trxPrice = trxPrice;
+    }
+
+    public String getTrxCurrency() {
+        return trxCurrency;
+    }
+
+    public void setTrxCurrency(String trxCurrency) {
+        this.trxCurrency = trxCurrency;
+    }
+
+    public String getTrxChannel() {
+        return trxChannel;
+    }
+
+    public void setTrxChannel(String trxChannel) {
+        this.trxChannel = trxChannel;
+    }
+
+    public Timestamp getTrxDatetime() {
+        return trxDatetime;
+    }
+
+    public void setTrxDatetime(Timestamp trxDatetime) {
+        this.trxDatetime = trxDatetime;
+    }
+
+    public Timestamp getTrxLastModified() {
+        return trxLastModified;
+    }
+
+    public void setTrxLastModified(Timestamp trxLastModified) {
+        this.trxLastModified = trxLastModified;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public BigInteger getTrxStatus() {
+        return trxStatus;
+    }
+
+    public void setTrxStatus(BigInteger trxStatus) {
+        this.trxStatus = trxStatus;
+    }
+
+    public String getTrxStatusdesc() {
+        return trxStatusdesc;
+    }
+
+    public void setTrxStatusdesc(String trxStatusdesc) {
+        this.trxStatusdesc = trxStatusdesc;
+    }
+
+    public String getTrxData() {
+        return trxData;
+    }
+
+    public void setTrxData(String trxData) {
+        this.trxData = trxData;
+    }
+
+    public String getTrxErrorcode() {
+        return trxErrorcode;
+    }
+
+    public void setTrxErrorcode(String trxErrorcode) {
+        this.trxErrorcode = trxErrorcode;
+    }
+
+    public String getTrxErrordesc() {
+        return trxErrordesc;
+    }
+
+    public void setTrxErrordesc(String trxErrordesc) {
+        this.trxErrordesc = trxErrordesc;
+    }
+
+    public String getTrxErrortext() {
+        return trxErrortext;
+    }
+
+    public void setTrxErrortext(String trxErrortext) {
+        this.trxErrortext = trxErrortext;
+    }
+
+    public String getTrxSource() {
+        return trxSource;
+    }
+
+    public void setTrxSource(String trxSource) {
+        this.trxSource = trxSource;
+    }
+
+    public String getTrxDestination() {
+        return trxDestination;
+    }
+
+    public void setTrxDestination(String trxDestination) {
+        this.trxDestination = trxDestination;
+    }
+
+    public String getTrxPayer() {
+        return trxPayer;
+    }
+
+    public void setTrxPayer(String trxPayer) {
+        this.trxPayer = trxPayer;
+    }
+
+    public String getTrxPkgName() {
+        return trxPkgName;
+    }
+
+    public void setTrxPkgName(String trxPkgName) {
+        this.trxPkgName = trxPkgName;
+    }
+
+    public String getUtType() {
+        return utType;
+    }
+
+    public void setUtType(String utType) {
+        this.utType = utType;
+    }
+
+    public String getUtChannel() {
+        return utChannel;
+    }
+
+    public void setUtChannel(String utChannel) {
+        this.utChannel = utChannel;
+    }
+
+    public BigInteger getUtStatus() {
+        return utStatus;
+    }
+
+    public void setUtStatus(BigInteger utStatus) {
+        this.utStatus = utStatus;
+    }
+
+    public String getFailDescription() {
+        return failDescription;
+    }
+
+    public void setFailDescription(String failDescription) {
+        this.failDescription = failDescription;
+    }
+
+    public String getUtPackage() {
+        return utPackage;
+    }
+
+    public void setUtPackage(String utPackage) {
+        this.utPackage = utPackage;
+    }
+
+    public String getUtMsisdnType() {
+        return utMsisdnType;
+    }
+
+    public void setUtMsisdnType(String utMsisdnType) {
+        this.utMsisdnType = utMsisdnType;
+    }
+
+    public String getUtBrand() {
+        return utBrand;
+    }
+
+    public void setUtBrand(String utBrand) {
+        this.utBrand = utBrand;
+    }
+
+    public String getUtModel() {
+        return utModel;
+    }
+
+    public void setUtModel(String utModel) {
+        this.utModel = utModel;
+    }
+
+    public String getUtPurchaseItem() {
+        return utPurchaseItem;
+    }
+
+    public void setUtPurchaseItem(String utPurchaseItem) {
+        this.utPurchaseItem = utPurchaseItem;
+    }
+
+    public Integer getPromoPkg() {
+        return promoPkg;
+    }
+
+    public void setPromoPkg(Integer promoPkg) {
+        this.promoPkg = promoPkg;
+    }
+
+    public String getSsoChannel() {
+        return ssoChannel;
+    }
+
+    public void setSsoChannel(String ssoChannel) {
+        this.ssoChannel = ssoChannel;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof DwhUserTransactions)) {
+            return false;
+        }
+        DwhUserTransactions other = (DwhUserTransactions) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.DwhUserTransactions[ id=" + id + " ]";
+    }
+
+    public Integer getSpecialPkg() {
+        return specialPkg;
+    }
+
+    public void setSpecialPkg(Integer specialPkg) {
+        this.specialPkg = specialPkg;
+    }
+}

@@ -1,0 +1,267 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.DwhTransactionPayment 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 21, 2017 7:44:22 PM
+ *
+ */
+@Entity
+@Table(name = "DWH_TRANSACTION_PAYMENT")
+public class DwhTransactionPayment implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_DWH_TRANS", sequenceName = "SEQ_DWH_TRANS", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_DWH_TRANS", strategy = GenerationType.SEQUENCE)
+    private BigDecimal id;
+    @Column(name = "MSISDN")
+    private String msisdn;
+    @Column(name = "PAYMENT_METHOD")
+    private String paymentMethod;
+    @Column(name = "PROVIDER")
+    private String provider;
+    @Column(name = "PAYMENT_TYPE")
+    private String paymentType;
+    @Column(name = "PAYMENT_DATE")
+    private Serializable paymentDate;
+    @Column(name = "PACKAGE_NAME")
+    private String packageName;
+    @Column(name = "PACKAGE_CODE")
+    private String packageCode;
+    @Column(name = "PRICE")
+    private BigInteger price;
+    @Column(name = "CURRENCY")
+    private String currency;
+    @Column(name = "TRXID")
+    private String trxid;
+    @Column(name = "PAYMENT_STATUS")
+    private BigInteger paymentStatus;
+    @Column(name = "RAW_PAYMENT_STATUS")
+    private String rawPaymentStatus;
+    @Column(name = "PACKAGE_STATUS")
+    private BigInteger packageStatus;
+    @Column(name = "RAW_PACKAGE_STATUS")
+    private String rawPackageStatus;
+    @Column(name = "PURCHASE_PACKAGE_COUNTER")
+    private BigInteger purchasePackageCounter;
+    @Column(name = "RAW_REVERSAL_STATUS")
+    private String rawReversalStatus;
+    @Column(name = "CAN_RETRY")
+    private BigInteger canRetry;
+    @Column(name = "CREATED")
+    private Serializable created;
+    @Column(name = "MODIFIED")
+    private Serializable modified;
+
+    public DwhTransactionPayment() {
+    }
+
+    public DwhTransactionPayment(BigDecimal id) {
+        this.id = id;
+    }
+
+    public BigDecimal getId() {
+        return id;
+    }
+
+    public void setId(BigDecimal id) {
+        this.id = id;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public String getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
+
+    public Serializable getPaymentDate() {
+        return paymentDate;
+    }
+
+    public void setPaymentDate(Serializable paymentDate) {
+        this.paymentDate = paymentDate;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getPackageCode() {
+        return packageCode;
+    }
+
+    public void setPackageCode(String packageCode) {
+        this.packageCode = packageCode;
+    }
+
+    public BigInteger getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigInteger price) {
+        this.price = price;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getTrxid() {
+        return trxid;
+    }
+
+    public void setTrxid(String trxid) {
+        this.trxid = trxid;
+    }
+
+    public BigInteger getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(BigInteger paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getRawPaymentStatus() {
+        return rawPaymentStatus;
+    }
+
+    public void setRawPaymentStatus(String rawPaymentStatus) {
+        this.rawPaymentStatus = rawPaymentStatus;
+    }
+
+    public BigInteger getPackageStatus() {
+        return packageStatus;
+    }
+
+    public void setPackageStatus(BigInteger packageStatus) {
+        this.packageStatus = packageStatus;
+    }
+
+    public String getRawPackageStatus() {
+        return rawPackageStatus;
+    }
+
+    public void setRawPackageStatus(String rawPackageStatus) {
+        this.rawPackageStatus = rawPackageStatus;
+    }
+
+    public BigInteger getPurchasePackageCounter() {
+        return purchasePackageCounter;
+    }
+
+    public void setPurchasePackageCounter(BigInteger purchasePackageCounter) {
+        this.purchasePackageCounter = purchasePackageCounter;
+    }
+
+    public String getRawReversalStatus() {
+        return rawReversalStatus;
+    }
+
+    public void setRawReversalStatus(String rawReversalStatus) {
+        this.rawReversalStatus = rawReversalStatus;
+    }
+
+    public BigInteger getCanRetry() {
+        return canRetry;
+    }
+
+    public void setCanRetry(BigInteger canRetry) {
+        this.canRetry = canRetry;
+    }
+
+    public Serializable getCreated() {
+        return created;
+    }
+
+    public void setCreated(Serializable created) {
+        this.created = created;
+    }
+
+    public Serializable getModified() {
+        return modified;
+    }
+
+    public void setModified(Serializable modified) {
+        this.modified = modified;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof DwhTransactionPayment)) {
+            return false;
+        }
+        DwhTransactionPayment other = (DwhTransactionPayment) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.DwhTransactionPayment[ id=" + id + " ]";
+    }
+
+}

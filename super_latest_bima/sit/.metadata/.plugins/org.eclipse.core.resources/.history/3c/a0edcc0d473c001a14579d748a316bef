@@ -1,0 +1,227 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.SubscribeProductRequestDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.SelfPackageBalance;
+import id.gnvsolution.d3.api.model.SelfPackageRequest;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.PurchasingService;
+import id.gnvsolution.d3.api.utils.ApiResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.enums.SelfPackageCycle;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Balance_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Balance_Request_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Dynamic_Bonus_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.ListBalance_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+
+import java.util.Map;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/purchase")
+public class PurchaseController extends BaseController {
+
+	private PurchasingService purchasingService;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(PurchaseController.class);
+	@Autowired
+	private TokenExtractor tokenExtractor;
+
+	@Autowired
+	public PurchaseController(PurchasingService purchasingService) {
+		this.purchasingService = purchasingService;
+	}
+
+	@RequestMapping(value = "/unsubscribe-product", method = RequestMethod.POST)
+	public Object unsubscribeProduct(@RequestBody SubscribeProductRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside PurchaseController in unsubscribeProduct method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null
+					&& requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				// Map profiledata = profileService.getProfile(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, purchasingService.unsubscribeProduct(requestDto),
+						"Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside PurchaseController in unsubscribeProduct method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside PurchaseController in unsubscribeProduct method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside PurchaseController in unsubscribeProduct method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		// return purchasingService.unsubscribeProduct(requestDto);
+	}
+
+	@RequestMapping(value = "/purchase-product", method = RequestMethod.POST)
+	public Object purchaseProduct(@RequestBody PurchaseRequestDto purchaseDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside PurchaseController in purchaseProduct method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(purchaseDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			purchaseDto.setMsisdn(msisdn);
+			if (tokenDetails != null
+					&& purchaseDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				// Map profiledata = profileService.getProfile(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, purchasingService.purchaseProduct(purchaseDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside PurchaseController in purchaseProduct method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside PurchaseController in purchaseProduct method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside PurchaseController in purchaseProduct method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		// return purchasingService.purchaseProduct(purchaseDto);
+	}
+
+	@RequestMapping(value = "/purchase-unscbscribe", method = RequestMethod.POST)
+	public Object purchaseUnsubcribe(@RequestBody PurchaseRequestDto purchaseDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside PurchaseController in purchaseUnsubcribe method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(purchaseDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			purchaseDto.setMsisdn(msisdn);
+			if (tokenDetails != null
+					&& purchaseDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				// Map profiledata = profileService.getProfile(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, purchasingService.purchaseunsubscribe(purchaseDto),
+						"Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside PurchaseController in purchaseUnsubcribe method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside PurchaseController in purchaseUnsubcribe method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside PurchaseController in purchaseUnsubcribe method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		// return purchasingService.purchaseunsubscribe(purchaseDto);
+	}
+
+	@RequestMapping(value = "/billhistory", method = RequestMethod.POST)
+	public Object Billeinghistory(@RequestBody PurchaseRequestDto purchaseDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside PurchaseController in Billeinghistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(purchaseDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			purchaseDto.setMsisdn(msisdn);
+			if (tokenDetails != null
+					&& purchaseDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				// Map profiledata = profileService.getProfile(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, purchasingService.billhistory(purchaseDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside PurchaseController in Billeinghistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside PurchaseController in Billeinghistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside PurchaseController in Billeinghistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		// return purchasingService.billhistory(purchaseDto);
+	}
+	
+	@RequestMapping(value = "/unregister-selfpackage", method = RequestMethod.POST)
+	public Object unregister(@RequestBody PurchaseRequestDto request,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside PurchaseController in purchaseUnsubcribe method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+		
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			if (tokenDetails != null) {
+				Dynamic_Bonus_Response bar = purchasingService.selfPackageUnscubscibe(request);
+				if (bar.getErrorCode().equalsIgnoreCase("00000")) {
+					response = new ApiResponse(true, bar.getErrorCode(), bar.getErrorDetail());
+					return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+				} else {
+					response = new ApiResponse(false, bar.getErrorCode(), bar.getErrorDetail());
+					return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+				}
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		// return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+}

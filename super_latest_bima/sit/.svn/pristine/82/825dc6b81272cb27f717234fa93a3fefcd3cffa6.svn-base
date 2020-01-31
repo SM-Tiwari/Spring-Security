@@ -1,0 +1,57 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import id.gnvsolution.d3.api.service.impl.ProfileServiceImpl;
+
+public class TransferPulsaHistoriesDto {
+	
+	final private Logger logger = LoggerFactory.getLogger(ProfileServiceImpl.class);
+	final private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+	
+	private Date dateReg ;
+	private String msisdnTarget;
+	private String amount;
+	
+	public String getDateReg() {
+		return dateFormat.format(dateReg);
+	}
+	public Date getDateReg(int o) {
+		return dateReg;
+	}
+	public void setDateReg(String dateReg)  {
+		try {
+			if ( dateReg != null ) {
+				this.dateReg = dateFormat.parse(dateReg);
+			}else {
+				this.dateReg = null;
+			}
+		} catch (Exception e) {
+			this.dateReg = null;
+			logger.error("Error come from TransferPulsaHistoriesDto :"+e.getMessage());
+		}
+	}
+	
+	public String getMsisdnTarget() {
+		return msisdnTarget;
+	}
+	
+	public void setMsisdnTarget(String msisdnTarget) {
+		if(msisdnTarget!=null) {
+			msisdnTarget=msisdnTarget.replaceAll("[^\\d.]", "");
+		}
+		this.msisdnTarget = msisdnTarget;
+	}
+	
+	public String getAmount() {
+		return amount;
+	}
+	
+	public void setAmount(String amount) {
+		this.amount = amount;
+	}
+}

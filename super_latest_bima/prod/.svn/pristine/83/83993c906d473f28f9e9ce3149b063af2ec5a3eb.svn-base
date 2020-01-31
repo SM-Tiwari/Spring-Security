@@ -1,0 +1,64 @@
+package id.gnvsolution.d3.api.security.securityutil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import id.gnvsolution.d3.api.service.impl.SmppServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.SignatureException;
+
+
+@Component
+public class AuthanticateTocken {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SmppServiceImpl.class);
+
+	private JwtTokenUtil jwtTokenUtil;
+
+	/*public String tokenGenerator(String msisdn) {
+		System.out.println("***");
+		String token = "";
+		token = getJwtTokenUtil().generateToken(msisdn, null);
+		return token;
+	}*/
+
+	public Boolean validateToken(String authToken, String maisdn) {
+		System.out.println("*****validateToken =  " + authToken);
+		boolean status = false;
+		try {
+			if (maisdn != null) {
+				status = getJwtTokenUtil().validateToken(authToken, maisdn) ? true : false;
+			}
+		} catch (IllegalArgumentException e) {
+			System.out.println("IllegalArgumentException!!!!!!!!!!!" + e);
+			LOGGER.error("IllegalArgumentException!!!!!!!!!!! ", e);
+
+		} catch (ExpiredJwtException e) {
+			System.out.println("ExpiredJwtException ++++" + e);
+			LOGGER.error("ExpiredJwtException ++++ ", e);
+
+		} catch (SignatureException e) {
+			System.out.println("SignatureException =======" + e);
+			LOGGER.error("SignatureException ======= ", e);
+		}
+		return status;
+	}
+	
+	public boolean isTokenExpired(String token) {
+		return jwtTokenUtil.validateToken(token);
+	}
+
+	protected JwtTokenUtil getJwtTokenUtil() {
+		if (jwtTokenUtil == null) {
+			String issuer = JWTConstant.JWT_ISSUER.toString();
+			String signature = JWTConstant.JWT_SIGNATURE.toString();
+			long expiration = JWTConstant.TOKEN_VALIDITY_IN_MINUTES;
+
+			jwtTokenUtil = new JwtTokenUtil(issuer, signature, expiration * 60 * 1000);
+			//jwtTokenUtil = new JwtTokenUtil(issuer, signature, expiration * 60 * 60 * 1000);
+		}
+
+		return jwtTokenUtil;
+	}
+
+}

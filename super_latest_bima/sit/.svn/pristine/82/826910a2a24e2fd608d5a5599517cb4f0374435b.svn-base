@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.service;
+
+import java.sql.Connection;
+
+public interface FattyService {
+	Connection getDataBaseConection();
+	int getMinfattyPoint();
+	String getIpAdress();
+}

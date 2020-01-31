@@ -1,0 +1,125 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.model.CampaignReward;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.CampaignService;
+import id.gnvsolution.d3.api.service.CustomerUiTypeService;
+import id.gnvsolution.d3.api.service.WelcomeRewardService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 23/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/welcome-reward")
+public class WelcomeRewardController extends BaseController {
+    private CampaignService campaignService;
+    private WelcomeRewardService welcomeRewardService;
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(WelcomeRewardController.class);
+   	@Autowired
+   	private TokenExtractor tokenExtractor;
+    
+    @Autowired
+    private CustomerUiTypeService customerUiTypeService;
+
+    @Autowired
+    public WelcomeRewardController(WelcomeRewardService welcomeRewardService, CampaignService campaignService) {
+        this.campaignService = campaignService;
+        this.welcomeRewardService = welcomeRewardService;
+    }
+
+	/*
+	 * @RequestMapping(value = "/is-already-redeem", method = RequestMethod.POST)
+	 * public Object isAlreadyRedeem(@RequestBody BaseRequestDto reloadRequestDto) {
+	 * return new ServiceResult(StatusCode.SUCCESS,
+	 * welcomeRewardService.isAlreadyRedeem(reloadRequestDto), "Success"); // return
+	 * welcomeRewardService.isAlreadyRedeem(reloadRequestDto); }
+	 * 
+	 * @RequestMapping(value = "/get-reward", method = RequestMethod.POST) public
+	 * Object getWelcomeReward(@RequestBody BaseRequestDto
+	 * reloadRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required =
+	 * false) String authToken) { LOGGER.
+	 * info("Inside WelcomeRewardController in getWelcomeReward method::::::::::::"
+	 * ); try { authToken = tokenExtractor.extract(authToken);
+	 * System.out.println("authToken _____________" + authToken); TokenDetails
+	 * tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken); if
+	 * (tokenDetails != null &&
+	 * reloadRequestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn()
+	 * .trim())) {
+	 * 
+	 * return new ServiceResult(StatusCode.SUCCESS,
+	 * welcomeRewardService.getReward(reloadRequestDto,
+	 * customerUiTypeService.isFull(reloadRequestDto.getMsisdn())), "Success"); }
+	 * else { return new ServiceResult(StatusCode.UNAUTHORIZED, "",
+	 * "UNAUTHORIZED User "); } } catch (UnsupportedJwtException |
+	 * MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+	 * LOGGER.
+	 * error("Inside WelcomeRewardController in getWelcomeReward method:::::::::::: "
+	 * + ex.getMessage()); return new ServiceResult(StatusCode.BAD_REQUEST, "",
+	 * "Bad Request");
+	 * 
+	 * } catch (ExpiredJwtException expiredEx) {
+	 * System.out.println("----ExpiredJwtException-----------"); LOGGER.
+	 * error("Inside WelcomeRewardController in getWelcomeReward method::::::::::::"
+	 * + expiredEx.getMessage()); return new
+	 * ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+	 * 
+	 * } catch (Exception expiredEx) { LOGGER.
+	 * error("Inside WelcomeRewardController in getWelcomeReward method::::::::::::"
+	 * + expiredEx.getMessage()); return new ServiceResult(StatusCode.BAD_REQUEST,
+	 * "", "Bad Request"); }
+	 * 
+	 * }
+	 */
+
+    @RequestMapping(value = "/redeem", method = RequestMethod.POST)
+    public Object redeem(@RequestBody PurchaseRequestDto request) {
+        if ((request.getImei() == null || request.getImei().isEmpty()) ||
+                (request.getMsisdn() == null || request.getMsisdn().isEmpty())) {
+        	 return new ServiceResult(StatusCode.SUCCESS, (new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)), "Success");
+          //  return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)).all().build();
+        }
+
+        // split the logic here
+        // 0 - validate is already redeem
+        if (campaignService.isAlreadyRedeemOrCancelWelcomeReward(request.getMsisdn(), request.getImei())) {
+        	 return new ServiceResult(StatusCode.SUCCESS, (new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_ALREADY : Languages.EN.PROMO_REDEEM_ALREADY)), "Success");
+           // return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_ALREADY : Languages.EN.PROMO_REDEEM_ALREADY)).all().build();
+        }
+
+        // 1 - create CAMPAIGN_REWARD as status = 1
+        CampaignReward campaignReward = welcomeRewardService.saveReward(request);
+        return new ServiceResult(StatusCode.SUCCESS, welcomeRewardService.doTibcoFulfilment(campaignReward, request), "Success");
+        // 2 - do TIBCO fulfilment and update the status = 0 if failing
+       // return welcomeRewardService.doTibcoFulfilment(campaignReward, request);
+    }
+}

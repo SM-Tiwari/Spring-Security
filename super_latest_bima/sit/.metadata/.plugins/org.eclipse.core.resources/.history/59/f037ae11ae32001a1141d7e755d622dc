@@ -1,0 +1,5 @@
+package id.gnvsolution.d3.api.model;
+
+public class EtopUpStatusEntity {
+
+}

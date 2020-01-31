@@ -1,0 +1,1030 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.EmailLoginRequestDto;
+import id.gnvsolution.d3.api.dto.request.LoginInDto;
+import id.gnvsolution.d3.api.dto.request.SocialLoginRequestDto;
+import id.gnvsolution.d3.api.dto.response.*;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.*;
+import id.gnvsolution.d3.api.service.*;
+import id.gnvsolution.d3.api.component.social.FacebookComponent;
+import id.gnvsolution.d3.api.component.social.GoogleComponent;
+import id.gnvsolution.d3.api.component.social.TwitterComponent;
+import id.gnvsolution.d3.api.utils.Encryption;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import org.apache.commons.lang3.time.DateUtils;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.SubscriberInfoFromTibco;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import org.hibernate.internal.SessionImpl;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+
+@Service
+@Transactional
+public class LoginServiceImpl extends BaseService implements LoginService {
+	private final Logger logger = LoggerFactory.getLogger(LoginServiceImpl.class);
+
+	private final SessionFactory sessionFactoryApi;
+	private final SessionFactory sessionFactoryDef;
+	@Autowired
+	ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+	private ProfileService profileService;
+	private FlashProfileService flashProfileService;
+	private DwhUniqueMsisdnDeviceService dwhUniqueMsisdnDeviceService;
+	private DwhStatsSubDetailDeviceService dwhStatsSubDetailDeviceService;
+	private BaseDao<ProfileFlashColor> profileFlashColorDao;
+	private BaseDao<Secretkey> secretkeyDao;
+	private BaseDao<SubscriberEmailLogin> subscriberEmailLoginDao;
+
+	private Hashtable<String, String> cosMappings = new Hashtable<>();
+
+	private Encryption enc = new Encryption("B!m@w3bs3cr3tk3y");
+
+	@Autowired
+	private NotificationMasterService notificationMasterService;
+
+	/* Social Login */
+	@Autowired
+	private FacebookComponent FB_APP;
+	@Autowired
+	private TwitterComponent TW_APP;
+	@Autowired
+	private GoogleComponent GO_APP;
+
+	@Autowired
+	private TibcoService tibcoService;
+
+	@Autowired
+	SmppService smppService;
+
+	// TODO: bring back if we deploy to production
+	@Autowired
+	public LoginServiceImpl(@Qualifier("sessionFactory_API") SessionFactory sessionFactoryApi,
+			@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef, ProfileService profileService,
+			FlashProfileService flashProfileService, DwhUniqueMsisdnDeviceService dwhUniqueMsisdnDeviceService,
+			DwhStatsSubDetailDeviceService dwhStatsSubDetailDeviceService) {
+		this.sessionFactoryApi = sessionFactoryApi;
+		this.sessionFactoryDef = sessionFactoryDef;
+
+		this.profileService = profileService;
+		this.flashProfileService = flashProfileService;
+		this.dwhUniqueMsisdnDeviceService = dwhUniqueMsisdnDeviceService;
+		this.dwhStatsSubDetailDeviceService = dwhStatsSubDetailDeviceService;
+		this.profileFlashColorDao = new BaseDao<>(sessionFactoryDef, ProfileFlashColor.class);
+		this.secretkeyDao = new BaseDao(sessionFactoryDef, Secretkey.class);
+		this.subscriberEmailLoginDao = new BaseDao(sessionFactoryDef, SubscriberEmailLogin.class);
+	}
+
+	@Override
+	public Map<String, Object> login(LoginInDto loginInDto) {
+		logger.info("#login-------msisdn and otp::::::", loginInDto.getMsisdn(), loginInDto.getOtp());
+		LoginOutDto loginOutDto = new LoginOutDto();
+		loginOutDto.setMsisdn(loginInDto.getMsisdn());
+		loginOutDto.setLanguage("en_US");
+		loginOutDto.setStatus(true);
+		loginOutDto.setSubscriberType("prepaid");
+		return JSONResultFilter.filter(loginOutDto).all().build();
+	}
+
+	@Override
+	public Map<String, Object> autoLogin(LoginInDto loginInDto) {
+		logger.info("#autoLogin-------msisdn and otp::::::", loginInDto.getMsisdn(), loginInDto.getOtp());
+		LoginOutDto loginOutDto = validateSubscriber(loginInDto.getImsi(), loginInDto.getMsisdn(), loginInDto.getImei(),
+				loginInDto);
+		Map<String, Object> result;
+		if (loginOutDto != null && loginOutDto.getStatus()) {
+			result = JSONResultFilter.filter(loginOutDto).all().build();
+		} else {
+			dummyMsisdn(loginInDto);
+			result = JSONResultFilter.filter(new ErrorMessageDto(false, "Subscriber not found")).all().build();
+		}
+		logger.info("#autoLogin------ response is:::", result.toString());
+		return result;
+	}
+
+	public Hashtable<String, String> loadClassOfServiceMappings() {
+		logger.info("#loadClassOfServiceMappings-----");
+		// TODO Auto-generated method stub
+		BaseDao<ClassOfServiceEntity> subscriberOTPDao = new BaseDao<>(sessionFactoryDef, ClassOfServiceEntity.class);
+		List<ClassOfServiceEntity> list = subscriberOTPDao.listData();
+		if (list != null) {
+			for (int index = 0; index < list.size(); index++) {
+				cosMappings.put(list.get(index).getName(), list.get(index).getDisplayName());
+			}
+		}
+		return cosMappings;
+	}
+
+	@Override
+	public Map<String, Object> loginWithOtp(LoginInDto loginInDto) {
+		/* String msisdn = loginInDto.getMsisdn(); */
+		logger.info("#loginWithOtp-------msisdn and otp::::::", loginInDto.getMsisdn(), loginInDto.getOtp());
+		String imei = loginInDto.getImei();
+		String otp = loginInDto.getOtp();
+		String msisdn = "";
+		
+		if (loginInDto.getMsisdn() != null) {
+		    msisdn = AppUtils.removeCountryCode(loginInDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			loginInDto.setMsisdn(msisdn);
+		}
+		BaseDao<MsisdnWithoutOtp> mssisdnWithoutOtpDao = new BaseDao<>(sessionFactoryDef, MsisdnWithoutOtp.class);
+		BaseDao<SubscriberOTP> subscriberOTPDao = new BaseDao<>(sessionFactoryDef, SubscriberOTP.class);
+		/*
+		 * List<SubscriberOTP> list =
+		 * subscriberOTPDao.listData(subscriberOTPDao.
+		 * getFindQuery("msisdn = :msisdn and otp = :otp and isActive = 1 and expiredAt > :now"
+		 * )
+		 */
+		List<MsisdnWithoutOtp> msisdnList = sessionFactoryDef.getCurrentSession()
+				.createSQLQuery("SELECT * FROM MSISDN_WITHOUT_OTP").list();
+		if (msisdnList.size()>0 && otp.equalsIgnoreCase("999999") && msisdnList.contains(msisdn)) {
+			List<SubscriberOTP> list = subscriberOTPDao
+					.listData(subscriberOTPDao.getFindQuery("msisdn = :msisdn and isActive = 1 and expiredAt > :now")
+							.setString("msisdn", loginInDto.getMsisdn())
+							/* .setString("otp", otp) */
+							.setTimestamp("now", new Date()));
+			if (list.size() > 0) {
+				try {
+					// mark otp as used/invalid
+					SubscriberOTP subscriberOTP = list.get(0);
+					subscriberOTP.setIsActive(false);
+					subscriberOTPDao.update(subscriberOTP);
+					logger.info("#loginWithOtp------storing Secretkey data based on ------msisdn and imei::::::", loginInDto.getMsisdn(), imei);
+					// save subscriber if new
+					saveSubscriber(loginInDto.getMsisdn(), imei, loginInDto);
+
+					// get complete data
+					LoginOutDto result = validateSubscriber(null, loginInDto.getMsisdn(), imei, loginInDto);
+					return JSONResultFilter.filter(result).all().build();
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					return JSONResultFilter.filter(new ErrorMessageDto(false, "exception: " + e.getLocalizedMessage()))
+							.all().build();
+				}
+			}
+
+		} 
+		/*
+		 
+		*/
+		else {
+			/*
+			 * List<SubscriberOTP> list = subscriberOTPDao.
+			 * find("msisdn = :msisdn and otp = :otp and isActive = 1 ");
+			 * .setString("msisdn", msisdn) .setString("otp", otp) );
+			 */
+
+			List<SubscriberOTP> list = subscriberOTPDao.find("msisdn = :msisdn and otp = :otp and isActive = 1 ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", loginInDto.getMsisdn());
+							put("otp", otp);
+						}
+					});
+			if (list.size() > 0) {
+				try {
+					/*
+					 * List<SubscriberOTP> listExp = subscriberOTPDao.
+					 * find("msisdn = :msisdn and otp = :otp and isActive = 1 and expiredAt > :now"
+					 * ), .setString("msisdn", msisdn) .setString("otp", otp)
+					 * .setTimestamp("now", new Date()));
+					 */
+
+					List<SubscriberOTP> listExp = subscriberOTPDao.find(
+							"msisdn = :msisdn and otp = :otp and isActive = 1 and expiredAt > :now ",
+							new HashMap<String, Object>() {
+								{
+									put("msisdn", loginInDto.getMsisdn());
+									put("otp", otp);
+									put("now", new Date());
+								}
+							});
+					if (listExp.size() == 0) {
+						String invalidOTP = notificationMasterService.getMessageText(Languages.MSG_IDS.OTP_LOGIN_EXP,
+								loginInDto.getLanguage());
+						return JSONResultFilter.filter(new ErrorMessageDto(false, invalidOTP)).all().build();
+					}
+					// mark otp as used/invalid
+					SubscriberOTP subscriberOTP = list.get(0);
+					subscriberOTP.setIsActive(false);
+					subscriberOTPDao.update(subscriberOTP);
+
+					// save subscriber if new
+					saveSubscriber(loginInDto.getMsisdn(), imei, loginInDto);
+
+					// get complete data
+					LoginOutDto result = validateSubscriber(null, loginInDto.getMsisdn(), imei, loginInDto);
+					return JSONResultFilter.filter(result).all().build();
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					return JSONResultFilter.filter(new ErrorMessageDto(false, "exception: " + e.getLocalizedMessage()))
+							.all().build();
+				}
+			}
+		}
+
+		String invalidOTP = notificationMasterService.getMessageText(Languages.MSG_IDS.OTP_LOGIN_FAIL,
+				loginInDto.getLanguage());
+		return JSONResultFilter.filter(new ErrorMessageDto(false, invalidOTP)).all().build();
+	}
+
+	@Override
+	public Map<String, Object> requestOtp(LoginInDto loginInDto) {
+		if (loginInDto.getMsisdn() == null) {
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		String msisdn = loginInDto.getMsisdn();
+		
+		if (loginInDto.getMsisdn() != null) {
+			msisdn = AppUtils.removeCountryCode(loginInDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			loginInDto.setMsisdn(msisdn);
+		}
+		boolean isvalidnumber=tibcoService.isValidnumber(msisdn);
+		if(isvalidnumber==false)
+		{
+			return JSONResultFilter.filter(new ErrorMessageDto(false,
+					notificationMasterService.getMessageText(Languages.MSG_IDS.NOT_VALID_MSISDN, loginInDto.getLanguage())))
+					.all().build();
+		}
+		logger.info("#requestOtp------msisdn ----------------" + msisdn + "msisdn" + loginInDto.getMsisdn());
+		LoginOutDto loginOutDto = validateSubscriber(loginInDto.getImsi(), msisdn, loginInDto.getImei(), false,
+				loginInDto);
+		if (loginOutDto == null) {
+			/*return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();*/
+			return JSONResultFilter.filter(new ErrorMessageDto(false,
+					notificationMasterService.getMessageText(Languages.MSG_IDS.NOT_VALID_MSISDN, loginInDto.getLanguage())))
+					.all().build();
+		}
+		
+
+		SubscriberOTP subscriberOTP;
+		String fixOTP = checkFixSubscriber(msisdn);
+		logger.info("#requestOtp-------fix otp " + fixOTP);
+		if (!fixOTP.isEmpty()) {
+			subscriberOTP = new SubscriberOTP(msisdn, fixOTP);
+		} else {
+			subscriberOTP = new SubscriberOTP(msisdn);
+		}
+
+		try {
+			// validate, max 10 sms per-hour
+			/*
+			 * BigDecimal numberOfOTP = (BigDecimal)
+			 * sessionFactoryDef.getCurrentSession().
+			 * createSQLQuery("select count(1) from subscriber_otp " +
+			 * "where msisdn = :msisdn " +
+			 * "and CREATED_AT  between (sysdate - (1/24)) and sysdate")
+			 * .setString("msisdn", subscriberOTP.getMsisdn()) .uniqueResult();
+			 * 
+			 * if(numberOfOTP.longValue() >= 10) return
+			 * JSONResultFilter.filter(new
+			 * BoolStatusOutDto(false)).all().build();
+			 */
+
+			// remove old OTP
+			sessionFactoryDef.getCurrentSession()
+					.createQuery("update SubscriberOTP set isActive = 0 where msisdn = :msisdn and isActive = 1")
+					.setString("msisdn", subscriberOTP.getMsisdn()).executeUpdate();
+
+			sessionFactoryDef.getCurrentSession().save(subscriberOTP);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			subscriberOTP = null;
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		if (subscriberOTP != null) {
+			String message = notificationMasterService.getMessageText(Languages.MSG_IDS.OTP_MESSAGE,
+					loginInDto.getLanguage());
+			if (message != null)
+				message = message.replaceAll("123", subscriberOTP.getOtp());
+			System.out.println("message Is :::" + message);
+			// String Cdata=message;
+			/*
+			 * byte sByte[]=Cdata.getBytes(); try { Cdata= new
+			 * String(sByte,"UTF-8"); } catch (UnsupportedEncodingException e) {
+			 * // TODO Auto-generated catch block e.printStackTrace(); }
+			 */
+			logger.info(String.format("Send OTP Message  : %s", message));
+			String statusCode = sendOtp(subscriberOTP.getMsisdn(), message);
+			if(statusCode.equals("0")) {
+				return JSONResultFilter.filter(new ErrorMessageDto(false,
+						notificationMasterService.getMessageText(Languages.MSG_IDS.OTP_RESPONSE_TIMEOUT, loginInDto.getLanguage())))
+						.all().build();
+			}
+			// String statusCode="1243";
+			logger.info(String.format("Send OTP request code : %s", statusCode));
+		}
+		return JSONResultFilter.filter(new ErrorMessageDto(true,
+				notificationMasterService.getMessageText(Languages.MSG_IDS.OTP_LOGIN_SENT, loginInDto.getLanguage())))
+				.all().build();
+
+	}
+
+	private String checkFixSubscriber(String msisdn) {
+		logger.info("#checkFixSubscriber---------getting data from FixSubscriberOtp based on msisdnn::", msisdn);
+		BaseDao<FixSubscriberOtp> fixSubscriberDao = new BaseDao(sessionFactoryDef, FixSubscriberOtp.class);
+		List<FixSubscriberOtp> fixSubscriberData = fixSubscriberDao.find("msisdn = :msisdn AND status = 1",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", msisdn);
+					}
+				});
+
+		String otpKey = "";
+		if (!fixSubscriberData.isEmpty()) {
+			otpKey = fixSubscriberData.get(0).getOtp();
+		}
+		return otpKey;
+	}
+
+	private boolean saveSubscriber(String msisdn, String imei, LoginInDto loginInDto) {
+		
+		logger.info("#saveSubscriber----find data from Secretkey based on msisdn::"+msisdn+" ::imei:: "+imei);
+		// check secretkeys
+		BaseDao<Secretkey> secretkeyDao = new BaseDao(sessionFactoryDef, Secretkey.class);
+		List<Secretkey> secretkeys = secretkeyDao.find("msisdn = :msisdn AND imei = :imei",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", msisdn);
+						put("imei", imei);
+					}
+				});
+
+		// only save when not found, save secretkey to new table (secretkey)
+		if (secretkeys.isEmpty()) {
+			Secretkey secretkey = new Secretkey();
+
+			secretkey.setActive(1l);
+			secretkey.setMsisdn(msisdn);
+			secretkey.setImei(imei);
+			secretkey.setActiveDate(new Timestamp(new Date().getTime()));
+			secretkey.setSecretkey(encrypt(msisdn) + "" + new Subscriber().generateSecret());
+			secretkeyDao.save(secretkey);
+
+			// save to DWH_UNIQUE_MSISDN_DEVICE
+			dwhUniqueMsisdnDeviceService.save(new DwhUniqueMsisdnDevice(loginInDto.getMsisdn(), "ANDROIDV2",
+					loginInDto.getDeviceManufacture(), loginInDto.getDeviceModel(), loginInDto.getDeviceOs()));
+		} else {
+			// insert new secretkey
+			Secretkey secretkey = new Secretkey();
+			secretkey.setActiveDate(new Timestamp(new Date().getTime()));
+			secretkey.setSecretkey(encrypt(msisdn) + "" + new Subscriber().generateSecret());
+			secretkey.setActive(1l);
+			secretkey.setMsisdn(msisdn);
+			secretkey.setImei(imei);
+
+			secretkeyDao.save(secretkey);
+		}
+		logger.info("#saveSubscriber--save Secretkey data");
+
+		return true;
+	}
+
+	private LoginOutDto validateSubscriber(String imsi, String msisdn, String imei, LoginInDto loginInDto) {
+		return validateSubscriber(imsi, msisdn, imei, true, loginInDto);
+	}
+
+	private LoginOutDto validateSubscriber(String imsi, String msisdn, String imei, boolean isGetProfile,
+			LoginInDto loginInDto) {
+		logger.info("#validateSubscriber--------msisdn ---------" + msisdn);
+		LoginOutDto loginOutDto = new LoginOutDto();
+		BaseDao<Subscriber> subscriberDao = new BaseDao(sessionFactoryDef, Subscriber.class);
+
+		/*
+		 * List<SubscriberOTP> listExp = subscriberOTPDao.
+		 * find("msisdn = :msisdn and otp = :otp and isActive = 1 and expiredAt > :now "
+		 * , new HashMap<String, Object>() { { put("msisdn", msisdn); put("otp",
+		 * otp); put("now", new Date()); } });
+		 */
+
+		List<Subscriber> subscribers = null;
+		if (imsi != null || msisdn != null) {
+			if (msisdn == null) {
+				/*
+				 * subscribers = subscriberDao.listData(subscriberDao.
+				 * getFindQuery("subscriberImsi = :imsi").setString("imsi",
+				 * imsi));
+				 */
+				logger.info("#validateSubscriber--------getting from Subscriber based on imsi::::::",imsi); 
+				subscribers = subscriberDao.find("subscriberImsi = :imsi", new HashMap<String, Object>() {
+					{
+						put("imsi", imsi);
+					}
+				});
+			} else {
+				try {
+					logger.info("#validateSubscriber--------getting from Subscriber based on msisdn::::::",msisdn); 
+					/*
+					 * subscribers = subscriberDao.listData(subscriberDao.
+					 * getFindQuery("subscriberMsisdn = :msisdn").setString(
+					 * "msisdn", msisdn));
+					 */
+					
+					subscribers = subscriberDao.find("subscriberMsisdn = :msisdn", new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+				} catch (Exception e) {
+					// TODO: handle exception
+					e.printStackTrace();
+				}
+			}
+			if (subscribers.size() > 0) {
+				Subscriber subscriber = subscribers.get(0);
+				loginOutDto.setMsisdn(subscriber.getSubscriberMsisdn());
+				loginOutDto.setLanguage(subscriber.getSubscriberLangCode());
+				loginOutDto.setStatus(true);
+				loginOutDto.setSubscriberType(subscriber.getSubscriberType());
+				logger.info("#validateSubscriber--------getting from Secretkey based on msisdn::::::"+msisdn+" ::: imei::::"+imei);
+				BaseDao<Secretkey> secretkeyDao = new BaseDao(sessionFactoryDef, Secretkey.class);
+				List<Secretkey> secretkeys = secretkeyDao.find("msisdn = :msisdn AND imei = :imei",
+						new HashMap<String, Object>() {
+							{
+								put("msisdn", msisdn);
+								put("imei", imei);
+							}
+						});
+
+				String secretkeyString = encrypt(msisdn) + "" + new Subscriber().generateSecret();
+				if (secretkeys.isEmpty()) { // if new
+					// new secretkey = new devices
+					Secretkey secretkey = new Secretkey();
+					secretkey.setActive(1l);
+					secretkey.setMsisdn(subscriber.getSubscriberMsisdn());
+					secretkey.setImei(imei);
+					secretkey.setActiveDate(new Timestamp(System.currentTimeMillis()));
+					secretkey.setSecretkey(secretkeyString);
+					secretkeyDao.save(secretkey);
+					logger.info("#validateSubscriber--------Secretkey data saved");
+					
+
+					// save to DWH_UNIQUE_MSISDN_DEVICE
+					dwhUniqueMsisdnDeviceService.save(new DwhUniqueMsisdnDevice(loginInDto.getMsisdn(), "ANDROIDV2",
+							loginInDto.getDeviceManufacture(), loginInDto.getDeviceModel(), loginInDto.getDeviceOs()));
+					logger.info("#validateSubscriber--------DwhUniqueMsisdnDevice data updated");
+				} else { // if already registered, update using new secretkey
+					Secretkey secretkey = secretkeys.get(0);
+					secretkey.setSecretkey(secretkeyString);
+					secretkeyDao.update(secretkey);
+					logger.info("#validateSubscriber--------Secretkey data updated");
+				}
+
+				loginOutDto.setSecretKey(secretkeyString);
+			} else {
+				//added language as parameter by siddhesh on 26-12-2019
+				Subscriber subscriber = getSubscriberDetails(msisdn, imsi, loginInDto.getLanguage());
+				/* Subscriber subscriber = getCrmData(msisdn, imsi); */
+
+				if (subscriber != null) {
+					// new secretkey = new devices
+					Secretkey secretkey = new Secretkey();
+					secretkey.setActive(1l);
+					secretkey.setMsisdn(subscriber.getSubscriberMsisdn());
+					secretkey.setImei(imei);
+					secretkey.setActiveDate(new Timestamp(System.currentTimeMillis()));
+					secretkey.setSecretkey(encrypt(msisdn));
+					secretkeyDao.save(secretkey);
+					logger.info("#validateSubscriber--------Secretkey data saved");
+
+					// subscriber found
+					loginOutDto.setStatus(true);
+					loginOutDto.setMsisdn(subscriber.getSubscriberMsisdn());
+					loginOutDto.setSubscriberType(subscriber.getSubscriberType());
+					loginOutDto.setLanguage(subscriber.getSubscriberLangCode());
+					loginOutDto.setSecretKey(encrypt(msisdn));
+
+				} else {
+					// subscriber not-found
+					loginOutDto.setStatus(false);
+				}
+
+			}
+
+			if (loginOutDto.getStatus() && isGetProfile) {
+				// define this is Prepaid - Original/Hybrid
+				// now depend on CRM if this is hybrid
+
+				// get additional data (call_plan, flash_profile_background)
+				ProfileDto profileDto = profileService.getProfile(loginOutDto.getMsisdn(),
+						loginOutDto.getSubscriberType(), loginOutDto.getLanguage(),
+						moduleTransactionIDGenerator.generate(Module.LOGIN), sessionFactoryDef);
+				if (profileDto.getStatus()) {
+					logger.info("#-------profile dto balence " + profileDto.getBalance());
+					loginOutDto.setBalance(profileDto.getBalance());
+					loginOutDto.setCreditLimit(profileDto.getCreditLimit());
+					loginOutDto.setCallPlan(profileDto.getCallPlan());
+					loginOutDto.setProfileColor(profileDto.getProfileColor());
+					loginOutDto.setProfileTime(profileDto.getProfileTime());
+
+					// save to user_callplan, for callplan query per-user,
+					// edw - 20171013
+					BaseDao<UserCallplan> userCallplanDao = new BaseDao<>(sessionFactoryDef, UserCallplan.class);
+					UserCallplan userCallplan = new UserCallplan();
+					userCallplan.setCallplan(profileDto.getCallPlan());
+					userCallplan.setMsisdn(loginOutDto.getMsisdn());
+					userCallplan.setTrxDate(new Date());
+					userCallplanDao.saveOrUpdate(userCallplan);
+
+					// ###############RAJAt Changes ##########################
+
+					dwhUniqueMsisdnDeviceService.save(new DwhUniqueMsisdnDevice(loginInDto.getMsisdn(), "ANDROIDV2",
+							loginInDto.getDeviceManufacture(), loginInDto.getDeviceModel(), loginInDto.getDeviceOs()));
+
+				} else {
+					loginOutDto.setStatus(false);
+				}
+
+				// DWH, DwhStatsSubDetailDevice
+				if (loginOutDto.getStatus()) {
+					if (loginInDto.getDeviceModel() == null) {
+						loginInDto.setDeviceModel("Android");
+					}
+
+					int android = loginInDto.getDeviceModel().equals("iPhone") ? 0 : 1;
+					int ios = loginInDto.getDeviceModel().equals("iPhone") ? 1 : 0;
+					dwhStatsSubDetailDeviceService.saveOrUpdate(DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH),
+							android, ios);
+				}
+
+			}
+		}
+		return loginOutDto.getStatus() ? loginOutDto : null;
+	}
+
+	private String sendOtp(String msisdn, String otp) {
+		String responseCode = "-1";
+		try {
+			logger.info("#sendOtp-------msisdn::: " + msisdn+" :::: otp==="+otp);
+			// msisdn = AppUtils.prependCountryCodeToMsisdn(msisdn,
+			// AppDefaultValues.COUNTRY_CODE);
+			responseCode = smppService.sendSms(msisdn, otp);
+			/*
+			 * GenricTIBODPservicesStub.SendOTPRequest payload = new
+			 * GenricTIBODPservicesStub.SendOTPRequest();
+			 * payload.setMSISDN(msisdn); payload.setOTP(otp);
+			 * 
+			 * GenricTIBODPservicesStub tibco = new
+			 * GenricTIBODPservicesStub(Constants.
+			 * TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+			 * GenricTIBODPservicesStub.SendOTPResponse response =
+			 * tibco.sendOTP(payload);
+			 */
+			// responseCode = response.getResponseCode();
+			// logger.info("GenricTIBODPservicesStub.SendOTPResponse: " +
+			// response.getResponseCode() + " - " +
+			// response.getResponseDescription());
+		} catch (Exception e) {
+			logger.error("ERROR sendOtp", e);
+		}
+        logger.info("#sendOtp----------response code after sending message is::::::::", responseCode);
+		return responseCode;
+
+	}
+
+	@Override
+	public Map<String, Object> logout(LoginInDto loginInDto) {
+		logger.info("#logout----------getting data from SecretKey based on msisdn:::: "+loginInDto.getMsisdn()+" ::::secretkey::::  "+loginInDto.getSecretKey());
+		List<Secretkey> secretkeys = secretkeyDao.find("msisdn = :msisdn AND secretkey = :secretkey",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", loginInDto.getMsisdn());
+						put("secretkey", loginInDto.getSecretKey());
+					}
+				});
+
+		if (secretkeys.isEmpty()) {
+			// do nothing, what is the purpose for the request if nothing is
+			// there
+		} else {
+			// secretkeyDao.delete(secretkeys.get(0));
+		}
+
+		return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+	}
+
+	private String encrypt(String msisdn) {
+		// encrypt
+		try {
+			Cipher cipher = Cipher.getInstance("AES");
+			Key aesKey = new SecretKeySpec(Constants.AES_PARAM.getBytes(), "AES");
+			cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+			byte[] encrypted = cipher.doFinal(msisdn.getBytes());
+			String encrypt = Base64.getEncoder().encodeToString(encrypted);
+
+			return encrypt;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+		return "";
+	}
+
+	private void dummyMsisdn(LoginInDto loginInDto) {
+		BaseDao<RptDummyMsisdn> baseDao = new BaseDao<>(sessionFactoryDef, RptDummyMsisdn.class);
+		long size = baseDao.count();
+
+		RptDummyMsisdn rptDummyMsisdn = new RptDummyMsisdn();
+		rptDummyMsisdn.setCreatedAt(new Date());
+		rptDummyMsisdn.setDeviceModel(loginInDto.getDeviceModel());
+		rptDummyMsisdn.setDeviceOs(loginInDto.getDeviceOs());
+		rptDummyMsisdn
+				.setSubscriberMsisdn("628" + new SimpleDateFormat("yyMMdd").format(new Date()) + leftPadding(size));
+		rptDummyMsisdn.setSubscriberType(null);
+		baseDao.save(rptDummyMsisdn);
+	}
+
+	private String leftPadding(long size) {
+		String now = "" + (++size);
+		while (now.length() < 9) {
+			now = "0" + now;
+		}
+		return now;
+	}
+
+	/**
+	 * This method used when user register
+	 * 
+	 * @param msisdn
+	 * @param imsi
+	 */
+	public Subscriber getSubscriberDetails(String msisdn, String imsi, String language) {
+		Subscriber subscriber = new Subscriber();
+		try {
+			if (msisdn != null) {
+				logger.info("#getSubscriberDetails-----------msisdn is " + msisdn);
+				/*
+				 * String subscriberId =
+				 * AppUtils.prependCountryCodeToMsisdn(msisdn,
+				 * AppDefaultValues.COUNTRY_CODE);
+				 */
+				/* System.out.println("Subcscriber Id Is"+subscriberId); */
+				SubscriberInfoFromTibco subscriberInfoFromTibco = tibcoService.getSubscriberInfoFromDownSystem(msisdn,
+						"");
+				BaseDao<Subscriber> subscriberDao = new BaseDao(sessionFactoryDef, Subscriber.class);
+              System.out.println("Status Code ::::"+subscriberInfoFromTibco.getStatus_Code());
+				if ((subscriberInfoFromTibco != null)
+						&& (subscriberInfoFromTibco.getStatus_Code().trim().equalsIgnoreCase("00000"))) {
+
+					subscriber.setSubscriberMsisdn(msisdn); // ov_msisdn
+					//added by siddhesh on 26-12-2019
+					subscriber.setSubscriberLangCode(language);
+					//subscriber.setSubscriberLangCode(Constants.LANG_ID); // ov_subs_language
+					subscriber.setSubscriberType(subscriberInfoFromTibco.getSIM_TYPE()); // ov_subs_type
+					subscriber.setSubscriberStatus("-");
+					subscriber.setSubscriberImei("-");
+					subscriber.setSubscriberGcmId("-");
+					subscriber.setSubscriberApnId("-");
+					if (imsi == null || imsi.isEmpty()) {
+						subscriber.setSubscriberImsi("-");
+					} else {
+						subscriber.setSubscriberImsi(imsi);
+					}
+					// fak
+					subscriber.setSubscriberPassword(encrypt(msisdn));
+					boolean result = subscriberDao.saveOrUpdate(subscriber);
+					if (!result) {
+						logger.error("Failed save subscriber");
+						return null;
+					}
+					/*
+					 * account.setType(postpaid ? SubscriberType.POSTPAID :
+					 * SubscriberType.PREPAID);
+					 * 
+					 * coreBalance =
+					 * Integer.parseInt(sqr.getMAINACCOUNTBALANCE());
+					 */
+				} else {
+					return null;
+				}
+			} else {
+				return null;
+			}
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error(e.getMessage(), e);
+		}
+		return subscriber;
+	}
+
+	/**
+	 * Comment on 11-02-2019
+	 */
+	public Subscriber getCrmData(String msisdn, String imsi) {
+		
+		logger.info("#getCrmData--------msisdn:::"+msisdn+"  :::::imsi::::::::  "+imsi);
+		// make sure start with 62
+		if (msisdn != null && msisdn.startsWith("0")) {
+			msisdn = String.format("62%s", msisdn.substring(1));
+		}
+
+		Subscriber subscriber = new Subscriber();
+		BaseDao<Subscriber> subscriberDao = new BaseDao(sessionFactoryDef, Subscriber.class);
+
+		String statusCode = "00003";
+		String transactionId = "";
+		String statusDesc = "";
+		Connection connection = null;
+		SessionImpl openSession = null;
+		try {
+			openSession = (SessionImpl) sessionFactoryApi.openSession();
+			connection = openSession.connection();
+
+			CallableStatement callableStatement = connection
+					.prepareCall("{call INTERFACES.IVR_INTERFACES.getsubtypeldetails(?,?,?,?,?,?,?,?,?)}");
+			callableStatement.setString(1, moduleTransactionIDGenerator.generate(Module.LOGIN));
+			callableStatement.setString(2, msisdn);
+			callableStatement.setString(3, imsi);
+			callableStatement.registerOutParameter(4, java.sql.Types.VARCHAR);
+			callableStatement.registerOutParameter(5, java.sql.Types.VARCHAR);
+			callableStatement.registerOutParameter(6, java.sql.Types.VARCHAR);
+			callableStatement.registerOutParameter(7, java.sql.Types.VARCHAR);
+			callableStatement.registerOutParameter(8, java.sql.Types.VARCHAR);
+			callableStatement.registerOutParameter(9, java.sql.Types.VARCHAR);
+			callableStatement.executeQuery();
+
+			transactionId = callableStatement.getString(7); // ov_transaction_id
+			statusCode = callableStatement.getString(8); // ov_status_code
+			statusDesc = callableStatement.getString(9); // ov_status_desc
+			if (statusCode.equals("00000")) {
+				subscriber.setSubscriberMsisdn(callableStatement.getString(4)); // ov_msisdn
+				subscriber.setSubscriberLangCode(callableStatement.getString(6)); // ov_subs_language
+				subscriber.setSubscriberType(callableStatement.getString(5)); // ov_subs_type
+				subscriber.setSubscriberStatus("-");
+				subscriber.setSubscriberImei("-");
+				subscriber.setSubscriberGcmId("-");
+				subscriber.setSubscriberApnId("-");
+				if (imsi == null || imsi.isEmpty()) {
+					subscriber.setSubscriberImsi("-");
+				} else {
+					subscriber.setSubscriberImsi(imsi);
+				}
+				// fak
+				subscriber.setSubscriberPassword(encrypt(msisdn));
+				boolean result = subscriberDao.saveOrUpdate(subscriber);
+				if (!result) {
+					logger.error("Failed save subscriber");
+					return null;
+				}
+			} else {
+				return null;
+			}
+
+			return subscriber;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return null;
+		} finally {
+			if (connection != null) {
+				try {
+					connection.close();
+				} catch (Exception exc) {
+					logger.error(exc.getMessage(), exc);
+				}
+			}
+			if (openSession != null) {
+				try {
+					openSession.close();
+				} catch (Exception exc) {
+					logger.error(exc.getMessage(), exc);
+				}
+			}
+		}
+	}
+
+	@Override
+	public Map<String, Object> loginWithSocial(SocialLoginRequestDto loginInDto) {
+
+		logger.info("#loginWithSocial--------imei::::msisdn-----"+loginInDto.getImei()+":::"+loginInDto.getMsisdn());
+		if (!allowSocialLogin())
+			return JSONResultFilter
+					.filter(new ErrorMessageDto(false, notificationMasterService
+							.getMessageText(Languages.MSG_IDS.ALLOW_SOCIAL_LOGIN_FAIL, loginInDto.getLanguage())))
+					.all().build();
+		if (secureSocialLogin()) {
+			if (!enc.decryptLogin(loginInDto.getS_()))
+				return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		String loginType = loginInDto.getType();
+		logger.info("#loginWithSocial------------login type" + loginType);
+		if (loginType == null)
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+
+		loginType = loginType.substring(0, 1).toUpperCase() + loginType.substring(1).toLowerCase();
+
+		String loginMsg = notificationMasterService
+				.getMessageText(Languages.MSG_IDS.SOCIAL_LOGIN_FAIL, loginInDto.getLanguage())
+				.replaceFirst("#TYPE", loginType);
+		String missingMsisdnMsg = notificationMasterService
+				.getMessageText(Languages.MSG_IDS.SOCIAL_LOGIN_FAIL, loginInDto.getLanguage())
+				.replaceFirst("#TYPE", loginType);
+
+		if (loginInDto.getToken().equals("") || loginInDto.getType().equals("")) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, loginMsg)).all().build();
+		}
+
+		Map resData = null;
+		Map param = new HashMap<String, Object>() {
+			{
+				put("token", loginInDto.getToken());
+				put("socialProfileId", "");
+			}
+		};
+
+		switch (loginInDto.getType()) {
+		case "google":
+			// resData = GO_APP.loadUserDetails(loginInDto.getToken());
+			if (loginInDto.getUserId() != null) {
+				Map param1 = new HashMap<String, Object>() {
+					{
+					}
+				};
+				param1.put("socialProfileId", loginInDto.getUserId());
+				logger.info("#loginWithSocial-----------User Id is:: " + loginInDto.getUserId());
+				BaseDao<SubscriberEmailLogin> subscriberEmailLoginDao = new BaseDao(sessionFactoryDef,
+						SubscriberEmailLogin.class);
+				List<SubscriberEmailLogin> subscriberEmailLogin = subscriberEmailLoginDao
+						.find("socialProfileId = :socialProfileId AND status = 1", param1);
+				if (!subscriberEmailLogin.isEmpty()) {
+					LoginOutDto result = validateSubscriber(null, subscriberEmailLogin.get(0).getMsisdn(),
+							loginInDto.getImei(), loginInDto);
+					return JSONResultFilter.filter(result).all().build();
+				} else {
+					return JSONResultFilter.filter(new ErrorMessageDto(false, missingMsisdnMsg)).all().build();
+				}
+			} else {
+				resData.put("status", false);
+			}
+
+			break;
+		case "twitter":
+			resData = TW_APP.loadUserDetails(loginInDto.getToken(), loginInDto.getTokenSecret());
+			param.put("socialProfileId", resData.get("id").toString());
+			break;
+		case "facebook":
+			resData = FB_APP.loadUserDetails(loginInDto.getToken());
+			param.put("socialProfileId", resData.get("id"));
+			break;
+		default:
+			logger.warn("loginWithSocial: MALICIOUS REQUEST on " + loginInDto.getMsisdn() + " at "
+					+ new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		if (resData.get("status").equals(true)) {
+			BaseDao<SubscriberEmailLogin> subscriberEmailLoginDao = new BaseDao(sessionFactoryDef,
+					SubscriberEmailLogin.class);
+			List<SubscriberEmailLogin> subscriberEmailLogin = subscriberEmailLoginDao
+					.find("(token = :token OR socialProfileId = :socialProfileId) AND status = 1", param);
+			if (!subscriberEmailLogin.isEmpty()) {
+				LoginOutDto result = validateSubscriber(null, subscriberEmailLogin.get(0).getMsisdn(),
+						loginInDto.getImei(), loginInDto);
+				return JSONResultFilter.filter(result).all().build();
+			} else {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, missingMsisdnMsg)).all().build();
+			}
+		}
+
+		return JSONResultFilter.filter(new ErrorMessageDto(false, loginMsg)).all().build();
+	}
+
+	@Cacheable(value = "cache1Hour", key = "#root.methodName.toString()")
+	public boolean allowSocialLogin() {
+		
+		logger.info("#allowSocialLogin-------find data from parameter based on key--");
+		BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+		List<Parameter> results = parameterDao.find("key = :key", new HashMap<String, Object>() {
+			{
+				put("key", "ALLOW_SOCIAL_LOGIN");
+			}
+		});
+		if (results.size() > 0) {
+			Parameter result = results.get(0);
+			if (result.getValue().equals("0"))
+				return false;
+		}
+		return true;
+	}
+
+	@Cacheable(value = "cache1Hour", key = "#root.methodName.toString()")
+	public boolean secureSocialLogin() {
+		logger.info("#secureSocialLogin-------find data from parameter based on key--");
+		BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+		List<Parameter> results = parameterDao.find("key = :key", new HashMap<String, Object>() {
+			{
+				put("key", "SECURE_SOCIAL_LOGIN");
+			}
+		});
+		if (results.size() > 0) {
+			Parameter result = results.get(0);
+			if (result.getValue().equals("1"))
+				return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Map<String, Object> loginWithEmail(EmailLoginRequestDto loginInDto) {
+		logger.info(" #loginWithEmail------request parameter----email is:::",loginInDto.getEmail());
+		try {
+			if (!allowSocialLogin())
+				return JSONResultFilter
+						.filter(new ErrorMessageDto(false, notificationMasterService
+								.getMessageText(Languages.MSG_IDS.ALLOW_SOCIAL_LOGIN_FAIL, loginInDto.getLanguage())))
+						.all().build();
+
+			if (loginInDto.getEmail().equals("") || loginInDto.getPassword().equals("")) {
+				return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+			}
+			if (secureSocialLogin()) {
+				if (!enc.decryptLogin(loginInDto.getS_()))
+					return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+			}
+			BaseDao<SubscriberEmailLogin> subscriberEmailLoginDao = new BaseDao(sessionFactoryDef,
+					SubscriberEmailLogin.class);
+			List<SubscriberEmailLogin> subscriberEmailLogin = subscriberEmailLoginDao
+					.find("email = :email and password=:password1  AND status = 1", new HashMap<String, Object>() {
+						{
+							put("email", loginInDto.getEmail());
+							put("password1", BCrypt.hashpw(loginInDto.getPassword(), Constants.BCRYPT_SALT));
+						}
+					});
+
+			if (subscriberEmailLogin.size() > 0) {
+				LoginOutDto result = validateSubscriber(null, subscriberEmailLogin.get(0).getMsisdn(),
+						loginInDto.getImei(), loginInDto);
+				return JSONResultFilter.filter(result).all().build();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		String loginMsg = notificationMasterService.getMessageText(Languages.MSG_IDS.EMAIL_LOGIN_FAIL,
+				loginInDto.getLanguage());
+		return JSONResultFilter.filter(new ErrorMessageDto(false, loginMsg)).all().build();
+	}
+	@Override
+	public boolean saveLoginDetails(LoginHistoryEntity loginHistory)
+	{
+		try
+		{
+			logger.info("In LoginServiceImpl method saveLoginDetails  ");
+			
+			BaseDao<LoginHistoryEntity> loginHistoryDAO = new BaseDao<>(sessionFactoryDef, LoginHistoryEntity.class);
+			loginHistoryDAO.save(loginHistory);
+		}
+		catch (Exception e) {
+			// TODO: handle exception
+			logger.error("In LoginServiceImpl method saveLoginDetails  ",e.getMessage());
+		}
+		return false;
+	}
+
+	@Override
+	public Map<String, Object> isValidNumber(LoginInDto loginInDto) {
+		// TODO Auto-generated method stub
+		boolean isvalidnumber=tibcoService.isValidnumber(loginInDto.getMsisdn());
+		if(isvalidnumber)
+		{
+			return JSONResultFilter.filter(new ErrorMessageDto(true,
+					notificationMasterService.getMessageText(Languages.MSG_IDS.VALID_MSISDN, loginInDto.getLanguage())))
+					.all().build();
+			
+		}
+		else
+		{
+			return JSONResultFilter.filter(new ErrorMessageDto(false,
+					notificationMasterService.getMessageText(Languages.MSG_IDS.NOT_VALID_MSISDN, loginInDto.getLanguage())))
+					.all().build();
+		}
+	
+	}
+
+}

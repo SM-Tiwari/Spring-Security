@@ -1,0 +1,122 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Time;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 7/5/17.
+ */
+@Entity
+@Table(name = "THEME")
+public class Theme {
+
+    private Long themeId;
+    private String themeName;
+    private String themePlace;
+    private String themeImages;
+    private Byte themeStatus;
+    private Time createdAt;
+    private Timestamp updatedAt;
+
+
+    @Id
+    @Column(name = "THEME_ID", nullable = true, precision = 0)
+    public Long getThemeId() {
+        return themeId;
+    }
+
+    public void setThemeId(Long themeId) {
+        this.themeId = themeId;
+    }
+
+    @Basic
+    @Column(name = "THEME_NAME", nullable = true, length = 300)
+    public String getThemeName() {
+        return themeName;
+    }
+
+    public void setThemeName(String themeName) {
+        this.themeName = themeName;
+    }
+
+    @Basic
+    @Column(name = "THEME_PLACE", nullable = true, length = 300)
+    public String getThemePlace() {
+        return themePlace;
+    }
+
+    public void setThemePlace(String themePlace) {
+        this.themePlace = themePlace;
+    }
+
+    @Basic
+    @Column(name = "THEME_IMAGES", nullable = true, length = 300)
+    public String getThemeImages() {
+        return themeImages;
+    }
+
+    public void setThemeImages(String themeImages) {
+        this.themeImages = themeImages;
+    }
+
+    @Basic
+    @Column(name = "THEME_STATUS", nullable = true, precision = 0)
+    public Byte getThemeStatus() {
+        return themeStatus;
+    }
+
+    public void setThemeStatus(Byte themeStatus) {
+        this.themeStatus = themeStatus;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = true)
+    public Time getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Time createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Theme theme = (Theme) o;
+
+        if (themeId != null ? !themeId.equals(theme.themeId) : theme.themeId != null) return false;
+        if (themeName != null ? !themeName.equals(theme.themeName) : theme.themeName != null) return false;
+        if (themePlace != null ? !themePlace.equals(theme.themePlace) : theme.themePlace != null) return false;
+        if (themeImages != null ? !themeImages.equals(theme.themeImages) : theme.themeImages != null) return false;
+        if (themeStatus != null ? !themeStatus.equals(theme.themeStatus) : theme.themeStatus != null) return false;
+        if (createdAt != null ? !createdAt.equals(theme.createdAt) : theme.createdAt != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(theme.updatedAt) : theme.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = themeId != null ? themeId.hashCode() : 0;
+        result = 31 * result + (themeName != null ? themeName.hashCode() : 0);
+        result = 31 * result + (themePlace != null ? themePlace.hashCode() : 0);
+        result = 31 * result + (themeImages != null ? themeImages.hashCode() : 0);
+        result = 31 * result + (themeStatus != null ? themeStatus.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+}

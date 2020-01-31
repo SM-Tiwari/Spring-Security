@@ -1,0 +1,35 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.ProductDetailDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 2, 2017 10:28:15 PM
+ *
+ */
+public class ProductDetailDto extends BaseRequestDto {
+
+    private String productId;
+    private String subscriberType;
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+    
+    public ProductDetailDto() {
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+}

@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by aswzen on 7/09/2018.
+ */
+public class ProfileSetEmailPasswordDto  extends BaseRequestDto{
+
+    private String password;
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}

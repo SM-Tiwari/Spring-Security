@@ -1,0 +1,18 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.DeeplinkDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.DeeplinkService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 10, 2018 2:57:56 PM
+ *
+ */
+public interface DeeplinkService {
+    public String getDeeplinkUrl(String url);
+    public Map getDeeplink(DeeplinkDto request);
+}

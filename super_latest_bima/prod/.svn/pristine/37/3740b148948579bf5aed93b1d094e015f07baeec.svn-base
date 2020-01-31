@@ -1,0 +1,61 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.service.SettingService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by rips on 4/29/17.
+ */
+@Service
+@Transactional
+public class SettingServiceImpl extends BaseService implements SettingService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(SettingServiceImpl.class);
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+
+    @Override
+    public Map changeLanguage(BaseRequestDto request) {
+    	LOGGER.info("#changeLanguage----------msisdn:::"+request.getMsisdn()+"   ------language code:::"+request.getLanguage());
+        if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        /*change msisdn by Vimal*/
+    	if(request.getMsisdn()!= null){
+    	String msisdn = AppUtils.removeCountryCode(request.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+    	request.setMsisdn(msisdn);
+    	}
+        
+        BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+        List<Subscriber> results = subscriberDao.find("subscriberMsisdn = :msisdn ", new HashMap<String, Object>() {{
+            put("msisdn", request.getMsisdn());
+        }});
+        if(results.size() > 0){
+            results.get(0).setSubscriberLangCode(request.getLanguage());
+            
+            return JSONResultFilter.filter(new BoolStatusOutDto(subscriberDao.update(results.get(0)))).all().build();
+        }
+        return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+    }
+}

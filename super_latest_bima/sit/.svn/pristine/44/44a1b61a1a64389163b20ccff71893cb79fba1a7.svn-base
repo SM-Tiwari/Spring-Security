@@ -1,0 +1,204 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "DISCOUNT")
+@SequenceGenerator(name = "DISCOUNT_ID", sequenceName = "SEQ_DISCOUNT", allocationSize = 1)
+public class DiscountTopupEntity {
+
+	/**
+	* 
+	*/
+	private static final long serialVersionUID = -3795823603035656659L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DISCOUNT_ID")
+//	@SequenceGenerator(name = "user_generator", sequenceName = "discounttopup_seq", allocationSize = 1)
+
+	@Column(name = "DISCOUNT_ID")
+	Integer discounttopupId;
+
+	@Column(name = "AMOUNT", unique = true)
+	String rechageAmount;
+
+	@Column(name = "DISCOUNT")
+	String rechageDiscount;
+
+	@Column(name = "CREATED_AT")
+	Date discountCreateTime;
+
+	@Column(name = "CREATED_BY")
+	String discountCreatedBy;
+
+	public String getDiscountNameID() {
+		return discountNameID;
+	}
+
+	public void setDiscountNameID(String discountNameID) {
+		this.discountNameID = discountNameID;
+	}
+
+	public String getDiscountDescVI() {
+		return discountDescVI;
+	}
+
+	public void setDiscountDescVI(String discountDescVI) {
+		this.discountDescVI = discountDescVI;
+	}
+
+	@Column(name = "DISCOUNT_NAME_EN")
+	String discountNameEN;
+	
+	@Column(name = "DISCOUNT_NAME_ID")
+	String discountNameID;
+
+	@Column(name = "DISCOUNT_DESCRIPTION_ID")
+	String discountDescVI;
+
+	@Column(name = "STATUS")
+	Integer discountStatus;
+
+	@Column(name = "DISCOUNT_DESCRIPTION_EN")
+	String discountDescEN;
+
+	@Column(name = "UPDATED_BY")
+	String discountModifiedBy;
+
+	@Column(name = "UPDATED_AT")
+	Date discountLastModifiedTime;
+
+	@Column(name = "VALID_FROM")
+	Date discountValidFromDate;
+
+	@Column(name = "VALID_TO")
+	Date discountValidToDate;
+
+	@Column(name = "SUBSCRIBER_TYPE")
+	String type;
+
+	public Integer getDiscounttopupId() {
+		return discounttopupId;
+	}
+
+	public void setDiscounttopupId(Integer discounttopupId) {
+		this.discounttopupId = discounttopupId;
+	}
+
+	public String getRechageAmount() {
+		return rechageAmount;
+	}
+
+	public void setRechageAmount(String rechageAmount) {
+		this.rechageAmount = rechageAmount;
+	}
+
+	public String getRechageDiscount() {
+		return rechageDiscount;
+	}
+
+	public void setRechageDiscount(String rechageDiscount) {
+		this.rechageDiscount = rechageDiscount;
+	}
+
+	public Date getDiscountCreateTime() {
+		return discountCreateTime;
+	}
+
+	public void setDiscountCreateTime(Date discountCreateTime) {
+		this.discountCreateTime = discountCreateTime;
+	}
+
+	public String getDiscountCreatedBy() {
+		return discountCreatedBy;
+	}
+
+	public void setDiscountCreatedBy(String discountCreatedBy) {
+		this.discountCreatedBy = discountCreatedBy;
+	}
+
+
+
+	public String getDiscountNameEN() {
+		return discountNameEN;
+	}
+
+	public void setDiscountNameEN(String discountNameEN) {
+		this.discountNameEN = discountNameEN;
+	}
+
+	public String getDiscountNameVI() {
+		return discountDescVI;
+	}
+
+	public void setDiscountNameVI(String discountNameVI) {
+		this.discountDescVI = discountNameVI;
+	}
+
+	public Integer getDiscountStatus() {
+		return discountStatus;
+	}
+
+	public void setDiscountStatus(Integer discountStatus) {
+		this.discountStatus = discountStatus;
+	}
+
+	public String getDiscountDescEN() {
+		return discountDescEN;
+	}
+
+	public void setDiscountDescEN(String discountDescEN) {
+		this.discountDescEN = discountDescEN;
+	}
+
+
+
+	public String getDiscountModifiedBy() {
+		return discountModifiedBy;
+	}
+
+	public void setDiscountModifiedBy(String discountModifiedBy) {
+		this.discountModifiedBy = discountModifiedBy;
+	}
+
+	public Date getDiscountLastModifiedTime() {
+		return discountLastModifiedTime;
+	}
+
+	public void setDiscountLastModifiedTime(Date discountLastModifiedTime) {
+		this.discountLastModifiedTime = discountLastModifiedTime;
+	}
+
+	public Date getDiscountValidFromDate() {
+		return discountValidFromDate;
+	}
+
+	public void setDiscountValidFromDate(Date discountValidFromDate) {
+		this.discountValidFromDate = discountValidFromDate;
+	}
+
+	public Date getDiscountValidToDate() {
+		return discountValidToDate;
+	}
+
+	public void setDiscountValidToDate(Date discountValidToDate) {
+		this.discountValidToDate = discountValidToDate;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+}

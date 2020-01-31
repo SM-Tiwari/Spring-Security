@@ -1,0 +1,132 @@
+package id.gnvsolution.d3.api.utils;
+
+import id.gnvsolution.d3.api.dto.request.LoginInDto;
+import id.gnvsolution.d3.api.model.purchasing.ClmOfferResponse;
+import id.gnvsolution.d3.api.model.purchasing.TibcoODPBonusRegRequest;
+import org.apache.commons.io.FilenameUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 06/04/2017.
+ */
+public class JSONResultFilterTest {
+    @Test
+    public void build() throws Exception {
+        LoginInDto loginInDto = new LoginInDto();
+        loginInDto.setImsi("1");
+        loginInDto.setMsisdn("2");
+        Map msisdn = JSONResultFilter.filter(loginInDto).excludes("msisdn").build();
+        System.out.println(msisdn);
+    }
+
+    @Test
+    public void testFileName(){
+        String url = "http://placehold.it/256x256";
+        String result;
+        String fileName = FilenameUtils.getBaseName(url);
+        String fullFileName = FilenameUtils.getName(url);
+        int fileNameIndex = url.indexOf(fullFileName);
+        if(fileNameIndex > -1){
+            result = String.format("%1s_selected%2s", url.substring(0, fileNameIndex + fileName.length()), url.substring(fileNameIndex + fileName.length())).trim();
+        }else{
+            result = String.format("%1s_selected", url);
+        }
+        Assert.assertEquals(result, "http://placehold.it/256x256_selected");
+        System.out.println(result);
+    }
+
+    @Test
+    public void parseClmResp(){
+        String resp = "<resp><product><offerID>S6993</offerID><interactive>Y</interactive><name>2GB 7hari (30rb) skrg 20rb</name><priority>1</priority></product><product><offerID>S6994</offerID><interactive>Y</interactive><name>5GB 7hari (50rb) skrg 35rb</name><priority>1</priority></product><product><offerID>S6995</offerID><interactive>Y</interactive><name>12GB (2GB+EXTRA KUOTA 4G 10GB) CUMA 50rb</name><priority>1</priority></product><product><offerID>S6996</offerID><interactive>Y</interactive><name>24GB (4GB+EXTRA KUOTA 4G 20GB) CUMA 90rb</name><priority>1</priority></product></resp>";
+        InputStream stream = new ByteArrayInputStream(resp.getBytes(StandardCharsets.UTF_8));
+        try {
+            ClmOfferResponse result = (ClmOfferResponse) XmlHelper.unMarshal(stream, ClmOfferResponse.class);
+            System.out.println(result);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void generateXML() {
+        JAXBContext jc = null;
+        try {
+            jc = JAXBContext.newInstance(TibcoODPBonusRegRequest.class);
+            TibcoODPBonusRegRequest weatherReport = new TibcoODPBonusRegRequest(){{
+                getBonusRequest().setTransactionId("PURC17041800005");
+                getBonusRequest().setMsisdn("628978006544");
+                getBonusRequest().setActionType("ADD");
+                getBonusRequest().setRegistrationKey("MAU 300MB");
+                getBonusRequest().setCharge("Y");
+                getBonusRequest().setHibridFlag("N");
+                getBonusRequest().setSource("ODP_GNV");
+            }};
+
+            Marshaller marshaller = jc.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.marshal(weatherReport, System.out);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
+    public void testParse() {
+        String docXml = "" +
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "    <SOAP-ENV:Body>\n" +
+                "        <ns0:sendOTPResponse xmlns:ns0=\"http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd\">\n" +
+                "            <ns0:ResponseCode>0</ns0:ResponseCode>\n" +
+                "            <ns0:ResponseDescription>Success</ns0:ResponseDescription>\n" +
+                "        </ns0:sendOTPResponse>\n" +
+                "    </SOAP-ENV:Body>\n" +
+                "</SOAP-ENV:Envelope>";
+        DocumentBuilder docBuilder = null;
+        try {
+            docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            StringWriter writer = new StringWriter();
+            Document docResult = docBuilder.parse(new ByteArrayInputStream(docXml.getBytes(StandardCharsets.UTF_8)));
+            docResult.getDocumentElement().normalize();
+            NodeList response = docResult.getElementsByTagName("ns0:ResponseCode");
+            NodeList message = docResult.getElementsByTagName("ns0:ResponseDescription");
+
+            if (response.getLength() > 0) {
+                System.out.println(String.format("Response code : %s", response.item(0).getTextContent()));
+            }
+
+            if (message.getLength() > 0) {
+                System.out.println(String.format("Response msg : %s", message.item(0).getTextContent()));
+            }
+
+            System.out.println(docResult);
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+}

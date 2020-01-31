@@ -1,0 +1,53 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.CallbackRequestDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 23, 2018 4:50:36 PM
+ *
+ */
+public class CallbackRequestDto extends BaseRequestDto {
+
+    private String msisdn;
+    private String productName;
+    private String trxType;
+    private String channel;
+
+    public CallbackRequestDto() {
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getTrxType() {
+        return trxType;
+    }
+
+    public void setTrxType(String trxType) {
+        this.trxType = trxType;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+}

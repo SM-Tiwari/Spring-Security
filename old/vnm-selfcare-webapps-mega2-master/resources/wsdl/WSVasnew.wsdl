@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://vasman.elcom.com"
+	xmlns:soapenc12="http://www.w3.org/2003/05/soap-encoding" xmlns:tns="http://vasman.elcom.com"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:soap11="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc11="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+	<wsdl:types>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			attributeFormDefault="qualified" elementFormDefault="qualified"
+			targetNamespace="http://vasman.elcom.com">
+			<xsd:complexType name="CheckAllVasStatusReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="pass" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="user" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="terminateAllVas">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:CheckAllVasStatusReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="TerminalAllVasResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="errorCode" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="errorDetail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="vasTerDetailList"
+						nillable="true" type="tns:ArrayOfTerminateDetail" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfTerminateDetail">
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0"
+						name="TerminateDetail" nillable="true" type="tns:TerminateDetail" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="TerminateDetail">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="cause" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="description" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="isdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="productId" type="xsd:long" />
+					<xsd:element minOccurs="0" name="status" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="terminateAllVasResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:TerminalAllVasResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="MemberManagementReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="NVasID" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SDescription"
+						nillable="true" type="xsd:string" />
+					<xsd:element minOccurs="0" name="action" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="members" nillable="true"
+						type="tns:ArrayOfString" />
+					<xsd:element minOccurs="0" name="pass" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="user" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfString">
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="string"
+						nillable="true" type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="MemberManagement">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:MemberManagementReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="MemberManagementResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="NVasID" type="xsd:int" />
+					<xsd:element minOccurs="0" name="errorCode" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="errorDetail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="members" nillable="true"
+						type="tns:ArrayOfString" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="MemberManagementResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:MemberManagementResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ProvisioningDynamicServiceReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="SDescription"
+						nillable="true" type="xsd:string" />
+					<xsd:element minOccurs="0" name="chargingAmount" type="xsd:double" />
+					<xsd:element minOccurs="0" name="cmdID" type="xsd:int" />
+					<xsd:element minOccurs="0" name="dataAmount" type="xsd:double" />
+					<xsd:element minOccurs="0" name="extendDate" type="xsd:long" />
+					<xsd:element minOccurs="0" name="listBalance" nillable="true"
+						type="tns:ArrayOfBalanceRequest" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="pass" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="user" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="vasID" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfBalanceRequest">
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0"
+						name="BalanceRequest" nillable="true" type="tns:BalanceRequest" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="BalanceRequest">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="balanceAmount" type="xsd:double" />
+					<xsd:element minOccurs="0" name="balanceName" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="dynamicServiceProvisioning">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:ProvisioningDynamicServiceReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ProvisioningResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="NVasID" type="xsd:int" />
+					<xsd:element minOccurs="0" name="errorCode" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="errorDetail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="dynamicServiceProvisioningResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:ProvisioningResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="CheckVasStatusReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="NVasID" type="xsd:int" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="pass" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="user" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="VasDetail">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:CheckVasStatusReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="VasDetailResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="errorCode" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="errorDetail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="vasPro" nillable="true"
+						type="tns:ArrayOfVasProductDetail" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfVasProductDetail">
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0"
+						name="vasProductDetail" nillable="true" type="tns:vasProductDetail" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="vasProductDetail">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="alias_" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="barringStatus" type="xsd:int" />
+					<xsd:element minOccurs="0" name="expirationDate" type="xsd:dateTime" />
+					<xsd:element minOccurs="0" name="isdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="productId" type="xsd:long" />
+					<xsd:element minOccurs="0" name="registerDate" type="xsd:dateTime" />
+					<xsd:element minOccurs="0" name="subscriberType" type="xsd:int" />
+					<xsd:element minOccurs="0" name="supplierStatus" type="xsd:int" />
+					<xsd:element minOccurs="0" name="termDate" type="xsd:dateTime" />
+					<xsd:element minOccurs="0" name="title" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="unregisterDate" type="xsd:dateTime" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="VasDetailResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:VasDetailResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ProvisioningCampaignReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="NCmdID" type="xsd:int" />
+					<xsd:element minOccurs="0" name="NVasID" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SDescription"
+						nillable="true" type="xsd:string" />
+					<xsd:element minOccurs="0" name="mdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="nCampaignId" type="xsd:long" />
+					<xsd:element minOccurs="0" name="pass" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="user" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="ProvisioningWithCampaign">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:ProvisioningCampaignReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="ProvisioningWithCampaignResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:ProvisioningResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="VasDetailResponse">
+		<wsdl:part name="parameters" element="tns:VasDetailResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="MemberManagementRequest">
+		<wsdl:part name="parameters" element="tns:MemberManagement">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="dynamicServiceProvisioningResponse">
+		<wsdl:part name="parameters" element="tns:dynamicServiceProvisioningResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ProvisioningWithCampaignResponse">
+		<wsdl:part name="parameters" element="tns:ProvisioningWithCampaignResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="MemberManagementResponse">
+		<wsdl:part name="parameters" element="tns:MemberManagementResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="terminateAllVasResponse">
+		<wsdl:part name="parameters" element="tns:terminateAllVasResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="VasDetailRequest">
+		<wsdl:part name="parameters" element="tns:VasDetail">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="dynamicServiceProvisioningRequest">
+		<wsdl:part name="parameters" element="tns:dynamicServiceProvisioning">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ProvisioningWithCampaignRequest">
+		<wsdl:part name="parameters" element="tns:ProvisioningWithCampaign">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="terminateAllVasRequest">
+		<wsdl:part name="parameters" element="tns:terminateAllVas">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:portType name="WSVasnewPortType">
+		<wsdl:operation name="terminateAllVas">
+			<wsdl:input name="terminateAllVasRequest" message="tns:terminateAllVasRequest">
+			</wsdl:input>
+			<wsdl:output name="terminateAllVasResponse" message="tns:terminateAllVasResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="MemberManagement">
+			<wsdl:input name="MemberManagementRequest" message="tns:MemberManagementRequest">
+			</wsdl:input>
+			<wsdl:output name="MemberManagementResponse" message="tns:MemberManagementResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="dynamicServiceProvisioning">
+			<wsdl:input name="dynamicServiceProvisioningRequest"
+				message="tns:dynamicServiceProvisioningRequest">
+			</wsdl:input>
+			<wsdl:output name="dynamicServiceProvisioningResponse"
+				message="tns:dynamicServiceProvisioningResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="VasDetail">
+			<wsdl:input name="VasDetailRequest" message="tns:VasDetailRequest">
+			</wsdl:input>
+			<wsdl:output name="VasDetailResponse" message="tns:VasDetailResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ProvisioningWithCampaign">
+			<wsdl:input name="ProvisioningWithCampaignRequest"
+				message="tns:ProvisioningWithCampaignRequest">
+			</wsdl:input>
+			<wsdl:output name="ProvisioningWithCampaignResponse"
+				message="tns:ProvisioningWithCampaignResponse">
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="WSVasnewHttpBinding" type="tns:WSVasnewPortType">
+		<wsdlsoap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="terminateAllVas">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="terminateAllVasRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="terminateAllVasResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="MemberManagement">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="MemberManagementRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="MemberManagementResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="dynamicServiceProvisioning">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="dynamicServiceProvisioningRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="dynamicServiceProvisioningResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="VasDetail">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="VasDetailRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="VasDetailResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ProvisioningWithCampaign">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="ProvisioningWithCampaignRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="ProvisioningWithCampaignResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="WSVasnew">
+		<wsdl:port name="WSVasnewHttpPort" binding="tns:WSVasnewHttpBinding">
+			<wsdlsoap:address location="http://10.8.11.211:8080/WSVasnew/services/WSVasnew" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

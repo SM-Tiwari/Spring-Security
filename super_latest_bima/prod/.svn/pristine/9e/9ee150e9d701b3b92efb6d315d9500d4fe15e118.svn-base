@@ -1,0 +1,43 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+
+@Embeddable
+public class NotificationMasterId implements Serializable {
+
+	private Integer messageId;
+	private Integer languageId;
+	
+	public NotificationMasterId() {
+		
+	}
+	
+	public NotificationMasterId(Integer messageId, Integer languageId) {
+		this.messageId = messageId;
+		this.languageId = languageId;
+	}
+
+	@Basic
+    @Column(name = "MESSAGE_ID", nullable = false)
+	public Integer getMessageId() {
+		return messageId;
+	}
+
+	public void setMessageId(Integer messageId) {
+		this.messageId = messageId;
+	}
+	
+	@Basic
+	@Column(name = "LANGUAGE_ID", nullable = false)
+	public Integer getLanguageId() {
+		return languageId;
+	}
+
+	public void setLanguageId(Integer languageId) {
+		this.languageId = languageId;
+	}
+}

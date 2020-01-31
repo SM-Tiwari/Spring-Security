@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="id.gnvsolution.d3.api.security.securityutil.AuthConstants"/>
+<fullyQualifiedTypeName name="org.springframework.web.bind.annotation.PathVariable"/>
+<fullyQualifiedTypeName name="java.util.Base64"/>
+<fullyQualifiedTypeName name="id.gnvsolution.d3.api.helper.enums.AppUtils"/>
+<fullyQualifiedTypeName name="com.gnv.vnm.selfcare.core.AppDefaultValues"/>
+<fullyQualifiedTypeName name="com.gnv.vnm.selfcare.core.enums.DataStatus"/>
+<fullyQualifiedTypeName name="java.math.BigDecimal"/>
+</qualifiedTypeNameHistroy>

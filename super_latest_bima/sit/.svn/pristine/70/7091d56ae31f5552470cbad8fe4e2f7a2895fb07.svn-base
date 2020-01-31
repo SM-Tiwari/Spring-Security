@@ -1,0 +1,44 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.ProductUpsellRequestDto;
+import id.gnvsolution.d3.api.dto.request.SearchRequestDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.service.ProductService;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+/**
+ *
+ * @author RA0C68364
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/")
+public class ProductUpsellController {
+
+	@Autowired
+	private ProductService productService;
+
+	@RequestMapping(value = "/product-upsell", method = RequestMethod.POST)
+	public Object getCurrentProductUpsell(@RequestBody ProductUpsellRequestDto productUpsellRequestDto) {
+		return new ServiceResult(StatusCode.SUCCESS,
+				productService.getProductUpsell(productUpsellRequestDto, isIPhone(productUpsellRequestDto.getImei())),
+				"Success");
+		// return productService.getProductUpsell(productUpsellRequestDto,
+		// isIPhone(productUpsellRequestDto.getImei()));
+	}
+
+	private boolean isIPhone(String imei) {
+		if (imei == null)
+			return false;
+		return imei.contains("-");
+	}
+}

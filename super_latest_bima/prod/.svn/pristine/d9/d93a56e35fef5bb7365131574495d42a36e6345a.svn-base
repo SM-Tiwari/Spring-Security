@@ -1,0 +1,399 @@
+package id.gnvsolution.d3.api;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+public class Constants {
+
+	// 092Packages URL
+	public static String PACKAGES_URL = "http://10.6.10.51:8009/offer092?msisdn=84925007645";
+
+	// for selfcare differentiation
+	public static final String SELFCARE = "WebSelfcare";
+
+	// API calls
+	// http://localhost:8080/proxyryan.jsp? is proxy for logging purpose
+	public static final String PROXY = "http://127.0.0.1:8080/proxyryan.jsp?";
+	public static final String PROXY_NETWORK = "http://10.103.30.17:8080";
+	// Defines where the xprint file will be stored
+	public static final String XPRINT_FILES_LOCATION = "/app/billing_xprint_files/";
+	public static final String XPRINT_FILES_LOCATION_PROCESSED = XPRINT_FILES_LOCATION + "processed/done_";
+
+	public static final String LANG_EN = "1";
+	public static final String LANG_ID = "0";
+
+	public static final String SUBSCRIBER_TYPE_HYBRID = "Hybrid";
+	public static final String SUBSCRIBER_TYPE_PREPAID = "Prepaid";
+	public static final String SUBSCRIBER_TYPE_POSTPAID = "Postpaid";
+	public static final String SUBSCRIBER_TYPE_PREPAID_ID = "Prabayar";
+	public static final String SUBSCRIBER_TYPE_POSTPAID_ID = "Pascabayar";
+	public static final String PARAMETER_HYBRID_CALLPLAN_LIST = "HYBRID_CALLPLAN_LIST";
+	public static final String DAY_UOM = "Days";
+	public static final String DAY_UOM_ID = "Hari";
+
+	// IP definitions
+	public static String STATUS_HOST_IP = "10.64.41.45";
+	public static String STATUS_HOST_IP_2 = "10.64.41.50";
+
+	// BCRYPT SALT
+	public static String BCRYPT_SALT = "$2a$10$mqIZ8z3vgocCvxBfg5kZCe";
+
+	// Constant value
+	public static Integer DEFAULT_COLOR_FLASH_TIMES = 5;
+	public static Integer MAX_PRODUCT_PER_SUBCATEGORY = 4;
+	public static Integer MAX_PRODUCT_PER_PAGE = 5;
+	public static Integer MAX_PRODUCT_PER_PAGE_LIGHT = 20;
+	public static Integer MAX_PRODUCT_PER_COLUMN = 20;
+	public static Integer MAX_PRODUCT_PER_PAGE_SUBCATEGORY_1ST = 8;
+	public static Integer MAX_PRODUCT_PER_PAGE_SUBCATEGORY_000 = 7;
+	public static Integer MIN_IMEI_LENGTH = 14;
+	public static Integer[] MATRIX_PAYMENT_0001 = new Integer[] { 0, 0, 0, 1 };
+	public static Integer[] MATRIX_PAYMENT_0011 = new Integer[] { 0, 0, 1, 1 };
+	public static Integer[] MATRIX_PAYMENT_0111 = new Integer[] { 0, 1, 1, 1 };
+	public static Integer[] MATRIX_PAYMENT_1011 = new Integer[] { 1, 0, 1, 1 };
+	public static String AES_PARAM = "VhzWr3FDyca2ewau";
+	public static String CHARGING_API_CLM = "clmapi";
+	public static String CHARGING_API_PRODUCT_BILLING = "api_3pb";
+	public static String CHARGING_API_PRODUCT_DATA = "api_3pd";
+	public static String CHARGING_FREE_URL = "free_url";
+	public static String CHARGING_SMSMT = "smsmt";
+	public static String DEFAULT_COLOR_FLASH_PROFILE = "#89c23f";
+	public static String DEVICE_ID_ANDROID = "ANDROIDV2";
+	public static String DEVICE_ID_IOS = "IPHONEV2";
+	public static String FLASH_PROFILE_QUOTA_USED = "Kuota Reguler";
+	public static String KEY_IMAGE_BANNER = "IMG_BANNER";
+	public static String KEY_IMAGE_PORTRAIT = "IMG_PRODUCT_PORTRAIT";
+	public static String KEY_IMAGE_SQUARE = "IMG_PRODUCT_SQUARE";
+	public static String MAIL_CONTACT_FROM = "odp.notification@three.co.id";
+	public static String MAIL_CONTACT_TRI = "3Care@three.co.id";
+	public static String MAIL_UNSUBSCRIBER_TITLE = "[Request] Bima Package Un-subscribe #"
+			.concat(new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss").format(new Date())).concat("#");
+	public static String PAYMENT_METHOD_CASH = "00";
+	public static String PAYMENT_METHOD_HYBRID = "11";
+	public static String REGEXP_SEARCH_REPLACE = "[^A-Za-z0-9 _\\-\\.]";
+	public static String SHARE_QUOTA_GET_CHILDS = "SQ_SERVICE_INFO";
+	public static String TARGET_TYPE_CMS_WHITELIST = "allcp";
+	public static String TARGET_TYPE_SPECIFIC_CALLPLAN = "specificcp";
+	public static String TIBCO_RESPONSE_CODE_SUCCESS = "00000";
+	public static String TIBCO_RESPONSE_CODE_SUCCESS_0 = "0";
+	public static String TIBCO_SOURCE = "ODP_GNV";
+	public static String TIBCO_SOURCE_ODP = "ODP";
+	public static String TIBCO_SOURCE_HYBRID = "HYBRID";
+	public static String ZZZ_HAPPY_NUMBER = "67890000";
+	//public static String PROFILE_PICTURE_UPLOAD_LOCATION = "/data/images/profile/";
+	 public static String PROFILE_PICTURE_UPLOAD_LOCATION = "/data/imgsrv_data";
+	//public static String PROFILE_PICTURE_PUBLIC_URL = "http://103.129.188.37:8080/imageserver/";
+	 public static String PROFILE_PICTURE_PUBLIC_URL = "https://bima.vietnamobile.com.vn:8443/imageserver";
+	public static String ANDROID_OS = "android";
+	public static String IOS_OS = "ios";
+	public static long PROFILE_PICTURE_MAX_IN_KB = 100;
+    public static String PROFILE_PICTURE_SFTP_HOST="10.6.22.153";
+	//public static String PROFILE_PICTURE_SFTP_HOST = "10.6.1.139";
+	public static String PROFILE_PICTURE_SFTP_PORT = "22";
+	//public static String PROFILE_PICTURE_SFTP_USERNAME = "sysadm";
+	//public static String PROFILE_PICTURE_SFTP_PASSWORD = "sysadm@123";
+	//
+
+	 public static String PROFILE_PICTURE_SFTP_USERNAME1="sftp";
+	 public static String PROFILE_PICTURE_SFTP_PASSWORD="sftp@123";
+	public static final String TIBCO_CRMNS_REQUEST_TYPE = "CUSTOMERSEGMENT";
+	public static final String TIBCO_BCKDATE_USG_REQ_TYPE = "TRF_PULSA_HISTORY";
+	public static final String TIBCO_BCKDATE_USG_ATTR_ADJ_NUMBER = "ADJUSTMENT_NUMBER";
+	public static final String TIBCO_BCKDATE_USG_ATTR_ADJ_TYPENAME = "ADJUSTMENT_TYPE_NAME";
+	public static final String TIBCO_BCKDATE_USG_ATTR_ADJ_NETMOUNT = "ADJUSTMENT_NET_AMOUNT";
+	public static final String TIBCO_BCKDATE_USG_ATTR_ADJ_DATE = "ADJUSTMENT_DATE";
+	public static final String TIBCO_BCKDATE_USG_ATTR_ADJ_TEXT = "ADJUSTMENT_TEXT";
+	public static final String TIBCO_SMS = "REG";
+	// JNDI Config list
+	public static String API_CLM_PERSONALIZED_OFFERS;
+	public static String API_HYBRID_PAID_API_URL;
+	public static String API_HYBRID_TOPUP_URL;
+	public static String API_PURCHASE_BILLING_URL;
+	public static String API_POSTPAID_GET_INFO_API_URL;
+	public static String API_POSTPAID_PAID_API_URL;
+	public static String API_RELOAD_API_URL;
+	public static String API_DISPLAY_INVOICE_URL;
+	public static String API_BONSTRI_GETPOIN;
+	public static String DOKU_URL;
+	public static String MALLID;
+	public static String SHAREDKEY;
+	public static String CREDITCARD;
+	public static String MANDIRI;
+	public static String DANAMON;
+	public static String PERMATANET;
+	public static String DOKUWALLET;
+	public static String IBMUAMALAT;
+	public static String BRI;
+	public static String TIBCO_URL_DATA_PACKAGE_ENDPOINT;
+	public static String TIBCO_URL_SHAREDQUOTA_ENDPOINT;
+	public static String TIBCO_URL_PROFILE_ENDPOPINT;
+	public static String TIBCO_URL_GENERIC_TIBCO_ENDPOINT;
+	public static String TIBCO_URL_EMAIL_ENDPOINT;
+	public static String TIBCO_URL_BIMAHOMEPAGE_ENDPOINT;
+	public static String TIBCO_URL_PURCHASE_HISTORY_URL;
+	public static String TIBCO_URL_USAGE_DETAIL_ENDPOINT;
+	public static String TIBCO_URL_TRANSFER_PACKAGE;
+	public static String API_BONSTRI_GETURL;
+	public static String DEEPLINK_URL_SHORTENED1="https://bima.vietnamobile.com.vn:8443";
+	public static String  DEEPLINKCONSTANT="https://bima.vietnamobile.com.vn";
+	/*public static String DEEPLINK_URL_SHORTENED1 = "http://103.129.188.37:8080/";*/
+	public static String DEEPLINK_URL_SHORTENED = "http://103.129.188.37:8080";
+	public static String DEEPLINK_URL_SHORTENED_IP;
+	public static String DEEPLINK_URL_SHORTENED2;
+	public static String REGISTRASI_ULANG_URL_HOMEPAGE;
+	public static String REGISTRASI_ULANG_URL;
+	public static String TIBCO_URL_TRANSFER_PULSA;
+	public static String SELFCARE_URL = "http://103.129.188.37";
+
+	public static String PREFIX;
+
+	public static String E2PAY_URL;
+	public static String E2PAY_MERCHANT_ID;
+	public static String E2PAY_MERCHANT_KEY;
+	public static String E2PAY_PAYMENT_ID;
+	public static String E2PAY_TRI_NOTIFY_URL;
+	public static String E2PAY_TRI_THANKYOU_URL;
+
+	/* SOCIAL MEDIA APIS */
+	/*public static String FACEBOOK_API_KEY = "1101740646677955";
+	public static String FACEBOOK_API_SECRET = "f0bb9178bf2e12d4e2182614a84bf18a";*/
+	public static String FACEBOOK_API_KEY = "1045193285679041";
+	public static String FACEBOOK_API_SECRET = "e9049cb680a26ad23829cc94b5dd6db8";
+	public static String TWITTER_API_KEY;
+	public static String TWITTER_API_SECRET;
+	public static String GOOGLE_API_KEY = "243174433554-gh620heeispue8g1buhevfdkm3ttlone.apps.googleusercontent.com";
+	public static String GOOGLE_API_SECRET = "asO6QbFCr3CMJ9ubZRxbdLNB";
+
+	/* MAIL HEAD */
+	public static String EMAIL_SENDER = "bima@vietnamobile.com.vn";
+	public static String EMAIL_SENDER_NAME = "bima@vietnamobile.com.vn";
+
+	/*
+	 * public static String EMAIL_SENDER="dhiraj.kumar@infotelgroup.in"; public
+	 * static String EMAIL_SENDER_NAME="dhiraj.kumar@infotelgroup.in";
+	 */
+	@Autowired
+	public Constants(@Value("#{environment.apiclmpersonalizedoffers}") String API_CLM_PERSONALIZED_OFFERS,
+			@Value("#{environment.apihybridpaidapiurl}") String API_HYBRID_PAID_API_URL,
+			@Value("#{environment.apihybridtopupurl}") String API_HYBRID_TOPUP_URL,
+			@Value("#{environment.apipurchasebillingurl}") String API_PURCHASE_BILLING_URL,
+			@Value("#{environment.apipostpaidgetinfoapiurl}") String API_POSTPAID_GET_INFO_API_URL,
+			@Value("#{environment.apipostpaidpaidapiurl}") String API_POSTPAID_PAID_API_URL,
+			@Value("#{environment.apireloadapiurl}") String API_RELOAD_API_URL,
+			@Value("#{environment.apidisplayinvoiceurl}") String API_DISPLAY_INVOICE_URL,
+			@Value("#{environment.apibonstrigetpoin}") String API_BONSTRI_GETPOIN,
+			@Value("#{environment.dokuurl}") String DOKU_URL, @Value("#{environment.dokumallid}") String MALLID,
+			@Value("#{environment.dokusharedkey}") String SHAREDKEY,
+			@Value("#{environment.dokucreditcard}") String CREDITCARD,
+			@Value("#{environment.dokumandiri}") String MANDIRI, @Value("#{environment.dokudanamon}") String DANAMON,
+			@Value("#{environment.dokupermatanet}") String PERMATANET,
+			@Value("#{environment.dokudokuwallet}") String DOKUWALLET,
+			@Value("#{environment.dokuibmuamalat}") String IBMUAMALAT, @Value("#{environment.dokubri}") String BRI,
+			@Value("#{environment.tibcourldatapackageendpoint}") String TIBCO_URL_DATA_PACKAGE_ENDPOINT,
+			@Value("#{environment.tibcourlsharedquotaendpoint}") String TIBCO_URL_SHAREDQUOTA_ENDPOINT,
+			@Value("#{environment.tibcourlprofileendpopint}") String TIBCO_URL_PROFILE_ENDPOPINT,
+			@Value("#{environment.tibcourlgenerictibcoendpoint}") String TIBCO_URL_GENERIC_TIBCO_ENDPOINT,
+			@Value("#{environment.tibcourlemailendpoint}") String TIBCO_URL_EMAIL_ENDPOINT,
+			@Value("#{environment.tibcourlbimahomepageendpoint}") String TIBCO_URL_BIMAHOMEPAGE_ENDPOINT,
+			@Value("#{environment.tibcourlpurchasehistoryurl}") String TIBCO_URL_PURCHASE_HISTORY_URL,
+			@Value("#{environment.tibcourlusagedetailendpoint}") String TIBCO_URL_USAGE_DETAIL_ENDPOINT,
+			@Value("#{environment.transferpackage}") String TIBCO_URL_TRANSFER_PACKAGE,
+			@Value("#{environment.apibonstrigeturl}") String API_BONSTRI_GETURL,
+			/*
+			 * @Value("#{environment.deeplinkurlshortened}") String
+			 * DEEPLINK_URL_SHORTENED,
+			 */
+			@Value("#{environment.deeplinkurlshortenedip}") String DEEPLINK_URL_SHORTENED_IP,
+			@Value("#{environment.deeplinkurlshortened2}") String DEEPLINK_URL_SHORTENED2,
+			@Value("#{environment.registrasiulangurl}") String REGISTRASI_ULANG_URL,
+			@Value("#{environment.registrasiulangurlhomepage}") String REGISTRASI_ULANG_URL_HOMEPAGE,
+			@Value("#{environment.prefix}") String PREFIX,
+			@Value("#{environment.transferpulsa}") String TIBCO_URL_TRANSFER_PULSA,
+			@Value("#{environment.e2payurl}") String E2PAY_URL,
+			@Value("#{environment.e2paymerchantid}") String E2PAY_MERCHANT_ID,
+			@Value("#{environment.e2paymerchantkey}") String E2PAY_MERCHANT_KEY,
+			@Value("#{environment.e2paypaymentid}") String E2PAY_PAYMENT_ID,
+			@Value("#{environment.e2paynotifyurl}") String E2PAY_TRI_NOTIFY_URL,
+			@Value("#{environment.e2paythankyouurl}") String E2PAY_TRI_THANKYOU_URL,
+			@Value("#{environment.profilePictureUploadLocation}") String PROFILE_PICTURE_UPLOAD_LOCATION,
+			@Value("#{environment.profilePicturePublicUrl}") String PROFILE_PICTURE_PUBLIC_URL,
+			@Value("#{environment.profilePictureSFTPHost}") String PROFILE_PICTURE_SFTP_HOST,
+			@Value("#{environment.profilePictureSFTPUsername}") String PROFILE_PICTURE_SFTP_USERNAME,
+			@Value("#{environment.profilePictureSFTPPassword}") String PROFILE_PICTURE_SFTP_PASSWORD,
+			@Value("#{environment.selfcareurl}") String SELFCARE_URL,
+			@Value("#{environment.facebookapikey}") String FACEBOOK_API_KEY,
+			@Value("#{environment.facebookapisecret}") String FACEBOOK_API_SECRET,
+			@Value("#{environment.twitterapikey}") String TWITTER_API_KEY,
+			@Value("#{environment.twitterapisecret}") String TWITTER_API_SECRET,
+			@Value("#{environment.googleapikey}") String GOOGLE_API_KEY,
+			@Value("#{environment.googleapisecret}") String GOOGLE_API_SECRET,
+			@Value("#{environment.smtpsender}") String EMAIL_SENDER,
+			@Value("#{environment.smtpsendername}") String EMAIL_SENDER_NAME) {
+		Constants.API_CLM_PERSONALIZED_OFFERS = API_CLM_PERSONALIZED_OFFERS;
+		Constants.API_HYBRID_PAID_API_URL = API_HYBRID_PAID_API_URL;
+		Constants.API_HYBRID_TOPUP_URL = API_HYBRID_TOPUP_URL;
+		Constants.API_PURCHASE_BILLING_URL = API_PURCHASE_BILLING_URL;
+		Constants.API_POSTPAID_GET_INFO_API_URL = API_POSTPAID_GET_INFO_API_URL;
+		Constants.API_POSTPAID_PAID_API_URL = API_POSTPAID_PAID_API_URL;
+		Constants.API_RELOAD_API_URL = API_RELOAD_API_URL;
+		Constants.API_DISPLAY_INVOICE_URL = API_DISPLAY_INVOICE_URL;
+		Constants.API_BONSTRI_GETPOIN = API_BONSTRI_GETPOIN;
+		Constants.DOKU_URL = DOKU_URL;
+		Constants.MALLID = MALLID;
+		Constants.SHAREDKEY = SHAREDKEY;
+		Constants.CREDITCARD = CREDITCARD;
+		Constants.MANDIRI = MANDIRI;
+		Constants.BRI = BRI;
+		Constants.DANAMON = DANAMON;
+		Constants.PERMATANET = PERMATANET;
+		Constants.DOKUWALLET = DOKUWALLET;
+		Constants.IBMUAMALAT = IBMUAMALAT;
+		Constants.TIBCO_URL_DATA_PACKAGE_ENDPOINT = this.PROXY + TIBCO_URL_DATA_PACKAGE_ENDPOINT;
+		Constants.TIBCO_URL_SHAREDQUOTA_ENDPOINT = this.PROXY + TIBCO_URL_SHAREDQUOTA_ENDPOINT;
+		Constants.TIBCO_URL_PROFILE_ENDPOPINT = this.PROXY + TIBCO_URL_PROFILE_ENDPOPINT;
+		Constants.TIBCO_URL_GENERIC_TIBCO_ENDPOINT = this.PROXY + TIBCO_URL_GENERIC_TIBCO_ENDPOINT;
+		Constants.TIBCO_URL_EMAIL_ENDPOINT = this.PROXY + TIBCO_URL_EMAIL_ENDPOINT;
+		Constants.TIBCO_URL_BIMAHOMEPAGE_ENDPOINT = this.PROXY + TIBCO_URL_BIMAHOMEPAGE_ENDPOINT;
+		Constants.TIBCO_URL_PURCHASE_HISTORY_URL = this.PROXY + TIBCO_URL_PURCHASE_HISTORY_URL;
+		Constants.TIBCO_URL_USAGE_DETAIL_ENDPOINT = this.PROXY + TIBCO_URL_USAGE_DETAIL_ENDPOINT;
+		Constants.TIBCO_URL_TRANSFER_PACKAGE = this.PROXY + TIBCO_URL_TRANSFER_PACKAGE;
+		Constants.API_BONSTRI_GETURL = API_BONSTRI_GETURL;
+		/* Constants.DEEPLINK_URL_SHORTENED = DEEPLINK_URL_SHORTENED; */
+		Constants.DEEPLINK_URL_SHORTENED = "103.129.188.37:8080";
+		Constants.DEEPLINK_URL_SHORTENED_IP = DEEPLINK_URL_SHORTENED_IP;
+		Constants.DEEPLINK_URL_SHORTENED2 = DEEPLINK_URL_SHORTENED2;
+		Constants.REGISTRASI_ULANG_URL = REGISTRASI_ULANG_URL;
+		Constants.REGISTRASI_ULANG_URL_HOMEPAGE = REGISTRASI_ULANG_URL_HOMEPAGE;
+		/*
+		 * Constants.PROFILE_PICTURE_UPLOAD_LOCATION =
+		 * PROFILE_PICTURE_UPLOAD_LOCATION; Constants.PROFILE_PICTURE_PUBLIC_URL
+		 * = PROFILE_PICTURE_PUBLIC_URL; Constants.PROFILE_PICTURE_SFTP_HOST =
+		 * PROFILE_PICTURE_SFTP_HOST; Constants.PROFILE_PICTURE_SFTP_USERNAME =
+		 * PROFILE_PICTURE_SFTP_USERNAME;
+		 * Constants.PROFILE_PICTURE_SFTP_PASSWORD =
+		 * PROFILE_PICTURE_SFTP_PASSWORD;
+		 */
+		Constants.TIBCO_URL_TRANSFER_PULSA = this.PROXY + TIBCO_URL_TRANSFER_PULSA;
+
+		Constants.PREFIX = PREFIX;
+
+		Constants.E2PAY_URL = E2PAY_URL;
+		Constants.E2PAY_MERCHANT_ID = E2PAY_MERCHANT_ID;
+		Constants.E2PAY_MERCHANT_KEY = E2PAY_MERCHANT_KEY;
+		Constants.E2PAY_PAYMENT_ID = E2PAY_PAYMENT_ID;
+		Constants.E2PAY_TRI_NOTIFY_URL = E2PAY_TRI_NOTIFY_URL;
+		Constants.E2PAY_TRI_THANKYOU_URL = E2PAY_TRI_THANKYOU_URL;
+
+		/* Constants.SELFCARE_URL = SELFCARE_URL; */
+		/*
+		 * Constants.FACEBOOK_API_KEY = FACEBOOK_API_KEY;
+		 * Constants.FACEBOOK_API_SECRET = FACEBOOK_API_SECRET;
+		 */
+		Constants.TWITTER_API_KEY = TWITTER_API_KEY;
+		Constants.TWITTER_API_SECRET = TWITTER_API_SECRET;
+		/*
+		 * Constants.GOOGLE_API_KEY = GOOGLE_API_KEY;
+		 * Constants.GOOGLE_API_SECRET = GOOGLE_API_SECRET;
+		 */
+		// Constants.EMAIL_SENDER = EMAIL_SENDER;
+		// Constants.EMAIL_SENDER_NAME = EMAIL_SENDER_NAME;
+
+	}
+
+	/**
+	 * Bima Constant
+	 */
+	//public static final String TIBCO_URL_ENDPOINT = "http://10.8.8.52:45010/Business_Process/Selfcare";
+	 public static final String
+	 TIBCO_URL_ENDPOINT1="http://10.8.8.78:45010/Business_Process/Selfcare";
+	public static final String STORELIST = "https://www.vietnamobile.com.vn/support/store-location";
+	public static final String PRIVATE_KEY1 = "85b71c5dbe0f38848e815e4a8dfcb652";
+	public static final String PRIVATE_KEY2 = "deb8b91b02dfb0ecf917fbf20d86abfe";
+	
+	
+	public enum FattyWeight {
+
+		FirstLevelWeight(5), SeoundLevelWeight(20), ThirdLevelWeight(50), FourthLevelWeight(100);
+
+		private int value;
+
+		private FattyWeight(int value) {
+			this.value = value;
+		}
+
+		public int getWeightValue() {
+			return value;
+		}
+	}
+	
+	public enum FattyRedeemStatus {
+
+		USER_ALREADY_REDEEM("208"), SUCESSS("200"), FAIL("500");
+
+		private String value;
+
+		private FattyRedeemStatus(String value) {
+			this.value = value;
+		}
+
+		public String getRedeemStatus() {
+			return value;
+		}
+	}
+	
+	public static String getstartDate()
+	{
+		Date date = new Date();
+		LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		 int currentdate=localDate.getDayOfMonth();
+		 System.out.println("current date :::"+currentdate);
+		System.out.println("date :::;"+localDate.toString());
+		System.out.println("current Year Value:::"+localDate.getYear());
+		return "01"+"-"+localDate.getMonthValue()+"-"+localDate.getYear();
+		
+	}
+	/**
+	 * This method used for get current date
+	 * @return month {@link Integer}}
+	 * */
+	public static String getCurrentDate()
+	{
+		Date today = new Date();
+	    SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
+	    String date = DATE_FORMAT.format(today);
+		System.out.println("current date is :::"+date);
+		return date;
+		
+	}
+	
+	
+	public static int getDaysRemainingInCurrentMonth()
+	{
+		int days=0;
+		 Calendar cal = Calendar.getInstance();
+		 Date date = new Date();
+		 LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		 int currentdate=localDate.getDayOfMonth();
+		 int numberofdaysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+		    days=numberofdaysInMonth-currentdate;
+		    if(days<0) return 0;
+		return days;
+	}
+	
+/*---------- DB LINK FOR   -------------*/
+	
+	public static final String HOST = "10.6.17.37";
+	public static final String UNAME = "ODP";
+	public static final String DPASS = "Abcd12345";
+	
+	
+	public static final String FOR_MIC = "SIT";
+
+}

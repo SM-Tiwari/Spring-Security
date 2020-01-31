@@ -1,0 +1,206 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Date;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.Notification3 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 12, 2017 8:41:42 PM
+ *
+ */
+@Entity
+@Table(name = "NOTIFICATION_3")
+public class Notification3 implements Serializable, INotification {
+
+    private static final long serialVersionUID = 1L;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Id
+    @Basic(optional = false)
+    @Column(name = "NOTIFICATION_ID")
+    @SequenceGenerator(name = "SEQ_NOTIFICATION3", sequenceName = "SEQ_NOTIFICATION3", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_NOTIFICATION3", strategy = GenerationType.SEQUENCE)
+    private BigDecimal notificationId;
+    @Column(name = "SUBSCRIBER_MSISDN")
+    private String subscriberMsisdn;
+    @Column(name = "TRANSACTION_ID")
+    private String transactionId;
+    @Column(name = "TRX_TRANSACTION_ID")
+    private String trxTransactionId;
+    @Column(name = "TRX_TRANSACTION_ID2")
+    private BigInteger trxTransactionId2;
+    @Basic(optional = false)
+    @Column(name = "NOTIFICATION_TITLE")
+    private String notificationTitle;
+    @Basic(optional = false)
+    @Lob
+    @Column(name = "NOTIFICATION_MESSAGE")
+    private String notificationMessage;
+    @Basic(optional = false)
+    @Column(name = "IS_READ")
+    private BigInteger isRead;
+    @Column(name = "NOTIFICATION_AT")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date notificationAt;
+    
+    @Column(name = "PRODUCT")
+    private String product;
+    
+    @Column(name = "IMAGE")
+    private String image;
+    
+    @Column(name = "LINK")
+    private String link;
+    
+    @Column(name = "DEVICE_TYPE")
+    private BigDecimal deviceType;
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public String getProduct() {
+        return product;
+    }
+
+    public void setProduct(String product) {
+        this.product = product;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Notification3() {
+    }
+
+    public Notification3(BigDecimal notificationId) {
+        this.notificationId = notificationId;
+    }
+
+    public Notification3(BigDecimal notificationId, String notificationTitle, String notificationMessage, BigInteger isRead) {
+        this.notificationId = notificationId;
+        this.notificationTitle = notificationTitle;
+        this.notificationMessage = notificationMessage;
+        this.isRead = isRead;
+    }
+
+    public BigDecimal getNotificationId() {
+        return notificationId;
+    }
+
+    public void setNotificationId(BigDecimal notificationId) {
+        this.notificationId = notificationId;
+    }
+
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getTrxTransactionId() {
+        return trxTransactionId;
+    }
+
+    public void setTrxTransactionId(String trxTransactionId) {
+        this.trxTransactionId = trxTransactionId;
+    }
+
+    public BigInteger getTrxTransactionId2() {
+        return trxTransactionId2;
+    }
+
+    public void setTrxTransactionId2(BigInteger trxTransactionId2) {
+        this.trxTransactionId2 = trxTransactionId2;
+    }
+
+    public String getNotificationTitle() {
+        return notificationTitle;
+    }
+
+    public void setNotificationTitle(String notificationTitle) {
+        this.notificationTitle = notificationTitle;
+    }
+
+    public String getNotificationMessage() {
+        return notificationMessage;
+    }
+
+    public void setNotificationMessage(String notificationMessage) {
+        this.notificationMessage = notificationMessage;
+    }
+
+    public BigInteger getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(BigInteger isRead) {
+        this.isRead = isRead;
+    }
+
+    public Date getNotificationAt() {
+        return notificationAt;
+    }
+
+    public void setNotificationAt(Date notificationAt) {
+        this.notificationAt = notificationAt;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (notificationId != null ? notificationId.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof Notification3)) {
+            return false;
+        }
+        Notification3 other = (Notification3) object;
+        if ((this.notificationId == null && other.notificationId != null) || (this.notificationId != null && !this.notificationId.equals(other.notificationId))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.Notification3[ notificationId=" + notificationId + " ]";
+    }
+
+    public BigDecimal getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(BigDecimal deviceType) {
+        this.deviceType = deviceType;
+    }
+    
+}

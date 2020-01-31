@@ -1,0 +1,440 @@
+package id.gnvsolution.d3.api.controller;
+
+import java.util.ArrayList;
+
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.GenerateToken;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.TokenResponse;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.DefaultApiResponse;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.LoginInDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.LoginHistoryEntity;
+import id.gnvsolution.d3.api.model.MsisdnTokenEntity;
+import id.gnvsolution.d3.api.service.LoginService;
+import id.gnvsolution.d3.api.service.MsisdnTokenService;
+import id.gnvsolution.d3.api.service.impl.GetRequestService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+
+import static org.bitbucket.dollar.Dollar.*;
+
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@Transactional
+@RequestMapping("/api/v1")
+public class AutologinController extends BaseController {
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+	String validCharacters = $('0', '9').join() + $('A', 'Z').join();
+
+	@Autowired
+	private LoginService loginService;
+	
+	 @Autowired
+	 private GetRequestService interfaceType;
+
+	String randomString(int length) {
+		return $(validCharacters).shuffle().slice(length).toString();
+	}
+
+	@Autowired
+	private MsisdnTokenService msisdnTokenService;
+
+	@GetMapping(value = "/msisdn")
+	public Map Autologinmsisdn(HttpServletRequest request) {
+
+		Map<String, String> map = new HashMap<String, String>();
+		Enumeration headerNames = request.getHeaderNames();
+
+		while (headerNames.hasMoreElements()) {
+			String key = (String) headerNames.nextElement();
+			String value = request.getHeader(key);
+
+			map.put(key, value);
+			System.out.println("list size >>>key " + key + " >>> value...." + value);
+		}
+
+		return map;
+
+	}
+
+	@GetMapping(value = "/auto-login")
+	public Object Autologin(HttpServletRequest request) {
+		ArrayList<String> list = null;
+		String ipaddress = "";
+		String msisdn = null;
+		String token = null;
+		String[] ipAdress = null;
+		list = new ArrayList<>();
+		Map<String, String> map = new HashMap<String, String>();
+		Enumeration headerNames = request.getHeaderNames();
+
+		while (headerNames.hasMoreElements()) {
+			String key = (String) headerNames.nextElement();
+			String value = request.getHeader(key);
+			if (key.equalsIgnoreCase("autherzietoken")) {
+				String tokenvalue = value;
+				// token = tokenvalue;
+				token = StringUtils.newStringUtf8(Base64.decodeBase64(tokenvalue));
+			}
+			if (key.equalsIgnoreCase("x-forwarded-for")) {// x-forwarded-for
+				if (value != null) {
+					ipAdress = value.trim().split(",");
+					ipaddress = ipAdress[0];
+				}
+
+			}
+			if (key.equalsIgnoreCase("msisdn")) {
+				list = new ArrayList<>();
+				list.add(value);
+				// break;
+			}
+			System.out.println("list size >>>key   " + key + "   >>> value...." + value);
+		}
+
+		TokenResponse response = new TokenResponse();
+		if (list.size() != 1) {
+			response.setMessage(DefaultApiResponse.INVALID_PARAMETER_VALUE.message());
+			response.setCode(DefaultApiResponse.INVALID_PARAMETER_VALUE.code());
+			response.setSuccessful(false);
+			return new ServiceResult(StatusCode.SUCCESS,response, "Success");
+		//	return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		System.out.println("list " + list);
+		msisdn = list.isEmpty() ? null : list.get(0).toString();
+		String[] ipAllDig = ipaddress.split("\\.");
+
+		/* if (Validip(ipAdress) == true) { */
+		if (ipAdress != null) {
+			boolean result = saveMsisdnbehalfToken(token, ipaddress, msisdn);
+			if (!result) {
+
+				response.setMessage(DefaultApiResponse.INVALID_TOKEN.message());
+				response.setCode(DefaultApiResponse.INVALID_TOKEN.code());
+				response.setSuccessful(false);
+
+			} else {
+				response.setMessage(DefaultApiResponse.SUCCESS.message());
+				response.setCode(DefaultApiResponse.SUCCESS.code());
+				response.setSuccessful(true);
+
+			}
+
+			//return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ServiceResult(StatusCode.SUCCESS,response, "Success");
+
+		} else {
+			response.setMessage(DefaultApiResponse.INVALID_IP_ADDRESS.message());
+			response.setCode(DefaultApiResponse.INVALID_IP_ADDRESS.code());
+			response.setSuccessful(true);
+			//return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ServiceResult(StatusCode.SUCCESS,response, "Success");
+		}
+
+	}
+
+	private boolean saveMsisdnbehalfToken(String token, String ipaddress, String msisdn) {
+		try {
+			MsisdnTokenEntity msisdnTokenEntity1 = null;
+			MsisdnTokenEntity msisdnTokenEntity = null;
+			// MsisdnTokenEntity msisdnTokenEntity =
+			// null;//msisdnRepo.findOne(QMsisdnTokenEntity.msisdnTokenEntity.token.eq(token));
+			BaseDao<MsisdnTokenEntity> msisdnToken = new BaseDao<>(sessionFactoryDef, MsisdnTokenEntity.class);
+			List<MsisdnTokenEntity> MsisdnTokenList = msisdnToken.find("token = :token", new HashMap<String, Object>() {
+				{
+					put("token", token);
+				}
+			});
+			if (MsisdnTokenList.size() > 0) {
+				msisdnTokenEntity1 = MsisdnTokenList.get(0);
+			}
+			if (msisdnTokenEntity1 != null) {
+				System.out
+						.println(">>>>>>token........." + token + "............." + msisdnTokenEntity1.getIpAddress());
+				if (msisdnTokenEntity1 != null) {
+					Date tokenDate = msisdnTokenEntity1.getCreateTimestamp();
+					Date current = new Date();
+					/*
+					 * if ((current.getTime() - tokenDate.getTime()) > 300000) {
+					 * // msisdnRepo.delete(msisdnTokenEntity.getId()); return
+					 * false; }
+					 */
+				}
+				int nnn = msisdnTokenEntity1.getId();
+				msisdnTokenEntity1.setId(nnn);
+				msisdnToken.delete(msisdnTokenEntity1);
+
+				// msisdnRepo.delete(msisdnTokenEntity.getId());
+				msisdn = AppUtils.removeCountryCode(msisdn, AppDefaultValues.COUNTRY_CODE);
+				msisdnTokenEntity = new MsisdnTokenEntity();
+				msisdnTokenEntity.setMsisdn(msisdn);
+				msisdnTokenEntity.setToken(token);
+				msisdnTokenEntity.setIpAddress(ipaddress);
+				msisdnTokenEntity.setLastModifiedTime(new Date());
+				// msisdnTokenEntity.setId(msisdnTokenEntity1.getId());;
+				msisdnToken.saveOrUpdate(msisdnTokenEntity);
+				return true;
+			} else {
+
+				return false;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+	}
+
+	@GetMapping(value = "/generateTokenBasedOnIp")
+	public Object generateTokenBasedOnIp(HttpServletRequest request) {
+		String[] ipAdress = null;
+		String[] ipAdressvalue = null;
+		GenerateToken generateToken = new GenerateToken();
+
+		Map<String, String> map = new HashMap<String, String>();
+		Enumeration headerNames = request.getHeaderNames();
+
+		while (headerNames.hasMoreElements()) {
+			String key = (String) headerNames.nextElement();
+			String value = request.getHeader(key);
+
+			if (key.equalsIgnoreCase("x-forwarded-for")) {// x-forwarded-for
+				if (value != null) {
+					ipAdress = value.trim().split(",");
+					;
+
+				}
+
+			}
+
+			System.out.println("list size >>>key   " + key + "   >>> value...." + value);
+		}
+
+		TokenResponse response = new TokenResponse();
+
+		/* if (Validip(ipAdress) == true) { */
+		if (ipAdress != null) {
+			try {
+				response.setMessage("SUCCESS");
+				response.setCode("0");
+				response.setSuccessful(true);
+				String random_token = randomString(50);
+				response.setRandom_token(random_token);
+				response.setIpAddress(ipAdress[0]);
+				saveToken(ipAdress[0], random_token, "");
+				return new ServiceResult(StatusCode.SUCCESS,response, "Success");
+				//return new ResponseEntity<>(response, HttpStatus.OK);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		} else {
+			response.setMessage(DefaultApiResponse.INVALID_IP_ADDRESS.message());
+			response.setCode(DefaultApiResponse.INVALID_IP_ADDRESS.code());
+			response.setSuccessful(true);
+			return new ServiceResult(StatusCode.SUCCESS,response, "Success");
+			//return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		//return new ResponseEntity<>("", HttpStatus.OK);
+		return new ServiceResult(StatusCode.SUCCESS,"", "Success");
+
+	}
+
+	public void saveToken(String ipAddress, String token, String msisdn) {
+
+		try {
+			BaseDao<MsisdnTokenEntity> msisdnToken = new BaseDao<>(sessionFactoryDef, MsisdnTokenEntity.class);
+			int millis = (int) (System.currentTimeMillis() % 1000);
+
+			MsisdnTokenEntity msisdnTokenEntity = new MsisdnTokenEntity();
+			msisdnTokenEntity.setIpAddress((ipAddress));
+			msisdnTokenEntity.setToken(token);
+			msisdnTokenEntity.setMsisdn("");
+			msisdnTokenEntity.setLastModifiedTime(new Date());
+			msisdnTokenEntity.setCreateTimestamp(new Date());
+			msisdnTokenEntity.setCreateTimestamp(new Date());
+			msisdnTokenEntity.setId(millis);
+			msisdnToken.save(msisdnTokenEntity);
+
+			// (create_timestamp, ip_address, last_modified_timestamp, msisdn,
+			// token, id)
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * This Method used validate ip address
+	 * 
+	 * @param ipAddress
+	 * @return {@link Boolean}}
+	 * 
+	 */
+
+	/*
+	 * public boolean Validip(String[] iplist) {
+	 * 
+	 * boolean vlaidip = false; if (iplist != null) { try{ for (int i = 0; i <
+	 * iplist.length; i++) { String[] ipAllDig = iplist[i].split("\\."); if
+	 * (ipAllDig[0] == "") { continue; } if (ipAllDig[0] != null &&
+	 * (Integer.parseInt(ipAllDig[0].trim())) == 10) { vlaidip = true;
+	 * 
+	 * } else { vlaidip = false; break; } } }catch (Exception e) { // TODO:
+	 * handle exception e.printStackTrace();
+	 * System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>problem with ip"); return
+	 * vlaidip; } return vlaidip;
+	 * 
+	 * } else { return vlaidip; }
+	 * 
+	 * }
+	 */
+
+	@RequestMapping(value = "/autologinwithip", method = RequestMethod.GET)
+	public Object autologinwithip(@RequestHeader HttpHeaders httpHeaders) {
+
+		LoginInDto loginInDto = new LoginInDto();
+		String tokenvalue = httpHeaders.get("autherzietoken").toString();
+		String tokenValid = StringUtils.newStringUtf8(Base64.decodeBase64(tokenvalue));
+		// String tokenValid = tokenvalue;
+		String msisdn = fetchMsisdn(tokenValid);
+		if (msisdn == null || msisdn.isEmpty()) {
+			if (loginInDto.getLanguage() == null) {
+				loginInDto.setLanguage(Constants.LANG_ID);
+			}
+
+		/*	return JSONResultFilter.filter(new ErrorMessageDto(false, loginInDto.getLanguage().equals(Constants.LANG_ID)
+					? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)).all().build();*/
+			return new ServiceResult(StatusCode.SUCCESS,(new ErrorMessageDto(false, loginInDto.getLanguage().equals(Constants.LANG_ID)
+					? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)), "Success");
+		} else {
+
+		}
+		if (msisdn != null) {
+			String msis = AppUtils.removeCountryCode(msisdn, AppDefaultValues.COUNTRY_CODE);
+			loginInDto.setMsisdn(msis);
+		}
+
+		Map<String, Object> result;
+		result = loginService.autoLogin(loginInDto);
+		LoginHistoryEntity loginHistoryEntity=new LoginHistoryEntity();
+		loginHistoryEntity.setMsisdn(msisdn);
+		loginHistoryEntity.setLastLoginTime(new Date());
+		loginHistoryEntity.setInterfaceTYPE(interfaceType.getRequestMode());
+	    loginHistoryEntity.setLoginWith("auto-login");
+		boolean status = (boolean) result.get("status");
+		String token = "";
+		if (status) {
+
+			msisdn= AppUtils.removeCountryCode(result.get("msisdn").toString(),
+					AppDefaultValues.COUNTRY_CODE);
+			loginInDto.setMsisdn(msisdn);
+			token = getJwtTokenUtil().createTokenForSignUpProcess(loginInDto.getMsisdn(), null);
+			loginHistoryEntity.setLoginStatus("success");
+		}
+		else
+		{
+			loginHistoryEntity.setLoginStatus("fail");
+			loginHistoryEntity.setMessage((String)result.get("message"));
+		}
+		loginService.saveLoginDetails(loginHistoryEntity);
+		result.put("token", token);
+		
+		return new ServiceResult(StatusCode.SUCCESS,result, "Success");
+	}
+
+	/*
+	 * @RequestMapping(value = "autologinwithip", method = RequestMethod.POST)
+	 * public Map<String, Object> autologinwithip(@RequestBody LoginInDto
+	 * loginInDto, @RequestHeader HttpHeaders httpHeaders) {
+	 * 
+	 * 
+	 * String tokenvalue = loginInDto.getSecretKey(); String tokenValid =
+	 * StringUtils.newStringUtf8(Base64.decodeBase64(tokenvalue)); //String
+	 * tokenValid = tokenvalue; String msisdn = fetchMsisdn(tokenValid); if
+	 * (msisdn == null || msisdn.isEmpty()) { if (loginInDto.getLanguage() ==
+	 * null) { loginInDto.setLanguage(Constants.LANG_ID); }
+	 * 
+	 * return JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * loginInDto.getLanguage().equals(Constants.LANG_ID) ?
+	 * Languages.ID.COMMON_INVALID_REQUEST :
+	 * Languages.EN.COMMON_INVALID_REQUEST)).all().build(); } else {
+	 * 
+	 * }
+	 * 
+	 * loginInDto.setMsisdn(msisdn);
+	 * 
+	 * Map<String, Object> result ; result = loginService.autoLogin(loginInDto);
+	 * return result; }
+	 */
+
+	public String fetchMsisdn(String token) {
+		String msisdn = null;
+
+		MsisdnTokenEntity msisdnTokenEntity = null;
+		try {
+			// List<MsisdnTokenEntity> msisdnTokenEntity =
+			// msisdnTokenService.getMsisdn(token);
+			BaseDao<MsisdnTokenEntity> msisdnToken = new BaseDao<>(sessionFactoryDef, MsisdnTokenEntity.class);
+			List<MsisdnTokenEntity> MsisdnTokenList = msisdnToken.find("token = :token", new HashMap<String, Object>() {
+				{
+					put("token", token);
+				}
+			});
+
+			if (MsisdnTokenList.size() > 0) {
+				msisdnTokenEntity = MsisdnTokenList.get(0);
+			}
+
+			if (msisdnTokenEntity != null) {
+				Date tokenDate = msisdnTokenEntity.getCreateTimestamp();
+				Date current = new Date();
+				msisdn = msisdnTokenEntity.getMsisdn();
+				if ((current.getTime() - tokenDate.getTime()) > 300000) {
+
+					return null;
+				} else {
+					return msisdn;
+				}
+			}
+
+			return msisdn;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+}

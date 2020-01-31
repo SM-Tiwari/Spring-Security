@@ -1,0 +1,7 @@
+INDEX VERSION 1.4+D:\super_latest_bima\sit\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+302975980.index
+2093594364.index
+2604212801.index
+2093338753.index
+3480853779.index
+3022865671.index

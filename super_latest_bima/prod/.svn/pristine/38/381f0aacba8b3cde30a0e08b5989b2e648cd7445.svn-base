@@ -1,0 +1,102 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+
+import javax.xml.bind.annotation.*;
+import java.util.List;
+
+/**
+ <?xml version="1.0" encoding="UTF-8"?>
+ <CLM_TIBCO_INTERFACE_Responce>
+ <Total_points>230</Total_points>
+ <Total_Bonus_points>0</Total_Bonus_points>
+ <errorCode>0</errorCode>
+ <errorDescription>SUCCESS</errorDescription>
+ <Monster_details>
+     <Monster_Name>Bray</Monster_Name>
+     <Monster_Count>3</Monster_Count>
+     <Monster_Points>60</Monster_Points>
+ </Monster_details>
+ <Monster_details>
+     <Monster_Name>Unyit</Monster_Name>
+     <Monster_Count>3</Monster_Count>
+     <Monster_Points>90</Monster_Points>
+ </Monster_details>
+ <Monster_details>
+     <Monster_Name>Emot</Monster_Name>
+     <Monster_Count>8</Monster_Count>
+     <Monster_Points>80</Monster_Points>
+ </Monster_details>
+ <Monster_details>
+     <Monster_Name>Odut</Monster_Name>
+     <Monster_Count>8</Monster_Count>
+     <Monster_Points>80</Monster_Points>
+ </Monster_details>
+ </CLM_TIBCO_INTERFACE_Responce>
+
+
+ */
+@XmlRootElement(name= "CLM_TIBCO_INTERFACE_Responce")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"Total_points","Total_Bonus_points","errorCode","errorDescription","Monster_details"})
+public class BonstriTibcoGetPoin {
+    @XmlElement(name="Total_points")
+    private String Total_points;
+
+    @XmlElement(name = "Total_Bonus_points")
+    private String Total_Bonus_points;
+
+    @XmlElement(name = "errorCode")
+    private String errorCode;
+
+    @XmlElement(name = "errorDescription")
+    private String errorDescription;
+
+    @XmlElement(name = "Monster_details")
+    private List<BonstriTibcoMonsters> Monster_details;
+
+    public String toString() {
+        return "BonstriMonster {"+" Monster Details= "+ Monster_details +" }";
+    }
+
+    public String getTotal_points() {
+        return Total_points;
+    }
+
+    public void setTotal_points(String Total_points) {
+        this.Total_points = Total_points;
+    }
+
+    public String getTotal_Bonus_points() {
+        return Total_Bonus_points;
+    }
+
+    public void setTotal_Bonus_points(String Total_Bonus_points) {
+        this.Total_Bonus_points = Total_Bonus_points;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorDescription() {
+        return errorDescription;
+    }
+
+    public void setErrorDescription(String errorDescription) {
+        this.errorDescription = errorDescription;
+    }
+
+    public List<BonstriTibcoMonsters> getMonster_details() {
+        return Monster_details;
+    }
+
+    public void setMonster_details(List<BonstriTibcoMonsters> Monster_details) {
+        this.Monster_details = Monster_details;
+    }
+
+    
+}

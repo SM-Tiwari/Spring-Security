@@ -1,0 +1,117 @@
+/**
+ * GenericTibcoCRMServicesCallbackHandler.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis2 version: 1.7.4  Built on : Oct 21, 2016 (10:47:34 BST)
+ */
+package id.gnvsolution.d3.api.wsdl;
+
+import id.gnvsolution.d3.api.wsdl.*;
+
+
+/**
+ *  GenericTibcoCRMServicesCallbackHandler Callback class, Users can extend this class and implement
+ *  their own receiveResult and receiveError methods.
+ */
+public abstract class GenericTibcoCRMServicesCallbackHandler {
+    protected Object clientData;
+
+    /**
+     * User can pass in any object that needs to be accessed once the NonBlocking
+     * Web service call is finished and appropriate method of this CallBack is called.
+     * @param clientData Object mechanism by which the user can pass in user data
+     * that will be avilable at the time this callback is called.
+     */
+    public GenericTibcoCRMServicesCallbackHandler(Object clientData) {
+        this.clientData = clientData;
+    }
+
+    /**
+     * Please use this constructor if you don't want to set any clientData
+     */
+    public GenericTibcoCRMServicesCallbackHandler() {
+        this.clientData = null;
+    }
+
+    /**
+     * Get the client data
+     */
+    public Object getClientData() {
+        return clientData;
+    }
+
+    /**
+     * auto generated Axis2 call back method for invoiceHistory method
+     * override this method for handling normal response from invoiceHistory operation
+     */
+    public void receiveResultinvoiceHistory(
+        id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.InvoiceHistoryResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from invoiceHistory operation
+     */
+    public void receiveErrorinvoiceHistory(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for paymentHistory method
+     * override this method for handling normal response from paymentHistory operation
+     */
+    public void receiveResultpaymentHistory(
+        id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.PaymentHistoryResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from paymentHistory operation
+     */
+    public void receiveErrorpaymentHistory(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for cRMNSSMS method
+     * override this method for handling normal response from cRMNSSMS operation
+     */
+    public void receiveResultcRMNSSMS(
+        id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.CRMTIbcoNSMessageResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from cRMNSSMS operation
+     */
+    public void receiveErrorcRMNSSMS(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for bonusEnquiry method
+     * override this method for handling normal response from bonusEnquiry operation
+     */
+    public void receiveResultbonusEnquiry(
+        id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.SQBonusEnquiryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from bonusEnquiry operation
+     */
+    public void receiveErrorbonusEnquiry(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for manualAllocation method
+     * override this method for handling normal response from manualAllocation operation
+     */
+    public void receiveResultmanualAllocation(
+        id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.ManualAllocationResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from manualAllocation operation
+     */
+    public void receiveErrormanualAllocation(java.lang.Exception e) {
+    }
+}

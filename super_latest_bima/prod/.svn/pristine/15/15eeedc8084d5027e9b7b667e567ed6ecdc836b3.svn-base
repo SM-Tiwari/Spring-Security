@@ -1,0 +1,74 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.DeeplinkUrl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 10, 2018 3:04:07 PM
+ *
+ */
+@Entity
+@Table(name = "DEEPLINK_URL")
+public class DeeplinkUrl {
+
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Column(name = "ID")
+    private String id;
+    
+    @Column(name = "CREATED_DATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdDate;
+    
+    @Column(name = "URL_REAL")
+    private String urlReal;
+    
+    @Column(name = "URL_SHORTENED")
+    private String urlShortened;
+
+    public DeeplinkUrl() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getUrlReal() {
+        return urlReal;
+    }
+
+    public void setUrlReal(String urlReal) {
+        this.urlReal = urlReal;
+    }
+
+    public String getUrlShortened() {
+        return urlShortened;
+    }
+
+    public void setUrlShortened(String urlShortened) {
+        this.urlShortened = urlShortened;
+    }
+}

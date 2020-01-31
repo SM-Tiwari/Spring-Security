@@ -1,0 +1,176 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.model.TrxPostpaidPayment;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.utils.Helpers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestHeader;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.E2PayController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 22, 2017 2:24:10 PM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Controller
+@RequestMapping("/api/v1/e2pay")
+@ApiIgnore
+public class E2PayController {
+    
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger("pg");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    
+    private final ExternalPayment externalPayment;
+    
+    @Autowired
+    public E2PayController(ExternalPayment externalPayment){
+        this.externalPayment = externalPayment;
+    }
+    
+    @RequestMapping(value = "/buy", method = RequestMethod.GET)
+    public String e2payBuy(ModelMap modelMap, 
+                            @RequestParam Map<String, String> params,
+                            @RequestHeader HttpHeaders httpHeaders,
+                            HttpServletRequest request,
+                            @RequestParam(required = true) String PRODUCTNAME,
+                            @RequestParam(required = true) String AMOUNT, 
+                            @RequestParam(required = true) String MSISDN, 
+                            @RequestParam(required = true) String PRODUCTID, 
+                            @RequestParam(required = true) String NAME, 
+                            @RequestParam(required = true) String PAYMENTMETHOD, 
+                            @RequestParam(required = false) String POSTPAID, 
+                            @RequestParam(required = false) String HYBRID, 
+                            @RequestParam(required = false) String SUBCATEGORY, 
+                            @RequestParam(required = false) String CATEGORY, 
+                            @RequestParam(required = false) String BILLAMOUNT, 
+                            @RequestParam(required = false) String ACCOUNTNUMBER, 
+                            @RequestParam(required = true) String VENDORID, 
+                            @RequestParam(required = true) String SERVICEPLAN, 
+                            @RequestParam(required = true) String EMAIL) {
+        
+        // generate trxid
+        String transactionId = "";
+        
+        // PURCHASE
+        if(POSTPAID == null && HYBRID == null) {
+            transactionId = externalPayment.generateTrxNumber();
+        
+            TrxSubscriberPurchase subscriberPurchase = new TrxSubscriberPurchase();
+            subscriberPurchase.setTransactionId(transactionId);
+            subscriberPurchase.setSubscriberMsisdn(MSISDN);
+            subscriberPurchase.setProductId(PRODUCTID);
+            subscriberPurchase.setPaymentMethodCode(PAYMENTMETHOD);
+            subscriberPurchase.setMenuCategoryName(CATEGORY);
+            subscriberPurchase.setMenuSubCategoryName(SUBCATEGORY);
+            subscriberPurchase.setPrice((long)Double.parseDouble(AMOUNT));
+            subscriberPurchase.setIsPromo(false);
+            subscriberPurchase.setVendorId(VENDORID);
+            subscriberPurchase.setServicePlan(SERVICEPLAN);
+
+            // save purchase
+            externalPayment.saveToTrxSubscriberPurchase(subscriberPurchase);
+        } 
+
+        // POSTPAID
+        if(POSTPAID != null) {
+            transactionId = externalPayment.generateTrxNumberPostpaid();
+            
+            // POSTPAID
+            TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+            trxPostpaidPayment.setTransactionId(transactionId);
+            trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+            trxPostpaidPayment.setPaymentMethodCode(PAYMENTMETHOD);
+            trxPostpaidPayment.setAccountNumber(ACCOUNTNUMBER);
+            trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountName(NAME);
+            trxPostpaidPayment.setAccountEmail(EMAIL);
+            
+            // save invoice
+            externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+        }
+        
+        // HYBRID
+        if(HYBRID != null) {
+            transactionId = externalPayment.generateTrxNumberHybrid();
+            
+            TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+            trxPostpaidPayment.setTransactionId(transactionId);
+            trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+            trxPostpaidPayment.setPaymentMethodCode(PAYMENTMETHOD);
+            trxPostpaidPayment.setAccountNumber(ACCOUNTNUMBER);
+            trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountName(NAME);
+            trxPostpaidPayment.setAccountEmail(EMAIL);
+            
+            // save invoice
+            externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+        } 
+        
+        // send to page
+        modelMap.put("URL", Constants.E2PAY_URL+"/epayment/entry.asp");
+        modelMap.put("MerchantCode", Constants.E2PAY_MERCHANT_ID);
+        modelMap.put("PaymentId", Constants.E2PAY_PAYMENT_ID);
+        modelMap.put("RefNo", transactionId);
+        modelMap.put("Amount", (int)Double.parseDouble(AMOUNT)+"00");
+        modelMap.put("Currency", "IDR");
+        modelMap.put("ProdDesc", PRODUCTNAME);
+        modelMap.put("Lang", "UTF-8");
+        modelMap.put("UserName", NAME);
+        modelMap.put("UserEmail", EMAIL);
+        modelMap.put("UserContact", MSISDN);
+        modelMap.put("ResponseURL", Constants.E2PAY_TRI_THANKYOU_URL);
+        modelMap.put("BackendURL", Constants.E2PAY_TRI_NOTIFY_URL);
+        modelMap.put("Remark", "");
+        modelMap.put("Signature", Helpers.getHex(Helpers.getSHA1(Constants.E2PAY_MERCHANT_KEY + Constants.E2PAY_MERCHANT_ID + transactionId + (int) Double.parseDouble(AMOUNT) + "00IDR")));
+        
+        HashMap<String, String> mapHeaderInfo = new HashMap<>();
+        Enumeration headerNames = ((HttpServletRequest)request).getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = ((HttpServletRequest)request).getHeader(key);
+            mapHeaderInfo.put(key, value);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n========== START =============== \r\n"); 
+        sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+        sb.append("Real IP\t\t:\t").append(httpHeaders.get("X-Forwarded-For")).append("\r\n");
+        sb.append("Accessing\t:\t").append(((HttpServletRequest)request).getRequestURI()).append("\r\n");
+        sb.append("PG\t\t:\t").append("E2PAY").append("\r\n");
+        sb.append("MSISDN\t\t:\t").append(MSISDN).append("\r\n");
+        sb.append("PRODUCTNAME\t:\t").append(PRODUCTNAME).append("\r\n");
+        sb.append("Ref No\t\t:\t").append(transactionId).append("\r\n");
+        sb.append("Amount\t\t:\t").append(AMOUNT).append("\r\n");
+        sb.append("Parameters\t:\t").append(params).append("\r\n");
+        sb.append("Headers\t\t:\t").append(mapHeaderInfo).append("\r\n");
+        sb.append("==========  END  =============== \r\n"); 
+        logger.debug(sb.toString());
+        
+        return "e2paybuy";
+    }
+}

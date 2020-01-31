@@ -1,0 +1,200 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.Collection;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "PAYMENT_METHOD")
+public class PaymentMethod {
+    private String paymentMethodCode;
+    private String paymentMethodNameId;
+    private String paymentMethodNameEn;
+    private String paymentGatewayName;
+    private String paymentGatewayUrl;
+    private String paymentGatewayReversalUrl;
+    private Integer paymentMethodOrder;
+    private long createdBy;
+    private Timestamp createdAt;
+    private Long updatedBy;
+    private Timestamp updatedAt;
+    private Collection<ProductCharging> productChargingsByPaymentMethodCode;
+    private Collection<TrxSubscriberEtopup> trxSubscriberEtopupsByPaymentMethodCode;
+    private Collection<TrxSubscriberPurchase> trxSubscriberPurchasesByPaymentMethodCode;
+
+    @Id
+    @Column(name = "PAYMENT_METHOD_CODE", nullable = false, length = 2)
+    public String getPaymentMethodCode() {
+        return paymentMethodCode;
+    }
+
+    public void setPaymentMethodCode(String paymentMethodCode) {
+        this.paymentMethodCode = paymentMethodCode;
+    }
+
+    @Basic
+    @Column(name = "PAYMENT_METHOD_NAME_ID", nullable = false, length = 50)
+    public String getPaymentMethodNameId() {
+        return paymentMethodNameId;
+    }
+
+    public void setPaymentMethodNameId(String paymentMethodNameId) {
+        this.paymentMethodNameId = paymentMethodNameId;
+    }
+
+    @Basic
+    @Column(name = "PAYMENT_GATEWAY_NAME", nullable = false, length = 50)
+    public String getPaymentGatewayName() {
+        return paymentGatewayName;
+    }
+
+    public void setPaymentGatewayName(String paymentGatewayName) {
+        this.paymentGatewayName = paymentGatewayName;
+    }
+
+    @Basic
+    @Column(name = "PAYMENT_GATEWAY_URL", nullable = true, length = 255)
+    public String getPaymentGatewayUrl() {
+        return paymentGatewayUrl;
+    }
+
+    public void setPaymentGatewayUrl(String paymentGatewayUrl) {
+        this.paymentGatewayUrl = paymentGatewayUrl;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY", nullable = false, precision = 0)
+    public long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY", nullable = true, precision = 0)
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PaymentMethod that = (PaymentMethod) o;
+
+        if (createdBy != that.createdBy) return false;
+        if (paymentMethodCode != null ? !paymentMethodCode.equals(that.paymentMethodCode) : that.paymentMethodCode != null)
+            return false;
+        if (paymentMethodNameId != null ? !paymentMethodNameId.equals(that.paymentMethodNameId) : that.paymentMethodNameId != null)
+            return false;
+        if (paymentGatewayName != null ? !paymentGatewayName.equals(that.paymentGatewayName) : that.paymentGatewayName != null)
+            return false;
+        if (paymentGatewayUrl != null ? !paymentGatewayUrl.equals(that.paymentGatewayUrl) : that.paymentGatewayUrl != null)
+            return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (updatedBy != null ? !updatedBy.equals(that.updatedBy) : that.updatedBy != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = paymentMethodCode != null ? paymentMethodCode.hashCode() : 0;
+        result = 31 * result + (paymentMethodNameId != null ? paymentMethodNameId.hashCode() : 0);
+        result = 31 * result + (paymentGatewayName != null ? paymentGatewayName.hashCode() : 0);
+        result = 31 * result + (paymentGatewayUrl != null ? paymentGatewayUrl.hashCode() : 0);
+        result = 31 * result + (int) (createdBy ^ (createdBy >>> 32));
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedBy != null ? updatedBy.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+
+    @OneToMany(mappedBy = "paymentMethodByPaymentGatewayId")
+    public Collection<ProductCharging> getProductChargingsByPaymentMethodCode() {
+        return productChargingsByPaymentMethodCode;
+    }
+
+    public void setProductChargingsByPaymentMethodCode(Collection<ProductCharging> productChargingsByPaymentMethodCode) {
+        this.productChargingsByPaymentMethodCode = productChargingsByPaymentMethodCode;
+    }
+
+    @OneToMany(mappedBy = "paymentMethodByPaymentMethodCode")
+    public Collection<TrxSubscriberEtopup> getTrxSubscriberEtopupsByPaymentMethodCode() {
+        return trxSubscriberEtopupsByPaymentMethodCode;
+    }
+
+    public void setTrxSubscriberEtopupsByPaymentMethodCode(Collection<TrxSubscriberEtopup> trxSubscriberEtopupsByPaymentMethodCode) {
+        this.trxSubscriberEtopupsByPaymentMethodCode = trxSubscriberEtopupsByPaymentMethodCode;
+    }
+
+    @OneToMany(mappedBy = "paymentMethodByPaymentMethodCode")
+    public Collection<TrxSubscriberPurchase> getTrxSubscriberPurchasesByPaymentMethodCode() {
+        return trxSubscriberPurchasesByPaymentMethodCode;
+    }
+
+    public void setTrxSubscriberPurchasesByPaymentMethodCode(Collection<TrxSubscriberPurchase> trxSubscriberPurchasesByPaymentMethodCode) {
+        this.trxSubscriberPurchasesByPaymentMethodCode = trxSubscriberPurchasesByPaymentMethodCode;
+    }
+
+    @Basic
+    @Column(name = "PAYMENT_METHOD_ORDER", nullable = false)
+    public Integer getPaymentMethodOrder() {
+        return paymentMethodOrder;
+    }
+
+    public void setPaymentMethodOrder(Integer paymentMethodOrder) {
+        this.paymentMethodOrder = paymentMethodOrder;
+    }
+
+    @Basic
+    @Column(name = "PAYMENT_GATEWAY_REVERSAL_URL")
+    public String getPaymentGatewayReversalUrl() {
+        return paymentGatewayReversalUrl;
+    }
+
+    public void setPaymentGatewayReversalUrl(String paymentGatewayReversalUrl) {
+        this.paymentGatewayReversalUrl = paymentGatewayReversalUrl;
+    }
+
+    @Basic
+    @Column(name = "PAYMENT_METHOD_NAME_EN", nullable = false, length = 50)
+    public String getPaymentMethodNameEn() {
+        return paymentMethodNameEn;
+    }
+
+    public void setPaymentMethodNameEn(String paymentMethodNameEn) {
+        this.paymentMethodNameEn = paymentMethodNameEn;
+    }
+}

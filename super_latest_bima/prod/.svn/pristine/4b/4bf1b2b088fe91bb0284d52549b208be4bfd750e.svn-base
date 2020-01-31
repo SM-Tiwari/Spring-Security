@@ -1,0 +1,59 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.ProductVoucher 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 16, 2018 3:27:31 PM
+ *
+ */
+@Entity
+@Table(name = "PRODUCT_VOUCHER")
+public class ProductVoucher {
+
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Column(name = "UUID")
+    private String uuid;
+    
+    @Column(name = "PRODUCT_ID")
+    private String productId;
+    
+    @Column(name = "POSITION")
+    private Integer position;
+
+    public ProductVoucher() {
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
+    }
+}

@@ -1,0 +1,114 @@
+package com.gnv.d3.fcm.scheduler.service;
+
+import com.gnv.d3.fcm.scheduler.bean.NotificationPush;
+import com.gnv.d3.fcm.scheduler.bean.NotificationPushExample;
+import com.gnv.d3.fcm.scheduler.bean.Secretkey;
+import com.gnv.d3.fcm.scheduler.bean.SecretkeyExample;
+import com.gnv.d3.fcm.scheduler.config.MyBatisSqlSessionFactory;
+import com.gnv.d3.fcm.scheduler.mapper.NotificationPushMapper;
+import com.gnv.d3.fcm.scheduler.mapper.SecretkeyMapper;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.log4j.Logger;
+
+/**
+ * <pre>
+ *  com.gnv.d3.fcm.scheduler.service.NotificationService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 9, 2017 2:07:42 PM
+ *
+ */
+public class NotificationService {
+
+    private Logger logger = Logger.getLogger(this.getClass());
+    
+    public List<NotificationPush> getNotificationPushs() {
+        List<NotificationPush> notificationPushs = new ArrayList<>();
+        
+        SqlSession sqlSession = null;
+        try {
+            sqlSession = MyBatisSqlSessionFactory.getSqlSessionFactory().openSession(true);
+
+            NotificationPushMapper mapper = sqlSession.getMapper(NotificationPushMapper.class);
+            NotificationPushExample example = new NotificationPushExample();
+            example.createCriteria().andIsSendEqualTo(BigDecimal.ZERO).andGcmUrlIsNotNull().andApnUrlIsNotNull();
+            
+            notificationPushs.addAll(mapper.selectByExampleWithRowbounds(example));
+        } catch (Exception e) {
+        	e.printStackTrace();
+            logger.error(e.getMessage());
+        } finally {
+            if (sqlSession != null) {
+                sqlSession.close();
+            }
+        }
+        
+        return notificationPushs;
+    }
+    
+    public void setAsSend(NotificationPush notificationPush) {
+        SqlSession sqlSession = null;
+        try {
+            sqlSession = MyBatisSqlSessionFactory.getSqlSessionFactory().openSession(true);
+
+            NotificationPushMapper mapper = sqlSession.getMapper(NotificationPushMapper.class);
+            NotificationPushExample example = new NotificationPushExample();
+            NotificationPushExample.Criteria criteria = example.createCriteria();
+            criteria.andUuidEqualTo(notificationPush.getUuid());
+            
+            notificationPush.setIsSend(BigDecimal.ONE);
+            
+            mapper.updateByExampleSelective(notificationPush, example);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (sqlSession != null) {
+                sqlSession.close();
+            }
+        }
+    }
+    
+    public void clearSuccessfulNotifications(List<String> uuids) {
+        SqlSession sqlSession = null;
+        try {
+            sqlSession = MyBatisSqlSessionFactory.getSqlSessionFactory().openSession(true);
+
+            NotificationPushMapper mapper = sqlSession.getMapper(NotificationPushMapper.class);
+            NotificationPushExample example = new NotificationPushExample();
+            NotificationPushExample.Criteria criteria = example.createCriteria();
+            criteria.andUuidIn(uuids);
+            
+            mapper.deleteByExample(example);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (sqlSession != null) {
+                sqlSession.close();
+            }
+        }
+    }
+    
+    public void clearEmptyNotifications() {
+        SqlSession sqlSession = null;
+        try {
+            sqlSession = MyBatisSqlSessionFactory.getSqlSessionFactory().openSession(true);
+
+            NotificationPushMapper mapper = sqlSession.getMapper(NotificationPushMapper.class);
+            NotificationPushExample example = new NotificationPushExample();
+            NotificationPushExample.Criteria criteria = example.createCriteria();
+            criteria.andGcmUrlIsNull().andApnUrlIsNull();
+            
+            mapper.deleteByExample(example);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (sqlSession != null) {
+                sqlSession.close();
+            }
+        }
+    }
+}

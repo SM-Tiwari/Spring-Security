@@ -1,0 +1,36 @@
+package id.gnvsolution.d3.api.dto.request;
+
+public class NotificationMessageDto {
+
+	private Integer messageId;
+	private Integer languageId;
+	private String messageText;
+	
+	public NotificationMessageDto() {
+		
+	}
+
+	public Integer getMessageId() {
+		return messageId;
+	}
+
+	public void setMessageId(Integer messageId) {
+		this.messageId = messageId;
+	}
+
+	public Integer getLanguageId() {
+		return languageId;
+	}
+
+	public void setLanguageId(Integer languageId) {
+		this.languageId = languageId;
+	}
+
+	public String getMessageText() {
+		return messageText;
+	}
+
+	public void setMessageText(String messageText) {
+		this.messageText = messageText;
+	}
+}

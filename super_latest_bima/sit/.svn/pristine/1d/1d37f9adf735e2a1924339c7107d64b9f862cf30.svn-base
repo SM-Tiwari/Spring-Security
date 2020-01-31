@@ -1,0 +1,32 @@
+package id.gnvsolution.d3.api.dto.response;
+
+/**
+ * Put "-" as default value when got null object String
+ * @author Ainul Yaqin
+ */
+public class CustomerSegmentation {
+	private String segmentationName;
+	private String title;
+	private String description;
+	
+	public String getSegmentationName() {
+		return segmentationName==null ? "-":segmentationName;
+	}
+	public void setSegmentationName(String segmentationName) {
+		this.segmentationName = segmentationName;
+	}
+	public String getTitle() {
+		return title == null ? "-":title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public String getDescription() {
+		return description == null ? "-":description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
+	
+}

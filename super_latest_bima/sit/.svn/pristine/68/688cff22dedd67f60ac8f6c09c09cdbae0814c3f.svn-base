@@ -1,0 +1,139 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.DwhUniqueMsisdnDevice 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 21, 2017 7:44:21 PM
+ *
+ */
+@Entity
+@Table(name = "DWH_UNIQUE_MSISDN_DEVICE")
+public class DwhUniqueMsisdnDevice implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Column(name = "MSISDN")
+    private String msisdn;
+    @Column(name = "CHANNEL")
+    private String channel;
+    @Column(name = "BRAND")
+    private String brand;
+    @Column(name = "MODEL")
+    private String model;
+    @Column(name = "TYPE")
+    private String type;
+    @Column(name = "CREATED")
+    private Timestamp created;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_DWH_UNIQUE", sequenceName = "SEQ_DWH_UNIQUE", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_DWH_UNIQUE", strategy = GenerationType.SEQUENCE)
+    private BigDecimal id;
+
+    public DwhUniqueMsisdnDevice() {
+    }
+
+    public DwhUniqueMsisdnDevice(String msisdn, String channel, String brand, String model, String type) {
+        this.msisdn = msisdn;
+        this.channel = channel;
+        this.brand = brand;
+        this.model = model;
+        this.type = type;
+        this.created = new Timestamp(System.currentTimeMillis());
+    }
+
+    public DwhUniqueMsisdnDevice(BigDecimal id) {
+        this.id = id;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Timestamp getCreated() {
+        return created;
+    }
+
+    public void setCreated(Timestamp created) {
+        this.created = created;
+    }
+
+    public BigDecimal getId() {
+        return id;
+    }
+
+    public void setId(BigDecimal id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof DwhUniqueMsisdnDevice)) {
+            return false;
+        }
+        DwhUniqueMsisdnDevice other = (DwhUniqueMsisdnDevice) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.DwhUniqueMsisdnDevice[ id=" + id + " ]";
+    }
+
+}

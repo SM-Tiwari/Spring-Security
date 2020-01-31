@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://iwebservice.elcom.com"
+	xmlns:soapenc12="http://www.w3.org/2003/05/soap-encoding" xmlns:tns="http://iwebservice.elcom.com"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:soap11="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc11="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+	<wsdl:types>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			attributeFormDefault="qualified" elementFormDefault="qualified"
+			targetNamespace="http://iwebservice.elcom.com">
+			<xsd:complexType name="ChangeStateReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="password" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="state" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="timeout" type="xsd:int" />
+					<xsd:element minOccurs="0" name="userName" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="ChangeState">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:ChangeStateReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ChangeStateResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="detail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="result" type="xsd:int" />
+					<xsd:element minOccurs="0" name="state" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="ChangeStateResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:ChangeStateResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="AddBalanceReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="addValue" type="xsd:int" />
+					<xsd:element minOccurs="0" name="balance" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="password" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="timeout" type="xsd:int" />
+					<xsd:element minOccurs="0" name="userName" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="AddBalance">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:AddBalanceReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="AddBalanceResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="addValue" type="xsd:int" />
+					<xsd:element minOccurs="0" name="balance" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="detail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="result" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="AddBalanceResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:AddBalanceResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ExtDebitReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="ANumber" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="BNumber" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="CPId" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="CPName" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="contCode" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="contType" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="desc" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="password" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="sentTime" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="serviceState"
+						nillable="true" type="xsd:string" />
+					<xsd:element minOccurs="0" name="submitTime" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="timeout" type="xsd:int" />
+					<xsd:element minOccurs="0" name="transDateTime"
+						nillable="true" type="xsd:string" />
+					<xsd:element minOccurs="0" name="userName" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="ExtDebit">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:ExtDebitReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ExtDebitResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="detail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="result" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="ExtDebitResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:ExtDebitResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="DeductBalanceReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="balance" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="deductValue" type="xsd:int" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="password" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="timeout" type="xsd:int" />
+					<xsd:element minOccurs="0" name="userName" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="DeductBalance">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:DeductBalanceReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="DeductBalanceResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="balance" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="deductValue" type="xsd:int" />
+					<xsd:element minOccurs="0" name="detail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="result" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="DeductBalanceResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:DeductBalanceResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="SetBalanceReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="balanceName" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="password" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="timeout" type="xsd:int" />
+					<xsd:element minOccurs="0" name="userName" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="value" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="SetBalance">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:SetBalanceReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="SetBalanceResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="balance" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="detail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="result" type="xsd:int" />
+					<xsd:element minOccurs="0" name="value" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="SetBalanceResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:SetBalanceResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="SubscriberRetrieveReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="password" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="timeout" type="xsd:int" />
+					<xsd:element minOccurs="0" name="username" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="RetrieveSubscriber">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:SubscriberRetrieveReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="SubscriberRetrieveResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="detail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="postInfo" nillable="true"
+						type="tns:PostpaidSubsInfo" />
+					<xsd:element minOccurs="0" name="preInfo" nillable="true"
+						type="tns:PrepaidSubsInfo" />
+					<xsd:element minOccurs="0" name="result" type="xsd:int" />
+					<xsd:element minOccurs="0" name="subType" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="PrepaidSubsInfo">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="SActiveDate" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SAddress" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SBirthDate" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SCompany" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SFirstName" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SLastName" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SNational" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SPassPort" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="balCore" type="xsd:double" />
+					<xsd:element minOccurs="0" name="balList" nillable="true"
+						type="tns:ArrayOfBalanceInfo" />
+					<xsd:element minOccurs="0" name="cos" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="expiredCore" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="phoneBook" nillable="true"
+						type="tns:PhoneBook" />
+					<xsd:element minOccurs="0" name="state" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="PhoneBook">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="SPB" nillable="true"
+						type="tns:ArrayOfString" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfString">
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="string"
+						nillable="true" type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfBalanceInfo">
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0"
+						name="BalanceInfo" nillable="true" type="tns:BalanceInfo" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="BalanceInfo">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="expireTime" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="name" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="value" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="PostpaidSubsInfo">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="SAddress" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SBirthDate" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SCompany" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SFirstName" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SLastName" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SNational" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="SPassPort" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="dcurrDebt" type="xsd:double" />
+					<xsd:element minOccurs="0" name="dlastPaymentDebt"
+						type="xsd:double" />
+					<xsd:element minOccurs="0" name="dmonthDebt" type="xsd:double" />
+					<xsd:element minOccurs="0" name="dtotalDebt" type="xsd:double" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="RetrieveSubscriberResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:SubscriberRetrieveResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ChangeExpiredDateReq">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="balance" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="expiredDate" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="password" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="timeout" type="xsd:int" />
+					<xsd:element minOccurs="0" name="userName" nillable="true"
+						type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="ChangeExpiredDate">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="in0"
+							nillable="true" type="tns:ChangeExpiredDateReq" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="ChangeExpiredDateResp">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="balance" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="detail" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="expiredDate" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="msisdn" nillable="true"
+						type="xsd:string" />
+					<xsd:element minOccurs="0" name="result" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="ChangeExpiredDateResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element maxOccurs="1" minOccurs="1" name="out"
+							nillable="true" type="tns:ChangeExpiredDateResp" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="RetrieveSubscriberRequest">
+		<wsdl:part name="parameters" element="tns:RetrieveSubscriber">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="DeductBalanceRequest">
+		<wsdl:part name="parameters" element="tns:DeductBalance">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ExtDebitRequest">
+		<wsdl:part name="parameters" element="tns:ExtDebit">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ExtDebitResponse">
+		<wsdl:part name="parameters" element="tns:ExtDebitResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="DeductBalanceResponse">
+		<wsdl:part name="parameters" element="tns:DeductBalanceResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="SetBalanceRequest">
+		<wsdl:part name="parameters" element="tns:SetBalance">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="RetrieveSubscriberResponse">
+		<wsdl:part name="parameters" element="tns:RetrieveSubscriberResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ChangeExpiredDateResponse">
+		<wsdl:part name="parameters" element="tns:ChangeExpiredDateResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ChangeStateRequest">
+		<wsdl:part name="parameters" element="tns:ChangeState">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="SetBalanceResponse">
+		<wsdl:part name="parameters" element="tns:SetBalanceResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ChangeExpiredDateRequest">
+		<wsdl:part name="parameters" element="tns:ChangeExpiredDate">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="ChangeStateResponse">
+		<wsdl:part name="parameters" element="tns:ChangeStateResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="AddBalanceResponse">
+		<wsdl:part name="parameters" element="tns:AddBalanceResponse">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="AddBalanceRequest">
+		<wsdl:part name="parameters" element="tns:AddBalance">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:portType name="cgw_webservicePortType">
+		<wsdl:operation name="ChangeState">
+			<wsdl:input name="ChangeStateRequest" message="tns:ChangeStateRequest">
+			</wsdl:input>
+			<wsdl:output name="ChangeStateResponse" message="tns:ChangeStateResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="AddBalance">
+			<wsdl:input name="AddBalanceRequest" message="tns:AddBalanceRequest">
+			</wsdl:input>
+			<wsdl:output name="AddBalanceResponse" message="tns:AddBalanceResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ExtDebit">
+			<wsdl:input name="ExtDebitRequest" message="tns:ExtDebitRequest">
+			</wsdl:input>
+			<wsdl:output name="ExtDebitResponse" message="tns:ExtDebitResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeductBalance">
+			<wsdl:input name="DeductBalanceRequest" message="tns:DeductBalanceRequest">
+			</wsdl:input>
+			<wsdl:output name="DeductBalanceResponse" message="tns:DeductBalanceResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetBalance">
+			<wsdl:input name="SetBalanceRequest" message="tns:SetBalanceRequest">
+			</wsdl:input>
+			<wsdl:output name="SetBalanceResponse" message="tns:SetBalanceResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RetrieveSubscriber">
+			<wsdl:input name="RetrieveSubscriberRequest" message="tns:RetrieveSubscriberRequest">
+			</wsdl:input>
+			<wsdl:output name="RetrieveSubscriberResponse" message="tns:RetrieveSubscriberResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ChangeExpiredDate">
+			<wsdl:input name="ChangeExpiredDateRequest" message="tns:ChangeExpiredDateRequest">
+			</wsdl:input>
+			<wsdl:output name="ChangeExpiredDateResponse" message="tns:ChangeExpiredDateResponse">
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="cgw_webserviceHttpBinding" type="tns:cgw_webservicePortType">
+		<wsdlsoap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="ChangeState">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="ChangeStateRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="ChangeStateResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="AddBalance">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="AddBalanceRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="AddBalanceResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ExtDebit">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="ExtDebitRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="ExtDebitResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeductBalance">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="DeductBalanceRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="DeductBalanceResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetBalance">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="SetBalanceRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="SetBalanceResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RetrieveSubscriber">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="RetrieveSubscriberRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="RetrieveSubscriberResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ChangeExpiredDate">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="ChangeExpiredDateRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="ChangeExpiredDateResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="cgw_webservice">
+		<wsdl:port name="cgw_webserviceHttpPort" binding="tns:cgw_webserviceHttpBinding">
+			<wsdlsoap:address
+				location="http://10.8.11.65:8080/cgw_web_service/services/cgw_webservice" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

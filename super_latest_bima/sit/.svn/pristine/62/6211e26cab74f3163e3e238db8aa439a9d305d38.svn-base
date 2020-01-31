@@ -1,0 +1,72 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.ProfileFlashColor;
+import id.gnvsolution.d3.api.service.FlashProfileService;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.QuotaServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ *         May 10, 2017 5:50:48 PM
+ */
+@Service
+@Transactional
+public class FlashProfileServiceImpl extends BaseService implements FlashProfileService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(FlashProfileServiceImpl.class);
+
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<ProfileFlashColor> profileFlashColorDao;
+
+    @Autowired
+    public void initialization(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.profileFlashColorDao = new BaseDao<>(sessionFactoryDef, ProfileFlashColor.class);
+    }
+
+    public ProfileFlashColor getHexColor(long balance, long quota) {
+    	LOGGER.info("#getHexColor-----getting balance between balanceMin and balanceMax for balance:: ", balance);
+        try {
+            List<ProfileFlashColor> flashColorList = profileFlashColorDao.find(":balance between balanceMin and balanceMax order by operand, balanceMin, quotaMin", new HashMap<String, Object>() {{
+                put("balance", balance);
+            }});
+            for (ProfileFlashColor flashColor : flashColorList) {
+                // checking null value
+                if (flashColor.getQuotaMin() == null || flashColor.getQuotaMax() == null) {
+                    flashColor.setQuotaMin(0l);
+                    flashColor.setQuotaMax(0l);
+                }
+
+                if (flashColor.getOperand() == 1) {
+                    // operand AND
+                    if (quota >= flashColor.getQuotaMin() && quota <= flashColor.getQuotaMax()) {
+                        return flashColor;
+                    }
+                } else {
+                    // operand OR
+                    if (quota >= flashColor.getQuotaMin() || quota <= flashColor.getQuotaMax()) {
+                        return flashColor;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new ProfileFlashColor();
+    }
+
+}

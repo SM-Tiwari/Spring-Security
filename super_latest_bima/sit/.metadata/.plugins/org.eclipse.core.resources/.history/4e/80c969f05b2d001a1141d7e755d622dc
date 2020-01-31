@@ -1,0 +1,42 @@
+#DB connection settings to OSSDB
+datasource.singleview.driverclassname=oracle.jdbc.OracleDriver
+
+#dev env
+#datasource.singleview.url=jdbc:oracle:thin:@(DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = 10.6.13.41)(PORT = 1521))(CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = CSVDBU)))
+#datasource.singleview.username=selfcare
+#datasource.singleview.password=Abcd4321
+
+#sit env
+datasource.singleview.url=jdbc:oracle:thin:@(DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 10.6.16.97)(PORT = 1526)))(CONNECT_DATA = (SERVICE_NAME = CSVDBR)))
+datasource.singleview.username=CSV_RO
+datasource.singleview.password=NovV2018
+
+
+#production env
+#datasource.singleview.url=jdbc:oracle:thin:@(DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = hanbkp02.vietnamobile.net.vn)(PORT = 1526)))(CONNECT_DATA = (SERVICE_NAME = CSVDBP)))
+#datasource.singleview.username=SV_SCARE
+#datasource.singleview.password=Svscare123#
+
+datasource.singleview.connectionvalidationsql=select 1 from dual
+
+#the following values are in seconds
+datasource.singleview.connpool.validationinterval=30
+datasource.singleview.connpool.timebetweenbvictionruns=30
+datasource.singleview.connpool.maxwait=10
+datasource.singleview.connpool.minevictableidletime=30
+datasource.singleview.connpool.removeabandonedtimeout=60
+
+datasource.singleview.connpool.initialsize=5
+datasource.singleview.connpool.maxactive=100
+datasource.singleview.connpool.minidle=5
+datasource.singleview.connpool.interceptors=org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer
+#prod query
+datasource.singleview.callhistory.sql =select msisdn, event_type, event_dtm, duration, amount, b_number from HCPT_INTEC_USAGE_DETAILS_NEW where msisdn = ? and event_type = 'GSM Voice MOC' and created_dtm between to_date(?) and to_date(?) order by created_dtm desc
+datasource.singleview.smshistory.sql=select msisdn, event_type, event_dtm, duration, amount, b_number from HCPT_INTEC_USAGE_DETAILS_NEW where msisdn = ? and event_type = 'GSM SMS MO' and created_dtm between to_date(?) and to_date(?) order by created_dtm desc
+
+#sit query
+#datasource.singleview.callhistory.sql =select msisdn, event_type, event_dtm, duration, amount, b_number from SV_SIEBEL.HCPT_INTEC_USAGE_DETAILS_NEW where msisdn = ? and event_type = 'GSM Voice MOC' and created_dtm between to_date(?) and to_date(?) order by created_dtm desc
+#datasource.singleview.smshistory.sql=select msisdn, event_type, event_dtm, duration, amount, b_number from SV_SIEBEL.HCPT_INTEC_USAGE_DETAILS_NEW where msisdn = ? and event_type = 'GSM SMS MO' and created_dtm between to_date(?) and to_date(?) order by created_dtm desc
+
+#datasource.singleview.callhistory.sql=select msisdn, event_type, event_dtm, duration, amount, b_number from HCPT_INTEC_USAGE_DETAILS_UAT where msisdn = ? and event_type = 'GSM Voice MOC' and event_dtm between ? and ? order by event_dtm desc
+#datasource.singleview.smshistory.sql=select msisdn, event_type, event_dtm, duration, amount, b_number from HCPT_INTEC_USAGE_DETAILS_UAT where msisdn = ? and event_type = 'GSM SMS MO' and event_dtm between ? and ? order by event_dtm desc

@@ -1,0 +1,61 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.response.InfoWordingDto;
+import id.gnvsolution.d3.api.model.InfoWording;
+import id.gnvsolution.d3.api.service.InfoWordingService;
+import id.gnvsolution.d3.api.utils.H;
+
+@Service
+@Transactional
+public class InfoWordingServiceImpl implements InfoWordingService {
+	
+	private final Logger logger = LoggerFactory.getLogger(InfoWordingServiceImpl.class);
+
+	@Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+	
+	@Override
+	public InfoWordingDto getInfoWording(String key, String language) {
+		
+		logger.info("#getInfoWording-----getting InfoWording data based on key:::::", key);
+		
+		BaseDao<InfoWording> infoWordingDao = new BaseDao<>(sessionFactoryDef, InfoWording.class);
+		List<InfoWording> results = new ArrayList<>();
+		InfoWordingDto response = new InfoWordingDto();
+		
+		if (language == null || language.isEmpty())
+			language = "0";
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+        params.put("key", key);
+        
+        infoWordingDao.find("key = :key", params).forEach(infowording -> results.add(infowording));
+        
+        if (results.size() > 0) {
+        	InfoWording infoWording = results.get(0);
+
+    		response.setDescHdr(H.L(language, infoWording.getDescHdr(), infoWording.getDescHdrEn()));
+    		response.setDesc(H.L(language, infoWording.getDesc(), infoWording.getDescEn()));
+        } else {
+        	response.setDescHdr("Not found");
+    		response.setDesc("Not found");
+        }
+		
+		return response;
+	}
+}

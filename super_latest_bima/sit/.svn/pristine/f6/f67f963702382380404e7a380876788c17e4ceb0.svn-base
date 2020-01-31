@@ -1,0 +1,219 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.fault.SubscriberNotFoundException;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.MemberGetMember;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.LoginService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.SmppService;
+import id.gnvsolution.d3.api.service.SubscriberService;
+import id.gnvsolution.d3.api.utils.Languages;
+import id.gnvsolution.d3.api.utils.SpringUtils;
+
+import org.hibernate.SessionFactory;
+import org.jsmpp.bean.Alphabet;
+import org.jsmpp.bean.GeneralDataCoding;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+
+@Service
+@Transactional
+public class SubscriberServiceImpl extends BaseService implements SubscriberService,MessageSourceAware {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubscriberServiceImpl.class);
+    private SessionFactory sessionFactoryDef;
+    private LoginService loginService;
+    private BaseDao<Subscriber> subscriberDao;
+    private BaseDao<MemberGetMember> memberGetDao;
+    @Autowired
+        SmppService smppService;
+        
+        private MessageSource messageSource;
+
+        
+        @Autowired
+    	private AppConfigService applicationConfigurationService;
+        
+        @Autowired
+    	private NotificationMasterService notificationMasterService;
+
+    @Autowired
+    public SubscriberServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef, LoginService loginService) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.loginService = loginService;
+        this.memberGetDao = new BaseDao<>(sessionFactoryDef, MemberGetMember.class);
+        this.subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+    }
+
+    public boolean isMsisdnPrepaid(String msisdn) {
+    	LOGGER.info("#isMsisdnPrepaid-----------msisdn::::",msisdn );
+        if (subscriberDao.count("subscriberMsisdn = :msisdn", new HashMap<String, Object>() {{
+            put("msisdn", msisdn);
+        }}) == 0) {
+            // this msisdn not yet using bima+
+            loginService.getCrmData(msisdn, "");
+        }
+
+        return subscriberDao.count("subscriberMsisdn = :subscriberMsisdn and subscriberType in ('Prepaid', 'Hybrid')", new HashMap<String, Object>() {{
+            put("subscriberMsisdn", msisdn);
+        }}) > 0;
+    }
+
+    public Subscriber get(String msisdn) {
+    	LOGGER.info("#get-----------msisdn::::",msisdn );
+        List<Subscriber> subscriberList = subscriberDao.find("subscriberMsisdn = :subscriberMsisdn", new HashMap<String, Object>() {{
+            put("subscriberMsisdn", msisdn);
+        }});
+        return subscriberList.isEmpty() ? null : subscriberList.get(0);
+    }
+    
+    @Override
+	public boolean inviteMembers(String subscriberId, List<String> invitedNumbers, String language) throws SubscriberNotFoundException {
+    	LOGGER.info("#inviteMembers-----------subscriberId:::"+subscriberId+"++++++++invitedNumbers======="+invitedNumbers.toString() );
+		//LoggingUtil.debug(logger, "#inviteMembers --- " + subscriberId + ", invited= " + invitedNumbers);
+		if (invitedNumbers == null)
+			return false;
+
+		subscriberId = stripCountryCode(subscriberId);
+		LOGGER.info("#inviteMembers-----subscriberId :"+subscriberId);
+
+		if (!isActiveSubscriber(subscriberId))
+			throw new SubscriberNotFoundException("Subscriber not found or not active: " + subscriberId);
+
+		String sender = applicationConfigurationService.get("smpp.defaultsender", "SELFCARE").toString();
+		String message = null;
+		Locale vietnamese = new Locale(AppDefaultValues.LANGUAGE_VIETNAMESE); //new Locale(applicationConfigurationService.getDefaultLanguageCode());
+		Locale english = new Locale(AppDefaultValues.LANGUAGE_ENGLISH);
+		GeneralDataCoding dataCoding = new GeneralDataCoding(Alphabet.ALPHA_DEFAULT);
+		String charset = "UTF-8";
+		for (String number : invitedNumbers) {
+			LOGGER.info("#inviteMembers-----StringUtils.hasText(number): "+StringUtils.hasText(number));
+				if (StringUtils.hasText(number)) {
+					try {
+						MemberGetMember mgm = new MemberGetMember();
+						mgm.setMsisdn(subscriberId);
+						mgm.setInvidtedMsisdn(number);
+					    memberGetDao.save(mgm);
+
+					// Subscriber {0} invite you to download MyVietnamobile app
+					// (FREE) at http://vietnamobile.com.vn/seftcare. Thank you!
+					/*
+					 * if (language.equals("0")) { message =
+					 * SpringUtils.resolveMessage(messageSource, "Message.mgm.invitation", new
+					 * String[] { subscriberId }, String.format(
+					 * "Thue bao %s moi ban tai ung dung Bima (MIEN PHI) tai http://vietnamobile.com.vn/selfcare. Tran trong!"
+					 * , subscriberId), vietnamese); } else { message =
+					 * SpringUtils.resolveMessage(messageSource, "Message.mgm.invitation", new
+					 * String[] { subscriberId }, String.format(
+					 * "Subscriber %s invite you to download Bima app (FREE) at http://vietnamobile.com.vn/selfcare Thank you!"
+					 * , subscriberId), english); }
+					 */
+					    if (language.equals("0")) {
+							message = SpringUtils.resolveMessage(messageSource, "Message.mgm.invitation",
+									new String[] { subscriberId },
+									String.format(
+											notificationMasterService.getMessageText(Languages.MSG_IDS.INVITE_MSG, language).replace("#SUBID", subscriberId),
+											subscriberId),
+									vietnamese);
+							
+						}
+						else {
+							message = SpringUtils.resolveMessage(messageSource, "Message.mgm.invitation",
+									new String[] { subscriberId },
+									String.format(
+											notificationMasterService.getMessageText(Languages.MSG_IDS.INVITE_MSG, language).replace("#SUBID", subscriberId),
+											subscriberId),
+									english);
+						}
+						
+						System.out.println("message is::"+ message);
+					String messageId = smppService.sendSms(number, message);
+					LOGGER.info("#inviteMembers-----messageId is after sending invites :::"+messageId);
+					if(messageId.equals("0"))
+					{
+						return false;
+					}
+					/*
+					 * sendsmsservice.sendSMS(sender, AppUtils.prependCountryCodeToMsisdn(number,
+					 * applicationConfigurationService.getDefaultCountryCode()), message, false,
+					 * dataCoding, charset);
+					 */
+
+					// disable English SMS notif as requested by Trung
+					// (16-11-2017)
+					/*
+					 * message = SpringUtils.resolveMessage(messageSource,
+					 * "Message.mgm.invitation", new String[] { number },
+					 * String.format(
+					 * "Subscriber %s invite you to download MyVietnamobile app (FREE) at http://vietnamobile.com.vn/seftcare. Thank you!"
+					 * , number), Locale.ENGLISH);
+					 * smppServiceProvider.sendSMS(sender,
+					 * AppUtils.prependCountryCodeToMsisdn(number,
+					 * applicationConfigurationService.getDefaultCountryCode()),
+					 * message, false, dataCoding, charset);
+					 */
+					} catch (Exception e) {
+						LOGGER.error("#inviteMembers --- error processing invitation to number " + number);
+						return false;
+					}
+				}
+			
+		}
+		
+		return true;
+		
+	}
+
+	private boolean isActiveSubscriber(String subscriberId) {
+			//subscriberId = stripCountryCode(subscriberId);
+
+			/*long count = subscriberRepository.count(QSubscriberEntity.subscriberEntity.msisdn.eq(subscriberId)
+					.and(QSubscriberEntity.subscriberEntity.status.eq(SubscriberStatus.ACTIVE.ordinal())));*/
+			//return  subscriberDao.count("subscriberMsisdn = :subscriberId and subscriberStatus in ('Active')", new HashMap<String, Object>() {{
+		return  subscriberDao.count("subscriberMsisdn = :subscriberId", new HashMap<String, Object>() {{
+	            put("subscriberId", stripCountryCode(subscriberId));
+	        }})>0;
+	}
+
+	private String stripCountryCode(String msisdn) {
+	    String countryCode =  AppDefaultValues.COUNTRY_CODE.toString();//applicationConfigurationService.getDefaultCountryCode();
+		return AppUtils.removeCountryCode(msisdn, countryCode);
+	}
+
+	@Override
+	public void setMessageSource(MessageSource messageSource) {
+		this.messageSource = messageSource;
+		
+	}
+
+	@Override
+	public List<Subscriber> getPrepaidUser() {
+		LOGGER.debug("Inside SubscriberServiceImpl method getPrepaidUser");
+		try
+		{
+			
+		}
+		catch(Exception  e)
+		{
+			LOGGER.error("Inside SubscriberServiceImpl method getPrepaidUser", e.getMessage());
+		}
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

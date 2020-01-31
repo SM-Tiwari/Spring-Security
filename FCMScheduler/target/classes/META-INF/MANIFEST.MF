@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Built-By: siddhesh.mani
+Class-Path: lib/mybatis-3.2.2.jar lib/jackson-core-2.6.3.jar lib/jacks
+ on-databind-2.6.3.jar lib/jackson-annotations-2.6.0.jar lib/log4j-1.2
+ .17.jar lib/spring-web-4.1.4.RELEASE.jar lib/spring-aop-4.1.4.RELEASE
+ .jar lib/aopalliance-1.0.jar lib/spring-beans-4.1.4.RELEASE.jar lib/s
+ pring-context-4.1.4.RELEASE.jar lib/spring-expression-4.1.4.RELEASE.j
+ ar lib/spring-core-4.1.4.RELEASE.jar lib/commons-logging-1.2.jar lib/
+ json-20160810.jar lib/gson-2.8.5.jar lib/httpclient-4.3.6.jar lib/htt
+ pcore-4.3.3.jar lib/commons-codec-1.6.jar lib/ojdbc8-12.2.0.jar
+Build-Jdk: 1.8.0_221
+Created-By: Maven Integration for Eclipse
+Main-Class: com.gnv.d3.fcm.scheduler.Main
+

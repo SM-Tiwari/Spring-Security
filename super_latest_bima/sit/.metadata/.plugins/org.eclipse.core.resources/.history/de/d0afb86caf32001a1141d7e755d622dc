@@ -1,0 +1,165 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Version;
+
+@Entity
+@Table(name = "etop_up_status")
+@SequenceGenerator(name = "etopup_status_seq", sequenceName = "etopup_status_seq", allocationSize = 1)
+public class EtopUpStatusEntity {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "etopup_status_seq")
+	@Column(name = "id")
+	private Integer id;
+	
+	@Column(length = 20, nullable = false)
+	private String msisdn;
+ 
+	@Column(name = "timeStamp")
+	private String timeStamp;
+	
+	@Column(name = "status")
+	private String status;
+	
+	@Column(name = "count")
+	private Integer count;
+ 
+	 
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "create_timestamp", updatable = false, nullable = false)
+	protected Date createTimestamp = new Date();
+	
+	 
+	@Column(name = "created_by", nullable = false)
+	private String createdBy;
+	
+	@Version
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "last_modified_timestamp", nullable = false)
+	protected Date lastModifiedTime;
+	
+	 
+    @Column(name = "last_modified_by", nullable = false)
+	protected String lastModifiedBy;
+
+
+	public Integer getId() {
+		return id;
+	}
+
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+
+	public String getTimeStamp() {
+		return timeStamp;
+	}
+
+
+	public void setTimeStamp(String timeStamp) {
+		this.timeStamp = timeStamp;
+	}
+
+
+	public String getStatus() {
+		return status;
+	}
+
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+
+	public Integer getCount() {
+		return count;
+	}
+
+
+	public void setCount(Integer count) {
+		this.count = count;
+	}
+
+
+	public Date getCreateTimestamp() {
+		return createTimestamp;
+	}
+
+
+	public void setCreateTimestamp(Date createTimestamp) {
+		this.createTimestamp = createTimestamp;
+	}
+
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+
+	public Date getLastModifiedTime() {
+		return lastModifiedTime;
+	}
+
+
+	public void setLastModifiedTime(Date lastModifiedTime) {
+		this.lastModifiedTime = lastModifiedTime;
+	}
+
+
+	public String getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+
+	public void setLastModifiedBy(String lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+
+	public EtopUpStatusEntity() {
+
+	}
+
+
+	public EtopUpStatusEntity(String msisdn, String timeStamp, String status, Integer count) {
+		super();
+		this.msisdn = msisdn;
+		this.timeStamp = timeStamp;
+		this.status = status;
+		this.count = count;
+	}
+	
+	
+    
+    
+    
+
+}

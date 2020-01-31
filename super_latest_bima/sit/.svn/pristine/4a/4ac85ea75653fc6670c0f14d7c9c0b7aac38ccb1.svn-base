@@ -1,0 +1,11 @@
+<ehcache>
+    <!-- 1 day -->
+    <cache name="oneday" maxElementsInMemory="10000"
+           timeToIdleSeconds="86400"
+           timeToLiveSeconds="86400" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+    
+    <!-- 1 month -->
+    <cache name="onemonth" maxElementsInMemory="100000"
+           timeToIdleSeconds="2592000"
+           timeToLiveSeconds="2592000" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+</ehcache>

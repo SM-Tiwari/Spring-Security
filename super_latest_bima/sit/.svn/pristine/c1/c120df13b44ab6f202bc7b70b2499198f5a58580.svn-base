@@ -1,0 +1,40 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/8/17.
+ */
+public class ErrorMessageDto implements DTO {
+
+    public static final String TOKEN_EXPIRED = "Oops Something Wrong";
+    public static final String UNAUTHORIZED = "Unauthorized access.";
+    
+    private boolean status;
+    private String message;
+
+    public ErrorMessageDto(){
+        status = false;
+    }
+
+    public ErrorMessageDto(boolean status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}

@@ -1,0 +1,428 @@
+package id.gnvsolution.d3.api.utils;
+
+import id.gnvsolution.d3.api.Constants;
+import java.text.DecimalFormat;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+
+/**
+ * Created by rips on 4/13/17.
+ */
+public class Helpers {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(Helpers.class);
+    private static final String salt = "0123456789abcdef";
+    private static SimpleDateFormat sdFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    private static SimpleDateFormat sdFormatTo = new SimpleDateFormat("yyyyMMddHHmmss");
+    private static NumberFormat nFormat = NumberFormat.getInstance(Locale.GERMAN);
+
+    public static Object ifnull(Object val1, Object val2){
+        return val1 == null ? val2 : val1;
+    }
+
+    public static String ifnull(String val1, String val2){
+        return val1 == null ? val2 : val1;
+    }
+
+    public static String ifNullOrEmpty(String val1, String val2){
+        return val1 == null ? val2 : (val1.isEmpty() ? val2 : val1);
+    }
+
+    public static Integer ifnull(Integer val1, Integer val2){
+        return val1 == null ? val2 : val1;
+    }
+
+    public static Double ifnull(Double val1, Double val2){
+        return val1 == null ? val2 : val1;
+    }
+
+    public static Float ifnull(Float val1, Float val2){
+        return val1 == null ? val2 : val1;
+    }
+
+    public static Long ifnull(Long val1, Long val2){
+        return val1 == null ? val2 : val1;
+    }
+
+    public static Boolean ifnull(Boolean val1, Boolean val2){
+        return val1 == null ? val2 : val1;
+    }
+
+    public static long tryParseLong(String input) {
+        return tryParseLong(input, 0);
+    }
+
+    public static long tryParseLong(String input, long defaultValue){
+        try {
+            return Long.parseLong(input);
+        }catch (Exception e){
+            return defaultValue;
+        }
+    }
+
+    public static int tryParseInt(String input) {
+        return tryParseInt(input, 0);
+    }
+
+    public static int tryParseInt(String input, int defaultValue){
+        try {
+            return Integer.parseInt(input);
+        }catch (Exception e){
+            return defaultValue;
+        }
+    }
+
+    public static String getSHA1(String x) {
+        try {
+            java.security.MessageDigest d = java.security.MessageDigest.getInstance("SHA-1");
+            d.reset();
+            d.update(x.getBytes());
+            return convertToHex(d.digest());
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+
+        return "";
+    }
+
+    private static String convertToHex(byte[] data) {
+        StringBuilder buf = new StringBuilder();
+        for (byte b : data) {
+            int halfbyte = (b >>> 4) & 0x0F;
+            int two_halfs = 0;
+            do {
+                buf.append((0 <= halfbyte) && (halfbyte <= 9) ? (char) ('0' + halfbyte) : (char) ('a' + (halfbyte - 10)));
+                halfbyte = b & 0x0F;
+            } while (two_halfs++ < 1);
+        }
+        return buf.toString();
+    }
+    
+    /**
+     *
+     * @param klikPayCode
+     * @param transactionNo
+     * @param currency
+     * @param clearKey
+     * @param transactionDate
+     * @param totalAmount
+     * @return
+     */
+    public static String generateSprintSignature(String klikPayCode,
+                                                 String transactionNo,
+                                                 String currency,
+                                                 String clearKey,
+                                                 String transactionDate,
+                                                 String totalAmount) {
+
+        if(klikPayCode.length() > 10)
+            klikPayCode = klikPayCode.substring(0, 10);
+        if(transactionNo.length() > 18)
+            transactionNo = transactionNo.substring(0, 18);
+        if(currency.length() > 5)
+            currency = currency.substring(0, 5);
+        if(transactionDate.length() > 19)
+            transactionDate = transactionDate.substring(0, 19);
+        if(clearKey.length() > 32)
+            clearKey = clearKey.substring(0, 32);
+        totalAmount = totalAmount.split("\\.")[0];
+        if(totalAmount.length() > 12)
+            totalAmount = totalAmount.substring(0, 12);
+
+        String keyId = clearKey.length() == 32?clearKey:keyId(clearKey);
+        String str1 = klikPayCode+transactionNo+currency+keyId;
+
+        transactionDate = transactionDate.replace("/", "").replace(" ", "").replace(":", "").substring(0, 8);
+        int str2 = Integer.parseInt(transactionDate) + Integer.parseInt(totalAmount);
+
+        long str11 = dohash(str1);
+        long str22 = dohash(""+str2);
+        return ""+Math.abs((long)(str11 + str22));
+    }
+    
+    private static final String keyId (String clearKey) {
+        char[] as = clearKey.toCharArray();
+        char[] ps = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+
+        StringBuffer value = new StringBuffer("");
+        for (char a : as) {
+            value = value.append((a&0xFF)/16)
+                    .append(ps[(a&0xFF)%16]);
+        }
+
+        return value.toString();
+    }
+
+    private static final int dohash(String str) {
+        int min = -2147483648;
+        int max = 2147483647;
+
+        int hash = 0;
+        for (int i = 0; i < str.length(); i++) {
+            hash = (hash * 31) + str.charAt(i);
+            while (hash > max) {
+                hash = (((hash + min) - max) - 1 );
+            }
+            while (hash < min) {
+                hash = (((hash + min) - max) + 1 );
+            }
+        }
+        return hash;
+    }
+
+    public static String querySqlProduct(String subscriberType, String alias) {
+        if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+            return " " + alias + ".IS_POSTPAID = 1 ";
+        } else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+            return " " + alias + ".IS_HYBRID = 1 ";
+        } else {
+            return " " + alias + ".IS_PREPAID = 1 ";
+        }
+    }
+
+    public static String getHex(String str) {
+        try {
+            byte[] decodedHex = Hex.decodeHex(str.toCharArray());
+            byte[] encodedHexB64 = Base64.encodeBase64(decodedHex);
+            return new String(encodedHexB64);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return str;
+    }
+    
+    public static String generateSignature(String currentDate, String serviceType, String transactionId, String msisdn) {
+        String result = "";
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            final SecretKeySpec secretKey = new SecretKeySpec(salt.getBytes("UTF-8"), "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            result = java.util.Base64.getEncoder().encodeToString(cipher.doFinal((currentDate + serviceType + transactionId + msisdn).getBytes()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public static String formatDateFromTo(String from, String to, String stringDate) {
+        try {
+            return new SimpleDateFormat(to).format(new SimpleDateFormat(from).parse(stringDate));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "-";
+        }
+    }
+
+    public static String formatNumber(long number) {
+        return String.format("%,.0f", Double.parseDouble(String.valueOf(number)));
+    }
+    
+    public static String formatNumber(double number) {
+        return String.format("%,.2f", Double.parseDouble(String.valueOf(number)));
+    }
+
+    public static String formatTo3Digits(String number) {
+        if(number.length() > 4)
+            return number.substring(0, 4).endsWith(".")?number.substring(0, 3):number.substring(0, 4);
+        return number;
+    }
+
+    public static Map<String, Object> profileIsRenewable(String[] profileKeys, Map<String, String> mapPackage) {
+        boolean isRenewable = false;
+        String registrationKey = "";
+        for (int i = 0; i < profileKeys.length; i++) {
+            if (mapPackage.containsKey(profileKeys[i])) {
+                String value = mapPackage.get(profileKeys[i]);
+                isRenewable = value.substring(value.lastIndexOf("AUTORENEWAL:") + 12).equals("Y");
+                registrationKey = profileKeys[i];
+                break;
+            }
+        }
+
+        // compile the response
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("status", isRenewable);
+        map.put("message", registrationKey);
+        return map;
+    }
+
+    public static String profileGetValue(String value, String type, String uom, String language) {
+        return profileGetValue(value, type, uom, language, null);
+    }
+    public static String profileGetValue(String value, String type, String uom, String language, String bonusSubType) {
+        try {
+            if(bonusSubType == null)
+                bonusSubType = "";
+            switch (type.trim()) {
+                case "Monetary": {
+                    String CURRENCY = language.equals(Constants.LANG_ID) ? Languages.ID.CURRENCY_VIETNA + "." : Languages.EN.CURRENCY_VND;
+                    return CURRENCY + " " + nFormat.format(tryParseLong(String.format("%.0f", Double.parseDouble(value))));
+                }
+                case "Rating Discount": {
+                    if(value==null || value.isEmpty())
+                        return "Unlimited";
+                    if(uom == null || uom.isEmpty()){
+                        switch (bonusSubType.trim()) {
+                            case "DONGLE": {
+                                return  String.format("%.0f", Double.parseDouble(value)) + " MB";
+                            }
+                            case "VOICE": {
+                                return safeDecimalFormat(value) + " Mnt";
+                            }
+                            default: {
+                                LOGGER.warn("profileGetValue.bonusSubType: " + bonusSubType + " not matched with any");
+                                return value;
+                            }
+                        }
+                    }
+
+                    switch (uom) {
+                        case "Minutes": {
+                            return safeDecimalFormat(value) + " Mnt";
+                        }
+                        case "SMS": {
+                            return String.format("%.0f", Double.parseDouble(value));
+                        }
+                        default: {
+                            LOGGER.warn("profileGetValue.uom: " + uom + " not matched with any");
+                            return "";
+                        }
+                    }
+                }
+                case "Package": {
+                    switch (uom) {
+                        case "Minutes": {
+                            return safeDecimalFormat(value) + " Mnt";
+                        }
+                        case "SMS": {
+                            return String.format("%.0f", Double.parseDouble(value));
+                        }
+                        default: {
+                            LOGGER.warn("profileGetValue.uom: " + uom + " not matched with any");
+                            return "";
+                        }
+                    }
+                }
+                case "Timeband": {
+                    if(value==null || value.isEmpty())
+                        return "Unlimited";
+                    if(uom == null || uom.isEmpty()){
+                        switch (bonusSubType.trim()) {
+                            case "DONGLE": {
+                                return  String.format("%.0f", Double.parseDouble(value)) + " MB";
+                            }
+                            case "VOICE": {
+                                return safeDecimalFormat(value) + " Mnt";
+                            }
+                            default: {
+                                LOGGER.warn("profileGetValue.bonusSubType: " + bonusSubType + " not matched with any");
+                                return value;
+                            }
+                        }
+                    }
+
+                    switch (uom) {
+                        case "Minutes": {
+                            return safeDecimalFormat(value) + " Mnt";
+                        }
+                        case "SMS": {
+                            return String.format("%.0f", Double.parseDouble(value));
+                        }
+                        default: {
+                            LOGGER.warn("profileGetValue.uom: " + uom + " not matched with any");
+                            return "";
+                        }
+                    }
+                }
+                default:
+                    return "";
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warn("profileGetValue fail to format: " + value+ " / " + e.getMessage());
+            return value;
+        }
+        
+    }
+    
+    public static String safeDecimalFormat(String value){
+        try {
+            DecimalFormat formater = new DecimalFormat("0.#");
+            return formater.format(Double.parseDouble(value));
+        } catch (Exception e) {
+            return value;
+        }
+    }
+
+    public static String profileGetValidity(Date date, CALENDAR suffix) {
+        return String.valueOf(Math.abs(date.getTime() - System.currentTimeMillis()) / (1000 * 60 * 60 * 24)) + " " + suffix;
+    }
+
+    public static String profileGetValidity(double maxDate, String dateString, CALENDAR suffix) {
+        return profileGetValidity(maxDate, dateString, suffix, null, null);
+    }
+
+    public static String profileGetValidity(double maxDate, String dateString, CALENDAR suffix, String dateFormat, String language) {
+        Date date;
+        try {
+            if (dateFormat == null) {
+                date = sdFormat.parse(dateString);
+            } else {
+                SimpleDateFormat sdCustom = new SimpleDateFormat(dateFormat);
+                date = sdCustom.parse(dateString);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            date = new Date();
+        }
+        
+        String uomDay = Constants.DAY_UOM;
+        if(language.equals(Constants.LANG_ID)){
+            uomDay = Constants.DAY_UOM_ID;
+        }
+
+        if (suffix.equals(CALENDAR.DAY)) {
+            double days = (double) Math.abs(date.getTime() - System.currentTimeMillis()) / (1000 * 60 * 60 * 24);
+            if (days > maxDate) {
+                return String.format("%,.0f "+uomDay, maxDate);
+            } else {
+                return String.format("%,.0f "+uomDay, days);
+            }
+        } else {
+            return String.valueOf(Math.abs(date.getTime() - System.currentTimeMillis()) / (1000 * 60 * 60 * 24));
+        }
+    }
+
+    public static String toString(Date date) {
+        return sdFormatTo.format(date);
+    }
+    
+    public static String generateSixRandom(){
+        Random r = new Random( System.currentTimeMillis() );
+        return ((1 + r.nextInt(2)) * 10000 + r.nextInt(10000))+""; 
+    }
+    
+    public static String generate24Random(){
+        String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        Random rnd = new Random( System.currentTimeMillis() );
+        int len = 24;
+        StringBuilder sb = new StringBuilder( len );
+        for( int i = 0; i < len; i++ ) 
+           sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
+        return sb.toString();
+    }
+
+    public static enum CALENDAR {DAY}
+
+}

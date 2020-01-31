@@ -1,0 +1,57 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by aswzen on 26/11/18.
+ */
+@Entity
+@Table(name = "FIX_SUBSCRIBER_OTP")
+public class FixSubscriberOtp {
+    private String msisdn;
+    private String otp;
+    private Timestamp createdAt;
+    private boolean status;
+    
+    @Id
+    @Column(name = "MSISDN", nullable = false)
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    @Basic
+    @Column(name = "OTP")
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT")
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "STATUS")
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+    
+}

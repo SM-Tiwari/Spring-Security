@@ -1,0 +1,46 @@
+package id.gnvsolution.d3.api.dto.response;
+
+public class BackdateUsageResponseDto {
+	private String adjustmentNumber;
+	private String adjustmentTypeName;
+	private String adjustmentNetMount;
+	private String adjustmentText;
+	private String adjustmentDate;
+	public String getAdjustmentNumber() {
+		return adjustmentNumber;
+	}
+	public void setAdjustmentNumber(String adjustmentNumber) {
+		this.adjustmentNumber = adjustmentNumber;
+	}
+	public String getAdjustmentTypeName() {
+		return adjustmentTypeName;
+	}
+	public void setAdjustmentTypeName(String adjustmentTypeName) {
+		this.adjustmentTypeName = adjustmentTypeName;
+	}
+	public String getAdjustmentNetMount() {
+		
+		if(adjustmentNetMount!=null && !adjustmentNetMount.isEmpty()) {
+			 adjustmentNetMount = String.valueOf(Math.abs(Integer.parseInt(adjustmentNetMount)));
+		}
+		
+		return adjustmentNetMount;
+	}
+	public void setAdjustmentNetMount(String adjustmentNetMount) {
+		this.adjustmentNetMount = adjustmentNetMount;
+	}
+	public String getAdjustmentText() {
+		return adjustmentText;
+	}
+	public void setAdjustmentText(String adjustmentText) {
+		this.adjustmentText = adjustmentText;
+	}
+	public String getAdjustmentDate() {
+		return adjustmentDate;
+	}
+	public void setAdjustmentDate(String adjustmentDate) {
+		this.adjustmentDate = adjustmentDate;
+	}
+	
+	
+}

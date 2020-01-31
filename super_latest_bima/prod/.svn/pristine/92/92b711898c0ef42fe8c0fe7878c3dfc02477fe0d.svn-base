@@ -1,0 +1,316 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.HomeScreenRequestDto;
+import id.gnvsolution.d3.api.dto.response.CacheDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCategory;
+import id.gnvsolution.d3.api.model.ProductHomescreen;
+import id.gnvsolution.d3.api.service.CacheService;
+import id.gnvsolution.d3.api.service.ProductService;
+import net.sf.ehcache.CacheManager;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.CacheServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jun 1, 2017 10:25:40 AM
+ *
+ */
+@Service
+@Transactional
+public class CacheServiceImpl implements CacheService {
+	
+	private final Logger logger = LoggerFactory.getLogger(CacheServiceImpl.class);
+
+    @Autowired
+    private CacheManager cacheManager;
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Autowired
+    private ProductCacheService productCacheService;
+    
+    @Async
+    @Override
+    public void rebuildCache() {
+        cacheManager.clearAll();
+        
+        reloadHomeScreen();
+        
+        // refresh category
+        BaseDao<ProductHomescreen> productHomescreenDao = new BaseDao<>(sessionFactoryDef, ProductHomescreen.class);
+        List<BigDecimal> categoryIds = productHomescreenDao.getSessionFactory().getCurrentSession().createSQLQuery("SELECT distinct(CATEGORY_ID) FROM PRODUCT_HOMESCREEN").list();
+        for (BigDecimal categoryId : categoryIds) {
+            if (categoryId == null) 
+                continue;
+            reloadCategory(categoryId);
+        }
+        
+        // refresh sub category
+        List<BigDecimal> subCategoryIds = productHomescreenDao.getSessionFactory().getCurrentSession().createSQLQuery("SELECT distinct(SUB_MENU_CATEGORY_ID) FROM PRODUCT_HOMESCREEN").list();
+        for (BigDecimal subCategoryId : subCategoryIds) {
+            if (subCategoryId == null) 
+                continue;
+            reloadSubCategory(subCategoryId);
+        }
+    }
+
+    @Override
+    public Map getAllCache() {
+        Map map = new HashMap();
+        for(String cacheName : cacheManager.getCacheNames()) {
+            List<Map> maps = new ArrayList<>();
+            for (Object key : cacheManager.getCache(cacheName).getKeys()) {
+                Map cacheMap = new HashMap();
+                cacheMap.put(key, new CacheDto(cacheManager.getCache(cacheName).get(key).getSerializedSize(), cacheManager.getCache(cacheName).get(key).getHitCount()));
+                maps.add(cacheMap);
+            }
+            map.put(cacheName, maps);
+        }
+        return map;
+    }
+
+    @Async
+    @Override
+    public void rebuildCacheCampaign(String id) {
+        try {
+            // clear Campaign
+            for (String cacheName : cacheManager.getCacheNames()) {
+                for (Object key : cacheManager.getCache(cacheName).getKeys()) {
+                    if (key.toString().contains("fromCampaign"+id)) {
+                        // remove cache
+                        cacheManager.getCache(cacheName).remove(key.toString());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @Async
+    @Override
+    public void rebuildCache(String id) {
+        try {
+            // get id product belongs in what category and subcategory
+            BaseDao<ProductCategory> baseDao = new BaseDao<>(sessionFactoryDef, ProductCategory.class);
+            List<ProductCategory> productCategorys = baseDao.find("productId = :productId", new HashMap<String, Object>() {{
+                put("productId", id);
+            }});
+
+            int categoryId2 = 0;
+            int subCategoryId2 = 0;
+            
+            // make sure its not empty
+            if (!productCategorys.isEmpty()) {
+                // get product
+                ProductCategory productCategory = productCategorys.get(0);
+                categoryId2 = productCategory.getMenuCategoryId();
+                subCategoryId2 = productCategory.getSubMenuCategoryId();
+            }
+            
+            final int categoryId = categoryId2;
+            final int subCategoryId = subCategoryId2;
+
+            // clear category and subcategory
+            for (String cacheName : cacheManager.getCacheNames()) {
+                for (Object key : cacheManager.getCache(cacheName).getKeys()) {
+                    if (key.toString().startsWith("getProductPerCategory" + categoryId)) {
+                        cacheManager.getCache(cacheName).remove(key.toString());
+                    }
+                    if (key.toString().startsWith("getProductBySubCategory" + subCategoryId)) {
+                        cacheManager.getCache(cacheName).remove(key.toString());
+                    }
+                    if (key.toString().contains(id)) {
+                        // remove cache
+                        cacheManager.getCache(cacheName).remove(key.toString());
+                        
+                        BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+                        List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {{
+                            put("productId", id);
+                        }});
+
+                        if (!products.isEmpty()) {
+                            // build again
+                            productCacheService.getProductDto(sessionFactoryDef, products.get(0), "0", Constants.SUBSCRIBER_TYPE_PREPAID, "ANDROID", true);
+                            productCacheService.getProductDto(sessionFactoryDef, products.get(0), "0", Constants.SUBSCRIBER_TYPE_POSTPAID, "ANDROID", true);
+                            productCacheService.getProductDto(sessionFactoryDef, products.get(0), "0", Constants.SUBSCRIBER_TYPE_HYBRID, "ANDROID", true);
+                            productCacheService.getProductDto(sessionFactoryDef, products.get(0), "1", Constants.SUBSCRIBER_TYPE_PREPAID, "ANDROID", true);
+                            productCacheService.getProductDto(sessionFactoryDef, products.get(0), "1", Constants.SUBSCRIBER_TYPE_POSTPAID, "ANDROID", true);
+                            productCacheService.getProductDto(sessionFactoryDef, products.get(0), "1", Constants.SUBSCRIBER_TYPE_HYBRID, "ANDROID", true);
+                        }
+                    }
+                    if (key.toString().startsWith("getBannerPerCategory" + categoryId)) {
+                        cacheManager.getCache(cacheName).remove(key.toString());
+                    }
+                }
+            }
+
+            reloadCategoryAndSubCategory(categoryId, subCategoryId);
+
+            // check whether the category & subcategory is in homescreen
+            BaseDao<ProductHomescreen> productHomescreenBaseDao = new BaseDao<>(sessionFactoryDef, ProductHomescreen.class);
+            List<ProductHomescreen> productHomescreens = productHomescreenBaseDao.listData("select homeScreen from ProductHomescreen as homeScreen where categoryId = :categoryId OR subMenuCategoryId = :subMenuCategoryId ORDER by homeScreen.order ASC", new HashMap<String, Object>() {{
+                put("categoryId", (long) categoryId);
+                put("subMenuCategoryId", (long) subCategoryId);
+            }}, 0, 20);
+
+            if (!productHomescreens.isEmpty()) {
+                reloadHomeScreen();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void reloadHomeScreen() {
+        HomeScreenRequestDto dto = new HomeScreenRequestDto();
+        dto.setSubscriberType("Prepaid");
+        
+        // refresh home screen
+        productService.getHomeScreen(dto, Constants.LANG_ID, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_ID, 1, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_ID, 2, null, false, "ANDROID", true);
+
+        productService.getHomeScreen(dto, Constants.LANG_EN, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_EN, 1, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_EN, 2, null, false, "ANDROID", true);
+        
+        dto.setSubscriberType("Postpaid");
+        
+        // refresh home screen
+        productService.getHomeScreen(dto, Constants.LANG_ID, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_ID, 1, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_ID, 2, null, false, "ANDROID", true);
+
+        productService.getHomeScreen(dto, Constants.LANG_EN, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_EN, 1, null, false, "ANDROID", true);
+        productService.getHomeScreenBannerAll(dto, Constants.LANG_EN, 2, null, false, "ANDROID", true);
+    }
+    
+    public void reloadCategoryAndSubCategory(int categoryId, int subCategoryId) {
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_ID, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_ID, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_ID, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_EN, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_EN, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_EN, null, null, false, "ANDROID", "", true, "0");
+
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, null, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, null, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, null, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, null, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, null, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, null, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getBannerPerCategory(""+categoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, 1, null, false, "ANDROID", true);
+        productService.getBannerPerCategory(""+categoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, 1, null, false, "ANDROID", true);
+        productService.getBannerPerCategory(""+categoryId, Constants.LANG_ID, null, 1, null, false, "ANDROID", true);
+        productService.getBannerPerCategory(""+categoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, 1, null, false, "ANDROID", true);
+        productService.getBannerPerCategory(""+categoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, 1, null, false, "ANDROID", true);
+        productService.getBannerPerCategory(""+categoryId, Constants.LANG_EN, null, 1, null, false, "ANDROID", true);
+    }
+    
+    private void reloadSubCategory(BigDecimal subCategoryId) {
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, null, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, null, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, null, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, null, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, null, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, null, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, 3, null, false, false, "ANDROID", true, "0");
+
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, 1, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, 2, null, false, false, "ANDROID", true, "0");
+        productService.getProductBySubCategory("" + subCategoryId, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, 3, null, false, false, "ANDROID", true, "0");
+    }
+
+    private void reloadCategory(BigDecimal categoryId) {
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_ID, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_ID, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_ID, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_EN, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_EN, null, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_EN, null, null, false, "ANDROID", "", true, "0");
+
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_ID, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_PREPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 1, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 2, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+        productService.getProductPerCategory("" + categoryId, 3, Constants.LANG_EN, Constants.SUBSCRIBER_TYPE_POSTPAID, null, false, "ANDROID", "", true, "0");
+    }
+}

@@ -1,0 +1,135 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by aswzen on 1/11/2018.
+ */
+@Entity
+@Table(name = "PRODUCT_MAIN_CATEGORY")
+public class ProductMainCategory {
+    
+    private int mainCategoryId;
+    private int menuCategoryId;
+    private String mainCategoryName;
+    private String mainCategoryNameEn;
+    private int displaySeq;
+    private String accessRight;
+    private int isActive;
+    private Integer createdBy;
+    private Timestamp createdAt;
+    private Integer updatedBy;
+    private Timestamp updatedAt;
+    
+    @Id
+    @Basic
+    @Column(name = "MAIN_CATEGORY_ID", nullable = false)
+    public int getMainCategoryId() {
+        return mainCategoryId;
+    }
+
+    public void setMainCategoryId(int mainCategoryId) {
+        this.mainCategoryId = mainCategoryId;
+    }
+
+    @Basic
+    @Column(name = "MENU_CATEGORY_ID")
+    public int getMenuCategoryId() {
+        return menuCategoryId;
+    }
+
+    public void setMenuCategoryId(int menuCategoryId) {
+        this.menuCategoryId = menuCategoryId;
+    }
+
+    @Basic
+    @Column(name = "MAIN_CATEGORY_NAME")
+    public String getMainCategoryName() {
+        return mainCategoryName;
+    }
+
+    public void setMainCategoryName(String mainCategoryName) {
+        this.mainCategoryName = mainCategoryName;
+    }
+
+    @Basic
+    @Column(name = "MAIN_CATEGORY_NAME_EN")
+    public String getMainCategoryNameEn() {
+        return mainCategoryNameEn;
+    }
+
+    public void setMainCategoryNameEn(String mainCategoryNameEn) {
+        this.mainCategoryNameEn = mainCategoryNameEn;
+    }
+
+    @Basic
+    @Column(name = "DISPLAY_SEQ")
+    public int getDisplaySeq() {
+        return displaySeq;
+    }
+
+    public void setDisplaySeq(int displaySeq) {
+        this.displaySeq = displaySeq;
+    }
+
+    @Basic
+    @Column(name = "ACCESS_RIGHT")
+    public String getAccessRight() {
+        return accessRight;
+    }
+
+    public void setAccessRight(String accessRight) {
+        this.accessRight = accessRight;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE")
+    public int getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(int isActive) {
+        this.isActive = isActive;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY")
+    public Integer getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Integer createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT")
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY")
+    public Integer getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Integer updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT")
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+}

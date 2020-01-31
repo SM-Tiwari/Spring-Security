@@ -1,0 +1,51 @@
+package id.gnvsolution.d3.api.utils;
+
+import id.gnvsolution.d3.api.Constants;
+import org.apache.http.client.utils.URIBuilder;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Map;
+
+/**
+ * Created by rips on 4/27/17.
+ */
+public class XmlHelper {
+
+    public static String marshal(Object param) throws JAXBException {
+        java.io.StringWriter requestPayload = new StringWriter();
+        JAXBContext jc = JAXBContext.newInstance(param.getClass());
+        Marshaller marshaller = jc.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+        marshaller.marshal(param, requestPayload);
+        return requestPayload.toString();
+    }
+
+    public static Object unMarshal(InputStream source, Class type) throws JAXBException {
+        java.io.StringWriter requestPayload = new StringWriter();
+        JAXBContext jc = JAXBContext.newInstance(type);
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        return unmarshaller.unmarshal(source);
+    }
+    
+    public static Object unMarshal(URL source, Class type) throws JAXBException {
+        java.io.StringWriter requestPayload = new StringWriter();
+        JAXBContext jc = JAXBContext.newInstance(type);
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        return unmarshaller.unmarshal(source);
+    }
+    
+    public static Object unMarshal(String url, Map<String, String> param, Class type) throws JAXBException, URISyntaxException, MalformedURLException {
+        URIBuilder uriBuilder = new URIBuilder(url);
+        param.forEach((s, s2) -> uriBuilder.addParameter(s, s2));
+        return unMarshal(new URL(Constants.PROXY+uriBuilder.build().toURL()), type);
+    }
+
+}

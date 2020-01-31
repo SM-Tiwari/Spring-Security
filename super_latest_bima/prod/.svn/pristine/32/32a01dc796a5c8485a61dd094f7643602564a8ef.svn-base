@@ -1,0 +1,88 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+@Entity
+@Table(name = "VENDOR")
+public class Vendor {
+
+    private String vendorId;
+    private String vendorName;
+    private String vendorProduct;
+    private Integer createdBy;
+    private Timestamp createdAt;
+    private Integer updatedBy;
+    private Timestamp updatedAt;
+
+    @Id
+    @Column(name = "VENDOR_ID", nullable = false, length = 5)
+    public String getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    @Basic
+    @Column(name = "VENDOR_NAME", length = 100)
+    public String getVendorName() {
+        return vendorName;
+    }
+
+    public void setVendorName(String vendorName) {
+        this.vendorName = vendorName;
+    }
+
+    @Basic
+    @Column(name = "VENDOR_PRODUCT", length = 255)
+    public String getVendorProduct() {
+        return vendorProduct;
+    }
+
+    public void setVendorProduct(String vendorProduct) {
+        this.vendorProduct = vendorProduct;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY")
+    public Integer getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Integer createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT")
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY")
+    public Integer getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Integer updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT")
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+}

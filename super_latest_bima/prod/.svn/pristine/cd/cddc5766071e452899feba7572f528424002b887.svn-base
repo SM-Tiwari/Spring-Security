@@ -1,0 +1,153 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.OTTPushNotif;
+import id.gnvsolution.d3.api.dto.request.PushNotificationDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.Secretkey;
+import id.gnvsolution.d3.api.service.PushNotificationService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.PushNotificationServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 28, 2017 11:47:37 AM
+ *
+ */
+@Service
+@Transactional
+public class PushNotificationServiceImpl extends BaseService implements PushNotificationService {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Autowired
+    private NotificationWorker notificationWorker;
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(PushNotificationServiceImpl.class);
+
+    /**
+     * saving gcmid to secretkey table
+     * 
+     * @param pushNotificationDto
+     * @return 
+     */
+    @Override
+    public Map<String, Object> notify(PushNotificationDto pushNotificationDto) {
+    	/*set msisdn by Vimal*/
+    	String msisdn = AppUtils.removeCountryCode(pushNotificationDto.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+   	    pushNotificationDto.setMsisdn(msisdn);
+    	
+        try {
+            
+            if(pushNotificationDto.getMsisdn() == null || pushNotificationDto.getSecretKey() == null)
+                return JSONResultFilter.filter(new SuccessMessageDto()).all().build(); 
+            
+            LOGGER.info("#notify------updating secret key gcm id to send notification----------msisdn::::"+pushNotificationDto.getMsisdn()+"     ---------gcm id:::"+pushNotificationDto.getGcmId() );
+            
+            // validate msisdn and password
+            BaseDao<Secretkey> secretKeyDao = new BaseDao<>(sessionFactoryDef, Secretkey.class);
+            List<Secretkey> secretkeys = secretKeyDao.find("msisdn = :msisdn and secretkey = :secretkey", new HashMap<String, Object>() {
+                {
+                    put("msisdn", pushNotificationDto.getMsisdn());
+                    put("secretkey", pushNotificationDto.getSecretKey());
+                }
+            });
+
+            // get subscriber and add GCM and APN
+            Secretkey secretkey = null;
+            
+            if(secretkeys.isEmpty()) {
+                secretkey = new Secretkey();
+                secretkey.setActive(1l);
+                secretkey.setActiveDate(new Timestamp(new Date().getTime()));
+                secretkey.setImei(pushNotificationDto.getImei());
+                secretkey.setMsisdn(pushNotificationDto.getMsisdn());
+            }
+            else
+                secretkey = secretkeys.get(0);
+            
+            if(pushNotificationDto.getApnId() != null && !pushNotificationDto.getApnId().isEmpty())
+                secretkey.setGcmId(pushNotificationDto.getApnId());
+            if(pushNotificationDto.getGcmId()!= null && !pushNotificationDto.getGcmId().isEmpty())
+                secretkey.setGcmId(pushNotificationDto.getGcmId());
+                secretkey.setActiveDate(new Timestamp(new Date().getTime()));
+           
+            
+            // update subscriber
+            secretKeyDao.saveOrUpdate(secretkey);
+            
+            return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+    }
+
+    @Override
+    public Map<String, Object> notifyDummy(PushNotificationDto pushNotificationDto) {
+        return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+    }
+
+    @Override
+    public Map<String, Object> ott(OTTPushNotif oTTPushNotif) {
+        
+        if(!isMsisdnValid(oTTPushNotif.getMsisdn(), oTTPushNotif.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        Map map = new HashMap();
+        map.put("data", oTTPushNotif);
+        
+        notificationWorker.sendNotification(oTTPushNotif.getToNumber(), "OTT:"+oTTPushNotif.getFromId()+":"+oTTPushNotif.getToId()+":"+oTTPushNotif.getFromNumber()+":"+oTTPushNotif.getToNumber());
+        
+        // status : true/false
+        // message : <error message>
+        map.put("status", true);
+        map.put("message", "true");
+        
+        return map;
+    }
+
+    @Override
+    public Map<String, Object> ott2(OTTPushNotif oTTPushNotif) {
+        if(!isMsisdnValid(oTTPushNotif.getMsisdn(), oTTPushNotif.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        Map map = new HashMap();
+        
+        notificationWorker.sendNotification(oTTPushNotif.getToNumber(), oTTPushNotif.getMessage());
+        
+        // status : true/false
+        // message : <error message>
+        map.put("status", true);
+        map.put("message", "true");
+        
+        return map;
+    }
+}

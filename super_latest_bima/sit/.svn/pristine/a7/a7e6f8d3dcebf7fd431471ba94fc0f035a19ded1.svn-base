@@ -1,0 +1,66 @@
+package id.gnvsolution.d3.api.model.helper;
+
+public class BonusInfoObject {
+	private String bonusType;
+    private String bonusSubType;
+    private String allocatedAmount;
+	public String getBonusType() {
+		return bonusType;
+	}
+	public void setBonusType(String bonusType) {
+		this.bonusType = bonusType;
+	}
+	public String getBonusSubType() {
+		return bonusSubType;
+	}
+	public void setBonusSubType(String bonusSubType) {
+		this.bonusSubType = bonusSubType;
+	}
+	public String getAllocatedAmount() {
+		return allocatedAmount;
+	}
+	public void setAllocatedAmount(String allocatedAmount) {
+		this.allocatedAmount = allocatedAmount;
+	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((allocatedAmount == null) ? 0 : allocatedAmount.hashCode());
+		result = prime * result + ((bonusSubType == null) ? 0 : bonusSubType.hashCode());
+		result = prime * result + ((bonusType == null) ? 0 : bonusType.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		BonusInfoObject other = (BonusInfoObject) obj;
+		if (allocatedAmount == null) {
+			if (other.allocatedAmount != null)
+				return false;
+		} else if (!allocatedAmount.equals(other.allocatedAmount))
+			return false;
+		if (bonusSubType == null) {
+			if (other.bonusSubType != null)
+				return false;
+		} else if (!bonusSubType.equals(other.bonusSubType))
+			return false;
+		if (bonusType == null) {
+			if (other.bonusType != null)
+				return false;
+		} else if (!bonusType.equals(other.bonusType))
+			return false;
+		return true;
+	}
+	@Override
+	public String toString() {
+		return "BonusInfoObject [bonusType=" + bonusType + ", bonusSubType=" + bonusSubType + ", allocatedAmount="
+				+ allocatedAmount + "]";
+	}
+
+}

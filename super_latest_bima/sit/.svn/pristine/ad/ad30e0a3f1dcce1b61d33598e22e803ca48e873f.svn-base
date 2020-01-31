@@ -1,0 +1,33 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.DwhUserTransactions;
+import id.gnvsolution.d3.api.service.DwhUserTransactionsService;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
+public class DwhUserTransactionsServiceImpl extends BaseService implements DwhUserTransactionsService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DwhUserTransactionsServiceImpl.class);
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<DwhUserTransactions> dwhUserTransactionsDao;
+
+    @Autowired
+    public DwhUserTransactionsServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.dwhUserTransactionsDao = new BaseDao<>(sessionFactoryDef, DwhUserTransactions.class);
+    }
+
+    public void save(DwhUserTransactions dwhUserTransactions) {
+    	LOGGER .info("# DwhUserTransactionsServiceImpl---------- save DwhUserTransactions data------model is--", dwhUserTransactions.getModel());
+        dwhUserTransactionsDao.save(dwhUserTransactions);
+    }
+
+}

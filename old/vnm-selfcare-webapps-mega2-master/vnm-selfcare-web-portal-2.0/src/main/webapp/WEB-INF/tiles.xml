@@ -1,0 +1,227 @@
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+
+	<definition name="SignIn" template="/WEB-INF/views/Index.jsp">
+		<put-attribute name="right-content" value="/WEB-INF/views/RightFrontPage.jsp" />
+	</definition>
+	
+	<definition name="SignUp" template="/WEB-INF/views/SignUp.jsp">
+		<put-attribute name="right-content" value="/WEB-INF/views/RightFrontPage.jsp" />
+	</definition>
+	
+	<definition name="ConfirmSignUp" template="/WEB-INF/views/ConfirmSignUp.jsp">
+		<put-attribute name="right-content" value="/WEB-INF/views/RightFrontPage.jsp" />
+	</definition>
+
+	<definition name="ForgotPassword" template="/WEB-INF/views/ForgotPassword.jsp">
+		<put-attribute name="right-content" value="/WEB-INF/views/RightFrontPage.jsp" />
+	</definition>
+	
+	<definition name="ConfirmForgotPassword" template="/WEB-INF/views/ConfirmForgotPassword.jsp">
+		<put-attribute name="right-content" value="/WEB-INF/views/RightFrontPage.jsp" />
+	</definition>
+
+	<definition name="Dashboard" template="/WEB-INF/views/Dashboard.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+	
+	<definition name="PostpaidDashboard" template="/WEB-INF/views/PostpaidDashboard.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+	
+	<definition name="MyProfile" template="/WEB-INF/views/Profile.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="AccountDetails" template="/WEB-INF/views/AccountDetails.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="ScratchCard" template="/WEB-INF/views/ScratchCard.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="UsageHistory" template="/WEB-INF/views/UsageHistory.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="Subscriptions" template="/WEB-INF/views/Subscriptions.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="ChangePassword" template="/WEB-INF/views/ChangePassword.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="TopupHistory" template="/WEB-INF/views/TopupHistory.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="StoreList" template="/WEB-INF/views/StoreList.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="Notifications" template="/WEB-INF/views/Notifications.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="ProductGroup" template="/WEB-INF/views/ProductGroups.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="ProductList" template="/WEB-INF/views/ProductList.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="VoiceAndSms" extends="ProductGroup">
+		<put-attribute name="productGroupHeader" value="/WEB-INF/views/VoiceAndSmsProductGroupHeader.jsp" />
+	</definition>
+
+	<definition name="VoiceAndSmsProductList" extends="ProductList">
+		<put-attribute name="productListHeader" value="/WEB-INF/views/VoiceAndSmsProductListHeader.jsp" />
+	</definition>
+
+	<definition name="Data" extends="ProductGroup">
+		<put-attribute name="productGroupHeader" value="/WEB-INF/views/DataProductGroupHeader.jsp" />
+	</definition>
+
+	<definition name="DataProductList" extends="ProductList">
+		<put-attribute name="productListHeader" value="/WEB-INF/views/DataProductListHeader.jsp" />
+	</definition>
+
+	<definition name="VAS" extends="ProductGroup">
+		<put-attribute name="productGroupHeader" value="/WEB-INF/views/VasProductGroupHeader.jsp" />
+	</definition>
+
+	<definition name="VasProductList" extends="ProductList">
+		<put-attribute name="productListHeader" value="/WEB-INF/views/VasProductListHeader.jsp" />
+	</definition>
+
+	<definition name="Music" template="/WEB-INF/views/Music.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="Movies" template="/WEB-INF/views/Movies.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="MovieListByCategory" template="/WEB-INF/views/MovieListByCategory.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="MovieDetails" template="/WEB-INF/views/MovieDetails.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="Games" template="/WEB-INF/views/Games.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="GameListByCategory" template="/WEB-INF/views/GameListByCategory.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="GameDetails" template="/WEB-INF/views/GameDetails.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+	<definition name="PayWithScratchCard" template="/WEB-INF/views/PayWithScratchCard.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+	<definition name="Apps" template="/WEB-INF/views/Apps.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="AppsListByCategory" template="/WEB-INF/views/AppsListByCategory.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="AppsDetails" template="/WEB-INF/views/AppsDetails.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="Gamify" template="/WEB-INF/views/Gamify.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="PaymentGatewayContainer" template="/WEB-INF/views/PaymentGatewayContainer.jsp"></definition>
+	
+	<definition name="PGError" template="/WEB-INF/views/PGError.jsp"></definition>
+	
+	<definition name="ErrorPage" template="/WEB-INF/views/404.jsp"></definition>
+	<definition name="PageNotFound" template="/WEB-INF/views/404.jsp"></definition>
+	<definition name="AccessDenied" template="/WEB-INF/views/404.jsp"></definition>
+	
+	<definition name="LoyaltyProgram" template="/WEB-INF/views/LoyaltyProgram.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="InviteFriends" template="/WEB-INF/views/InviteFriends.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="PetieMonster" template="/WEB-INF/views/PetieMonster.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+	
+	<definition name="SelfPackage" template="/WEB-INF/views/SelfPackage.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<!-- Group Sharing -->
+	<definition name="GroupSharingProductGroups" template="/WEB-INF/views/GroupSharingProductGroups.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="GroupSharingProductList"  template="/WEB-INF/views/GroupSharingProductList.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="GroupSharingProductDetails"  template="/WEB-INF/views/GroupSharingProductDetails.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+
+	<definition name="RegisterDataSharing" template="/WEB-INF/views/RegisterDataSharing.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+	</definition>
+ <definition name="Micinformation" template="/WEB-INF/views/Micinformation.jsp">
+              <put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+              <put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+       </definition>
+       <definition name="Micviewinformation" template="/WEB-INF/views/Micviewinformation.jsp">
+              <put-attribute name="header" value="/WEB-INF/views/Header.jsp" />
+              <put-attribute name="footer" value="/WEB-INF/views/Footer.jsp" />
+       </definition>
+</tiles-definitions>

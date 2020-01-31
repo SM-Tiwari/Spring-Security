@@ -1,0 +1,141 @@
+package id.gnvsolution.d3.api.filter;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import id.gnvsolution.d3.api.Constants;
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.*;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.filter.RequestLoggingWrapper 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 28, 2017 3:58:09 PM
+ *
+ */
+public class RequestLoggingWrapper extends HttpServletRequestWrapper {
+    
+    private final String payload;
+    
+    public RequestLoggingWrapper(HttpServletRequest request, StringBuffer sb) {
+        super(request);
+        
+        StringBuilder stringBuilder = new StringBuilder();
+        BufferedReader bufferedReader = null;
+        try {
+            InputStream inputStream = request.getInputStream();
+            if (inputStream != null) {
+                bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                char[] charBuffer = new char[128];
+                int bytesRead = -1;
+                while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
+                    stringBuilder.append(charBuffer, 0, bytesRead);
+                }
+            } else {
+                stringBuilder.append("");
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            if (bufferedReader != null) {
+                try {
+                    bufferedReader.close();
+                } catch (IOException iox) {
+                }
+            }
+        }
+        payload = stringBuilder.toString();
+        String requestParameter = stringBuilder.toString();
+        
+        sb.append("Accessing\t:\t").append(request.getRequestURL()).append("\r\n");
+        sb.append("Param\t\t:\t").append(request.getQueryString()==null?"-":request.getQueryString()).append("\r\n");
+
+        if(request.getRequestURL().indexOf("login-with-email") > -1 ){
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                JsonNode actualObj = mapper.readTree(requestParameter);
+                
+                ObjectNode objNode = mapper.createObjectNode();
+                String currentEmail = actualObj.get("email").asText();
+                
+                objNode.put("email", currentEmail);
+                objNode.put("password", "*");
+                
+                requestParameter = mapper.writeValueAsString(objNode);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        if(request.getRequestURL().indexOf("set-email-password") > -1 ){
+            ObjectMapper mapper = new ObjectMapper();
+            try {                
+                ObjectNode objNode = mapper.createObjectNode();
+                objNode.put("password", "*");
+                
+                requestParameter = mapper.writeValueAsString(objNode);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        if(request.getRequestURL().indexOf("change-password") > -1){
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                JsonNode actualObj = mapper.readTree(requestParameter);
+                
+                String currentType = actualObj.get("type").asText();
+                String currentToken = actualObj.get("token").asText();
+                
+                ObjectNode objNode = mapper.createObjectNode();
+                objNode.put("type", currentType);
+                objNode.put("token", currentToken);
+                objNode.put("passwordOld", "*");
+                objNode.put("passwordNew", "*");
+                
+                requestParameter = mapper.writeValueAsString(objNode);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        // TODO: remark for prd
+        sb.append("Request\t\t:\t").append(requestParameter).append("\r\n");
+        
+//        sb.append("Request\t\t:\t").append(stringBuilder.toString().replaceAll("\"(secretKey)\"\\s*:\\s*\"((\\\\\"|[^\"])*)\"", "\"secretKey\": \"***\"")).append("\r\n");
+    }
+
+    @Override
+    public ServletInputStream getInputStream () throws IOException {
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(payload.getBytes());
+        ServletInputStream inputStream = new ServletInputStream() {
+            @Override
+            public boolean isFinished() {
+                return true;
+            }
+
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+            }
+
+            @Override
+            public int read() throws IOException {
+                return byteArrayInputStream.read();
+            }
+        };
+        return inputStream;
+    }
+    
+}

@@ -1,0 +1,13 @@
+/**
+ * BalanceUnitName.java
+ */
+package id.gnvsolution.d3.api.helper.enums;
+
+/**
+ * @author nandipinto
+ *
+ */
+public enum BalanceUnitName {
+
+	SECOND, SMS, VND,DATA
+}

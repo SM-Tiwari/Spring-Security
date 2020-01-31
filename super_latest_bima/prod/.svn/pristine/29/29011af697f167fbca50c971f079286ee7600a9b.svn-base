@@ -1,0 +1,39 @@
+package com.gnv.h3i.bima3.imagecaching.bean;
+
+import java.io.Serializable;
+
+/**
+ * <pre>
+ *  com.gnv.h3i.bima3.imagecaching.bean.CacheDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jun 15, 2017 3:40:41 PM
+ *
+ */
+public class CacheDto implements Serializable {
+
+    private Long size;
+    private Long hit;
+
+    public CacheDto(long size, long hit) {
+        this.size = size;
+        this.hit = hit;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public long getHit() {
+        return hit;
+    }
+
+    public void setHit(long hit) {
+        this.hit = hit;
+    }
+}

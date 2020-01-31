@@ -1,0 +1,102 @@
+/**
+ * UpdateQueryDetailsCallbackHandler.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis2 version: 1.7.4  Built on : Oct 21, 2016 (10:47:34 BST)
+ */
+package id.gnvsolution.d3.api.wsdl;
+
+import id.gnvsolution.d3.api.wsdl.*;
+
+
+/**
+ *  UpdateQueryDetailsCallbackHandler Callback class, Users can extend this class and implement
+ *  their own receiveResult and receiveError methods.
+ */
+public abstract class UpdateQueryDetailsCallbackHandler {
+    protected Object clientData;
+
+    /**
+     * User can pass in any object that needs to be accessed once the NonBlocking
+     * Web service call is finished and appropriate method of this CallBack is called.
+     * @param clientData Object mechanism by which the user can pass in user data
+     * that will be avilable at the time this callback is called.
+     */
+    public UpdateQueryDetailsCallbackHandler(Object clientData) {
+        this.clientData = clientData;
+    }
+
+    /**
+     * Please use this constructor if you don't want to set any clientData
+     */
+    public UpdateQueryDetailsCallbackHandler() {
+        this.clientData = null;
+    }
+
+    /**
+     * Get the client data
+     */
+    public Object getClientData() {
+        return clientData;
+    }
+
+    /**
+     * auto generated Axis2 call back method for displayInvoiceDetails method
+     * override this method for handling normal response from displayInvoiceDetails operation
+     */
+    public void receiveResultdisplayInvoiceDetails(
+        id.gnvsolution.d3.api.wsdl.UpdateQueryDetailsStub.DisplayInvoiceResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from displayInvoiceDetails operation
+     */
+    public void receiveErrordisplayInvoiceDetails(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for displayInvoiceUsageDetails method
+     * override this method for handling normal response from displayInvoiceUsageDetails operation
+     */
+    public void receiveResultdisplayInvoiceUsageDetails(
+        id.gnvsolution.d3.api.wsdl.UpdateQueryDetailsStub.InvoiceUsageDetailsResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from displayInvoiceUsageDetails operation
+     */
+    public void receiveErrordisplayInvoiceUsageDetails(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for emailRegUpdate method
+     * override this method for handling normal response from emailRegUpdate operation
+     */
+    public void receiveResultemailRegUpdate(
+        id.gnvsolution.d3.api.wsdl.UpdateQueryDetailsStub.EmailRegUpdateResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from emailRegUpdate operation
+     */
+    public void receiveErroremailRegUpdate(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for paymentHistoryDetails method
+     * override this method for handling normal response from paymentHistoryDetails operation
+     */
+    public void receiveResultpaymentHistoryDetails(
+        id.gnvsolution.d3.api.wsdl.UpdateQueryDetailsStub.PaymentHistoryDetailsResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from paymentHistoryDetails operation
+     */
+    public void receiveErrorpaymentHistoryDetails(java.lang.Exception e) {
+    }
+}

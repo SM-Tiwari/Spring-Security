@@ -1,0 +1,46 @@
+package id.gnvsolution.d3.api.utils;
+
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.id.IdentifierGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+/**
+ * Created by rips on 4/10/17.
+ */
+public class LoginHistoryIDGenerator implements IdentifierGenerator {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(LoginHistoryIDGenerator.class);
+
+    @Override
+    public Serializable generate(SessionImplementor sessionImplementor, Object o) throws HibernateException {
+        Connection connection = sessionImplementor.connection();
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) + 1 FROM LOGIN_HISTORIES ");
+            if(resultSet.next()){
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.error("ERROR generate", e);
+        } finally {
+            if(statement != null){
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    LOGGER.error("ERROR CLOSING STATEMENT", e);
+                }
+            }
+        }
+        return null;
+    }
+
+}

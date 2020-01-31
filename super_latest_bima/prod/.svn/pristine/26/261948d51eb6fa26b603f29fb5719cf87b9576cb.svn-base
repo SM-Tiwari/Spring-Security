@@ -1,0 +1,144 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "PRODUCT_PRIORITY_PROMO")
+public class ProductPriorityPromo {
+    private long sequenceId;
+    private String productId;
+    private String promoChannel;
+    private Long promoProductDisplayPriority;
+    private long createdBy;
+    private Timestamp createdAt;
+    private Long updatedBy;
+    private Timestamp updatedAt;
+    private Product productByProductId;
+
+    @Id
+    @Column(name = "SEQUENCE_ID", nullable = false, precision = 0)
+    public long getSequenceId() {
+        return sequenceId;
+    }
+
+    public void setSequenceId(long sequenceId) {
+        this.sequenceId = sequenceId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_ID", nullable = true, length = 50)
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    @Basic
+    @Column(name = "PROMO_CHANNEL", nullable = true, length = 50)
+    public String getPromoChannel() {
+        return promoChannel;
+    }
+
+    public void setPromoChannel(String promoChannel) {
+        this.promoChannel = promoChannel;
+    }
+
+    @Basic
+    @Column(name = "PROMO_PRODUCT_DISPLAY_PRIORITY", nullable = true, precision = 0)
+    public Long getPromoProductDisplayPriority() {
+        return promoProductDisplayPriority;
+    }
+
+    public void setPromoProductDisplayPriority(Long promoProductDisplayPriority) {
+        this.promoProductDisplayPriority = promoProductDisplayPriority;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY", nullable = false, precision = 0)
+    public long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY", nullable = true, precision = 0)
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProductPriorityPromo that = (ProductPriorityPromo) o;
+
+        if (sequenceId != that.sequenceId) return false;
+        if (createdBy != that.createdBy) return false;
+        if (productId != null ? !productId.equals(that.productId) : that.productId != null) return false;
+        if (promoChannel != null ? !promoChannel.equals(that.promoChannel) : that.promoChannel != null) return false;
+        if (promoProductDisplayPriority != null ? !promoProductDisplayPriority.equals(that.promoProductDisplayPriority) : that.promoProductDisplayPriority != null)
+            return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (updatedBy != null ? !updatedBy.equals(that.updatedBy) : that.updatedBy != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (sequenceId ^ (sequenceId >>> 32));
+        result = 31 * result + (productId != null ? productId.hashCode() : 0);
+        result = 31 * result + (promoChannel != null ? promoChannel.hashCode() : 0);
+        result = 31 * result + (promoProductDisplayPriority != null ? promoProductDisplayPriority.hashCode() : 0);
+        result = 31 * result + (int) (createdBy ^ (createdBy >>> 32));
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedBy != null ? updatedBy.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "PRODUCT_ID", referencedColumnName = "PRODUCT_ID", updatable = false, insertable = false)
+    public Product getProductByProductId() {
+        return productByProductId;
+    }
+
+    public void setProductByProductId(Product productByProductId) {
+        this.productByProductId = productByProductId;
+    }
+}

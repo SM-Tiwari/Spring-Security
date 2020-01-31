@@ -1,0 +1,119 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 23/04/2017.
+ */
+public class RewardDto {
+    private Boolean status;
+    private String productId;
+    private String productName;
+    private String productPrice;
+    private String productRating;
+    private String productDescription;
+    private String buttonBuy;
+    private String redirectLink;
+    private Boolean redirectToLink;
+    private Map metadata;
+    private List<VendorDto> vendorList;
+    private List<PaymentDto> paymentList;
+
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(Boolean status) {
+        this.status = status;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductPrice() {
+        return productPrice;
+    }
+
+    public void setProductPrice(String productPrice) {
+        this.productPrice = productPrice;
+    }
+
+    public String getProductRating() {
+        return productRating;
+    }
+
+    public void setProductRating(String productRating) {
+        this.productRating = productRating;
+    }
+
+    public String getProductDescription() {
+        return productDescription;
+    }
+
+    public void setProductDescription(String productDescription) {
+        this.productDescription = productDescription;
+    }
+
+    public String getButtonBuy() {
+        return buttonBuy;
+    }
+
+    public void setButtonBuy(String buttonBuy) {
+        this.buttonBuy = buttonBuy;
+    }
+
+    public String getRedirectLink() {
+        return redirectLink;
+    }
+
+    public void setRedirectLink(String redirectLink) {
+        this.redirectLink = redirectLink;
+    }
+
+    public Boolean getRedirectToLink() {
+        return redirectToLink;
+    }
+
+    public void setRedirectToLink(Boolean redirectToLink) {
+        this.redirectToLink = redirectToLink;
+    }
+
+    public Map getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map metadata) {
+        this.metadata = metadata;
+    }
+
+    public List<VendorDto> getVendorList() {
+        return vendorList;
+    }
+
+    public void setVendorList(List<VendorDto> vendorList) {
+        this.vendorList = vendorList;
+    }
+
+    public List<PaymentDto> getPaymentList() {
+        return paymentList;
+    }
+
+    public void setPaymentList(List<PaymentDto> paymentList) {
+        this.paymentList = paymentList;
+    }
+}

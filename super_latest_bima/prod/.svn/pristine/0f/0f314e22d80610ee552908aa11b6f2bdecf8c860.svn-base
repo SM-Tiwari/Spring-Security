@@ -1,0 +1,233 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.Collection;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "SUB_MENU_CATEGORY")
+public class SubMenuCategory {
+    private long subMenuCategoryId;
+    private long categoryId;
+    private String subMenuNameId;
+    private String subMenuNameEn;
+    private long subMenuOrder;
+    private long createdBy;
+    private Timestamp createdAt;
+    private Long updatedBy;
+    private Timestamp updatedAt;
+    private long isActive;
+    private Collection<Broadcast> broadcastsBySubMenuCategoryId;
+    private Collection<ProductCategory> productCategoriesBySubMenuCategoryId;
+    private Collection<ProductHomescreen> productHomescreensBySubMenuCategoryId;
+    private MenuCategory menuCategoryByCategoryId;
+    private String mainCategoryId;
+    
+    private String accessRight;
+    private Integer isCard;
+
+    @Id
+    @Column(name = "SUB_MENU_CATEGORY_ID", nullable = false, precision = 0)
+    public long getSubMenuCategoryId() {
+        return subMenuCategoryId;
+    }
+
+    public void setSubMenuCategoryId(long subMenuCategoryId) {
+        this.subMenuCategoryId = subMenuCategoryId;
+    }
+
+    @Basic
+    @Column(name = "CATEGORY_ID", nullable = false, precision = 0)
+    public long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    @Basic
+    @Column(name = "MAIN_CATEGORY_ID", precision = 0)
+    public String getMainCategoryId() {
+        return mainCategoryId;
+    }
+
+    public void setMainCategoryId(String mainCategoryId) {
+        this.mainCategoryId = mainCategoryId;
+    }
+
+    @Basic
+    @Column(name = "SUB_MENU_NAME", nullable = false, length = 100)
+    public String getSubMenuNameId() {
+        return subMenuNameId;
+    }
+
+    public void setSubMenuNameId(String subMenuNameId) {
+        this.subMenuNameId = subMenuNameId;
+    }
+
+    @Basic
+    @Column(name = "SUB_MENU_ORDER", nullable = false, precision = 0)
+    public long getSubMenuOrder() {
+        return subMenuOrder;
+    }
+
+    public void setSubMenuOrder(long subMenuOrder) {
+        this.subMenuOrder = subMenuOrder;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY", nullable = false, precision = 0)
+    public long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY", nullable = true, precision = 0)
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE", nullable = false, precision = 0)
+    public long getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(long isActive) {
+        this.isActive = isActive;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SubMenuCategory that = (SubMenuCategory) o;
+
+        if (subMenuCategoryId != that.subMenuCategoryId) return false;
+        if (categoryId != that.categoryId) return false;
+        if (subMenuOrder != that.subMenuOrder) return false;
+        if (createdBy != that.createdBy) return false;
+        if (isActive != that.isActive) return false;
+        if (subMenuNameId != null ? !subMenuNameId.equals(that.subMenuNameId) : that.subMenuNameId != null)
+            return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (updatedBy != null ? !updatedBy.equals(that.updatedBy) : that.updatedBy != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (subMenuCategoryId ^ (subMenuCategoryId >>> 32));
+        result = 31 * result + (int) (categoryId ^ (categoryId >>> 32));
+        result = 31 * result + (subMenuNameId != null ? subMenuNameId.hashCode() : 0);
+        result = 31 * result + (int) (subMenuOrder ^ (subMenuOrder >>> 32));
+        result = 31 * result + (int) (createdBy ^ (createdBy >>> 32));
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedBy != null ? updatedBy.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        result = 31 * result + (int) (isActive ^ (isActive >>> 32));
+        return result;
+    }
+
+    @OneToMany(mappedBy = "subMenuCategoryBySubMenuCategoryId")
+    public Collection<Broadcast> getBroadcastsBySubMenuCategoryId() {
+        return broadcastsBySubMenuCategoryId;
+    }
+
+    public void setBroadcastsBySubMenuCategoryId(Collection<Broadcast> broadcastsBySubMenuCategoryId) {
+        this.broadcastsBySubMenuCategoryId = broadcastsBySubMenuCategoryId;
+    }
+
+    @OneToMany(mappedBy = "subMenuCategoryBySubMenuCategoryId")
+    public Collection<ProductCategory> getProductCategoriesBySubMenuCategoryId() {
+        return productCategoriesBySubMenuCategoryId;
+    }
+
+    public void setProductCategoriesBySubMenuCategoryId(Collection<ProductCategory> productCategoriesBySubMenuCategoryId) {
+        this.productCategoriesBySubMenuCategoryId = productCategoriesBySubMenuCategoryId;
+    }
+
+    @OneToMany(mappedBy = "subMenuCategoryBySubMenuCategoryId")
+    public Collection<ProductHomescreen> getProductHomescreensBySubMenuCategoryId() {
+        return productHomescreensBySubMenuCategoryId;
+    }
+
+    public void setProductHomescreensBySubMenuCategoryId(Collection<ProductHomescreen> productHomescreensBySubMenuCategoryId) {
+        this.productHomescreensBySubMenuCategoryId = productHomescreensBySubMenuCategoryId;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "CATEGORY_ID", referencedColumnName = "CATEGORY_ID", nullable = false, insertable = false, updatable = false)
+    public MenuCategory getMenuCategoryByCategoryId() {
+        return menuCategoryByCategoryId;
+    }
+
+    public void setMenuCategoryByCategoryId(MenuCategory menuCategoryByCategoryId) {
+        this.menuCategoryByCategoryId = menuCategoryByCategoryId;
+    }
+
+    @Basic
+    @Column(name = "SUB_MENU_NAME_EN", nullable = false, length = 100)
+    public String getSubMenuNameEn() {
+        return subMenuNameEn;
+    }
+
+    public void setSubMenuNameEn(String subMenuNameEn) {
+        this.subMenuNameEn = subMenuNameEn;
+    }
+
+    @Basic
+    @Column(name = "ACCESS_RIGHT", nullable = false, length = 100)
+    public String getAccessRight() {
+        return accessRight;
+    }
+
+    public void setAccessRight(String accessRight) {
+        this.accessRight = accessRight;
+    }
+
+    @Basic
+    @Column(name = "IS_CARD")
+    public Integer getIsCard() {
+        return isCard;
+    }
+
+    public void setIsCard(Integer isCard) {
+        this.isCard = isCard;
+    }
+}

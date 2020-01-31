@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.CallbackRequestDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.CallbackService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 23, 2018 4:56:03 PM
+ *
+ */
+public interface CallbackService {
+    Map add(CallbackRequestDto callbackRequestDto);
+}

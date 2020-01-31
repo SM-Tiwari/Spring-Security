@@ -1,0 +1,208 @@
+package id.gnvsolution.d3.api.model;
+
+import org.apache.commons.io.FilenameUtils;
+
+import javax.persistence.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.Timestamp;
+import java.util.Collection;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "MENU_CATEGORY")
+public class MenuCategory {
+    private int categoryId;
+    private String name;
+    private String iconImage;
+    private int order;
+    private int createdBy;
+    private Timestamp createdAt;
+    private Integer updatedBy;
+    private Timestamp updatedAt;
+    private boolean isActive;
+    private Collection<ProductCategory> productCategoriesByCategoryId;
+    private Collection<ProductHomescreen> productHomescreensByCategoryId;
+    private Collection<SubMenuCategory> subMenuCategoriesByCategoryId;
+
+    private Integer isCard;
+    
+    @Id
+    @Column(name = "CATEGORY_ID", nullable = false, precision = 0)
+    public int getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    @Basic
+    @Column(name = "\"NAME\"", nullable = false, length = 50)
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Basic
+    @Column(name = "ICON_IMAGE", nullable = false, length = 100)
+    public String getIconImage() {
+        return iconImage;
+    }
+
+    public void setIconImage(String iconImage) {
+        this.iconImage = iconImage;
+    }
+
+    @Basic
+    @Column(name = "\"ORDER\"", nullable = false, precision = 0)
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY", nullable = false, precision = 0)
+    public int getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(int createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY", nullable = true, precision = 0)
+    public Integer getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Integer updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE", nullable = true, precision = 0)
+    public boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MenuCategory that = (MenuCategory) o;
+
+        if (categoryId != that.categoryId) return false;
+        if (order != that.order) return false;
+        if (createdBy != that.createdBy) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (iconImage != null ? !iconImage.equals(that.iconImage) : that.iconImage != null) return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (updatedBy != that.updatedBy) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+        if (isActive != that.isActive) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (categoryId ^ (categoryId >>> 32));
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (iconImage != null ? iconImage.hashCode() : 0);
+        result = 31 * result + (int) (order ^ (order >>> 32));
+        result = 31 * result + (int) (createdBy ^ (createdBy >>> 32));
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (int) (updatedBy ^ (updatedBy >>> 32));
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        result = 31 * result + (int) ((isActive? 1 : 0) ^ (isActive? 1 : 0 >>> 32));
+        return result;
+    }
+
+    @OneToMany(mappedBy = "menuCategoryByMenuCategoryId")
+    public Collection<ProductCategory> getProductCategoriesByCategoryId() {
+        return productCategoriesByCategoryId;
+    }
+
+    public void setProductCategoriesByCategoryId(Collection<ProductCategory> productCategoriesByCategoryId) {
+        this.productCategoriesByCategoryId = productCategoriesByCategoryId;
+    }
+
+    @OneToMany(mappedBy = "menuCategoryByCategoryId")
+    public Collection<ProductHomescreen> getProductHomescreensByCategoryId() {
+        return productHomescreensByCategoryId;
+    }
+
+    public void setProductHomescreensByCategoryId(Collection<ProductHomescreen> productHomescreensByCategoryId) {
+        this.productHomescreensByCategoryId = productHomescreensByCategoryId;
+    }
+
+    @OneToMany(mappedBy = "menuCategoryByCategoryId")
+    public Collection<SubMenuCategory> getSubMenuCategoriesByCategoryId() {
+        return subMenuCategoriesByCategoryId;
+    }
+
+    public void setSubMenuCategoriesByCategoryId(Collection<SubMenuCategory> subMenuCategoriesByCategoryId) {
+        this.subMenuCategoriesByCategoryId = subMenuCategoriesByCategoryId;
+    }
+
+    @Basic
+    @Column(name = "IS_CARD")
+    public Integer getIsCard() {
+        return isCard;
+    }
+
+    public void setIsCard(Integer isCard) {
+        this.isCard = isCard;
+    }
+    
+    public String iconImageSelected() {
+        if(getIconImage() == null){
+            return null;
+        }
+        String result;
+        String fileName = FilenameUtils.getBaseName(getIconImage());
+        String fullFileName = FilenameUtils.getName(getIconImage());
+        int fileNameIndex = getIconImage().indexOf(fullFileName);
+        if(fileNameIndex > -1){
+            result = String.format("%1s_selected%2s", getIconImage().substring(0, fileNameIndex + fileName.length()), getIconImage().substring(fileNameIndex + fileName.length())).trim();
+        }else{
+            result = String.format("%1s_selected", getIconImage());
+        }
+        return result;
+    }
+}

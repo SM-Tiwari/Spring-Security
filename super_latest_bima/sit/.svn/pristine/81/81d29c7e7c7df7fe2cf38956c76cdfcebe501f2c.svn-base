@@ -1,0 +1,59 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
+
+/**
+ * Created by rips on 5/4/17.
+ *
+ * <resp>
+ *     <product>
+ *         <offerID>S6993</offerID>
+ *         <interactive>Y</interactive>
+ *         <name>2GB 7hari (30rb) skrg 20rb</name>
+ *         <priority>1</priority>
+ *     </product>
+ *     <product>
+ *         <offerID>S6994</offerID>
+ *         <interactive>Y</interactive>
+ *         <name>5GB 7hari (50rb) skrg 35rb</name>
+ *         <priority>1</priority>
+ *     </product>
+ *     <product>
+ *         <offerID>S6995</offerID>
+ *         <interactive>Y</interactive>
+ *         <name>12GB (2GB+EXTRA KUOTA 4G 10GB) CUMA 50rb</name>
+ *         <priority>1</priority>
+ *     </product>
+ *     <product>
+ *         <offerID>S6996</offerID>
+ *         <interactive>Y</interactive>
+ *         <name>24GB (4GB+EXTRA KUOTA 4G 20GB) CUMA 90rb</name>
+ *         <priority>1</priority>
+ *     </product>
+ * </resp>
+ *
+ */
+@XmlRootElement(name = "resp")
+@XmlAccessorType(XmlAccessType.FIELD)
+public class ClmOfferResponse {
+
+    @XmlElement(name = "product")
+    private List<ClmProduct> products;
+
+    public List<ClmProduct> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<ClmProduct> products) {
+        this.products = products;
+    }
+
+    @Override
+    public String toString() {
+        return "ClmOfferResponse{" + "products=" + products + '}';
+    }
+}

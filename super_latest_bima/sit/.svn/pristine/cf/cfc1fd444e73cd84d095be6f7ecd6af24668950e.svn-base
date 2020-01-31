@@ -1,0 +1,40 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "HIDE_PROMOTIONAL_BALANCE")
+@SequenceGenerator(name = "SEQ_HIDE_PROMOTIONAL_BALANCE", sequenceName = "SEQ_HIDE_PROMOTIONAL_BALANCE", allocationSize = 1)
+public class PromotionBalanceHide {
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_HIDE_PROMOTIONAL_BALANCE")
+	@Column(name = "NAME_ID")
+	private Integer id;
+	
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@Column(name = "NAME", length = 400, nullable = false)
+	private String name;
+	
+	
+}

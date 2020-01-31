@@ -1,0 +1,217 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "DATAUSES")
+@SequenceGenerator(name = "ID", sequenceName = "SEQ_DATAUSES", allocationSize = 1)
+public class DataUsesEntity {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ID")
+	@Column(name = "ID")
+	private Integer id;
+	
+	@Column(name = "MSISDN", unique = true)
+	private String msisdn;
+	
+	
+	@Column(name = "VOICE")
+	private long voice;
+
+	@Column(name = "SMS")
+	private long sms;
+
+	@Column(name = "DATA")
+	private long data;
+	
+	@Column(name = "START_DATE", updatable = false, nullable = false)
+	private Date start_date = new Date();
+	
+	@Column(name = "LAST_UPDATED")
+	private Date last_updated;
+	
+	@Column(name = "CREATED_BY")
+	private String Createdby;
+
+	public String getCreatedby() {
+		return Createdby;
+	}
+
+	public void setCreatedby(String createdby) {
+		Createdby = createdby;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	public long getVoice() {
+		return voice;
+	}
+
+	public void setVoice(long voice) {
+		this.voice = voice;
+	}
+
+	public long getSms() {
+		return sms;
+	}
+
+	public void setSms(long sms) {
+		this.sms = sms;
+	}
+
+	public long getData() {
+		return data;
+	}
+
+	public void setData(long data) {
+		this.data = data;
+	}
+
+	public Date getStart_date() {
+		return start_date;
+	}
+
+	public void setStart_date(Date start_date) {
+		this.start_date = start_date;
+	}
+
+	public Date getLast_updated() {
+		return last_updated;
+	}
+
+	public void setLast_updated(Date last_updated) {
+		this.last_updated = last_updated;
+	}
+	
+	
+	
+/*
+*//**
+* 
+*//*
+private static final long serialVersionUID = -3795823603035656659L;
+
+@Id
+@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ID")
+//	@SequenceGenerator(name = "user_generator", sequenceName = "discounttopup_seq", allocationSize = 1)
+
+@Column(name = "ID")
+Integer Id;
+
+@Column(name = "MSISDN", unique = true)
+String msisdn;
+
+@Column(name = "VOICE")
+long voice;
+
+@Column(name = "SMS")
+long sms;
+
+@Column(name = "DATA")
+long data;
+
+@Column(name = "CREATED_BY")
+String Createdby;
+
+@Column(name = "START_DATE")
+Date start_date;
+
+
+
+@Column(name = "LAST_UPDATED")
+Date last_updated;
+
+public Integer getId() {
+	return Id;
+}
+
+public void setId(Integer id) {
+	Id = id;
+}
+
+
+
+public String getMsisdn() {
+	return msisdn;
+}
+
+public void setMsisdn(String msisdn) {
+	this.msisdn = msisdn;
+}
+
+public long getVoice() {
+	return voice;
+}
+
+public void setVoice(long voice) {
+	this.voice = voice;
+}
+
+public long getSms() {
+	return sms;
+}
+
+public void setSms(long sms) {
+	this.sms = sms;
+}
+
+public long getData() {
+	return data;
+}
+
+public void setData(long data) {
+	this.data = data;
+}
+
+public String getCreatedby() {
+	return Createdby;
+}
+
+public void setCreatedby(String createdby) {
+	Createdby = createdby;
+}
+
+public Date getStart_date() {
+	return start_date;
+}
+
+public void setStart_date(Date start_date) {
+	this.start_date = start_date;
+}
+
+
+
+public Date getLast_updated() {
+	return last_updated;
+}
+
+public void setLast_updated(Date last_updated) {
+	this.last_updated = last_updated;
+}
+
+
+*/
+}

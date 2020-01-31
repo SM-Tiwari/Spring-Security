@@ -1,0 +1,39 @@
+package id.gnvsolution.d3.api.component.transid;
+
+import mockit.*;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Date;
+
+/**
+ * Created by Arie
+ * on 19/04/2017.
+ */
+public class ModuleTransactionIDGeneratorTest {
+
+    @Tested
+    ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+
+    @Injectable
+    SequenceGenerator sequenceGenerator;
+
+
+//    @Test
+    public void generate() throws Exception {
+        new MockUp<System>(){
+
+            @Mock
+            public long currentTimeMillis() {
+
+                // Now is always 11/11/2011
+                Date fake = new Date(111,10,11);
+                return fake.getTime();
+            }
+        };
+        new Expectations() {{ sequenceGenerator.getNextValue(); result = 1L; }};
+        String generate = moduleTransactionIDGenerator.generate(Module.LOGIN);
+        Assert.assertEquals(generate, "LOGI2011111100001");
+    }
+
+}

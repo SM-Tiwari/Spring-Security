@@ -1,0 +1,73 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by aswzen on 10/08/2018.
+ */
+@Entity
+@Table(name = "SUBSCRIBER_EMAIL_TOKEN")
+public class SubscriberEmailToken {
+    private String UUID;
+    private Timestamp trxDate;
+    private String emailId;
+    private String token;
+    private Integer status;
+    private Integer type;
+
+    @Id
+    @Column(name = "UUID", nullable = false, length = 20)
+    public String getUUID() {
+        return UUID;
+    }
+    public void setUUID(String UUID) {
+        this.UUID = UUID;
+    }
+
+    @Basic
+    @Column(name = "TRX_DATE")
+    public Timestamp getTrxDate() {
+        return trxDate;
+    }
+    public void setTrxDate(Timestamp trxDate) {
+        this.trxDate = trxDate;
+    }
+    
+    @Basic
+    @Column(name = "EMAIL_ID")
+    public String getEmailId() {
+        return emailId;
+    }
+    public void setEmailId(String emailId) {
+        this.emailId = emailId;
+    }
+
+    @Basic
+    @Column(name = "TOKEN")
+    public String getToken() {
+        return token;
+    }
+    public void setToken(String token) {
+        this.token = token;
+    }
+    
+    @Basic
+    @Column(name = "STATUS")
+    public Integer getStatus() {
+        return status;
+    }
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    @Basic
+    @Column(name = "TYPE")
+    public Integer getType() {
+        return type;
+    }
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+}

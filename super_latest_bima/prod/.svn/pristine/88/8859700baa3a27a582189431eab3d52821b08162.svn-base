@@ -1,0 +1,100 @@
+package id.gnvsolution.d3.api.utils;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import id.gnvsolution.d3.api.dto.DTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+/**
+ * Created by Arie
+ * on 06/04/2017.
+ */
+public class JSONResultFilter {
+    private Logger LOGGER = LoggerFactory.getLogger(JSONResultFilter.class);
+    private DTO dto;
+    private final static LoadingCache<Class, PropertyDescriptor[]> cache = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build(
+                    new CacheLoader<Class, PropertyDescriptor[]>() {
+
+                        @Override
+                        public PropertyDescriptor[] load(Class key) throws Exception {
+                            return BeanUtils.getPropertyDescriptors(key);
+                        }
+                    });
+    private PropertyDescriptor[] propertyDescriptors;
+    private List<PropertyDescriptor> propertyDescriptorList = new ArrayList<>();
+
+    private JSONResultFilter(DTO dto) {
+        this.dto = dto;
+        init();
+    }
+
+    private void init() {
+        try {
+            propertyDescriptors = cache.get(dto.getClass());
+        } catch (ExecutionException e) {
+            LOGGER.error("ERROR WHEN GETTING CLASS PROPERTY", e);
+        }
+    }
+
+    public static JSONResultFilter filter(DTO dto) {
+        return new JSONResultFilter(dto);
+    }
+
+    public JSONResultFilter excludes(String... exludes) {
+        List<PropertyDescriptor> collect = Arrays.stream(propertyDescriptors).filter(propertyDescriptor ->
+                !Arrays.asList(exludes).contains(propertyDescriptor.getName())
+        ).collect(Collectors.toList());
+
+        propertyDescriptorList.addAll(collect);
+        return this;
+    }
+
+    public JSONResultFilter all() {
+        propertyDescriptorList.addAll(Arrays.asList(propertyDescriptors));
+        return this;
+    }
+
+    public JSONResultFilter include(String... includes) {
+        List<PropertyDescriptor> collect = Arrays.stream(propertyDescriptors).filter(propertyDescriptor ->
+                Arrays.asList(includes).contains(propertyDescriptor.getName())
+        ).collect(Collectors.toList());
+        propertyDescriptorList.addAll(collect);
+        return this;
+    }
+
+    public JSONResultFilter exclude(String... includes) {
+        List<PropertyDescriptor> collect = Arrays.stream(propertyDescriptors).filter(propertyDescriptor ->
+                !Arrays.asList(includes).contains(propertyDescriptor.getName())
+        ).collect(Collectors.toList());
+        propertyDescriptorList.addAll(collect);
+        return this;
+    }
+
+    public Map<String, Object> build() {
+        List<PropertyDescriptor> collect = propertyDescriptorList.parallelStream().distinct().collect(Collectors.toList());
+        HashMap<String, Object> hashMap = new HashMap<String, Object>();
+
+        for (PropertyDescriptor propertyDescriptor : collect) {
+            try {
+                hashMap.put(propertyDescriptor.getName(), propertyDescriptor.getReadMethod().invoke(dto));
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                LOGGER.error("ERROR POPULATE MAP RESULT", e);
+            }
+        }
+        hashMap.remove("class");
+        return hashMap;
+    }
+}

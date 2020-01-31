@@ -1,0 +1,15 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+
+import java.util.Map;
+
+/**
+ * Created by rips on 5/10/17.
+ */
+public interface WidgetService {
+
+    Map<String, Object> getProfile(BaseRequestDto request);
+    Map<String, Object> getProducts(BaseRequestDto request);
+
+}

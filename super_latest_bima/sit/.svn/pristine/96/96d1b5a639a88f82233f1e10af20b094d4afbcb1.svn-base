@@ -1,0 +1,67 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/12/17.
+ */
+public class PackageDetailDto implements DTO {
+
+    private String validity;
+    private String value;
+    private String expOn;
+    
+    public String getExpOn() {
+		return expOn;
+	}
+
+	public void setExpOn(String expOn) {
+		this.expOn = expOn;
+	}
+
+	@JsonIgnore
+    private String rawValue;
+    @JsonIgnore
+    private String uomAffix;
+
+    public PackageDetailDto(){}
+
+    public PackageDetailDto(String validity, String value) {
+        this.validity = validity;
+        this.value = value;
+    }
+
+    public String getValidity() {
+        return validity;
+    }
+
+    public void setValidity(String validity){
+        this.validity = validity;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getRawValue() {
+        return rawValue;
+    }
+
+    public void setRawValue(String rawValue) {
+        this.rawValue = rawValue;
+    }
+
+    public String getUomAffix() {
+        return uomAffix;
+    }
+
+    public void setUomAffix(String uomAffix) {
+        this.uomAffix = uomAffix;
+    }
+    
+}

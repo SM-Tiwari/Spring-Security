@@ -1,0 +1,89 @@
+package id.gnvsolution.d3.api.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.DiscountTopupService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/discount")
+public class DiscountController extends BaseController{
+
+	@Autowired
+	DiscountTopupService discountTopupService;
+	@Autowired
+	private TokenExtractor tokenExtractor;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(DiscountController.class);
+
+	@RequestMapping(value = "/topupdiscount", method = RequestMethod.POST)
+	public Object discount(@RequestBody BaseRequestDto requestDto,
+			@RequestHeader(value = JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+
+		
+		LOGGER.info("Inside DiscountController in discount method::::::::::::");
+		try {
+			 authToken = tokenExtractor.extract(authToken);
+			 System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails =  getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn = AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim()))
+			 {
+				
+				Map discountDetail = discountTopupService.getDiscountTopupData(requestDto.getLanguage());
+				return new ServiceResult(StatusCode.SUCCESS, discountDetail, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside DiscountController in discount method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside DiscountController in discount method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside DiscountController in discount method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	}
+	
+	@PostMapping(value = "/test")
+	public Object test() {
+		Map<String, String> map = new HashMap<>();
+		
+		map.put("test", "test");
+		
+		return map;
+		
+
+	}
+}

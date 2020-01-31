@@ -1,0 +1,122 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.BonstriRequestDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.BonstriService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import java.util.Map;
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/bonstri")
+public class BonstriController extends BaseController {
+	
+    private final BonstriService bonstriService;
+    
+    @Autowired
+	private TokenExtractor tokenExtractor;
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(BonstriController.class);
+
+    @Autowired
+    public BonstriController(BonstriService bonstriService) {
+        this.bonstriService = bonstriService;
+    }
+
+	/*
+	 * @RequestMapping(value = "/getpoin",method = RequestMethod.POST) public Map
+	 * getBonstriPoin(@RequestBody BonstriRequestDto bonstriRequestDto) { return
+	 * bonstriService.getBonstriPoin(bonstriRequestDto); }
+	 */
+
+    @RequestMapping(value = "/get-url",method = RequestMethod.POST)
+    public Map getBonstriUrl(@RequestBody BonstriRequestDto bonstriRequestDto) {
+        return bonstriService.getBonstriUrl(bonstriRequestDto);
+    }
+    
+    @RequestMapping(value = "/hax-url",method = RequestMethod.POST)
+    public Object gethaxurl(@RequestBody BonstriRequestDto bonstriRequestDto,
+    		@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+    	LOGGER.info("Inside BonstriController in gethaxurl method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(bonstriRequestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			bonstriRequestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && bonstriRequestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+			
+				return new ServiceResult(StatusCode.SUCCESS, bonstriService.getHaxUrl(bonstriRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside BonstriController in gethaxurl method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside BonstriController in gethaxurl method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside BonstriController in gethaxurl method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+      
+    }
+    
+	@RequestMapping(value = "/V2U-url", method = RequestMethod.POST)
+	public Object getV2Uurl(@RequestBody BonstriRequestDto bonstriRequestDto,
+			@RequestHeader(value = JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside BonstriController in gethaxurl method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn = AppUtils.removeCountryCode(bonstriRequestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			bonstriRequestDto.setMsisdn(msisdn);
+			if (tokenDetails != null
+					&& bonstriRequestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+
+				return new ServiceResult(StatusCode.SUCCESS, bonstriService.getV2UUrl(bonstriRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside BonstriController in gethaxurl method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside BonstriController in gethaxurl method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside BonstriController in gethaxurl method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+}

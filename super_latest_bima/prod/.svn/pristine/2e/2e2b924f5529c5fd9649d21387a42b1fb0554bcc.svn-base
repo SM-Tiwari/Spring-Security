@@ -1,0 +1,38 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.HomeScreenRequestDto;
+import id.gnvsolution.d3.api.service.ImageService;
+import id.gnvsolution.d3.api.service.ProductService;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.ImageTestController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 9, 2017 3:12:06 PM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/image")
+@ApiIgnore
+public class ImageTestController {
+    
+    @Autowired
+    private ImageService imageService;
+
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    public Map get() {
+        return imageService.get();
+    }
+    
+}

@@ -1,0 +1,11 @@
+com\monitorjbl\json\JsonResult$1.class
+com\monitorjbl\json\JsonResult$ResultWrapper.class
+com\monitorjbl\json\ImageTest.class
+com\monitorjbl\json\DefaultView.class
+com\monitorjbl\json\JsonViewResponseProcessor.class
+com\monitorjbl\json\JsonResult.class
+com\monitorjbl\json\JsonViewReturnValueHandler.class
+com\monitorjbl\json\JsonResultRetriever.class
+com\monitorjbl\json\JsonViewHttpEntityMethodProcessor.class
+com\monitorjbl\json\JsonViewSupportFactoryBean.class
+com\monitorjbl\json\JsonViewMessageConverter.class

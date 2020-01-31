@@ -1,0 +1,54 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by aswzen on 10/08/2018
+ */
+public class SocialLoginRequestDto extends LoginInDto{
+
+    private String type;
+    private String token;
+    private String tokenSecret;
+    private String userId;
+    public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	/* safe key */
+    private String s_;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getTokenSecret() {
+        return tokenSecret;
+    }
+
+    public void setTokenSecret(String tokenSecret) {
+        this.tokenSecret = tokenSecret;
+    }
+
+    public String getS_() {
+        return s_;
+    }
+
+    public void setS_(String s_) {
+        this.s_ = s_;
+    }
+}

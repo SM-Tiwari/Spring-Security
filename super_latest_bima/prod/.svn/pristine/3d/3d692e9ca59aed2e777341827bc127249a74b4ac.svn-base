@@ -1,0 +1,39 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import java.io.Serializable;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.CacheDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jun 15, 2017 1:02:14 PM
+ *
+ */
+public class CacheDto implements Serializable {
+
+    private Long size;
+    private Long hit;
+
+    public CacheDto(long size, long hit) {
+        this.size = size;
+        this.hit = hit;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public long getHit() {
+        return hit;
+    }
+
+    public void setHit(long hit) {
+        this.hit = hit;
+    }
+}

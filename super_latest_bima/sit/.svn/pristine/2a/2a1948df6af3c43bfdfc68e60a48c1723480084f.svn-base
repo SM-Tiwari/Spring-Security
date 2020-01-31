@@ -1,0 +1,68 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.ui.ModelMap;
+
+import com.gnv.vnm.selfcare.core.model.Bank;
+import com.gnv.vnm.selfcare.core.model.FinalResponse;
+import com.google.gson.Gson;
+
+import id.gnvsolution.d3.api.helper.OrderIdNotFoundException;
+import id.gnvsolution.d3.api.helper.TransactionInProgressException;
+import id.gnvsolution.d3.api.helper.TransactionNotFoundException;
+import id.gnvsolution.d3.api.helper.enums.ClientAppId;
+import id.gnvsolution.d3.api.helper.enums.TransactionStatus;
+import id.gnvsolution.d3.api.model.PaymentHistoryStatusModel;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+
+public interface NapasPaymentService  {
+	/*String initTransaction(String PREPAID,String POSTPAID, 
+            String MSISDN, 
+            String PRODUCTID, 
+            String PAYMENTMETHOD, 
+            String AMOUNT, 
+            String VENDORID, 
+            String SERVICEPLAN, 
+            String ACCOUNTNUMBER, 
+            String BILLAMOUNT, 
+            String NAME, 
+            String EMAIL, 
+            String SUBCATEGORY, 
+            String CATEGORY, 
+            ModelMap modelMap, 
+            String PRODUCTNAME, 
+            Map<String, String> params,
+            HttpHeaders httpHeaders,
+            String HYBRID, 
+            HttpServletRequest request);*/
+	
+	  void saveToTrxSubscriberPurchase(TrxSubscriberPurchase subscriberPurchase);
+	  
+	  String executeTransaction(String orderId, ClientAppId appId, String language) throws OrderIdNotFoundException, TransactionInProgressException;
+	  
+	  boolean confirmTransaction(FinalResponse finalResponse) throws TransactionNotFoundException;
+
+	/*String initTransaction(String trxType, String mSISDN, String aMOUNT, String bILLAMOUNT,
+			ModelMap modelMap, Map<String, String> params, HttpHeaders httpHeaders,
+			HttpServletRequest request,String loginmsisdn);*/
+	
+	  String initTransaction(String trxType, String mSISDN, String aMOUNT, String actual_AMOUNT, String bILLAMOUNT,
+				ModelMap modelMap, Map<String, String> params, HttpHeaders httpHeaders, HttpServletRequest request,
+				String loginmsisdn, String dISCOUNT);
+
+	Bank getBankDetails(String code);
+
+	String getOrderIdByExtTrxId(String extTrxId);
+
+	PaymentHistoryStatusModel getPaymentHistoryStatus(String orderId, String msisdn);
+	PaymentHistoryStatusModel getPaymentHistoryStatus(String orderId);
+
+	boolean refund(String orderId);
+
+	String confirmTransaction(String orderId, TransactionStatus status) throws TransactionNotFoundException, Exception;
+	
+}

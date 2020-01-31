@@ -1,0 +1,229 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.ShareQuotaChildDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.ProductService;
+import id.gnvsolution.d3.api.service.QuotaService;
+import id.gnvsolution.d3.api.utils.Helpers;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub;
+import id.gnvsolution.d3.api.wsdl.Service__Registration__APISecurityStub;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import id.gnvsolution.d3.api.wsdl.UpdateQueryDetailsStub;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.QuotaServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 10, 2017 5:50:48 PM
+ *
+ */
+@Service
+@Transactional
+public class QuotaServiceImpl extends BaseService implements QuotaService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(QuotaServiceImpl.class);
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<ProductCharging> productChargingDao;
+    @Autowired
+    private ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+    @Autowired
+    private NotificationMasterService notificationMasterService;
+    @Autowired
+    private InAppNotificationService inAppNotificationService;
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    public void initialization(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.productChargingDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+    }
+    
+    @Override
+    public Map<String, Object> isParent(BaseRequestDto baseRequestDto) {
+        try {
+            GenericTibcoCRMServicesStub.SQBonusEnquiryReq req = new GenericTibcoCRMServicesStub.SQBonusEnquiryReq();
+            req.setMSISDN(baseRequestDto.getMsisdn());
+            req.setSource("ODP_GNV");
+            req.setTxn_Id(moduleTransactionIDGenerator.generate(Module.SQTX));
+            req.setRequest_Type("SQ_SERVICE_INFO");
+            LOGGER.info("QuotaService.isParent.GenericTibcoCRMServicesStub.SQBonusEnquiryReq: " + req.getMSISDN() + "," + req.getTxn_Id());
+            
+            GenericTibcoCRMServicesStub.SQBonusEnquiryRes res = new GenericTibcoCRMServicesStub(Constants.TIBCO_URL_SHAREDQUOTA_ENDPOINT).bonusEnquiry(req);
+            LOGGER.info("QuotaService.isParent.GenericTibcoCRMServicesStub.SQBonusEnquiryRes: " + res.getResponseCode() + "," + res.getResponseDescription());
+            if (res.getResponseCode().equalsIgnoreCase("00000")) {
+                GenericTibcoCRMServicesStub.Attribute_type1[] attribute_type1s = res.getBONUS_INFO().getAttribute();
+                for (GenericTibcoCRMServicesStub.Attribute_type1 attribute_type1 : attribute_type1s) {
+                    if ("Service".equals(attribute_type1.getAttribDtl().getName())) {
+                        if (attribute_type1.getAttribDtl().getString().contains("TYPE = PARENT")) {
+                            LOGGER.info("QuotaService.isParent: true");
+                            return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+
+        LOGGER.info("QuotaService.isParent: false");
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "Not a Parent")).all().build();
+    }
+
+    @Override
+    public Map<String, Object> child(ShareQuotaChildDto shareQuotaChildDto) {
+        try {
+            // request validation
+            if (!isMsisdnValid(shareQuotaChildDto.getMsisdn(), shareQuotaChildDto.getSecretKey())) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+            }
+
+            Service__Registration__APISecurityStub.ServiceRegRequest regRequest = new Service__Registration__APISecurityStub.ServiceRegRequest();
+            regRequest.setTransactionID(moduleTransactionIDGenerator.generate(Module.SQTX));
+            regRequest.setCurrent_Date((new SimpleDateFormat("yyyyMMdd")).format(new Date()));
+            regRequest.setSource(Constants.TIBCO_SOURCE);
+            regRequest.setCharge("Y");
+            regRequest.setHYBRID_FLAG("N");
+            regRequest.setMSISDN(shareQuotaChildDto.getMsisdn());
+            regRequest.setActionType(shareQuotaChildDto.getIsAction() == 1 ? "ACTIVATE" : "CANCEL");
+            regRequest.setCPName("NULL");
+            regRequest.setServiceType("-1");
+            regRequest.setSignature(Helpers.generateSignature(regRequest.getCurrent_Date(), regRequest.getServiceType(), regRequest.getTransactionID(), regRequest.getMSISDN()));
+            
+            Service__Registration__APISecurityStub.MsgParam_type0 msgParam_type0 = new Service__Registration__APISecurityStub.MsgParam_type0();
+            msgParam_type0.addAttribute(setAttribute("CHILD_MSISDN", shareQuotaChildDto.getMsisdnChild()));
+            msgParam_type0.addAttribute(setAttribute("SQ_LIMIT", String.valueOf(shareQuotaChildDto.getProductId() * 1024)));
+            msgParam_type0.addAttribute(setAttribute("SQ_TYPE", "CHILD"));
+            msgParam_type0.addAttribute(setAttribute("SQ_ACTION", shareQuotaChildDto.getIsAction() == 1 ? "ADD" : "CANCEL"));
+            regRequest.setMsgParam(msgParam_type0);
+            LOGGER.info("QuotaServiceImpl.child.regRequest: " + StringUtils.arrayToCommaDelimitedString(new String[]{regRequest.getTransactionID(), regRequest.getCurrent_Date(), regRequest.getMSISDN(), regRequest.getActionType(), regRequest.getServiceType()}));
+            LOGGER.info("QuotaServiceImpl.child.msgParam_type0: " + StringUtils.arrayToCommaDelimitedString(new String[]{msgParam_type0.getAttribute()[0].getAttribDtl().toString(), msgParam_type0.getAttribute()[1].getAttribDtl().toString(), msgParam_type0.getAttribute()[3].getAttribDtl().toString()}));
+            
+            Service__Registration__APISecurityStub apiSecurityStub = new Service__Registration__APISecurityStub(Constants.TIBCO_URL_DATA_PACKAGE_ENDPOINT);
+            Service__Registration__APISecurityStub.ServiceRegResponse response = apiSecurityStub.service_Registration(regRequest);
+            LOGGER.info("QuotaServiceImpl.child.regResponse: " + StringUtils.arrayToCommaDelimitedString(new String[]{response.getResponseCode(), response.getResponseDescription()}));
+            Product product = productService.getProductById(shareQuotaChildDto.getProductId()+"");
+            if (product != null) {
+                String messageText;
+                if (response.getResponseCode().equals("200")) {
+                    messageText = notificationMasterService.getMessageText(15, shareQuotaChildDto.getLanguage());
+                } else {
+                    messageText = notificationMasterService.getMessageText(16, shareQuotaChildDto.getLanguage());
+                }
+                messageText = messageText.replace("{getMSISDNChild}", shareQuotaChildDto.getMsisdnChild());
+                if (Constants.LANG_EN.equals(shareQuotaChildDto.getLanguage())){
+                    messageText = messageText.replace("{getProductName}", product.getProductNameEn());
+                } else {
+                    messageText = messageText.replace("{getProductName}", product.getProductNameId());
+                }
+                inAppNotificationService.saveToInAppNotifications(shareQuotaChildDto.getMsisdn(), null, null, null, "-", messageText, "", "", "");
+            }
+
+            if (response.getResponseCode().equals("200")) {
+                return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+            } else {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid Request")).all().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid Request")).all().build();
+    }
+
+    private Service__Registration__APISecurityStub.Attribute_type0 setAttribute(String key, String value) {
+        Service__Registration__APISecurityStub.Attribute_type0 attribute_type0 = new Service__Registration__APISecurityStub.Attribute_type0();
+        Service__Registration__APISecurityStub.AttribDtl_type0 attribDtl_type0 = new Service__Registration__APISecurityStub.AttribDtl_type0();
+        
+        attribDtl_type0.setName(key);
+        attribDtl_type0.setString(value);
+
+        attribute_type0.setAttribDtl(attribDtl_type0);
+        return attribute_type0;
+    }
+    
+    @Override
+    public Map<String, Object> getChilds(BaseRequestDto request) {
+        try {
+            // request validation
+            if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+            }
+
+            GenericTibcoCRMServicesStub.SQBonusEnquiryReq req = new GenericTibcoCRMServicesStub.SQBonusEnquiryReq();
+            req.setTxn_Id(moduleTransactionIDGenerator.generate(Module.SQTX));
+            req.setMSISDN(request.getMsisdn());
+            req.setSource(Constants.TIBCO_SOURCE);
+            req.setRequest_Type(Constants.SHARE_QUOTA_GET_CHILDS);
+            LOGGER.info("QuotaServiceImpl.getChilds.request: " + StringUtils.arrayToCommaDelimitedString(new String[]{req.getTxn_Id(), req.getMSISDN(), req.getSource(), req.getRequest_Type()}));
+
+            GenericTibcoCRMServicesStub stub = new GenericTibcoCRMServicesStub(Constants.TIBCO_URL_SHAREDQUOTA_ENDPOINT);
+            GenericTibcoCRMServicesStub.SQBonusEnquiryRes res = stub.bonusEnquiry(req);
+            if (res.getResponseCode().equals("00000")) {
+                boolean isParent = false;
+
+                // logging
+                String[] dataList = new String[res.getBONUS_INFO().getAttribute().length];
+                for (int i = 0; i < dataList.length; i++) {
+                    GenericTibcoCRMServicesStub.Attribute_type1 attr = res.getBONUS_INFO().getAttribute()[i];
+                    dataList[i] = attr.getAttribDtl().getString();
+
+                    if (dataList[i].indexOf("TYPE = PARENT") > -1) {
+                        isParent = true;
+                    }
+                }
+                LOGGER.info("QuotaServiceImpl.getChilds.response.success: " + StringUtils.arrayToCommaDelimitedString(dataList));
+
+                if (isParent) {
+                    List<String> msisdnList = new ArrayList<>();
+                    for (String service : dataList) {
+                        if (service.indexOf("TYPE = CHILD") > -1) {
+                            String[] data = service.split(" ,");
+                            msisdnList.add(data[1].replaceFirst("MSISDN:", ""));
+                        }
+                    }
+
+                    if (msisdnList.isEmpty()) {
+                        return JSONResultFilter.filter(new ErrorMessageDto(false, "No Child")).all().build();
+                    } else {
+                        return new HashMap<String, Object>() {{
+                            put("status", true);
+                            put("childs", msisdnList);
+                        }};
+                    }
+                } else {
+                    return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid Request")).all().build();
+                }
+            } else {
+                LOGGER.warn("QuotaServiceImpl.getChilds.response.fail: " + StringUtils.arrayToCommaDelimitedString(new String[]{res.getResponseCode(), res.getResponseDescription()}));
+            }
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "No Child")).all().build();
+    }
+    
+}

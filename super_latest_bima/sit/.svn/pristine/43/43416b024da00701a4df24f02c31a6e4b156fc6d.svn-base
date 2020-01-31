@@ -1,0 +1,369 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.TimeZone;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.HttpResponse;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BonstriRequestDto;
+import id.gnvsolution.d3.api.dto.response.BonstriEndpointDto;
+import id.gnvsolution.d3.api.dto.response.BonstriMonsterDto;
+import id.gnvsolution.d3.api.dto.response.BonstriPoinDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.model.SubscriberPictures;
+import id.gnvsolution.d3.api.model.purchasing.BonstriTibcoGetPoin;
+import id.gnvsolution.d3.api.model.purchasing.BonstriTibcoMonsters;
+import id.gnvsolution.d3.api.model.purchasing.BonstriTibcoRequest;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.BonstriService;
+import id.gnvsolution.d3.api.service.StaticService;
+import id.gnvsolution.d3.api.utils.HttpClientHelper;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.StringUtility;
+import id.gnvsolution.d3.api.utils.XmlHelper;
+
+@Service
+@Transactional
+public class BonstriServiceImpl extends BaseService implements BonstriService {
+
+	@Autowired
+	ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+
+	private static final String PEPPER = "@B0NStR1@##!";
+
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+
+	@Autowired
+	private StaticService staticService;
+
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(BonstriServiceImpl.class);
+
+	@Override
+	public Map getBonstriPoin(BonstriRequestDto bonstriReqDto) {
+		if (!isMsisdnValid(bonstriReqDto.getMsisdn(), bonstriReqDto.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		// Bonstri only for prepaid currently we just passing the output result
+		// to FrontEnd
+		// Without throwing error
+		LOGGER.info("#getBonstriPoin---------MSISDN " + bonstriReqDto.getMsisdn() + " secretKey "
+				+ bonstriReqDto.getSecretKey());
+
+		BonstriPoinDto bonstriDTO = new BonstriPoinDto();
+		List<BonstriMonsterDto> listbonstriMonsterDto = new ArrayList<BonstriMonsterDto>();
+
+		String result = null;
+		try {
+			BonstriTibcoRequest bonstriTibcoRequest = new BonstriTibcoRequest();
+			bonstriTibcoRequest.setMSISDN(bonstriReqDto.getMsisdn());
+			bonstriTibcoRequest.setTransactionId(moduleTransactionIDGenerator.generate(Module.BONSTRI));
+
+			String xmlRequest = XmlHelper.marshal(bonstriTibcoRequest);
+			LOGGER.info("#getBonstriPoin---------Bonstri Get Poin XML Request " + xmlRequest);
+			LOGGER.info("#getBonstriPoin-------------Encoder" + Constants.API_BONSTRI_GETPOIN + "/?XML="
+					+ URLEncoder.encode(xmlRequest, "UTF-8"));
+
+			HttpResponse response = HttpClientHelper.getData(Constants.API_BONSTRI_GETPOIN,
+					new HashMap<String, String>() {
+						{
+							put("XML", xmlRequest);
+						}
+					}, null);
+
+			if (true) {
+				BonstriTibcoGetPoin bonstriTibcoGetPoin = (BonstriTibcoGetPoin) XmlHelper
+						.unMarshal(response.getEntity().getContent(), BonstriTibcoGetPoin.class);
+				// MockUp
+				// BonstriTibcoGetPoin bonstriTibcoGetPoin =
+				// (BonstriTibcoGetPoin)XmlHelper.unMarshal(getMockUpBonstri(),BonstriTibcoGetPoin.class);
+				LOGGER.info("#getBonstriPoin------------BonstriResponse " + bonstriTibcoGetPoin);
+
+				bonstriDTO.setStotalBonusPoin(bonstriTibcoGetPoin.getTotal_Bonus_points());
+				bonstriDTO.setStotalPoin(bonstriTibcoGetPoin.getTotal_points());
+				bonstriDTO.setSerrorCode(bonstriTibcoGetPoin.getErrorCode());
+				bonstriDTO.setSerrorDesc(bonstriTibcoGetPoin.getErrorDescription());
+
+				List<BonstriTibcoMonsters> listBonstriTibcoMonster = bonstriTibcoGetPoin.getMonster_details();
+				for (BonstriTibcoMonsters poinMoster : listBonstriTibcoMonster) {
+					BonstriMonsterDto monsterDto = new BonstriMonsterDto();
+					monsterDto.setMonsterName(poinMoster.getMonster_Name());
+					monsterDto.setMonsterCount(poinMoster.getMonster_Count());
+					monsterDto.setMonsterPoint(poinMoster.getMonster_Points());
+					// listbonstriMonsterDto.add(monsterDto);
+					bonstriDTO.addBonstriMonsterDto(monsterDto);
+				}
+
+				// bonstriDTO.setListbonstriMonsterDto(listbonstriMonsterDto);
+				return JSONResultFilter.filter(bonstriDTO).all().build();
+
+				// MockUp
+
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#getBonstriPoin---ERROR Bonstri get Poin", e);
+			result = e.getMessage();
+		}
+		return JSONResultFilter.filter(new ErrorMessageDto(false, result)).all().build();
+	}
+
+	@Override
+	public Map getHaxUrl(BonstriRequestDto bonstriReqDto) {
+		BonstriEndpointDto bonstriEndpointDto = new BonstriEndpointDto();
+		// String msisdn = "0929999999";
+
+		/* change msisdn by Vimal */
+		if (bonstriReqDto.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(bonstriReqDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			bonstriReqDto.setMsisdn(msisdn);
+		}
+
+		String msisdn = bonstriReqDto.getMsisdn();
+
+		// msisdn =
+		// AppUtils.prependCountryCodeToMsisdn(msisdn,AppDefaultValues.COUNTRY_CODE);
+		String link = "";
+		Random random = new Random();
+		link = applicationConfigurationService.get("BONSTRI_HEX_URL",
+				"http://103.101.160.20:8180/delegate/serviceAPI/login?");
+		// generate a random integer from 0 to 899, then add 100
+		// int ramdomSig = random.nextInt(999) + 100;
+		// int ramdomauthenKey = random.nextInt(999) + 100;
+
+		Date localTime = new Date();
+
+		// creating DateFormat for converting time from local timezone to GMT
+		DateFormat converter = new SimpleDateFormat("yyyyMMddHHmmss");
+
+		// getting GMT timezone, you can get any timezone e.g. UTC
+		converter.setTimeZone(TimeZone.getTimeZone("GMT+7"));
+
+		String seq = converter.format(localTime);
+
+		// int seq = random.nextInt(999) + 100;
+
+		String PRIVATE_KEY1 = Constants.PRIVATE_KEY1;
+		String PRIVATE_KEY2 = Constants.PRIVATE_KEY2;
+
+		String language = "en_US";
+		if (bonstriReqDto.getLanguage() != null) {
+			language = bonstriReqDto.getLanguage();
+			if (language.equals(Constants.LANG_ID)) {
+				language = "vi_VN";
+			} else {
+				language = "en_US";
+			}
+		}
+
+		// String sig = DigestUtils.sha256Hex(ramdomSig+msisdn+PRIVATE_KEY1);
+		// String authenKey =
+		// DigestUtils.sha256Hex(ramdomauthenKey+PRIVATE_KEY2);
+		String sig = getSHA(seq + msisdn + PRIVATE_KEY1);
+		String authenKey = getSHA(seq + PRIVATE_KEY2);
+
+		String dataM = link + seq + "&isdn=" + msisdn + "&sig=" + sig + "&authenKey=" + authenKey;
+		LOGGER.info("#getHaxUrl--------local time : " + localTime + " time in GMT : " + converter.format(localTime)
+				+ ":: ramdomSig" + seq + " ::/n ramdomauthenKey   " + seq + " ::dataM" + dataM + " ::sig" + sig
+				+ " /n :: authenKey   " + authenKey);
+
+		// bonstriEndpointDto.setEndpoint(link+seq+"&isdn="+msisdn+"&sig="+
+		// sig+"&authenKey="+ authenKey);
+		bonstriEndpointDto.setEndpoint(
+				link + seq + "&isdn=" + msisdn + "&lang=" + language + "&sig=" + sig + "&authenKey=" + authenKey);
+
+		return JSONResultFilter.filter(bonstriEndpointDto).all().build();
+	}
+
+	public String getSHA(String input) {
+
+		try {
+
+			// Static getInstance method is called with hashing SHA
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+			// digest() method called
+			// to calculate message digest of an input
+			// and return array of byte
+			byte[] messageDigest = md.digest(input.getBytes());
+
+			// Convert byte array into signum representation
+			BigInteger no = new BigInteger(1, messageDigest);
+
+			// Convert message digest into hex value
+			String hashtext = no.toString(16);
+
+			while (hashtext.length() < 32) {
+				hashtext = "0" + hashtext;
+			}
+
+			return hashtext;
+		}
+
+		// For specifying wrong message digest algorithms
+		catch (NoSuchAlgorithmException e) {
+			LOGGER.error("Exception thrown" + " for incorrect algorithm: " + e);
+
+			return null;
+		}
+	}
+
+	/**
+	 * MockUp
+	 * 
+	 * @return
+	 */
+	private InputStream getMockUpBonstri() {
+		InputStream is;
+		try {
+			String xmlOutput = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<CLM_TIBCO_INTERFACE_Responce>\n"
+					+ "  <Total_points>230</Total_points>\n" + "  <Total_Bonus_points>0</Total_Bonus_points>\n"
+					+ "  <errorCode>0</errorCode>\n" + "  <errorDescription>SUCCESS</errorDescription>\n"
+					+ "  <Monster_details>\n" + "    <Monster_Name>Bray</Monster_Name>\n"
+					+ "    <Monster_Count>3</Monster_Count>\n" + "    <Monster_Points>60</Monster_Points>\n"
+					+ "  </Monster_details>\n" + "  <Monster_details>\n" + "    <Monster_Name>Unyit</Monster_Name>\n"
+					+ "    <Monster_Count>3</Monster_Count>\n" + "    <Monster_Points>90</Monster_Points>\n"
+					+ "  </Monster_details>\n" + "  <Monster_details>\n" + "    <Monster_Name>Emot</Monster_Name>\n"
+					+ "    <Monster_Count>8</Monster_Count>\n" + "    <Monster_Points>80</Monster_Points>\n"
+					+ "  </Monster_details>\n" + "  <Monster_details>\n" + "    <Monster_Name>Udut</Monster_Name>\n"
+					+ "    <Monster_Count>8</Monster_Count>\n" + "    <Monster_Points>80</Monster_Points>\n"
+					+ "  </Monster_details>\n" + "</CLM_TIBCO_INTERFACE_Responce>\n";
+
+			is = new ByteArrayInputStream(xmlOutput.getBytes());
+
+		} catch (Exception e) {
+			LOGGER.error("Exception thrown" + " for incorrect algorithm: " + e);
+			return null;
+		}
+
+		return is;
+	}
+
+	@Override
+	public Map getBonstriUrl(BonstriRequestDto bonstriReqDto) {
+		BonstriEndpointDto bonstriEndpointDto = new BonstriEndpointDto();
+
+		String timestamp = new Date().getTime() + "";
+		String msisdn = bonstriReqDto.getMsisdn();
+		String hash = DigestUtils.sha256Hex(msisdn + timestamp + PEPPER);
+
+		LOGGER.info("#getBonstriUtils------msisdn::::", msisdn);
+
+		bonstriEndpointDto.setEndpoint(
+				Constants.API_BONSTRI_GETURL + "msisdn=" + msisdn + "&timestamp=" + timestamp + "&hash=" + hash);
+
+		return JSONResultFilter.filter(bonstriEndpointDto).all().build();
+	}
+
+	@Override
+	public Map getV2UUrl(BonstriRequestDto bonstriReqDto) {
+		BonstriEndpointDto bonstriEndpointDto = new BonstriEndpointDto();
+		// String msisdn = "0929999999";
+
+		/* change msisdn by Vimal */
+		if (bonstriReqDto.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(bonstriReqDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			bonstriReqDto.setMsisdn(msisdn);
+		}
+
+		String msisdn = bonstriReqDto.getMsisdn();
+		String link = "";
+		// link=applicationConfigurationService.get("BONSTRI_HEX_URL",
+		// "http://103.101.160.20:8180/delegate/serviceAPI/login?");
+		Parameter parameter = staticService.getParameter("V2U_URL");
+		link = parameter.getValue();
+
+		Date localTime = new Date();
+
+		// creating DateFormat for converting time from local timezone to GMT
+		DateFormat converter = new SimpleDateFormat("yyyyMMddHHmmss");
+
+		// getting GMT timezone, you can get any timezone e.g. UTC
+		converter.setTimeZone(TimeZone.getTimeZone("GMT+7"));
+
+		String seq = converter.format(localTime);
+
+		String PRIVATE_KEY1 = Constants.PRIVATE_KEY1;
+		String PRIVATE_KEY2 = Constants.PRIVATE_KEY2;
+
+		String getProfilepic = getProfilepic(msisdn);
+		String language = bonstriReqDto.getLanguage();
+		if (language.equals(Constants.LANG_ID)) {
+			language = "vi";
+		} else {
+			language = "en";
+		}
+		String sig = getSHA(seq + msisdn + language + getProfilepic + PRIVATE_KEY1);
+		String authenKey = getSHA(seq + PRIVATE_KEY2);
+
+		String dataM = link + "seq=" + seq + "&isdn=" + msisdn + "&sig=" + sig + "&authenKey=" + authenKey;
+		LOGGER.info("#getHaxUrl--------local time : " + localTime + " time in GMT : " + converter.format(localTime)
+				+ ":: ramdomSig" + seq + " ::/n ramdomauthenKey " + seq + " ::dataM" + dataM + " ::sig" + sig
+				+ " /n :: authenKey " + authenKey);
+
+		bonstriEndpointDto.setEndpoint(link + "seq=" + seq + "&isdn=" + msisdn + "&lang=" + language + "&avatar="
+				+ getProfilepic + "&sig=" + sig + "&authenKey=" + authenKey);
+
+		return JSONResultFilter.filter(bonstriEndpointDto).all().build();
+	}
+
+	public String getProfilepic(String msisdn) {
+		String profilePic = "";
+		// profile picture
+		BaseDao<SubscriberPictures> profilePictureDao = new BaseDao<>(sessionFactoryDef, SubscriberPictures.class);
+		List<SubscriberPictures> curProfilePicture = profilePictureDao.find("MSISDN = :msisdn AND STATUS = 1",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", msisdn);
+					}
+				});
+
+		if (!curProfilePicture.isEmpty()) {
+			String profilePictureSafeUrl = applicationConfigurationService
+					.get("PROFILE.PUBLIC_URL", "http://103.129.188.37:8080/imageserver/").toString()
+					+ curProfilePicture.get(0).getPictureName();
+			profilePic = profilePictureSafeUrl;
+		}
+
+		if (profilePic.equalsIgnoreCase("")) {
+			Parameter parameter = staticService.getParameter("default_profile_pic");
+			profilePic = parameter.getValue();
+
+		}
+		return profilePic;
+	}
+}

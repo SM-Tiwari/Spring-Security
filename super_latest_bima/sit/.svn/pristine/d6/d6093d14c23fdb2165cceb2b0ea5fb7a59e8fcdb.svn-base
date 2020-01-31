@@ -1,0 +1,275 @@
+package id.gnvsolution.d3.api.model;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+@Entity
+@Table(name = "balance_name_mappings")
+@SequenceGenerator(name = "balance_map_seq", sequenceName = "balance_map_seq", allocationSize = 1)
+public class BalanceNameMappingEntity {
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "balance_map_seq")
+	@Column(name = "id")
+	private Integer id;
+	
+	@Column(name = "rtbs_name", length = 50, nullable = false)
+	private String nameOnRTBS;
+
+	@Column(name = "sv_name", length = 50)
+	private String nameOnTibco;
+
+	@Column(name = "upcc_name", length = 50)
+	private String nameOnUpcc;
+
+	@Column(name = "type", length = 20)
+	private String type;
+	
+	@Column(name = "unit_name", length = 20)
+	private String unitName;
+	
+	@Column(name = "display_name_en", length = 100)
+	private String displayNameEN;
+	
+	@Column(name = "display_name_vi", length = 100)
+	private String displayNameVI;
+	
+	@Column(name = "remarks")
+	private String remarks;
+	
+	@Column(name = "is_visible")
+	private Integer visibleFlag = 1;
+	
+	@Column(name = "is_counted")
+	private Integer countedFlag = 1;
+	
+	public BalanceNameMappingEntity(){ }
+
+	public BalanceNameMappingEntity(Integer id, String name, String type, String unitName, String displayNameEN, String displayNameVI,
+			String remarks) {
+		this.id = id;
+		this.nameOnRTBS = name;
+		this.type = type;
+		this.unitName = unitName;
+		this.displayNameEN = displayNameEN;
+		this.displayNameVI = displayNameVI;
+		this.remarks = remarks;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public Integer getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the nameOnRTBS
+	 */
+	public String getNameOnRTBS() {
+		return nameOnRTBS;
+	}
+
+	/**
+	 * @param nameOnRTBS the nameOnRTBS to set
+	 */
+	public void setNameOnRTBS(String name) {
+		this.nameOnRTBS = name;
+	}
+
+	/**
+	 * @return the nameOnTibco
+	 */
+	public String getNameOnTibco() {
+		return nameOnTibco;
+	}
+
+	/**
+	 * @param nameOnTibco the nameOnTibco to set
+	 */
+	public void setNameOnTibco(String nameOnTibco) {
+		this.nameOnTibco = nameOnTibco;
+	}
+
+	/**
+	 * @return the nameOnUpcc
+	 */
+	public String getNameOnUpcc() {
+		return nameOnUpcc;
+	}
+
+	/**
+	 * @param nameOnUpcc the nameOnUpcc to set
+	 */
+	public void setNameOnUpcc(String nameOnUpcc) {
+		this.nameOnUpcc = nameOnUpcc;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	/**
+	 * @return the unitName
+	 */
+	public String getUnitName() {
+		return unitName;
+	}
+
+	/**
+	 * @param unitName the unitName to set
+	 */
+	public void setUnitName(String unitName) {
+		this.unitName = unitName;
+	}
+
+	/**
+	 * @return the displayNameEN
+	 */
+	public String getDisplayNameEN() {
+		return displayNameEN;
+	}
+
+	/**
+	 * @param displayNameEN the displayNameEN to set
+	 */
+	public void setDisplayNameEN(String displayNameEN) {
+		this.displayNameEN = displayNameEN;
+	}
+
+	/**
+	 * @return the displayNameVI
+	 */
+	public String getDisplayNameVI() {
+		return displayNameVI;
+	}
+
+	/**
+	 * @param displayNameVI the displayNameVI to set
+	 */
+	public void setDisplayNameVI(String displayNameVI) {
+		this.displayNameVI = displayNameVI;
+	}
+
+	/**
+	 * @return the remarks
+	 */
+	public String getRemarks() {
+		return remarks;
+	}
+
+	/**
+	 * @param remarks the remarks to set
+	 */
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
+	}
+
+	/**
+	 * @return the visibleFlag
+	 */
+	public Integer getVisibleFlag() {
+		return visibleFlag;
+	}
+
+	/**
+	 * @param visibleFlag the visibleFlag to set
+	 */
+	public void setVisibleFlag(Integer visibleFlag) {
+		this.visibleFlag = visibleFlag;
+	}
+
+	/**
+	 * @return the countedFlag
+	 */
+	public Integer getCountedFlag() {
+		return countedFlag;
+	}
+
+	/**
+	 * @param countedFlag the countedFlag to set
+	 */
+	public void setCountedFlag(Integer countedFlag) {
+		this.countedFlag = countedFlag;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((nameOnRTBS == null) ? 0 : nameOnRTBS.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		BalanceNameMappingEntity other = (BalanceNameMappingEntity) obj;
+		if (nameOnRTBS == null) {
+			if (other.nameOnRTBS != null)
+				return false;
+		} else if (!nameOnRTBS.equals(other.nameOnRTBS))
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("BalanceNameMappingEntity [id=");
+		builder.append(id);
+		builder.append(", nameOnRTBS=");
+		builder.append(nameOnRTBS);
+		builder.append(", nameOnTibco=");
+		builder.append(nameOnTibco);
+		builder.append(", type=");
+		builder.append(type);
+		builder.append(", unitName=");
+		builder.append(unitName);
+		builder.append(", displayNameEN=");
+		builder.append(displayNameEN);
+		builder.append(", displayNameVI=");
+		builder.append(displayNameVI);
+		builder.append(", remarks=");
+		builder.append(remarks);
+		builder.append(", visibleFlag=");
+		builder.append(visibleFlag);
+		builder.append(", countedFlag=");
+		builder.append(countedFlag);
+		builder.append("]");
+		return builder.toString();
+	}
+}

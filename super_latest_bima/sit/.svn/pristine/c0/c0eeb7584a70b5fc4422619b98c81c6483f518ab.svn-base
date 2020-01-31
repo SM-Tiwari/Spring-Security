@@ -1,0 +1,54 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+import java.io.Serializable;
+
+/**
+ *
+ * @author RA0C68364
+ */
+public class ProductUpsellResponseDto implements DTO, Serializable {
+    private boolean status;
+    private String productId;
+    private String productIdChild;
+    private Integer priority;
+    
+    public ProductUpsellResponseDto(boolean status, String productId, String productIdChild, Integer priority) {
+        this.status = status;
+        this.productId = productId;
+        this.productIdChild = productIdChild;
+        this.priority = priority;
+    }
+    
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+    
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+    
+    public String getProductIdChild() {
+        return productIdChild;
+    }
+
+    public void setProductIdChild(String productIdChild) {
+        this.productIdChild = productIdChild;
+    }
+    
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+}

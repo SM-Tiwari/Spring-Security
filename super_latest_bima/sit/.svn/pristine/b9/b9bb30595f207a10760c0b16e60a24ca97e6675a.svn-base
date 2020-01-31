@@ -1,0 +1,28 @@
+package id.gnvsolution.d3.api.controller.inbound;
+
+import id.gnvsolution.d3.api.model.RptPgUt;
+import id.gnvsolution.d3.api.service.UTService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.inbound.PaymentGatewayInboundController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 20, 2017 12:17:52 PM
+ *
+ */
+public class PaymentGatewayInboundController {
+
+    @Autowired
+    private UTService uTService;
+    
+    protected void save(RptPgUt rptPgUt) {
+        uTService.save(rptPgUt);
+    }
+    
+    protected RptPgUt select(String invoiceNo) {
+        return uTService.select(invoiceNo);
+    }
+}

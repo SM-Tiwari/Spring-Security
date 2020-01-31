@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://iwebservice.nms.com" xmlns:ns1="http://loyalty.elcom.com" xmlns:soapenc12="http://www.w3.org/2003/05/soap-encoding" xmlns:tns="http://iwebservice.nms.com" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap11="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc11="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <wsdl:types>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://loyalty.elcom.com">
+<xsd:complexType name="LoyaltyReq">
+<xsd:sequence>
+<xsd:element minOccurs="0" name="isdn" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="password" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="user" nillable="true" type="xsd:string"/>
+</xsd:sequence>
+</xsd:complexType>
+<xsd:complexType name="LoyaltyCheckpointResp">
+<xsd:sequence>
+<xsd:element minOccurs="0" name="errorCode" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="errorDetail" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="isdn" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="point" type="xsd:double"/>
+</xsd:sequence>
+</xsd:complexType>
+<xsd:complexType name="LoyaltyRedeempointReq">
+<xsd:sequence>
+<xsd:element minOccurs="0" name="description" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="isdn" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="keyword" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="password" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="point" type="xsd:long"/>
+<xsd:element minOccurs="0" name="user" nillable="true" type="xsd:string"/>
+</xsd:sequence>
+</xsd:complexType>
+<xsd:complexType name="LoyaltyResp">
+<xsd:sequence>
+<xsd:element minOccurs="0" name="errorCode" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="errorDetail" nillable="true" type="xsd:string"/>
+<xsd:element minOccurs="0" name="isdn" nillable="true" type="xsd:string"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:schema>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://iwebservice.nms.com">
+<xsd:element name="checkPoint">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element maxOccurs="1" minOccurs="1" name="in0" nillable="true" type="ns1:LoyaltyReq"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:element>
+<xsd:element name="checkPointResponse">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element maxOccurs="1" minOccurs="1" name="out" nillable="true" type="ns1:LoyaltyCheckpointResp"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:element>
+<xsd:element name="redeemPoint">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element maxOccurs="1" minOccurs="1" name="in0" nillable="true" type="ns1:LoyaltyRedeempointReq"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:element>
+<xsd:element name="redeemPointResponse">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element maxOccurs="1" minOccurs="1" name="out" nillable="true" type="ns1:LoyaltyResp"/>
+</xsd:sequence>
+</xsd:complexType>
+</xsd:element>
+</xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="checkPointRequest">
+    <wsdl:part name="parameters" element="tns:checkPoint">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="redeemPointResponse">
+    <wsdl:part name="parameters" element="tns:redeemPointResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="redeemPointRequest">
+    <wsdl:part name="parameters" element="tns:redeemPoint">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="checkPointResponse">
+    <wsdl:part name="parameters" element="tns:checkPointResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="LoyaltyWSPortType">
+    <wsdl:operation name="checkPoint">
+      <wsdl:input name="checkPointRequest" message="tns:checkPointRequest">
+    </wsdl:input>
+      <wsdl:output name="checkPointResponse" message="tns:checkPointResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="redeemPoint">
+      <wsdl:input name="redeemPointRequest" message="tns:redeemPointRequest">
+    </wsdl:input>
+      <wsdl:output name="redeemPointResponse" message="tns:redeemPointResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="LoyaltyWSHttpBinding" type="tns:LoyaltyWSPortType">
+    <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="checkPoint">
+      <wsdlsoap:operation soapAction=""/>
+      <wsdl:input name="checkPointRequest">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="checkPointResponse">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="redeemPoint">
+      <wsdlsoap:operation soapAction=""/>
+      <wsdl:input name="redeemPointRequest">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="redeemPointResponse">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="LoyaltyWS">
+    <wsdl:port name="LoyaltyWSHttpPort" binding="tns:LoyaltyWSHttpBinding">
+      <wsdlsoap:address location="http://10.8.11.32:8080/LoyaltyWS/services/LoyaltyWS"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

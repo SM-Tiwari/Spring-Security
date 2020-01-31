@@ -1,0 +1,138 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.NSNDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.NSNResponseDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NSNService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.wsdl.GenricTIBODPservicesStub;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.NSNServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 25, 2017 4:16:32 PM
+ *
+ */
+@Service
+@Transactional
+public class NSNServiceImpl extends BaseService implements NSNService {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Autowired
+    private NotificationWorker notificationWorker;
+    
+    @Autowired
+    private InAppNotificationService inAppNotificationService;
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(NSNServiceImpl.class);
+    
+    @Override
+    public Map<String, Object> purchase(NSNDto nsndto) {
+    	LOGGER.info("#purchase method of NSNServiceImpl--------msisdn==",nsndto.getMsisdn() );
+        
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(nsndto.getMsisdn(), nsndto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        String subscriberType = nsndto.getSubscriberType();
+        String query1 = "";
+        
+        Map mapParam = new HashMap();
+        mapParam.put("productId", nsndto.getProductId());
+        
+        if("Prepaid".equals(subscriberType)) {
+            query1 = "productId = :productId and isPrepaid = :isPrepaid";
+            mapParam.put("isPrepaid", true);
+        } else if("Postpaid".equals(subscriberType)) {
+            query1 = "productId = :productId and isPostpaid = :isPostpaid";
+            mapParam.put("isPostpaid", true);
+        } else {
+            query1 = "productId = :productId and isHybrid = :isHybrid";
+            mapParam.put("isHybrid", true);
+        }
+        
+        BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+        List<Product> products = productDao.find(query1, mapParam);
+
+        if(products.isEmpty())
+            return JSONResultFilter.filter(new ErrorMessageDto(false, "Product not found")).all().build();
+        
+        BaseDao<ProductCharging> productChargingDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+        List<ProductCharging> productChargings = productChargingDao.find("productId = :productId and vendorId = :vendorId and servicePlan = :servicePlan", new HashMap<String, Object>() {{
+            put("productId", nsndto.getProductId());
+            put("vendorId", nsndto.getVendorId());
+            put("servicePlan", nsndto.getServicePlan());
+        }});
+        
+        if(productChargings.isEmpty())
+            return JSONResultFilter.filter(new ErrorMessageDto(false, "Product Charging not found")).all().build();
+        
+        ProductCharging productCharging = productChargings.get(0);
+        
+        try {
+            GenricTIBODPservicesStub.PurchaseMusicNSNRequest purchaseNSN = new GenricTIBODPservicesStub.PurchaseMusicNSNRequest();
+            purchaseNSN.setMSISDN(nsndto.getMsisdn());
+            purchaseNSN.setContentSourceID(productCharging.getNsnSourceId());
+            purchaseNSN.setContentItemID(productCharging.getNsnContentId());
+
+            GenricTIBODPservicesStub tibco = new GenricTIBODPservicesStub(Constants.TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+            GenricTIBODPservicesStub.PurchaseMusicNSNResponse response = tibco.purchaseMusicNSN(purchaseNSN);
+            
+            NSNResponseDto responseDto = new NSNResponseDto();
+            if("00000".equals(response.getStatusCode())) {
+                responseDto.setDownloadUrl(response.getDownloadURL());
+                responseDto.setMessage(response.getStatusText());
+                responseDto.setStatus(Boolean.TRUE);
+                
+                // success purchase so put to notifications
+                sendNotification(nsndto.getMsisdn(), "Sukses Membeli Product", products.get(0));
+                
+                return JSONResultFilter.filter(responseDto).all().build();
+            } else {
+                responseDto.setStatus(Boolean.FALSE);
+                responseDto.setMessage(response.getStatusText());
+                
+                return JSONResultFilter.filter(responseDto).exclude("downloadUrl").build();
+            }   
+        } catch (Exception e) {
+            LOGGER.error("ERROR purchase NSN "+e.getMessage(), e);
+        }
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+    }
+    
+    private void sendNotification(String msisdn, String message, Product product) {
+    	LOGGER.info("#sendNotification----------msisdn=="+msisdn+"--------message=="+message+"--------product=="+product.toString());
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(message);
+        stringBuilder.append(" ");
+        stringBuilder.append((product!=null?product.getProductNameId():""));
+        notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+        
+        inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(), stringBuilder.toString(), null, null, null);
+    }
+
+}

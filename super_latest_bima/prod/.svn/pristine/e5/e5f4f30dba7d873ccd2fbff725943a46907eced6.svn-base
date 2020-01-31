@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by aswzen on 7/09/2018.
+ */
+public class RemoveEmailSocialDto  extends BaseRequestDto{
+
+    private String type;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+}

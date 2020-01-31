@@ -1,0 +1,28 @@
+package id.gnvsolution.d3.api.dto.request;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.InAppNotificationDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 24, 2017 4:07:39 PM
+ *
+ */
+public class InAppNotificationDto extends BaseRequestDto implements DTO {
+
+    private Integer lastId;
+
+    public InAppNotificationDto() {
+    }
+
+    public Integer getLastId() {
+        return lastId;
+    }
+
+    public void setLastId(Integer lastId) {
+        this.lastId = lastId;
+    }
+}

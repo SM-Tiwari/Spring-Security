@@ -1,0 +1,224 @@
+package id.gnvsolution.d3.api.component.mail;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.service.AppConfigService;
+
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Created by aswzen on 10/8/2018.
+ */
+@Component
+@Transactional
+public class Mailer {
+
+    private final Logger logger = LoggerFactory.getLogger("mail");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    
+    private SessionFactory sessionFactoryDef;
+    
+    private String smtpHost = "10.6.1.170";  //"10.8.1.61";
+    private String smtpPort = "25";
+     private String smtpSender = "bima@vietnamobile.com.vn";
+    /* private String smtpHost = "172.17.8.170";
+     private String smtpPort = "25";
+    private String smtpSender = "dhiraj.kumar@infotelgroup.in";*/
+    private String smtpSenderName = "myvnm";
+    private String smtpUsername = "";
+    private String smtpPassword = "";
+    private Boolean smtpTls = false;
+    
+    @Autowired
+	private AppConfigService applicationConfigurationService;
+    
+    @Autowired
+    public Mailer(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+    }
+ 
+    /**
+    * Getting email template
+    * @param emailId
+    * @return email template
+    */
+    @Cacheable(value = "cache1", key="#root.methodName.toString() + #emailId" )
+    public Map<String, String> loadEmailTemplate(String emailId){
+        Map<String, String> emailTemplate = new HashMap<>();
+        BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+        List<Parameter> emailParameterData = parameterDao.find("KEY = :key", new HashMap<String, Object>() {{
+            put("key", emailId);
+        }});
+        if(!emailParameterData.isEmpty()){
+            emailTemplate.put("content", emailParameterData.get(0).getValue());
+            emailTemplate.put("subject", emailParameterData.get(0).getType());
+        }
+        return emailTemplate;
+    }
+    
+    /**
+    * Utility method to send mail
+    * @param recepients
+    * @param subject
+    * @param messages
+    * @return true if success
+    */
+    @Async
+    public Boolean sendEmail(String subject, String recipients, Map paramater, String type, String smtpSender, String smtpSenderName, String language) {
+        boolean status = false;
+        String error = "-";
+        if(language == null)
+            language = "0";
+        
+        Long ms = System.currentTimeMillis();
+        Map<String, String> emailTemplate = null;
+        
+        try {
+            String content = ""; 
+            
+            if("addEmail".equals(type)){
+                emailTemplate = loadEmailTemplate("EMAIL_ADD_EMAIL_LOGIN_EN");
+               
+                if(language.equals(Constants.LANG_ID))
+                    emailTemplate = loadEmailTemplate("EMAIL_ADD_EMAIL_LOGIN_ID");
+                System.out.println("emailTemplate......."+emailTemplate);
+            } 
+            if("addEmailComplete".equals(type)){
+                emailTemplate = loadEmailTemplate("EMAIL_VERIFIED_EN");
+                if(language.equals(Constants.LANG_ID))
+                    emailTemplate = loadEmailTemplate("EMAIL_VERIFIED_ID");
+            } 
+            if("forgotPasswordEmail".equals(type)){
+                emailTemplate = loadEmailTemplate("EMAIL_FORGOT_PASSWORD_EN");
+                if(language.equals(Constants.LANG_ID))
+                    emailTemplate = loadEmailTemplate("EMAIL_FORGOT_PASSWORD_ID");
+            }
+            if("passwordChanged".equals(type)){
+                emailTemplate = loadEmailTemplate("EMAIL_CHANGE_PASSWORD_EN");
+                if(language.equals(Constants.LANG_ID))
+                    emailTemplate = loadEmailTemplate("EMAIL_CHANGE_PASSWORD_ID");
+            }
+            if("passwordSet".equals(type)){
+                emailTemplate = loadEmailTemplate("EMAIL_SET_PASSWORD_EN");
+                if(language.equals(Constants.LANG_ID))
+                    emailTemplate = loadEmailTemplate("EMAIL_SET_PASSWORD_ID");
+            }
+            
+            content = emailTemplate.get("content");
+            subject = emailTemplate.get("subject");
+
+            if(content == null){
+                status = false;
+                error = "Email template not found for: "+type;
+                return false;
+            }
+            
+            if(paramater.get("name") ==  null)
+                paramater.put("name","");
+            if(paramater.get("token") ==  null)
+                paramater.put("token","");
+            
+            content = content.replaceFirst("#NAME", paramater.get("name").toString())
+                    .replaceFirst("#TOKEN", paramater.get("token").toString())
+                    .replaceFirst("#LANG", language)
+                    .replaceFirst("#DATE", sdf.format(new Date()))
+                    //.replaceFirst("#DEEPLINK_URL_SHORTENED", Constants.DEEPLINK_URL_SHORTENED1);
+                    .replaceFirst("#DEEPLINK_URL_SHORTENED",applicationConfigurationService.get("DEEPLINK_URL_SHORTENED1", "http://103.129.188.37:8080"));
+
+            Properties props = System.getProperties();
+            props.put("mail.smtp.starttls.enable", smtpTls);
+            props.put("mail.smtp.host", smtpHost);
+            props.put("mail.smtp.user", smtpUsername);
+            props.put("mail.smtp.password", smtpPassword);
+            props.put("mail.smtp.port", smtpPort);
+        //    props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+            props.put("mail.smtp.auth", false);
+         /*   props.put("mail.debug", true);*/
+            props.put("mail.debug", true);
+
+           Session session = Session.getDefaultInstance(props , null);
+            
+            
+            
+           
+           // if the smtp needs login uncomment this
+           /* Session session = Session.getInstance(props, new Authenticator() {
+                        @Override
+                        protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
+                            return new javax.mail.PasswordAuthentication("odp.notification", "P@ssw0rd");
+                        }
+                    }
+            );*/
+            System.out.println("Emaiil Session is ::::"+session);
+            session.setDebug(false);
+
+            String[] to = {recipients};
+            InternetAddress[] toAddress = new InternetAddress[to.length];
+
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(smtpSender, smtpSenderName));
+            msg.setSubject(subject);
+            
+            /* append html on email */
+            content = "<!DOCTYPE html><html><meta charset=\"utf-8\"><body>"+content+"</body></html>";
+            msg.setContent(content, "text/html; charset=utf-8");
+
+            // To get the array of addresses
+            for( int i=0; i < to.length; i++ ) { // changed from a while loop
+                toAddress[i] = new InternetAddress(to[i]);
+                msg.addRecipient(Message.RecipientType.TO, toAddress[i]);
+            }
+
+            Transport.send(msg);
+            System.out.println("Mail Send ");
+            status = true;
+        } catch (MailException e) {
+        	System.out.println(e.getMessage());
+            error = "Fail to send email, MailException: "+e.getMessage();
+        } catch (UnsupportedEncodingException | MessagingException e) {
+            error = "Fail to send email, Exception: "+e.getMessage();
+            System.out.println(error);
+        } finally {
+            final StringBuilder sb=new StringBuilder();    
+            sb.append("\r\n========== START =============== \r\n"); 
+            sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+            sb.append("Mail Server\t:\t").append(smtpHost).append("\r\n");
+            sb.append("From\t\t:\t").append(smtpSenderName).append("\r\n");
+            sb.append("To\t\t:\t").append(recipients).append("\r\n");
+            sb.append("Subject\t\t:\t").append(subject).append("\r\n");
+            sb.append("Status\t\t:\t").append(((status)?"Success":"Error")).append("\r\n");
+            sb.append("Error\t\t:\t").append(error).append("\r\n");
+            sb.append("Async\t\t:\t").append(true).append("\r\n");
+            sb.append("Time\t\t:\t").append(System.currentTimeMillis()-ms).append("ms \r\n");
+            sb.append("==========  END  =============== \r\n"); 
+            System.out.println("finally block :::"+sb.toString());
+            logger.debug(sb.toString());
+        }
+        
+        return status;
+    }
+}

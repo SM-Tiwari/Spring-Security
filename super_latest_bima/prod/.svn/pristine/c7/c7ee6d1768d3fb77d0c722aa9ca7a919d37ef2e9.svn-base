@@ -1,0 +1,209 @@
+package id.gnvsolution.d3.api.component.xprint;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.RptInvoiceSummary;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.utils.XPrintImporter
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 7, 2017 2:41:58 PM
+ *
+ */
+@Component
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+public class XPrintImporter {
+
+    /**
+     * 
+     */
+    public static final Logger LOGGER = LoggerFactory.getLogger(XPrintImporter.class);
+
+    /**
+     * 
+     */
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    /**
+     * 
+     */
+    @Async
+    public void parseXPrintFiles() {
+        String fileName = "";
+        Scanner scanner = null;
+        try {
+            BaseDao<RptInvoiceSummary> rptInvoiceSummaryDao = new BaseDao<>(sessionFactoryDef, RptInvoiceSummary.class);
+
+            // grab all the files
+            File[] files = new File(Constants.XPRINT_FILES_LOCATION).listFiles();
+            for (File file : files) {
+                
+                // except for folders
+                if(file.isDirectory())
+                    continue;
+                
+                LOGGER.info("Parsing File : "+file.getAbsolutePath());
+                
+                fileName = file.getName();
+                RptInvoiceSummary rptInvoiceSummary = new RptInvoiceSummary();
+
+                scanner = new Scanner(file, "UTF-8");
+                while(scanner.hasNextLine()) {
+                    String next = scanner.nextLine();
+                    String nexts[] = next.split(" ");
+                    String head = nexts[0];
+                    String tail = next.replace(head, "").trim();
+                    
+                    if(next.contains("START====="))
+                        rptInvoiceSummary = new RptInvoiceSummary();
+                    if(head.contains("INVOICEDATE"))
+                        rptInvoiceSummary.setInvoicedate(convertToDate(tail));
+                    if (head.contains("MSISDN")) {
+                        if (head.contains("MSISDN")) {
+                            if (tail != null && tail.startsWith("0")) {
+                                tail = String.format("62%s", tail.substring(1));
+                            }
+                            rptInvoiceSummary.setMsisdn(tail);
+                        }
+
+                        rptInvoiceSummary.setMsisdn(tail);
+                    }
+                    if(head.contains("INVOICENUMBER"))
+                        rptInvoiceSummary.setInvoicenumber(tail);
+                    if(head.contains("CUSTOMERTYPE"))
+                        rptInvoiceSummary.setCustomertype(tail);
+                    if(head.contains("SUMMARYCORPID"))
+                        rptInvoiceSummary.setSummarycorpid(tail);
+                    if(head.contains("CONTRACTNUM"))
+                        rptInvoiceSummary.setContractnum(tail);
+                    if(head.contains("TAXID"))
+                        rptInvoiceSummary.setTaxid(tail);
+                    if(head.contains("ADDRESSNAME"))
+                        rptInvoiceSummary.setAddressname(tail);
+                    if(head.contains("ADDRESS1"))
+                        rptInvoiceSummary.setAddress1(tail);
+                    if(head.contains("ADDRESS2"))
+                        rptInvoiceSummary.setAddress2(tail);
+                    if(head.contains("CITY"))
+                        rptInvoiceSummary.setCity(tail);
+                    if(head.contains("POSTCODE"))
+                        rptInvoiceSummary.setPostcode(tail);
+                    if(head.contains("STARTPERIOD"))
+                        rptInvoiceSummary.setStartperiod(tail);
+                    if(head.contains("ENDPERIOD"))
+                        rptInvoiceSummary.setEndperiod(tail);
+                    if(head.contains("DEPOSITMONEY"))
+                        rptInvoiceSummary.setDepositmoney(tail);
+                    if(head.contains("LASTMONTHBILL"))
+                        rptInvoiceSummary.setLastmonthbill(tail);
+                    if(head.contains("PAYMENTRECEIVED"))
+                        rptInvoiceSummary.setPaymentreceived(tail);
+                    if(head.contains("OUTSTANDINGBILLING"))
+                        rptInvoiceSummary.setOutstandingbilling(tail);
+                    if(head.contains("EXCESSPAYMENT"))
+                        rptInvoiceSummary.setExcesspayment(tail);
+                    if(head.contains("BALANCEBROUGHTFORWARD"))
+                        rptInvoiceSummary.setBalancebroughtforward(tail);
+                    if(head.contains("THISMONTHBILL"))
+                        rptInvoiceSummary.setThismonthbill(tail);
+                    if(head.contains("TOTALDUE"))
+                        rptInvoiceSummary.setTotaldue(tail);
+                    if(head.contains("INVOICEDUEDATE"))
+                        rptInvoiceSummary.setInvoiceduedate(tail);
+                    if(head.contains("TOTALCHARGE"))
+                        rptInvoiceSummary.setTotalcharge(tail);
+                    if(head.contains("TOTALDISCOUNT"))
+                        rptInvoiceSummary.setTotaldiscount(tail);
+                    if(head.contains("TOTALADJUSTMENT"))
+                        rptInvoiceSummary.setTotaladjustment(tail);
+                    if(head.contains("TOTALSUBTOTAL"))
+                        rptInvoiceSummary.setTotalsubtotal(tail);
+                    if(head.contains("TOTALVAT"))
+                        rptInvoiceSummary.setTotalvat(tail);
+                    if(head.contains("TOTALSTAMPDUTY"))
+                        rptInvoiceSummary.setTotalstampduty(tail);
+                    if(head.contains("CONTRACTPENALTYCHARGE"))
+                        rptInvoiceSummary.setContractpenaltycharge(tail);
+                    if(next.contains("END=====")) {
+                    	String msisdn1 = rptInvoiceSummary.getMsisdn();
+                    	String endperiod1 = rptInvoiceSummary.getEndperiod();
+                    	String customertype1 = rptInvoiceSummary.getCustomertype();
+                    	List<RptInvoiceSummary> listOfRepeatInvoices = rptInvoiceSummaryDao.find("msisdn = :msisdn and endperiod = :endperiod and customertype = :customertype", new HashMap<String, Object>() {
+                            {
+                                put("msisdn", msisdn1);
+                                put("endperiod", endperiod1);
+                                put("customertype", customertype1);
+                            }
+                        });
+                    	
+                    	//DELETE
+                    	if(listOfRepeatInvoices != null && listOfRepeatInvoices.size() > 0) {
+                    		for(RptInvoiceSummary repeatInvoice : listOfRepeatInvoices) {
+                    			rptInvoiceSummaryDao.delete(repeatInvoice);
+                    		}
+                    	}
+                    	
+                    	//SAVE
+                        rptInvoiceSummaryDao.save(rptInvoiceSummary);
+                    }
+                }
+                scanner.close();
+                file.renameTo(new File(Constants.XPRINT_FILES_LOCATION + "processed/done_"+formatToDate()+"_"+fileName));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.error("error parsing " + fileName + " - " + e.getMessage(), e);
+        } finally {
+            if(scanner != null) scanner.close();
+        }
+    }
+    
+    /**
+     * 
+     * @param date
+     * @return 
+     */
+    private Date convertToDate(String date) {
+        try {
+            return new SimpleDateFormat("dd MMM yyyy").parse(date);
+        } catch (Exception e) {
+            LOGGER.error("error parsing "+date+" - "+e.getMessage(), e);
+        }
+        return null;
+    }
+    
+    /**
+     * 
+     * @return 
+     */
+    private String formatToDate() {
+        try {
+            return new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+}

@@ -1,0 +1,5 @@
+package id.gnvsolution.d3.api.service.impl;
+
+public interface GetRequestService {
+public String getRequestMode();
+}

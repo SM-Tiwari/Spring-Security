@@ -1,0 +1,23 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.CustomerUiTypeDto;
+import id.gnvsolution.d3.api.dto.response.CustomerUiTypeResponseDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.CustomerUiTypeService 
+ * </pre>
+ *
+ * @author r afiannas
+ * Oct 13, 2017 8:50:03 AM
+ *
+ */
+public interface CustomerUiTypeService {
+    
+    public CustomerUiTypeResponseDto getCustomerUiTypeResponseDto(CustomerUiTypeDto customerUiTypeDto);
+    public Map save(CustomerUiTypeDto customerUiTypeDto);
+    public Boolean isFull(String msisdn);
+    public Boolean isFull(Integer isFull);
+ 
+}

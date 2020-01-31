@@ -1,0 +1,92 @@
+package id.gnvsolution.d3.api.model.helper;
+
+import java.util.Objects;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.helper.BonusInfo 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 26, 2018 9:44:54 PM
+ *
+ */
+public class BonusInfo {
+
+    // QTANAME - SRVNAME - QTAVALUE - QTABALANCE
+    private String qtaName;
+    private String srvName;
+    private String qtaValue;
+    private String qtaBalance;
+
+    public BonusInfo() {
+    }
+
+    public String getQtaName() {
+        return qtaName;
+    }
+
+    public void setQtaName(String qtaName) {
+        this.qtaName = qtaName;
+    }
+
+    public String getSrvName() {
+        return srvName;
+    }
+
+    public void setSrvName(String srvName) {
+        this.srvName = srvName;
+    }
+
+    public String getQtaValue() {
+        return qtaValue;
+    }
+
+    public void setQtaValue(String qtaValue) {
+        this.qtaValue = qtaValue;
+    }
+
+    public String getQtaBalance() {
+        return qtaBalance;
+    }
+
+    public void setQtaBalance(String qtaBalance) {
+        this.qtaBalance = qtaBalance;
+    }
+
+    @Override
+    public String toString() {
+        return "BonusInfo{" + "qtaName=" + qtaName + ", srvName=" + srvName + ", qtaValue=" + qtaValue + ", qtaBalance=" + qtaBalance + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 67 * hash + Objects.hashCode(this.qtaName);
+        hash = 67 * hash + Objects.hashCode(this.qtaBalance);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final BonusInfo other = (BonusInfo) obj;
+        if (!Objects.equals(this.qtaName, other.qtaName)) {
+            return false;
+        }
+        if (!Objects.equals(this.qtaBalance, other.qtaBalance)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
+}

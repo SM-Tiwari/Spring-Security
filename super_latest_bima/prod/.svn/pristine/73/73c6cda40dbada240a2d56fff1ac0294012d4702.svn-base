@@ -1,0 +1,48 @@
+package id.gnvsolution.d3.api.service;
+
+
+import id.gnvsolution.d3.api.model.PaymentHistoryEntity;
+import id.gnvsolution.d3.api.model.PaymentMethod;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.model.TrxPostpaidPayment;
+import id.gnvsolution.d3.api.model.TrxSubscriberEtopup;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.DokuService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 19, 2017 7:36:49 PM 
+ *
+ */
+public interface ExternalPayment {
+    String generateTrxNumber();
+    String generateTrxNumberPostpaid();
+    String generateTrxNumberHybrid();
+    TrxSubscriberPurchase checkPurchase(String transactionId);
+    
+    PaymentMethod getPaymentMethod(String paymentMethodCode);
+    Subscriber getSubscriber(String msisdn);
+    Product getProduct(String productId);
+    ProductCharging getProductCharging(String productId, String vendorId, String servicePlan, String paymentMethod, Long price);
+    
+    void purchaseProduct(String TRANSIDMERCHANT) throws Exception;
+    void saveToTrxSubscriberPurchase(TrxSubscriberPurchase subscriberPurchase);
+    void saveToTrxPostpaidPayment(TrxPostpaidPayment trxPostpaidPayment);
+	void saveToTrxPrepaidPayment(TrxSubscriberEtopup trxprepaidPayment);
+	TrxSubscriberEtopup getPrePaidTransectionDetails(String trxId);
+	TrxPostpaidPayment getPostPaidTransectionDetails(String trxId);
+	void savePaymentHistory(PaymentHistoryEntity trxpayementHistory);
+	void updatePaymentHistory(PaymentHistoryEntity trxpayementHistory);
+	void updateToTrxPrepaidPayment(TrxSubscriberEtopup trxprepaidPayment);
+	void updateToTrxPostPayment(TrxPostpaidPayment trxpostPayment);
+	String getOrderIdByExtTrxId(String extTrxId);
+	PaymentHistoryEntity getOrderDeatilsBasedOnExtTrxId(String extTrxId);
+	PaymentHistoryEntity getPaymentHistoryBasedOnTrx(String orderId);
+	int getPaymentHistoryStatus(String orderId);
+	
+}

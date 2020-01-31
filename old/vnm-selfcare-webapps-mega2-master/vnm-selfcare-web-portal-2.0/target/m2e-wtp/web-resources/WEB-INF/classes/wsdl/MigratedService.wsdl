@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<definitions targetNamespace="http://www.intecbilling.com/HCPT/prepaid_soap" xmlns:tns="http://www.intecbilling.com/HCPT/prepaid_soap" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.xmlsoap.org/wsdl/&#xD;&#xA;">
+	<!-- ============== -->
+	<!-- Start of Types -->
+	<!-- ============== -->
+	<types>
+		<xs:schema elementFormDefault="qualified" targetNamespace="http://www.intecbilling.com/HCPT/prepaid_soap" xmlns="http://www.intecbilling.com/HCPT/prepaid_soap">
+			<xs:include schemaLocation="common.xsd"/>
+			<!-- MigratedService API -->
+			<xs:element name="MigratedServiceRequest">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="MSISDN" minOccurs="1" type="msisdn"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="MigratedServiceResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Routing" type="responseCode"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:schema>
+	</types>
+	<!-- ======================== -->
+	<!-- Start of Message Section -->
+	<!-- ======================== -->
+	<!-- MigratedService API. -->
+	<message name="MigratedServiceSoapIn">
+		<part name="parameters" element="tns:MigratedServiceRequest"/>
+	</message>
+	<message name="MigratedServiceSoapOut">
+		<part name="parameters" element="tns:MigratedServiceResponse"/>
+	</message>
+	<!-- =================== -->
+	<!-- Start of Port Types -->
+	<!-- =================== -->
+	<portType name="CommonPortType">
+		<!-- MigratedService API. -->
+                <operation name="MigratedServiceRequest">
+                        <input message="tns:MigratedServiceSoapIn"/>
+                        <output message="tns:MigratedServiceSoapOut"/>
+                </operation>
+	</portType>
+	<!-- ======================== -->
+	<!-- Start of Binding Section -->
+	<!-- ======================== -->
+	<binding name="CommonBinding" type="tns:CommonPortType">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+		<!-- MigratedService API. -->
+		<operation name="MigratedServiceRequest">
+			<soap:operation soapAction="MigratedService" style="document"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+		</operation>
+	</binding>
+	<!-- ========================= -->
+	<!-- Start of Services Section -->
+	<!-- ========================= -->
+	<!-- Common Service -->
+	<service name="CommonService">
+		<port name="CommonPortType" binding="tns:CommonBinding">
+			<soap:address location="http://10.8.8.86:8022/services/Inbound"/>
+		</port>
+	</service>
+</definitions>
+

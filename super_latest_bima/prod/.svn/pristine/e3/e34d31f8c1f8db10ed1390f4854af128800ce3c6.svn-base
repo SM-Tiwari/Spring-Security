@@ -1,0 +1,21 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.PaymentStatusDto;
+import java.util.Map;
+
+import com.gnv.vnm.selfcare.core.model.GetBillingSummaryResponse;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.InvoiceService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 7, 2017 7:08:32 PM
+ *
+ */
+public interface InvoiceService {
+	Map<String, Object> viewLast3Invoices(BaseRequestDto baseRequestDto);
+    Map<String, Object> getPaymentStatus(PaymentStatusDto paymentStatusDto);
+}

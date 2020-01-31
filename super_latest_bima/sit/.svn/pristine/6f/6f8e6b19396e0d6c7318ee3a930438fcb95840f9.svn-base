@@ -1,0 +1,140 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.TrxTransferPulsa 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 11, 2018 2:39:40 PM
+ *
+ */
+@Entity
+@Table(name = "TRX_TRANSFER_PULSA")
+public class TrxTransferPulsa implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Basic(optional = false)
+    @Column(name = "UUID")
+    private String uuid;
+    
+    @Column(name = "TRX_DATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date trxDate;
+    
+    @Basic(optional = false)
+    @Column(name = "MSISDN_FROM")
+    private String msisdnFrom;
+    
+    @Basic(optional = false)
+    @Column(name = "MSISDN_TO")
+    private String msisdnTo;
+    
+    @Basic(optional = false)
+    @Column(name = "AMOUNT")
+    private BigDecimal amount;
+    
+    @Basic(optional = false)
+    @Column(name = "TRX_ID")
+    private String trxId;
+    
+    @Basic(optional = false)
+    @Column(name = "STATUS")
+    private String status;
+    
+    @Basic(optional = false)
+    @Column(name = "STATUS2")
+    private String status2;
+    
+    @Basic(optional = false)
+    @Column(name = "STATUS_TEXT")
+    private String statusText;
+
+    public TrxTransferPulsa() {
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public Date getTrxDate() {
+        return trxDate;
+    }
+
+    public void setTrxDate(Date trxDate) {
+        this.trxDate = trxDate;
+    }
+
+    public String getMsisdnFrom() {
+        return msisdnFrom;
+    }
+
+    public void setMsisdnFrom(String msisdnFrom) {
+        this.msisdnFrom = msisdnFrom;
+    }
+
+    public String getMsisdnTo() {
+        return msisdnTo;
+    }
+
+    public void setMsisdnTo(String msisdnTo) {
+        this.msisdnTo = msisdnTo;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public String getTrxId() {
+        return trxId;
+    }
+
+    public void setTrxId(String trxId) {
+        this.trxId = trxId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public String getStatus2() {
+        return status2;
+    }
+
+    public void setStatus2(String status2) {
+        this.status2 = status2;
+    }
+}

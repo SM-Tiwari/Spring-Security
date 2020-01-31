@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.utils;
+
+public class NapasConstant 
+{
+  public static  String callBackUrlApi="http://localhost:8080/bima/api/v1/napas/pg/callback";
+  public static String callBackUrlWeb="http://localhost:8080/bima/api/v1/napas/pg/callback";
+  public static String napasCancelURL="http://localhost:8080/bima/api/v1/napas/pg/cancelPayment?orderId=";
+  public static String napasCallbackURL="http://localhost:8080/bima/api/v1/napas/pg/napasCallBackHandler";
+}

@@ -1,0 +1,10 @@
+0000000000000000000000000000000000000000 eab159d56ff6e83a788f836f1b430f9ba6d7aba6 Agus Sigit Wisnubroto <aswzen@gmail.com> 1541056109 +0700	branch: Created from tag HEAD
+eab159d56ff6e83a788f836f1b430f9ba6d7aba6 47cf1257c05c043444991ab54d1cad466a1e2682 Agus Sigit Wisnubroto <aswzen@gmail.com> 1541066208 +0700	commit: First commit of phase 3
+47cf1257c05c043444991ab54d1cad466a1e2682 edb38d4bacaa7bf844fb2ce133a3b7601c06b2c4 Agus Sigit Wisnubroto <aswzen@gmail.com> 1541149062 +0700	commit: Adding model for tabs details
+edb38d4bacaa7bf844fb2ce133a3b7601c06b2c4 2cbefd591aed8214e4455f0e7373a040e9dd563f Agus Sigit Wisnubroto <aswzen@gmail.com> 1541401008 +0700	commit: Adding api for getting product details from 3 products tab
+2cbefd591aed8214e4455f0e7373a040e9dd563f 8362b1c0d60d7c335bfe00a18444370cd4ef41d1 Agus Sigit Wisnubroto <aswzen@gmail.com> 1541478929 +0700	commit: Adding last transaction API for 3 products module
+8362b1c0d60d7c335bfe00a18444370cd4ef41d1 e1204a7d17102e78ceafb6417d8ff0d1d6056208 Agus Sigit Wisnubroto <aswzen@gmail.com> 1541575942 +0700	commit: Adding discount price (BR-03), and product detail (BR-02) but only on product not campaign (still discussing)
+e1204a7d17102e78ceafb6417d8ff0d1d6056208 5132c0edaab4693cf09a1f4b4cade492bd11eceb Agus Sigit Wisnubroto <aswzen@gmail.com> 1541645868 +0700	merge origin/1811-ceo-bima-endhancementpack2phase3: Fast-forward
+5132c0edaab4693cf09a1f4b4cade492bd11eceb 49f2e48764a62a555c3cf4d7ceec194689d3dfaf Agus Sigit Wisnubroto <aswzen@gmail.com> 1542181492 +0700	merge origin/master: Merge made by recursive.
+49f2e48764a62a555c3cf4d7ceec194689d3dfaf 706fdea3c17c356e13f4cbbbb7d03329b29e4a19 Agus Sigit Wisnubroto <aswzen@gmail.com> 1542188445 +0700	commit: Updating tibco
+706fdea3c17c356e13f4cbbbb7d03329b29e4a19 e0bb33058a5b2cb78666a40aaebb5461838f5c07 Agus Sigit Wisnubroto <aswzen@gmail.com> 1542188611 +0700	commit: Fixing get profile based on new wsdl for BR-06

@@ -1,0 +1,152 @@
+package id.gnvsolution.d3.api.utils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.primitives.Ints;
+
+
+
+public class ExtractPdfUtility {       
+	
+    public Map<String, String> extractTables(String invoice, String saveDir, String msisdn, String acNumber) {
+    	Map<String, String> tables = null ;
+            try {
+           // fileURL = fileURL +"/"+ invoice+".pdf"; 
+            String fileName = invoice+".pdf";
+           // HttpDownloadUtility.downloadFile(fileURL, saveDir);
+        	String[] args = new String[1];
+        	args[0]= saveDir + "/"+ invoice +".pdf";         	
+        	
+            List<Integer> pages = getPages(args);
+            List<Integer> exceptPages = getExceptPages(args);
+            List<Integer[]> exceptLines = getExceptLines(args);
+            String in = saveDir + "/"+ invoice +".pdf";          
+            
+            PDFTableExtractor extractor = (new PDFTableExtractor()).setSource(in);
+            //page
+            for (Integer page : pages) {
+                extractor.addPage(page);
+            }
+            //except page
+            for (Integer exceptPage : exceptPages) {
+                extractor.exceptPage(exceptPage);
+            }
+            //except lines
+            List<Integer> exceptLineIdxs = new ArrayList<>();
+            Multimap<Integer, Integer> exceptLineInPages = LinkedListMultimap.create();
+            for (Integer[] exceptLine : exceptLines) {
+                if (exceptLine.length == 1) {
+                    exceptLineIdxs.add(exceptLine[0]);
+                } else if (exceptLine.length == 2) {
+                    int lineIdx = exceptLine[0];
+                    int pageIdx = exceptLine[1];
+                    exceptLineInPages.put(pageIdx, lineIdx);
+                }
+            }
+            if (!exceptLineIdxs.isEmpty()) {
+                extractor.exceptLine(Ints.toArray(exceptLineIdxs));
+            }
+            if (!exceptLineInPages.isEmpty()) {
+                for (int pageIdx : exceptLineInPages.keySet()) {
+                    extractor.exceptLine(pageIdx, Ints.toArray(exceptLineInPages.get(pageIdx)));
+                }
+            }
+            //begin parsing pdf file
+             tables = extractor.extract(invoice,  msisdn,  acNumber);   
+            System.out.println(tables);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+			return tables;
+    }
+
+    
+
+    private static List<Integer> getPages(String[] args) {
+        return getInts(args, "p");
+    }
+
+    private static List<Integer> getExceptPages(String[] args) {
+        return getInts(args, "ep");
+    }
+
+    private static List<Integer> getInts(String[] args, String name) {
+        List<Integer> retVal = new ArrayList<>();
+        String intsInString = getArg(args, name);
+        if (intsInString != null) {
+            String[] intInStrings = intsInString.split(",");
+            for (String intInString : intInStrings) {
+                try {
+                    retVal.add(Integer.parseInt(intInString.trim()));
+                } catch (Exception e) {
+                    throw new RuntimeException("Invalid argument (-" + name + "): " + intsInString, e);
+                }
+            }
+        }
+        return retVal;
+    }
+
+    private static List<Integer[]> getExceptLines(String[] args) {
+        List<Integer[]> retVal = new ArrayList<>();
+        String exceptLinesInString = getArg(args, "el");
+        if(exceptLinesInString == null){
+            return retVal;
+        }
+        //ELSE:
+        String[] exceptLineStrings = exceptLinesInString.split(",");
+        for (String exceptLineString : exceptLineStrings) {
+            if (exceptLineString.contains("@")) {
+                String[] exceptLineItems = exceptLineString.split("@");
+                if (exceptLineItems.length != 2) {
+                    throw new RuntimeException("Invalid except lines argument (-el): " + exceptLinesInString);
+                } else {
+                    try {
+                        int lineIdx = Integer.parseInt(exceptLineItems[0].trim());
+                        int pageIdx = Integer.parseInt(exceptLineItems[1].trim());
+                        retVal.add(new Integer[]{lineIdx, pageIdx});
+                    } catch (Exception e) {
+                        throw new RuntimeException("Invalid except lines argument (-el): " + exceptLinesInString, e);
+                    }
+                }
+            } else {
+                try {
+                    int lineIdx = Integer.parseInt(exceptLineString.trim());
+                    retVal.add(new Integer[]{lineIdx});
+                } catch (Exception e) {
+                    throw new RuntimeException("Invalid except lines argument (-el): " + exceptLinesInString, e);
+                }
+            }
+        }
+        return retVal;
+    }
+
+    
+
+    private static String getArg(String[] args, String name, String defaultValue) {
+        int argIdx = -1;
+        for (int idx = 0; idx < args.length; idx++) {
+            if (("-" + name).equals(args[idx])) {
+                argIdx = idx;
+                break;
+            }
+        }
+        if (argIdx == -1) {
+            return defaultValue;
+        } else if (argIdx < args.length - 1) {
+            return args[argIdx + 1].trim();
+        } else {
+            throw new RuntimeException("Missing argument value. Argument name: " + name);
+        }
+    }
+
+    private static String getArg(String[] args, String name) {
+        return getArg(args, name, null);
+    }
+
+
+}

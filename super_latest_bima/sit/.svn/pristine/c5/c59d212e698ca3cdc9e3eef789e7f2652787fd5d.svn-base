@@ -1,0 +1,6 @@
+#Tomcat publish data
+#Thu Aug 01 14:37:53 IST 2019
+org.eclipse.jst.jee.server\:/binary\:C\:\\Users\\siddhesh.mani\\.m2\\repository\\org\\springframework\\spring-web\\4.3.7.RELEASE\\spring-web-4.3.7.RELEASE.jar=WEB-INF/lib/spring-web-4.3.7.RELEASE.jar
+org.eclipse.jst.jee.server\:/binary\:C\:\\Users\\siddhesh.mani\\.m2\\repository\\net\\bull\\javamelody\\javamelody-core\\1.68.1\\javamelody-core-1.68.1.jar=WEB-INF/lib/javamelody-core-1.68.1.jar
+org.eclipse.jst.j2ee.server\:bimaservice=WEB-INF/lib/d3-service-1.0-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:spring-json-view=WEB-INF/lib/spring-json-view-1.0-SNAPSHOT.jar

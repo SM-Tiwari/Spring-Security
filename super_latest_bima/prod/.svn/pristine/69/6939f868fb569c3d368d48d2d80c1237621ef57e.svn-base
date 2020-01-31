@@ -1,0 +1,71 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.ProductMetadata;
+import id.gnvsolution.d3.api.service.ImageService;
+import id.gnvsolution.d3.api.utils.HttpClientHelper;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.http.HttpResponse;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.ImageServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 9, 2017 3:14:31 PM
+ *
+ */
+@Service
+@Transactional
+public class ImageServiceImpl extends BaseService implements ImageService {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    
+    @Override
+    @Async
+    public Map get() {
+    	logger.info("ImageServiceImpl start------ get() method for getting data from ProductMetadata=--------");
+        BaseDao<ProductMetadata> productMetadataDao = new BaseDao<>(sessionFactoryDef, ProductMetadata.class);
+        for (int i = 0; i < 81; i++) {
+            List<ProductMetadata> productMetadatas = productMetadataDao.listData("from ProductMetadata", 1000 * i, 1000);
+            for (ProductMetadata productMetadata : productMetadatas) {
+                try {
+                    if(!productMetadata.getValue().toLowerCase().contains(Constants.DEEPLINK_URL_SHORTENED))
+                        continue;
+                    
+                    HttpResponse httpResponse = HttpClientHelper.getData(productMetadata.getValue().replace(Constants.DEEPLINK_URL_SHORTENED, Constants.DEEPLINK_URL_SHORTENED_IP), null, null);
+                    if(httpResponse.getStatusLine().getStatusCode() == 404) {
+                        System.out.println(removeNewLine(productMetadata.getProductId())+"|"+
+                                            removeNewLine(productMetadata.getProductByProductId().getProductNameId())+"|"+
+                                            removeNewLine(productMetadata.getKey())+"|"+
+                                            removeNewLine(productMetadata.getValue()));
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage()+ productMetadata.getValue());
+                }
+            }
+        }
+        return new HashMap();
+    }
+    
+    private String removeNewLine(String s) {
+        return s.replace("\r\n", "").replace("\r", "").replace("\n", "").replaceAll("\\r|\\n", "");
+    }
+    
+}

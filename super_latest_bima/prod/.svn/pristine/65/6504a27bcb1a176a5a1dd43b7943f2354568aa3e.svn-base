@@ -1,0 +1,39 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "MSISDN_WITHOUT_OTP")
+public class MsisdnWithoutOtp {
+	
+	private String msisdn;
+	
+	
+
+	public MsisdnWithoutOtp(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	@Id
+	@Column(name = "MSISDN", nullable = false)
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	@Override
+	public String toString() {
+		return "MsisdnWithoutOtp [msisdn=" + msisdn + "]";
+	}
+
+	
+
+
+	
+}

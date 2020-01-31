@@ -1,0 +1,211 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.response.MenuDto;
+import id.gnvsolution.d3.api.service.MenuService;
+import id.gnvsolution.d3.api.dto.request.UtmCounterRequestDto;
+import id.gnvsolution.d3.api.model.UtmCounter;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.CounterService;
+import id.gnvsolution.d3.api.service.ProductService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Map;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.ProductWebController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 8, 2017 6:05:40 PM
+ *
+ */
+
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Controller
+public class ProductWebController {
+
+    @Autowired
+    private ProductService productService;
+    @Autowired
+    private CounterService counterService;
+    @Autowired
+    private MenuService menuService;
+    
+    @Autowired
+	private AppConfigService applicationConfig;
+    
+    @RequestMapping(value="/product", method = RequestMethod.GET)
+    public String getProduct(@RequestParam Map<String,String> allRequestParams,
+				    		HttpServletRequest request,
+				    		ModelMap modelMap) {
+    	System.out.println("Request Is ----"+allRequestParams.get("id"));
+		saveCounter(allRequestParams, request);
+        modelMap.putAll(productService.productDetail(allRequestParams.get("id"), true));
+        modelMap.put("type","product");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/sub_category", method = RequestMethod.GET)
+    public String getSubCategory(@RequestParam Map<String,String> allRequestParams,
+					    		HttpServletRequest request,
+					    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("productid",allRequestParams.get("id"));
+    	modelMap.put("categoryId",getCategoryIdBySubCategoryId(allRequestParams.get("id")));
+        modelMap.put("type","sub_category");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/profile", method = RequestMethod.GET)
+    public String getProfile(@RequestParam Map<String,String> allRequestParams,
+				    		HttpServletRequest request,
+				    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","profile");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/category", method = RequestMethod.GET)
+    public String category(@RequestParam Map<String,String> allRequestParams,
+			    		HttpServletRequest request,
+			    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+    	String id=allRequestParams.get("id");
+	if (id.equals("1")){
+            modelMap.put("productid","movie");
+    	}else if (id.equals("2")){
+            modelMap.put("productid","music");
+    	}else if (id.equals("3")){
+            modelMap.put("productid","three");
+    	}else if (id.equals("4")){
+            modelMap.put("productid","game");
+    	}else if (id.equals("5")){
+            modelMap.put("productid","co");
+    	}else {
+//        modelMap.put("productid",getMenuName(id));
+            modelMap.put("productid","home");
+    	}
+        modelMap.put("type","category");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/reload", method = RequestMethod.GET)
+    public String reload(@RequestParam Map<String,String> allRequestParams,
+			    		HttpServletRequest request,
+			    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","reload");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/settings", method = RequestMethod.GET)
+    public String settings(@RequestParam Map<String,String> allRequestParams,
+				    		HttpServletRequest request,
+				    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","settings");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/bonstri", method = RequestMethod.GET)
+    public String bonstri(@RequestParam Map<String,String> allRequestParams,
+			    		HttpServletRequest request,
+			    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","bonstri");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/3carechat", method = RequestMethod.GET)
+    public String triCareChat(@RequestParam Map<String,String> allRequestParams,
+				    		HttpServletRequest request,
+				    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","3carechat");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/ott", method = RequestMethod.GET)
+    public String ott(@RequestParam Map<String,String> allRequestParams,
+		    		HttpServletRequest request,
+		    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","ott");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/notification", method = RequestMethod.GET)
+    public String notification(@RequestParam Map<String,String> allRequestParams,
+				    		HttpServletRequest request,
+				    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","notification");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    @RequestMapping(value="/leave-message", method = RequestMethod.GET)
+    public String leaveMessage(@RequestParam Map<String,String> allRequestParams,
+					    		HttpServletRequest request,
+					    		ModelMap modelMap) {
+    	saveCounter(allRequestParams, request);
+        modelMap.put("type","leave");
+        modelMap.put("selfcareurl", applicationConfig.get("SELFCARE_URL", "https://bima.vietnamobile.com.vn"));
+        return "product";
+    }
+    
+    private void saveCounter(Map<String,String> allRequestParams,HttpServletRequest request){
+    	UtmCounterRequestDto utmCounterRequestDto = new UtmCounterRequestDto();
+    	utmCounterRequestDto.setUtm(allRequestParams.get("utm"));
+    	utmCounterRequestDto.setFullUrl(request.getRequestURI()+"?"+request.getQueryString());
+    	utmCounterRequestDto.setTrxDate(new Timestamp(System.currentTimeMillis()));
+    	counterService.save(utmCounterRequestDto);
+    }
+
+    public String getMenuName(String id){
+
+    	List<MenuDto> listMenuDto= new ArrayList<MenuDto>();
+    	listMenuDto=menuService.getMenu();
+    	String menuName="not_found";
+    	MenuDto menuDto=new MenuDto();
+    	String menuDtoIdString="";
+    	for (int i=0;i<listMenuDto.size();i++){
+    		menuDto=listMenuDto.get(i);
+    		menuDtoIdString=String.valueOf(menuDto.getId());
+    		if (menuDtoIdString.equals(id)){
+    			menuName=menuDto.getName();
+    			break;
+    		}
+    	}
+    	return menuName;
+    }
+    
+    public String getCategoryIdBySubCategoryId(String subCategoryId){
+    	return menuService.getCategoryIdBySubCategoryId(subCategoryId);
+    }
+}

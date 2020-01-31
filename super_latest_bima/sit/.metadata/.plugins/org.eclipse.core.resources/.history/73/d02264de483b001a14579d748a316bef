@@ -1,0 +1,1860 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.math.BigDecimal;
+import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import org.apache.axis2.AxisFault;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.enums.SupportedLanguage;
+import com.gnv.vnm.selfcare.core.model.Balance;
+import com.gnv.vnm.selfcare.core.model.BillingSummary;
+import com.gnv.vnm.selfcare.core.model.CurrentBalance;
+import com.gnv.vnm.selfcare.core.model.DataBalance;
+import com.gnv.vnm.selfcare.core.model.MyDataBalance;
+import com.gnv.vnm.selfcare.core.model.MyPromotionBalance;
+import com.gnv.vnm.selfcare.core.model.MySmsBalance;
+import com.gnv.vnm.selfcare.core.model.MyVoiceBalance;
+import com.gnv.vnm.selfcare.core.model.RechargeResponse;
+import com.gnv.vnm.selfcare.core.model.SubscriberInfoFromTibco;
+import com.gnv.vnm.selfcare.core.model.TopUpHistory;
+import com.gnv.vnm.selfcare.core.model.UPCCSubscribedService;
+import com.gnv.vnm.selfcare.core.model.UPCCSubscriberQuota;
+import com.tibco.Selfcare_InboundStub;
+import com.tibco.www.schemas._24_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.ViewCreditLimit_Response;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Balance_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Balance_Request_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Dynamic_Bonus_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.ListBalance_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd3.MSISDN_Activation;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd4.MSISDN_Validation_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.abstract_wsdl.selfcare.schema_xsd.BonusRequest_type0;
+import com.tibco.www.schemas.vnm_project.shared_resources.abstract_wsdl.selfcare.schema_xsd.NonVasRegRequest;
+import com.tibco.www.schemas.vnm_project.shared_resources.abstract_wsdl.selfcare.schema_xsd.NonVasRegResponse;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.selfcare.schema_xsd3.VoucherHistory;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.selfcare.schema_xsd3.VoucherItems_type0;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.epos.postpaidpayment_request_xsd16.Postpaid_Payment_Request;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.epos.schema_xsd12.EtopUp_Request;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.epos.schema_xsd13.EtopUp_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.epos.schema_xsd16.Postpaid_Payment_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.selfcare.schema_xsd25.BilledQuery_Request;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.selfcare.schema_xsd26.BilledQuery_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.AttribDtl_type0;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.Attribute_type0;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.SubscriberQuery_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subscriberquery_xsd.SubscriberQuery_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.activateoffer_xsd.ActivateOffer_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.activateoffer_xsd.ActivateOffer_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.getoffer_xsd.GetOffer_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.getoffer_xsd.GetOffer_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.getoffer_xsd.Item_type0;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.schema_xsd.GetVasDetails_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.schema_xsd.GetVasDetails_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd.BalanceQuery_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.BalanceQuery_Response;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.request.CmsCampaignOfferDto;
+import id.gnvsolution.d3.api.dto.request.CmsOfferRequest;
+import id.gnvsolution.d3.api.dto.response.CreditLimitDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.helper.enums.BalanceType;
+import id.gnvsolution.d3.api.helper.enums.BalanceUnitName;
+import id.gnvsolution.d3.api.helper.enums.TibcoResponse;
+import id.gnvsolution.d3.api.helper.enums.TopUpType;
+import id.gnvsolution.d3.api.helper.enums.TransactionStatus;
+import id.gnvsolution.d3.api.helper.enums.TransactionType;
+import id.gnvsolution.d3.api.model.BalanceNameMappingEntity;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.model.RptInvoiceSummary;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.Packages092Service;
+import id.gnvsolution.d3.api.service.PostPaidPaymentHistoryService;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.service.StaticService;
+import id.gnvsolution.d3.api.service.TibcoService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+
+@Service
+public class TibcoServiceImpl implements TibcoService {
+
+	private static final String TIBCO_LONG_DATE_PATTERN = "dd/MM/yyyy HH:mm:ss";
+	private static final String TIBCO_SHORT_DATE_PATTERN = "dd/MM/yyyy";
+	private static final String DATE_TIME_FORMAT = "yyyyMMddHHmmss";
+	public static final int ACTIVATE_CMD 		= 1;
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Autowired
+	private StaticService staticService;
+	
+	@Autowired
+	private ProfileService pService;
+	
+	@Autowired
+	PostPaidPaymentHistoryService postPaidPaymentHistoryService;
+
+	@Autowired
+	private Packages092Service packages092Service;
+
+	private static final Logger logger = LoggerFactory.getLogger(TibcoServiceImpl.class);
+
+	@Override
+	public CurrentBalance getCurrentBalance(String subscriberId, String langCode) throws RemoteException {
+		logger.info("#getCurrentBalance -- retrieving balance information from back-end (subscriber= %s)",
+				subscriberId);
+		CurrentBalance balance = new CurrentBalance();
+		try {
+			subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+			SubscriberQuery_Request requestPayLoad = new SubscriberQuery_Request();
+			requestPayLoad.setMSISDN(subscriberId);
+			Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			/*
+			 * Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(
+			 * "http://10.8.8.78:45010/Business_Process/Selfcare");
+			 */
+			SubscriberQuery_Response responseSubscriber = inboundStub.subscriberQuery(requestPayLoad);
+
+			logger.info("#getCurrentBalance --responseSubscriber.getStatus_Code()   ===="
+					+ responseSubscriber.getStatus_Code());
+			if (responseSubscriber.getStatus_Code().equals(TibcoResponse.SUCCESS.code())) {
+				boolean status = false;
+				String simType = getSubscriberType(responseSubscriber);
+				logger.info("#getCurrentBalance --Sim Type Is :::" + simType);
+				List<Balance> balanceList = getBalanceList(responseSubscriber);
+				// List<Balance>
+				// balenceListForData=createBalenceListForData(responseSubscriber.getMsgParam().getAttribute());
+				logger.info("#getCurrentBalance --balence list" + balanceList.size());
+				MyDataBalance mydataBalence = new MyDataBalance();
+				if (simType.equalsIgnoreCase(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+					mydataBalence = getDataBalance(balanceList);
+				}
+				if (simType.equalsIgnoreCase(Constants.SUBSCRIBER_TYPE_PREPAID)) {
+					List<UPCCSubscriberQuota> subscriberQuotaList = createBalenceListForData(
+							responseSubscriber.getMsgParam().getAttribute());
+					List<DataBalance> dataBalenceList = parseDataList(subscriberQuotaList, langCode);
+					mydataBalence = getDataBalanceNew(dataBalenceList);
+					status = checkDataBalenceUnlimted(dataBalenceList);
+					logger.info("#getCurrentBalance --Unlimited Status Is :::::" + status);
+
+				}
+
+				Balance coreBalance = getCoreBalance(responseSubscriber);
+				MyVoiceBalance voiceBalance = getVoiceBalance(balanceList);
+				MySmsBalance smsBalance = getSmsBalance(balanceList);
+				int lmspoint = getLmsPoints(balanceList);
+				String fullName = getUserFullName(balanceList);
+				MyPromotionBalance promotionBalance = getPromotionBalance(langCode, balanceList);
+
+				logger.info("#getCurrentBalance --Promotion balence list size is ::"
+						+ promotionBalance.getBalanceList().size());
+				balance = new CurrentBalance(coreBalance, voiceBalance, smsBalance, mydataBalence, promotionBalance,
+						lmspoint);
+				if (responseSubscriber.getACCOUNT_NUMBER() != null)
+					balance.setAccountNumber(responseSubscriber.getACCOUNT_NUMBER());
+				balance.setBalanceList(balanceList);
+				if (fullName != "")
+					balance.setFullName(fullName);
+				balance.setUnlimtedStatus(status);
+
+			}
+
+			logger.info("#getCurrentBalance -- got balance information from back-end (subscriber: %s)= ", subscriberId);
+		} catch (Exception e) {
+			logger.error("#getCurrentBalance -- error is: ", e);
+		}
+		return balance;
+	}
+
+	private MyVoiceBalance getVoiceBalance(List<Balance> balanceList) {
+
+		MyVoiceBalance myBalance = new MyVoiceBalance();
+		if (balanceList == null)
+			return myBalance;
+
+		int totalValue = 0;
+		int availableValue = 0;
+		int consumedValue = 0;
+
+		for (Balance balance : balanceList) {
+			if (balance.getType().equals(BalanceType.VOICE)) {
+				totalValue = totalValue + balance.getTotalValue();
+				consumedValue = consumedValue + balance.getConsumedValue();
+				availableValue = availableValue + balance.getAvailableValue();
+
+				myBalance.getBalanceList().add(balance);
+			}
+		}
+
+		Collections.sort(myBalance.getBalanceList(), Balance.AvailableValueDescComparator);
+
+		if (totalValue != 0) {
+			logger.info("#getVoiceBalance---total value ::" + totalValue);
+			int min = (totalValue / 60);
+			totalValue = min;
+			logger.info("#getVoiceBalance---totalk value is " + totalValue);
+		}
+		if (availableValue != 0) {
+			logger.info("#getVoiceBalance---total availableValue value ::" + availableValue);
+			int min = (availableValue / 60);
+			availableValue = min;
+			logger.info("#getVoiceBalance---totalk value is " + totalValue);
+		}
+
+		myBalance.setTotalValue(totalValue);
+		myBalance.setConsumedValue(consumedValue);
+		myBalance.setAvailableValue(availableValue);
+
+		return myBalance;
+	}
+
+	private MySmsBalance getSmsBalance(List<Balance> balanceList) {
+
+		logger.info("inside ----- getSmsBalance");
+
+		MySmsBalance myBalance = new MySmsBalance();
+		if (balanceList == null)
+			return myBalance;
+
+		int totalValue = 0;
+		int availableValue = 0;
+		int consumedValue = 0;
+
+		for (Balance balance : balanceList) {
+			if (balance.getType().equals(BalanceType.SMS)) {
+				totalValue = totalValue + balance.getTotalValue();
+				consumedValue = consumedValue + balance.getConsumedValue();
+				availableValue = availableValue + balance.getAvailableValue();
+
+				myBalance.getBalanceList().add(balance);
+			}
+		}
+
+		Collections.sort(myBalance.getBalanceList(), Balance.AvailableValueDescComparator);
+
+		myBalance.setConsumedValue(consumedValue);
+		myBalance.setAvailableValue(availableValue);
+		myBalance.setTotalValue(totalValue);
+
+		return myBalance;
+	}
+
+	private MyDataBalance getDataBalance(List<Balance> dataList) {
+		logger.info("Inside ----- getDataBalance----");
+		logger.info("#getDataBalance----getDataBalance size is " + dataList.size());
+		MyDataBalance myBalance = new MyDataBalance();
+		if (dataList == null)
+			return myBalance;
+
+		int totalValue = 0;
+		int availableValue = 0;
+		int consumedValue = 0;
+
+		for (Balance balance : dataList) {
+			logger.info("#getDataBalance----balence Type is :::" + balance.getType());
+			if (balance.getType().equals(BalanceType.DATA)) {
+				totalValue = totalValue + balance.getTotalValue();
+				consumedValue = consumedValue + balance.getConsumedValue();
+				availableValue = availableValue + balance.getAvailableValue();
+				logger.info("#getDataBalance----Date Is ----" + availableValue);
+				// myBalance.getBalanceList().add(e)
+			}
+		}
+
+		// Collections.sort(myBalance.getBalanceList(),
+		// Balance.AvailableValueDescComparator);
+
+		myBalance.setConsumedValue(consumedValue);
+		myBalance.setAvailableValue(availableValue);
+		myBalance.setTotalValue(totalValue);
+
+		return myBalance;
+	}
+
+	private MyDataBalance getDataBalanceNew(List<DataBalance> dataList) {
+
+		logger.info("Inside ----- getDataBalanceNew----");
+
+		MyDataBalance myBalance = new MyDataBalance();
+		if (dataList == null)
+			return myBalance;
+
+		int totalValue = 0;
+		int availableValue = 0;
+		int consumedValue = 0;
+
+		for (DataBalance balance : dataList) {
+			if (balance.getName().trim().equalsIgnoreCase("Q_Default_FUP")) {
+				// totalValue = totalValue + (int)balance.getTotalValue();
+				// consumedValue = consumedValue +
+				// (int)balance.getConsumedValue();
+				// availableValue = availableValue +
+				// (int)balance.getRemainingValue();
+			} else {
+				totalValue = totalValue + (int) balance.getTotalValue();
+				consumedValue = consumedValue + (int) balance.getConsumedValue();
+				availableValue = availableValue + (int) balance.getRemainingValue();
+			}
+		}
+
+		// Collections.sort(myBalance.getBalanceList(),Balance.AvailableValueDescComparator);
+		logger.info("##getDataBalanceNew-------Total Value is ::" + totalValue + " availableValue " + availableValue
+				+ " consumedValue " + consumedValue);
+		myBalance.setBalanceList(dataList);
+		myBalance.setConsumedValue(consumedValue);
+		myBalance.setAvailableValue(availableValue);
+		myBalance.setTotalValue(totalValue);
+
+		return myBalance;
+	}
+
+	/*
+	 * private boolean checkDataBalenceUnlimted(List<Balance> dataList) {
+	 * boolean status = false; try {
+	 * 
+	 * for (Balance balance : dataList) {
+	 * 
+	 * if (balance.getType().equals(BalanceType.DATA)) { if
+	 * ((balance.getName().contains("UnlimitM")) ||
+	 * (balance.getName().contains("UnlimitR20")) ||
+	 * (balance.getName().contains("UnlimitSM")) ||
+	 * (balance.getName().contains("UnlimitFPT")) ||
+	 * (balance.getName().contains("UnlimitEXTRA"))) { status = true; } } } }
+	 * catch (Exception e) { // TODO: handle exception e.printStackTrace(); }
+	 * return status; }
+	 */
+
+	private boolean checkDataBalenceUnlimted(List<DataBalance> dataList) {
+
+		logger.info("Inside ----- checkDataBalenceUnlimted----");
+		boolean status = false;
+		try {
+
+			for (DataBalance balance : dataList) {
+
+				if ((balance.getName().contains("Unlimited")) || (balance.getName().contains("không giới hạn"))) {
+					status = true;
+					break;
+				}
+
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return status;
+	}
+
+	private MyPromotionBalance getPromotionBalance(String langCode, List<Balance> balanceList) {
+
+		logger.info("Inside ----- getPromotionBalance----");
+
+		MyPromotionBalance myBalance = new MyPromotionBalance();
+		try {
+			if (balanceList == null)
+				return myBalance;
+
+			if (!StringUtils.hasText(langCode))
+				langCode = SupportedLanguage.ENGLISH.code();
+
+			int totalValue = 0;
+			int availableValue = 0;
+			int consumedValue = 0;
+
+			ArrayList<String> nameList = pService.getPromotionBalanceHideList();
+
+			for (Balance balance : balanceList) {
+				if (balance.getType().equals(BalanceType.PROMOTION)) {
+					boolean status = nameList.contains(balance.getName());
+					logger.info(
+							"##getPromotionBalance-----Name Is :::" + balance.getName() + " status is :::" + status);
+					if (!status) {
+						totalValue = totalValue + balance.getTotalValue();
+						consumedValue = consumedValue + balance.getConsumedValue();
+						availableValue = availableValue + balance.getAvailableValue();
+						myBalance.getBalanceList().add(balance);
+					}
+				}
+			}
+			logger.info("##getPromotionBalance ---- List Size Is :::" + myBalance.getBalanceList().size());
+			if (langCode.equals(SupportedLanguage.ENGLISH.code())) {
+				Collections.sort(myBalance.getBalanceList(), Balance.DisplayNameENComparator);
+			} else {
+				Collections.sort(myBalance.getBalanceList(), Balance.DisplayNameVIComparator);
+			}
+
+			myBalance.setConsumedValue(availableValue);
+			myBalance.setAvailableValue(availableValue);
+			myBalance.setTotalValue(availableValue);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return myBalance;
+	}
+
+	private int getLmsPoints(List<Balance> balanceList) {
+
+		int lmsPoint = 0;
+		for (Balance balance : balanceList) {
+			if (balance.getType().equals(BalanceType.LMSPONT)) {
+				lmsPoint = lmsPoint + balance.getTotalValue();
+				logger.info("##getLmsPoints ----lms Point is ---" + lmsPoint);
+			}
+		}
+		return lmsPoint;
+	}
+
+	private String getUserFullName(List<Balance> balanceList) {
+
+		String fullName = "";
+		for (Balance balance : balanceList) {
+			if (balance.getType().equals(BalanceType.FULLNAME)) {
+				fullName = balance.getName();
+				logger.info("##getUserFullName----lms Point is ---" + fullName);
+			}
+		}
+		return fullName;
+	}
+
+	private List<Balance> getBalanceList(SubscriberQuery_Response response) {
+
+		if (response != null) {
+			if (response.getStatus_Code().equals(TibcoResponse.SUCCESS.code())) {
+				try {
+
+					return createBalanceList(response.getMsgParam().getAttribute());
+
+				} catch (Exception e) {
+					logger.error("#getBalances --- error when retrieiving balance information from Tibco!", e);
+				}
+
+			} else {
+				logger.error(String.format(
+						"#getBalanceList --- error retrieving balance from Tibco, returned with status_code= [ %s ], status_msg=[ %s ]",
+						response.getStatus_Code(), response.getStatus_Text()));
+			}
+		}
+		return new ArrayList<Balance>();
+	}
+
+	private List<Balance> createBalanceList(Attribute_type0[] attribute_type0s) {
+		String dateFormat = AppDefaultValues.DATE_FORMAT.toString();
+
+		List<Balance> balances = new ArrayList<Balance>();
+		try {
+			for (Attribute_type0 attr : attribute_type0s) {
+				Map<String, String> maps = new HashMap<>();
+				AttribDtl_type0[] attrDetails = attr.getAttribDtl();
+				for (AttribDtl_type0 dtl : attrDetails) {
+					maps.put(dtl.getName(), dtl.getString());
+				}
+				Balance bal = new Balance();
+				bal.setName(maps.get("BONUS_NAME"));
+				if (maps.get("REMAINING_AMOUNT") != null) {
+					logger.info("## createBalanceList--------Remaining amount -----"
+							+ Integer.parseInt(maps.get("REMAINING_AMOUNT")));
+					bal.setAvailableValue((int)Float.parseFloat(maps.get("REMAINING_AMOUNT")));
+				}
+				if (maps.get("ALLOCATED_AMOUNT") != null) {
+					bal.setTotalValue((int)Float.parseFloat(maps.get("ALLOCATED_AMOUNT")));
+				}
+
+				Date expDate = AppUtils.stringToDate(maps.get("END_DATE"), getLongDateFormat());
+				if (expDate != null) {
+					long validityPeriod = (expDate.getTime() - new Date().getTime()) / 86400000;
+					if (validityPeriod >= 0)
+						bal.setValidityPeriod((int) validityPeriod);
+					bal.setExpiryDate(expDate);
+					bal.setExpiryDateAsString(AppUtils.dateToString(expDate, dateFormat));
+				}
+
+				String uom = maps.get("BONUS_UOM");
+				if (uom != null && uom.equalsIgnoreCase("Charge")) {
+					bal.setType(BalanceType.PROMOTION);
+					bal.setUnitName(BalanceUnitName.VND.name());
+
+				} else if (uom != null && uom.equalsIgnoreCase("Seconds")) {
+					bal.setType(BalanceType.VOICE);
+					bal.setUnitName(BalanceUnitName.SECOND.name());
+
+				} else if (uom != null && uom.equalsIgnoreCase("SMS")) {
+					bal.setType(BalanceType.SMS);
+					bal.setUnitName(BalanceUnitName.SMS.name());
+				} else if (uom != null && uom.equalsIgnoreCase("Events")) {
+					System.out.println("Bonus uom ");
+					bal.setType(BalanceType.DATA);
+					bal.setUnitName(BalanceUnitName.DATA.name());
+				}
+				if (maps.get("LMS Points") != null) {
+					bal.setType(BalanceType.LMSPONT);
+					bal.setTotalValue((int)Float.parseFloat(maps.get("LMS Points")));
+
+				}
+				if (maps.get("FULL NAME") != null) {
+					bal.setType(BalanceType.FULLNAME);
+					// bal.setTotalValue(Integer.parseInt(maps.get("FULL
+					// NAME")));
+					bal.setName(maps.get("FULL NAME"));
+					logger.info("##createBalanceList---Full Name Is ::" + maps.get("FULL NAME"));
+				}
+				logger.info("##createBalanceList---Balence Name is ::::::" + bal.getName());
+				if (bal.getType() != null) {
+					bal.setDisplayNameEN(bal.getName());
+					bal.setDisplayNameVI(bal.getName());
+					boolean addToList = true;
+					BalanceNameMappingEntity balenceEntity = pService.getBalenceMappingEntity(bal.getName());
+					if (balenceEntity != null) {
+						logger.info("##createBalanceList---if Name is ::::::" + bal.getName());
+						bal.setDisplayNameEN(balenceEntity.getDisplayNameEN());
+						bal.setDisplayNameVI(balenceEntity.getDisplayNameVI());
+						bal.setUnitName(balenceEntity.getUnitName());
+					}
+					/*
+					 * BalanceNameMappingEntity balanceMap =
+					 * this.balanceMappings.get(bal.getName()); if (balanceMap
+					 * != null) {
+					 * bal.setDisplayNameEN(balanceMap.getDisplayNameEN());
+					 * bal.setDisplayNameVI(balanceMap.getDisplayNameVI());
+					 * bal.setUnitName(balanceMap.getUnitName());
+					 * 
+					 * addToList = balanceMap.getVisibleFlag() != null &&
+					 * balanceMap.getVisibleFlag().equals(1); } else {
+					 * bal.setDisplayNameEN(bal.getName());
+					 * bal.setDisplayNameVI(bal.getName()); }
+					 */
+
+					if (addToList)
+						balances.add(bal);
+				}
+
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+
+		return balances;
+	}
+
+	private List<UPCCSubscriberQuota> createBalenceListForData(Attribute_type0[] attribute_type0s) {
+		String dateFormat = AppDefaultValues.DATE_FORMAT.toString();
+		logger.info("-----------createBalenceListForData method ----------------");
+		List<UPCCSubscriberQuota> subscriberQuotaTemp = new ArrayList<UPCCSubscriberQuota>();
+		List<UPCCSubscriberQuota> subscriberQuota = new ArrayList<UPCCSubscriberQuota>();
+		List<UPCCSubscribedService> subscriberQuotaService = new ArrayList<UPCCSubscribedService>();
+		try {
+			for (Attribute_type0 attr : attribute_type0s) {
+				Map<String, String> maps = new HashMap<>();
+				AttribDtl_type0[] attrDetails = attr.getAttribDtl();
+				for (AttribDtl_type0 dtl : attrDetails) {
+					maps.put(dtl.getName(), dtl.getString());
+				}
+				UPCCSubscriberQuota upccSubscriberQuota = new UPCCSubscriberQuota();
+				upccSubscriberQuota.setName(maps.get("QTANAME"));
+
+				if (maps.get("SRVNAME") != null) {
+
+					upccSubscriberQuota.setServiceName(maps.get("SRVNAME"));
+				}
+
+				if (maps.get("QTAVALUE") != null) {
+					logger.info("maps.get ______________" + maps.get("QTAVALUE"));
+					upccSubscriberQuota.setValue(maps.get("QTAVALUE"));
+				}
+
+				if (maps.get("QTABALANCE") != null) {
+					upccSubscriberQuota.setBalance(maps.get("QTABALANCE"));
+				}
+
+				if (maps.get("QTACONSUMPTION") != null) {
+					upccSubscriberQuota.setConsumption(maps.get("QTACONSUMPTION"));
+				}
+
+				if (maps.get("QTACLASS") != null) {
+					upccSubscriberQuota.setQuotaClass(maps.get("QTACLASS"));
+				}
+				boolean status = false;
+				if (maps.get("QTASTATUS") != null) {
+					upccSubscriberQuota.setStatus(maps.get("QTASTATUS"));
+					status = true;
+				}
+
+				if (maps.get("QTACUSTOMSTATUS") != null) {
+					upccSubscriberQuota.setCustomStatus(maps.get("QTACLASS"));
+				}
+
+				if (maps.get("QTARSTDATETIME") != null) {
+					upccSubscriberQuota.setResetDateTime(maps.get("QTARSTDATETIME"));
+				}
+
+				if (maps.get("QTAFLAG") != null) {
+					upccSubscriberQuota.setFlag(maps.get("QTAFLAG"));
+				}
+
+				if (maps.get("QTAUPCONSUMPTION") != null) {
+					upccSubscriberQuota.setUplinkVolume(maps.get("QTAUPCONSUMPTION"));
+				}
+
+				if (maps.get("QTADOWNCONSUMPTION") != null) {
+					upccSubscriberQuota.setDownlinkVolume(maps.get("QTADOWNCONSUMPTION"));
+				}
+
+				if (maps.get("QTATIMESTAMP") != null) {
+					upccSubscriberQuota.setStartDateTime(maps.get("QTATIMESTAMP"));
+				}
+
+				if (status)
+					subscriberQuota.add(upccSubscriberQuota);
+				/*
+				 * if (upccSubscriberQuota.getEndDateTimeStamp() != null) {
+				 * 
+				 * Date expDate =
+				 * AppUtils.stringToDate(upccSubscriberQuota.getEndDateTimeStamp
+				 * (), DATE_TIME_FORMAT); if (expDate != null &&
+				 * expDate.getTime() >= System.currentTimeMillis()) {
+				 * subscriberQuota.add(upccSubscriberQuota); System.out.
+				 * println("-----------data added in Data List  ----------------name is "
+				 * +upccSubscriberQuota.getName()+" value is "
+				 * +upccSubscriberQuota.getValue()
+				 * +" upccSubscriberQuota balence "+upccSubscriberQuota.
+				 * getBalance()); }
+				 * 
+				 * }
+				 */
+
+			}
+			for (Attribute_type0 attr : attribute_type0s) {
+				Map<String, String> maps = new HashMap<>();
+				AttribDtl_type0[] attrDetails = attr.getAttribDtl();
+				for (AttribDtl_type0 dtl : attrDetails) {
+					maps.put(dtl.getName(), dtl.getString());
+				}
+				UPCCSubscribedService uPCCSubscribedService = new UPCCSubscribedService();
+
+				if (maps.get("SRVNAME") != null) {
+					uPCCSubscribedService.setName(maps.get("SRVNAME"));
+
+				}
+				if (maps.get("SRVOVERDUEDATE") != null) {
+					uPCCSubscribedService.setOverDueDate(maps.get("SRVOVERDUEDATE"));
+
+				}
+				if (maps.get("SRVPKGNAME") != null) {
+					uPCCSubscribedService.setServicePackageName(maps.get("SRVPKGNAME"));
+				}
+				if (maps.get("SRVSTATUS") != null) {
+					uPCCSubscribedService.setStatus(maps.get("SRVSTATUS"));
+					subscriberQuotaService.add(uPCCSubscribedService);
+				}
+
+			}
+
+			for (UPCCSubscribedService service : subscriberQuotaService) {
+				if (service.getOverDueDate() != null) {
+
+					Date expDate = AppUtils.stringToDate(service.getOverDueDate(), DATE_TIME_FORMAT);
+					if (expDate != null && expDate.getTime() >= System.currentTimeMillis()) {
+						for (UPCCSubscriberQuota quota : subscriberQuota) {
+							// service package name is associated with quota
+							// service name
+
+							if (quota.getServiceName().equals(service.getName())) {
+								UPCCSubscriberQuota quot = quota;
+								SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+								String strDate = formatter.format(expDate);
+								quot.setEndDateTimeStamp(strDate);
+								subscriberQuotaTemp.add(quot);
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("##createBalenceListForData ---Error is:::::", e);
+			e.printStackTrace();
+		}
+
+		return subscriberQuotaTemp;
+	}
+
+	private List<DataBalance> parseDataList(List<UPCCSubscriberQuota> subscriberQuotaList, String language) {
+
+		List<DataBalance> result = new ArrayList<>();
+		try {
+			if (subscriberQuotaList != null) {
+				for (UPCCSubscriberQuota quota : subscriberQuotaList) {
+					DataBalance balance = new DataBalance();
+					if ((quota.getName().contains("Unlimit")) || (quota.getName().contains("UnlimitR20"))
+							|| (quota.getName().contains("UnlimitSM")) || (quota.getName().contains("UnlimitFPT"))
+							|| (quota.getName().contains("UnlimitEXTRA"))) {
+						if (language.equals("1")) {
+							balance.setName("Unlimited");
+						} else {
+							balance.setName("không giới hạn");
+						}
+					} else {
+						balance.setName(quota.getName());
+					}
+					if ((quota.getName().contains("Unlimit")) || (quota.getName().contains("UnlimitR20"))
+							|| (quota.getName().contains("UnlimitSM")) || (quota.getName().contains("UnlimitFPT"))
+							|| (quota.getName().contains("UnlimitEXTRA"))) {
+						balance.setRemainingValue(0);
+						balance.setConsumedValue(0);
+						balance.setConsumedValueAsString("0");
+						balance.setRemainingValueAsString("0");
+						balance.setTotalValue(0);
+						if (quota.getEndDateTimeStamp() != null)
+							balance.setEndDateAsString(quota.getEndDateTimeStamp());
+					} else {
+						balance.setRemainingValue(AppUtils.toLong(quota.getBalance()));
+						balance.setConsumedValue(AppUtils.toLong(quota.getConsumption()));
+						balance.setTotalValue((AppUtils.toLong(quota.getValue())));
+						if (quota.getEndDateTimeStamp() != null)
+							balance.setEndDateAsString(quota.getEndDateTimeStamp());
+					}
+
+					balance.setTotalValue(AppUtils.toLong(quota.getValue()));
+					if (balance.getName().equalsIgnoreCase("Q_Default_FUP")) {
+						// do nothing
+						logger.info("Q_Default_FUP>>>>>>>>>>>>>>>>>>>>>>");
+					} else {
+						logger.info("#parseDataList>>>>>>>>>>>>>>>>>>>>>>" + balance.getName()
+								+ "balance.getTotalValue() is :::" + balance.getTotalValue()
+								+ "balance.getConsumedValue()  " + balance.getConsumedValue()
+								+ "balance.getRemainingValue() " + balance.getRemainingValue());
+						result.add(balance);
+					}
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error("#parseDataList---error", e);
+		}
+		return result;
+	}
+
+	private String getLongDateFormat() {
+		return TIBCO_LONG_DATE_PATTERN.toString();
+	}
+
+	private Balance getCoreBalance(SubscriberQuery_Response response) {
+		String dateFormat = AppDefaultValues.DATE_FORMAT.toString();
+
+		// work around as Tibco does not have balance name for Core Balance
+		String coreBalanceName = BalanceType.CORE.name();
+
+		Balance balance = new Balance();
+		balance.setType(BalanceType.CORE);
+		balance.setName(coreBalanceName);
+
+		/*
+		 * BalanceNameMappingEntity balanceMap =
+		 * balanceMappings.get(coreBalanceName); if (balanceMap != null){
+		 * balance.setDisplayNameEN(balanceMap.getDisplayNameEN());
+		 * balance.setDisplayNameVI(balanceMap.getDisplayNameVI());
+		 * balance.setUnitName(balanceMap.getUnitName()); }else {
+		 * balance.setDisplayNameEN(coreBalanceName);
+		 * balance.setDisplayNameVI(coreBalanceName);
+		 * balance.setUnitName("vnd"); }
+		 */
+		balance.setDisplayNameEN(coreBalanceName);
+		balance.setDisplayNameVI(coreBalanceName);
+		balance.setUnitName("vnd");
+		logger.info("##getCoreBalance-----response Code Is ::::" + response.getStatus_Code());
+		if (response.getStatus_Code().equals(TibcoResponse.SUCCESS.code())) {
+			try {
+				// changed to use RESTRICTED_DATE as requested by VNM on
+				// 20107-12-12
+				// Date expDate =
+				// AppUtils.stringToDate(response.getTERMINATEDDATE(),
+				// getLongDateFormat());
+				if(!response.getRESTRICTED_DATE().equalsIgnoreCase("-1")) {
+				Date expDate = AppUtils.stringToDate(response.getRESTRICTED_DATE(), getLongDateFormat());
+				long validityPeriod = (expDate.getTime() - new Date().getTime()) / 86400000;
+				logger.info("#getCoreBalance---------response.getMAIN_ACCOUNT_BALANCE() ::::"
+						+ response.getMAIN_ACCOUNT_BALANCE());
+				balance.setAvailableValue(Integer.parseInt(response.getMAIN_ACCOUNT_BALANCE()));
+				balance.setTotalValue(Integer.parseInt(response.getMAIN_ACCOUNT_BALANCE()));
+				if (validityPeriod >= 0)
+					balance.setValidityPeriod((int) validityPeriod);
+				balance.setExpiryDate(expDate);
+				balance.setExpiryDateAsString(AppUtils.dateToString(expDate, dateFormat));
+			}
+
+			} catch (Exception e) {
+				logger.error("#getCoreBalance ---  error when querying core balance from Tibco!", e);
+			}
+		}
+		return balance;
+
+	}
+
+	@Override
+	public SubscriberInfoFromTibco getSubscriberInfoFromDownSystem(String subscriberId, String langCode) {
+		// TODO Auto-generated method stub
+		SubscriberInfoFromTibco subscriberInfoFromTibco = new SubscriberInfoFromTibco();
+		try {
+			subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+			logger.info("#getSubscriberInfoFromDownSystem--------subscriberId ==" + subscriberId);
+			SubscriberQuery_Request requestPayLoad = new SubscriberQuery_Request();
+			requestPayLoad.setMSISDN(subscriberId);
+			Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			/*
+			 * Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(
+			 * "http://10.8.8.78:45010/Business_Process/Selfcare");
+			 */
+			SubscriberQuery_Response responseSubscriber = inboundStub.subscriberQuery(requestPayLoad);
+			logger.info("#getSubscriberInfoFromDownSystem--------responce status code is "
+					+ responseSubscriber.getStatus_Code());
+			if (responseSubscriber.getStatus_Code().equalsIgnoreCase("00000")) {
+				logger.info("##getSubscriberInfoFromDownSystem----else --------------");
+				subscriberInfoFromTibco.setACCOUNT_STATUS(responseSubscriber.getACCOUNT_STATUS());
+				subscriberInfoFromTibco.setAccountNumber(responseSubscriber.getACCOUNT_NUMBER());
+				subscriberInfoFromTibco.setACTIVATION_DATE(responseSubscriber.getACTIVATION_DATE());
+				subscriberInfoFromTibco.setCALL_PLAN(responseSubscriber.getCALL_PLAN());
+				subscriberInfoFromTibco.setCUSTOMER_STATUS(responseSubscriber.getCUSTOMER_STATUS());
+				subscriberInfoFromTibco.setForfited_date(responseSubscriber.getFORFEITED_DATE());
+				subscriberInfoFromTibco.setIMSI(responseSubscriber.getIMSI());
+				subscriberInfoFromTibco.setLAST_CALL_AMOUNT(responseSubscriber.getLAST_CALL_AMOUNT());
+				subscriberInfoFromTibco.setLIFECYCLE_STATUS(responseSubscriber.getLIFECYCLE_STATUS());
+				subscriberInfoFromTibco.setMAIN_ACCOUNT_BALANCE(responseSubscriber.getMAIN_ACCOUNT_BALANCE());
+				subscriberInfoFromTibco.setOFFNET_BAL(responseSubscriber.getOFFNET_BAL());
+				subscriberInfoFromTibco.setOFFNET_BAL(responseSubscriber.getOFFNET_BAL());
+				subscriberInfoFromTibco.setPROMOTION_CODE(responseSubscriber.getPROMOTION_CODE());
+				subscriberInfoFromTibco.setREGISTRATION_DATE(responseSubscriber.getREGISTRATION_DATE());
+				subscriberInfoFromTibco.setRestricted_date(responseSubscriber.getRESTRICTED_DATE());
+				subscriberInfoFromTibco.setSIM(responseSubscriber.getSIM());
+				subscriberInfoFromTibco.setSOURCE_ID(responseSubscriber.getSOURCE_ID());
+				subscriberInfoFromTibco.setStatus_Code(responseSubscriber.getStatus_Code());
+				subscriberInfoFromTibco.setStatus_Text(responseSubscriber.getStatus_Text());
+				subscriberInfoFromTibco.setSUBSCRIPTION_NUMBER(responseSubscriber.getSUBSCRIPTION_NUMBER());
+				subscriberInfoFromTibco.setCUSTOMER_STATUS(responseSubscriber.getCUSTOMER_STATUS());
+
+				// Hashtable<String, String>
+				// cosMappings=loginServiceImpl.loadClassOfServiceMappings();
+				/*
+				 * System.out.println(cosMappings.size()); String cosDisplayName
+				 * = cosMappings.get(responseSubscriber.getCALL_PLAN());
+				 */
+				boolean postpaid = responseSubscriber.getRESTRICTED_DATE().equals("01/01/0001 00:00:00")
+						|| responseSubscriber.getTERMINATED_DATE().equals("01/01/0001 00:00:00");
+				String simType = "";
+				logger.info("## getSubscriberInfoFromDownSystem-------sim type ---" + postpaid);
+				if (postpaid) {
+					simType = Constants.SUBSCRIBER_TYPE_POSTPAID;
+
+				} else {
+					simType = Constants.SUBSCRIBER_TYPE_PREPAID;
+				}
+				subscriberInfoFromTibco.setSIM_TYPE(simType);
+				subscriberInfoFromTibco.setEBILL_MAIL_ID(responseSubscriber.getEBILL_MAIL_ID());
+			} else {
+				subscriberInfoFromTibco.setStatus_Code(responseSubscriber.getStatus_Code());
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error("###getSubscriberInfoFromDownSystem error::::: ", e);
+		}
+		return subscriberInfoFromTibco;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.gnv.vnm.selfcare.core.service.TibcoServiceProvider#getTopUpHistory(
+	 * java.lang.String, java.util.Date, java.util.Date)
+	 */
+	@Override
+	public List<TopUpHistory> getTopUpHistory(String subscriberId, Date startDate, Date endDate) {
+
+		logger.info("#getTopUpHistory -- subscriber= " + subscriberId + ", start_date= " + startDate + ", end_date= "
+				+ endDate);
+
+		List<TopUpHistory> history = new ArrayList<>();
+
+		try {
+			subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+			VoucherHistory voucherHistoryPayLoad = new VoucherHistory(); // new
+																			// ObjectFactory().createVoucherHistory();
+			voucherHistoryPayLoad.setEnd_Date(AppUtils.dateToString(endDate, getShortDateFormat()));
+			voucherHistoryPayLoad.setMobNum(subscriberId);
+			voucherHistoryPayLoad.setStart_Date((AppUtils.dateToString(startDate, getShortDateFormat())));
+			voucherHistoryPayLoad.setTransactionID(AppUtils.dateToString(new Date(), "yyyyMMddHHmmssSSS"));
+			Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			VoucherHistory responseVoucherHistory = inboundStub.topupHistory(voucherHistoryPayLoad);
+
+			logger.info(responseVoucherHistory.getStatus() + " size is "
+					+ responseVoucherHistory.getVoucherList().getVoucherItems().length);
+			logger.info("#getTopUpHistory -- subscriber= " + subscriberId + ", result= "
+					+ (responseVoucherHistory != null ? responseVoucherHistory.getStatus() : null));
+
+			if (responseVoucherHistory != null
+					&& responseVoucherHistory.getStatus().equalsIgnoreCase(TibcoResponse.SUCCESS.code())) {
+				if (responseVoucherHistory.getVoucherList() != null) {
+					VoucherItems_type0[] list = responseVoucherHistory.getVoucherList().getVoucherItems();
+
+					logger.info(
+							"#getTopUpHistory -- subscriber= " + subscriberId + ", found " + list.length + " records.");
+
+					for (VoucherItems_type0 item : list) {
+						TopUpHistory tuh = new TopUpHistory();
+						tuh.setAmount(Double.parseDouble(item.getVoucher_Money()));
+						tuh.setMsisdn(subscriberId);
+						tuh.setStatus(TransactionStatus.SUCCESS);
+
+						tuh.setTimeStamp(AppUtils.stringToDate(item.getTop_Up_Date(), getLongDateFormat())); // TODO
+																												// check
+																												// new
+																												// output
+						tuh.setTimeStampAsString(
+								AppUtils.dateToString(tuh.getTimeStamp(), AppDefaultValues.DATE_TIME_FORMAT));
+						tuh.setVoucherCode(item.getPayment_Ref_Number());
+
+						String originator = item.getSource_Request();
+						logger.info("#getTopUpHistory -- subscriber= " + subscriberId + ", originator= " + originator
+								+ ", time_stamp= " + item.getTop_Up_Date() + ", amount_net= "
+								+ item.getNet_Top_Up_Money() + ", amount_voucher= " + item.getVoucher_Money());
+
+						if (StringUtils.hasText(originator)) {
+							try {
+								/*
+								 * TopUpTypeEntity type = topUpTypeRepository
+								 * .findOne(QTopUpTypeEntity.topUpTypeEntity.
+								 * name.equalsIgnoreCase(originator));
+								 */
+								tuh = pService.getTopUpHistoryTypeName(tuh, originator);
+
+							} catch (Exception e) {
+								logger.error("#getTopUpHistory -- error looking up top_up_type to DB for originator= "
+										+ originator + ": " + e.getMessage());
+							}
+						}
+
+						if (!StringUtils.hasText(tuh.getTypeNameEN())) {
+							tuh.setTypeNameEN(TopUpType.SCRATCH_CARD.displayName());
+						}
+						if (!StringUtils.hasText(tuh.getTypeNameVN())) {
+							tuh.setTypeNameVN(TopUpType.SCRATCH_CARD.displayName());
+						}
+
+						history.add(tuh);
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("#getTopUpHistory --- error retrieving top up history from Tibco for MSISDN " + subscriberId,
+					e);
+		}
+
+		Collections.sort(history, new TopUpHistory.TopUpHistoryTimestampDescendingComparator());
+		return history;
+	}
+
+	@Override
+	public List<TopUpHistory> getDailyTopUpHistory(String subscriberId) {
+		Calendar start = Calendar.getInstance();
+		start.set(Calendar.HOUR, 0);
+		start.set(Calendar.MINUTE, 0);
+		start.set(Calendar.MILLISECOND, 0);
+		/*
+		 * Calendar start = Calendar.getInstance(); start.add(Calendar.YEAR,
+		 * -1);
+		 */
+		return getTopUpHistory(subscriberId, start.getTime(), new Date());
+	}
+
+	private String getShortDateFormat() {
+		return TIBCO_SHORT_DATE_PATTERN;
+	}
+
+	@Override
+	public List<TopUpHistory> getTwoMonthTopUpHistory(String subscriberId) {
+		Calendar start = Calendar.getInstance();
+		start.add(Calendar.MONTH, -2);
+
+		return getTopUpHistory(subscriberId, start.getTime(), new Date());
+	}
+
+	@Override
+	public CreditLimitDto getRemainingCreditLimit(String msisdn) {
+		// do not forget to validate msisdn + secretKey
+		/*
+		 * if (!isMsisdnValid(base.getMsisdn(), base.getSecretKey())) { return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+		String subscriberId = AppUtils.prependCountryCodeToMsisdn(msisdn, AppDefaultValues.COUNTRY_CODE);
+		CreditLimitDto dto = new CreditLimitDto();
+		ViewCreditLimit_Response res = null;
+		com.tibco.www.schemas._24_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.ViewCreditLimit_Request payload = new com.tibco.www.schemas._24_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.ViewCreditLimit_Request();
+		payload.setMSISDN(subscriberId);
+		payload.setSourceId("Selfcare");
+		// payload.setTransactionId("22222");
+		payload.setLocalTxnDtTime(AppUtils.dateToString(new Date(), getShortDateFormat()));
+		payload.setTransactionId("SC" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+		Selfcare_InboundStub stub2 = null;
+		try {
+			stub2 = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+		} catch (AxisFault e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		try {
+			res = stub2.viewCreditLimit(payload);
+			if (res.getStatus().equalsIgnoreCase(TibcoResponse.SUCCESS.code())) {
+				dto.setCurrBill("0");
+				dto.setPrevBill("0");
+				dto.setTotalCreditLimit(res.getTotal_Credit_Limit());
+				dto.setRemainingCreditLimit(res.getRemaining_Credit_Limit());
+				dto.setStatus(true);
+				dto.setPaymentDueDate(res.getPayment_Due_Date());
+			} else {
+				dto.setStatus(false);
+			}
+			logger.info("##getRemainingCreditLimit --- response status" + res.getStatus() + "..........."
+					+ res.getStatus_Text());
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		/*
+		 * BaseDao<RptInvoiceSummary> rptInvoiceSummaryDao = new
+		 * BaseDao<>(sessionFactoryDef, RptInvoiceSummary.class);
+		 * List<RptInvoiceSummary> rptInvoiceSummarys =
+		 * rptInvoiceSummaryDao.find(
+		 * "MSISDN = :MSISDN AND ACCOUNTNUMBER = :ACCOUNTNUMBER ORDER BY INVOICEDATE DESC"
+		 * , new HashMap<String, Object>() { { put("MSISDN", base.getMsisdn());
+		 * put("ACCOUNTNUMBER", base.getAccountnumber()); } }, 0, 1);
+		 */
+
+		/*
+		 * if (rptInvoiceSummarys.isEmpty()) { // return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false, //
+		 * "Invoice Not Found")).all().build(); // RptInvoiceSummary
+		 * rptInvoiceSummary = rptInvoiceSummarys.get(0);
+		 * 
+		 * CreditLimitDto dto = new CreditLimitDto(); dto.setCurrBill("0");
+		 * dto.setPrevBill("0");
+		 * dto.setTotalCreditLimit(res.getTotal_Credit_Limit());
+		 * dto.setRemainingCreditLimit(res.getRemaining_Credit_Limit());
+		 * dto.setStatus(true);
+		 * dto.setPaymentDueDate(res.getPayment_Due_Date()); return
+		 * JSONResultFilter.filter(dto).all().build(); } else {
+		 * 
+		 * try { RptInvoiceSummary rptInvoiceSummary =
+		 * rptInvoiceSummarys.get(0);
+		 * 
+		 * CreditLimitDto dto = new CreditLimitDto();
+		 * dto.setCurrBill(rptInvoiceSummary.getThismonthbill());
+		 * dto.setPrevBill(rptInvoiceSummary.getLastmonthbill());
+		 * dto.setTotalCreditLimit(res.getTotal_Credit_Limit());
+		 * dto.setRemainingCreditLimit("-1"); dto.setStatus(true);
+		 * dto.setPaymentDueDate(rptInvoiceSummary.getInvoiceduedate());
+		 * 
+		 * return JSONResultFilter.filter(dto).all().build(); } catch (Exception
+		 * e) { return JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * base.getLanguage().equals(Constants.LANG_ID) ?
+		 * Languages.ID.COMMON_EXCEPTION :
+		 * Languages.EN.COMMON_EXCEPTION)).all().build(); } }
+		 */
+
+		return dto;
+	}
+
+	public GetVasDetails_Response getVasDetails(String msisdn) {
+		GetVasDetails_Response response = null;
+		try {
+			String subscriberId = AppUtils.prependCountryCodeToMsisdn(msisdn, AppDefaultValues.COUNTRY_CODE);
+			GetVasDetails_Request request = new GetVasDetails_Request();
+			request.setMSISDN(subscriberId);
+			request.setTransactionId("SC" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+			Selfcare_InboundStub stub2 = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			response = stub2.getVasDetails(request);
+			logger.info("##getVasDetails ---- responce code :::::" + response.getResponsCode());
+		} catch (Exception e) {
+			e.printStackTrace();
+			// TODO: handle exception
+		}
+		return response;
+
+	}
+
+	@Override
+	public Map<String, Object> getLast3Invoices(String msidn,String language) {
+		List<BillingSummary> result = new ArrayList<>();
+		Map<String, Object> changeResponse = new HashMap();
+		List<RptInvoiceSummary> rptInvoiceSummarys = new ArrayList<>();
+		try {
+			// getVasDetails(msidn);
+			String subscriberId = AppUtils.prependCountryCodeToMsisdn(msidn, AppDefaultValues.COUNTRY_CODE);
+			SubscriberInfoFromTibco subscriberInfoFromTibco = getSubscriberInfoFromDownSystem(subscriberId, "");
+			if (subscriberInfoFromTibco != null) {
+
+				logger.info("## getLast3Invoices ---- subscriberInfoFromTibco account number"
+						+ subscriberInfoFromTibco.getAccountNumber());
+
+				BilledQuery_Request balanceQuery_Request = new BilledQuery_Request();
+				balanceQuery_Request.setAccountNumber(subscriberInfoFromTibco.getAccountNumber());
+				balanceQuery_Request.setMSISDN(subscriberId);
+				Selfcare_InboundStub stub2 = new Selfcare_InboundStub(applicationConfigurationService
+						.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+				BilledQuery_Response billedQuery_Response = stub2.postPaidBilledQuery(balanceQuery_Request);
+
+				/*
+				 * 
+				 * 
+				 * PaymentHistory_Request paymentHistReq = new
+				 * PaymentHistory_Request();
+				 * paymentHistReq.setAccount_Number(subscriberInfoFromTibco.
+				 * getAccountNumber()); paymentHistReq.setMSISDN(subscriberId);
+				 * PaymentHistory_Response paymentResponce =
+				 * stub2.postpaidPaymentHistory(paymentHistReq);
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * HotBilling_Request hotBillingRequest = new
+				 * HotBilling_Request();
+				 * hotBillingRequest.setMsisdn(subscriberId);
+				 * HotBilling_Response hotBillingRes =
+				 * stub2.hotBilling(hotBillingRequest);
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * ViewCreditLimit_Request viewCreditLimitRequest = new
+				 * ViewCreditLimit_Request();
+				 * viewCreditLimitRequest.setMSISDN(subscriberId);
+				 * viewCreditLimitRequest.setSourceId("Selfcare");
+				 * ViewCreditLimit_Response viewCreditLimit =
+				 * stub2.viewCreditLimit(viewCreditLimitRequest);
+				 */
+
+				logger.info("## getLast3Invoices--- billed query response status= ", billedQuery_Response.getStatus());
+
+				if (billedQuery_Response.getStatus().equalsIgnoreCase(TibcoResponse.SUCCESS.code())) {
+					if (billedQuery_Response.getBill_History() != null) {
+						
+						int billCounts =0;
+						//Date preDate=null;
+						boolean pdfSave = true;
+						ArrayList<String> dat = new ArrayList<>();
+						
+						for (int index = 0; index <billedQuery_Response.getBill_History().length; index++) {
+							pdfSave = true;
+							if((billedQuery_Response.getBill_History()[index].getBalance_Due().toString().toString()!=null))if((Integer.parseInt(billedQuery_Response.getBill_History()[index].getBalance_Due().toString().toString())>10000))
+							{
+							if(billCounts<5)	
+							{
+							RptInvoiceSummary rptInvoiceSummary = new RptInvoiceSummary();
+							double a = 0.03;
+							BigDecimal _a = new BigDecimal("0.03");
+							rptInvoiceSummary.setId(_a);
+							
+							
+							
+							rptInvoiceSummary.setInvoiceduedate(billedQuery_Response.getBill_History()[index].getBill_Due_Date());
+							rptInvoiceSummary
+									.setInvoiceduedate(billedQuery_Response.getBill_History()[index].getBill_Date());
+							rptInvoiceSummary
+									.setTotaldue(billedQuery_Response.getBill_History()[index].getBalance_Due());
+							rptInvoiceSummary.setInvoicenumber(
+									billedQuery_Response.getBill_History()[index].getInvoice_Number());
+							rptInvoiceSummary.setAccountnumber(subscriberInfoFromTibco.getAccountNumber());
+							rptInvoiceSummary.setCallingplan(subscriberInfoFromTibco.getCALL_PLAN());
+							Date date = new SimpleDateFormat("dd/MM/yyyy")
+									.parse(billedQuery_Response.getBill_History()[index].getBill_Date());
+							rptInvoiceSummary.setInvoicedate(date);
+
+							rptInvoiceSummary
+									.setMonthlycharge(billedQuery_Response.getBill_History()[index].getBalance_Due());
+							rptInvoiceSummary
+									.setMonthlyfee(billedQuery_Response.getBill_History()[index].getBalance_Due());
+							rptInvoiceSummary.setBalancebroughtforward("Balancebroughtforward");
+							rptInvoiceSummary.setCharge("charge");
+							rptInvoiceSummary
+									.setEndperiod(billedQuery_Response.getBill_History()[index].getBill_Due_Date());
+
+							rptInvoiceSummary
+									.setThismonthbill(billedQuery_Response.getBill_History()[index].getBalance_Due());
+							
+							// rptInvoiceSummary.setInvoicedate(billedQuery_Response.getBill_History()[index].getBill_Date());
+							// rptInvoiceSummary.set
+							
+							/*if(dat.isEmpty())
+							{
+								dat.add(new SimpleDateFormat("dd/MM/yyyy")
+										.parse(billedQuery_Response.getBill_History()[index].getBill_Due_Date()));								
+							}
+							else
+							{*/
+							//	Date newDate = new SimpleDateFormat("dd/MM/yyyy").parse(billedQuery_Response.getBill_History()[index].getBill_Due_Date());
+								/*if(dat.contains(newDate))
+								{*/
+									//System.out.println("TibcoServiceImpl -- dateTemp ---- " + billedQuery_Response.getBill_History()[index].getBill_Due_Date());
+									Parameter parameter = staticService.getParameter("PDF_SAVE_LOCATION");
+									String saveDir = parameter.getValue();
+									//System.out.println("TibcoServiceImpl -- saveDir ---- " + saveDir);
+									postPaidPaymentHistoryService.sendGet(billedQuery_Response.getBill_History()[index].getInvoice_Number(), saveDir);
+									
+									String pdfPath = saveDir+"/"+(billedQuery_Response.getBill_History()[index].getInvoice_Number()+".pdf");
+									//System.out.println("TibcoServiceImpl -- pdfPath ---- " + pdfPath);
+									boolean checkPdf = postPaidPaymentHistoryService.isEmptyFile(pdfPath);
+									//System.out.println("TibcoServiceImpl -- checkPdf ---- " + checkPdf);									
+									if(checkPdf)
+									{
+										pdfSave =true;
+									}
+									else
+									{
+										pdfSave =false;
+									}
+									//String responsedata = parsePdf(billedQuery_Response.getBill_History()[index].getInvoice_Number());
+								/*}
+								else
+								{
+									dat.add(new SimpleDateFormat("dd/MM/yyyy")
+											.parse(billedQuery_Response.getBill_History()[index].getBill_Due_Date()));
+								}*/
+							/*}*/
+							if(pdfSave)
+							{
+							if(billCounts==0){
+								rptInvoiceSummarys.add(rptInvoiceSummary);
+								dat.add(billedQuery_Response.getBill_History()[index].getBill_Date());
+							}else
+							{
+								String dateTemp = billedQuery_Response.getBill_History()[index].getBill_Date();
+								if(!dat.contains(dateTemp))
+								{
+									rptInvoiceSummarys.add(rptInvoiceSummary);
+									billCounts++;
+								}
+								dat.add(billedQuery_Response.getBill_History()[index].getBill_Date());
+							}
+							
+							}
+							
+							}
+						    }
+							logger.info("##getLast3Invoices ------billedQuery_Response amount="
+									+ billedQuery_Response.getBill_History()[index].getAmount());
+						}
+					}
+
+				}
+				// rptInvoiceSummaryDTO.setRptInvoiceSummarys(rptInvoiceSummarys);
+			}
+			
+		} 
+		
+		catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		String mesg = "INVOICE NOT FOUND";
+		if (language.equals(Constants.LANG_ID)) {
+			Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_VN");
+			 mesg = parameterfile.getValue();
+			
+		} else {
+			Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_EN");
+			mesg = parameterfile.getValue();
+			
+		}
+		if(rptInvoiceSummarys.isEmpty())
+		{			
+			changeResponse.put("responseMessage", mesg);
+			changeResponse.put("responseStatus", "0");
+		}
+		else
+		{
+			changeResponse.put("responseMessage", "invoice found");
+			changeResponse.put("responseStatus", "1");
+		}
+		changeResponse.put("rptInvoiceSummarys", rptInvoiceSummarys);
+		return changeResponse;
+	}
+
+		private String parsePdf(String invoice_Number) {
+			// TODO Auto-generated method stub
+			
+			return null;
+		}
+
+	@Override
+	public RechargeResponse etop(String subscriberId, double value, String refCode) {
+
+		RechargeResponse rechargeResponse = new RechargeResponse();
+		logger.info("#etopUp --- msisdn= " + subscriberId + ", value= " + value);
+		try {
+			subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+			EtopUp_Request etopUp_Request = new EtopUp_Request();
+			etopUp_Request.setCurrency(AppDefaultValues.CURRENCY_VND);
+			etopUp_Request.setDeliveryChannelCtrlID("ETOPUP");
+			etopUp_Request.setLocalTxnDtTime(AppUtils.dateToString(new Date(), getShortDateFormat()));
+			etopUp_Request.setMessageType("1");
+			etopUp_Request.setMobNum(subscriberId);
+			String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+			StringBuilder salt = new StringBuilder();
+			Random rnd = new Random();
+			while (salt.length() < 10) { // length of the random string.
+				int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+				salt.append(SALTCHARS.charAt(index));
+			}
+			String saltStr = salt.toString();
+			etopUp_Request.setSTAN("BM"+saltStr);
+
+			etopUp_Request.setTopUpAmount(("" + String.format("%.2f", value)));
+			etopUp_Request.setProcCode(("ETOPUP"));
+			logger.info("##etop === Request Is ::::" + etopUp_Request.toString());
+			Selfcare_InboundStub stub2 = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			EtopUp_Response etopUp_Response = stub2.etopup_Selfcare(etopUp_Request);
+			if (etopUp_Response != null) {
+				logger.info("#etopUp --- msisdn= " + subscriberId + ", value= " + value + ", etopup_response_code= "
+						+ etopUp_Response.getActCode() + ", etopup_response_balance= "
+						+ etopUp_Response.getCurrentBal());
+				logger.info("#etopUp --- msisdn= " + subscriberId + ", value= " + value + ", etopup_response_code= "
+						+ etopUp_Response.getActCode() + ", etopup_response_balance= "
+						+ etopUp_Response.getCurrentBal());
+				// etopup does not return latest core balance information as
+				// confirmed by Venky
+				int currentBalance = 0;
+				try {
+					currentBalance = Integer.parseInt(etopUp_Response.getCurrentBal());
+				} catch (Exception e) {
+				}
+
+				rechargeResponse.setBalance(currentBalance);
+				rechargeResponse.setCode(etopUp_Response.getActCode());
+			}
+		} catch (Exception e) {
+			logger.error("#etopUp --- msisdn= " + subscriberId + ", value= " + value, e);
+
+			rechargeResponse.setCode("9999");
+			rechargeResponse.setMessage(e.getMessage());
+		}
+
+		return rechargeResponse;
+	}
+
+	/*
+	 * public String getSaltString() { String SALTCHARS =
+	 * "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"; StringBuilder salt = new
+	 * StringBuilder(); Random rnd = new Random(); while (salt.length() < 18) {
+	 * // length of the random string. int index = (int) (rnd.nextFloat() *
+	 * SALTCHARS.length()); salt.append(SALTCHARS.charAt(index)); } String
+	 * saltStr = salt.toString(); return saltStr;
+	 * 
+	 * }
+	 */
+	@Override
+	public boolean postpaidBillPayment(String msisdn, double amount, String reference, TransactionType trxType) {
+		// TODO Auto-generated method stub
+		SubscriberInfoFromTibco subscriberInfo = getSubscriberInfoFromDownSystem(msisdn, "");
+		if (subscriberInfo == null) {
+			logger.info("#postpaidBillPayment --- no subscriber data found with MSISDN " + msisdn);
+			return false;
+		}
+		try {
+			String subscriberId = AppUtils.prependCountryCodeToMsisdn(msisdn, AppDefaultValues.COUNTRY_CODE);
+			Postpaid_Payment_Request postPaidPaymentRequest = new Postpaid_Payment_Request();
+			postPaidPaymentRequest.setAccountNumber(subscriberInfo.getAccountNumber());
+			postPaidPaymentRequest.setAgencyAccountNumber("");
+			postPaidPaymentRequest.setCustomer_Number("");
+			postPaidPaymentRequest.setInvoiceNumber("");
+			postPaidPaymentRequest.setLocalTxnDtTime(AppUtils.dateToString(new Date(), getLongDateFormat()));
+
+			if (trxType.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+				postPaidPaymentRequest.setPaymentAmount("" + String.format("%.2f", amount));
+				postPaidPaymentRequest.setDepositAmount("");
+			} else if (trxType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+				postPaidPaymentRequest.setPaymentAmount("");
+				postPaidPaymentRequest.setDepositAmount("" + String.format("%.2f", amount));
+			}
+
+			postPaidPaymentRequest.setPaymentLevel("");
+			// request.setPaymentReference(reference);
+			postPaidPaymentRequest.setPaymentReference("BM" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+			postPaidPaymentRequest.setPayment_Txt("SELFCARE");
+			postPaidPaymentRequest.setPaymentType("Online");
+			postPaidPaymentRequest.setSource("SELFCARE");
+			postPaidPaymentRequest.setTransactionId("BM" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+			logger.info("#postpaidBillPayment --- sending request " + postPaidPaymentRequest);
+
+			Selfcare_InboundStub stub2 = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			Postpaid_Payment_Response response = stub2.postpaidBillPayment(postPaidPaymentRequest);
+
+			logger.info("#postpaidBillPayment --- receiving response " + response);
+
+			return response != null && response.getStatus() != null
+					&& response.getStatus().equals(TibcoResponse.SUCCESS.code());
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return false;
+	}
+
+	@Override
+	public NonVasRegResponse Subscribpackage(String subscriberId, String langCode, String pakageid, String packagcode,
+			String product_code) throws RemoteException {
+		logger.info(
+				"#getCurrentBalance -- retrieving balance information from back-end (subscriber= %s) for Subscribing package= ",
+				subscriberId);
+		NonVasRegResponse responseSubscriber = null;
+		try {
+			subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+			BonusRequest_type0 requestPayLoad = new BonusRequest_type0();
+			requestPayLoad.setMSISDN(subscriberId);
+			requestPayLoad.setSource(pakageid);
+			requestPayLoad.setActionType("REG");
+			requestPayLoad.setRegistrationKey(product_code);
+			requestPayLoad.setStartDate(AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+			requestPayLoad.setEndDate(AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+
+			NonVasRegRequest nonVasRegRequest = new NonVasRegRequest();
+			nonVasRegRequest.setBonusRequest(requestPayLoad);
+			Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			responseSubscriber = inboundStub.vas_Registration(nonVasRegRequest);
+
+			logger.info("responseSubscriber.getStatus_Code() for Subscribing package   ===="
+					+ responseSubscriber.getResponseCode() + ">>>>>>>>>>"
+					+ responseSubscriber.getResponseDescription());
+
+			logger.info(
+					"#getCurrentBalance -- got balance information from back-end (subscriber: %s) for Subscribing package= ",
+					subscriberId);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return responseSubscriber;
+	}
+
+	@Override
+	public NonVasRegResponse unSubscribpackage(String subscriberId, String langCode, String pakageid, String packagcode,
+			String product_code) throws RemoteException {
+		logger.info(
+				"#getCurrentBalance -- retrieving balance information from back-end (subscriber= %s) for unsubscribing package =",
+				subscriberId);
+		NonVasRegResponse responseSubscriber = null;
+		try {
+			subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+			BonusRequest_type0 requestPayLoad = new BonusRequest_type0();
+			requestPayLoad.setMSISDN(subscriberId);
+			requestPayLoad.setSource(pakageid);
+			requestPayLoad.setActionType("DEL");
+			requestPayLoad.setRegistrationKey(product_code);
+			requestPayLoad.setStartDate(AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+			requestPayLoad.setEndDate(AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+
+			NonVasRegRequest nonVasRegRequest = new NonVasRegRequest();
+			nonVasRegRequest.setBonusRequest(requestPayLoad);
+			
+			System.out.println("request payload ::::=>>>>>>>>>>"+ requestPayLoad);
+			
+			Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			responseSubscriber = inboundStub.vas_Registration(nonVasRegRequest);
+
+			logger.info("responseSubscriber.getStatus_Code() for unsubscribing package   ===="
+					+ responseSubscriber.getResponseCode() + ">>>>>>>>>>"
+					+ responseSubscriber.getResponseDescription());
+
+			logger.info(
+					"#getCurrentBalance -- got balance information from back-end (subscriber: %s) for unsubscribing package= ",
+					subscriberId);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return responseSubscriber;
+	}
+
+	@Override
+	public String getSubscriberType(SubscriberQuery_Response responseSubscriber) {
+		String simType = "";
+		if (responseSubscriber.getStatus_Code().equalsIgnoreCase("00000")) {
+			boolean postpaid = responseSubscriber.getRESTRICTED_DATE().equals("01/01/0001 00:00:00")
+					|| responseSubscriber.getTERMINATED_DATE().equals("01/01/0001 00:00:00");
+
+			logger.info("## getSubscriberType------sim type ---" + postpaid);
+			if (postpaid) {
+				simType = Constants.SUBSCRIBER_TYPE_POSTPAID;
+
+			} else {
+				simType = Constants.SUBSCRIBER_TYPE_PREPAID;
+			}
+
+		}
+		return simType;
+	}
+
+	@Override
+	public SubscriberQuery_Response subscriberResponce(String msidn) {
+		msidn = AppUtils.prependCountryCodeToMsisdn(msidn, AppDefaultValues.COUNTRY_CODE);
+		SubscriberQuery_Request requestPayLoad = new SubscriberQuery_Request();
+		requestPayLoad.setMSISDN(msidn);
+		Selfcare_InboundStub inboundStub;
+		SubscriberQuery_Response responseSubscriber = null;
+		try {
+			inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			try {
+				responseSubscriber = inboundStub.subscriberQuery(requestPayLoad);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (AxisFault e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		logger.info("#subscriberResponce ---------  responseSubscriber.getStatus_Code()   ===="
+				+ responseSubscriber.getStatus_Code());
+		return responseSubscriber;
+
+	}
+
+	@Override
+	public BalanceQuery_Response billedQueryResponce(String msisdn) {
+		// TODO Auto-generated method stub
+		BalanceQuery_Request balanceQuery_Request = new BalanceQuery_Request();
+		CurrentBalance currentBalance = null;
+		try {
+			currentBalance = getCurrentBalance(msisdn, "");
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		balanceQuery_Request.setAccountNumber(currentBalance.getAccountNumber());
+		msisdn = AppUtils.prependCountryCodeToMsisdn(msisdn, AppDefaultValues.COUNTRY_CODE);
+		balanceQuery_Request.setMSISDN(msisdn);
+		Selfcare_InboundStub stub2 = null;
+		try {
+			stub2 = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+		} catch (AxisFault e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		BalanceQuery_Response billedQuery_Response = null;
+		try {
+			billedQuery_Response = stub2.postpaidBalanceEnquiry(balanceQuery_Request);
+			logger.info("#billedQueryResponce-------", billedQuery_Response.getStatus());
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return billedQuery_Response;
+	}
+
+	@Override
+	public Map getCmsOfferList(CmsOfferRequest request) {
+		String subscriberId = request.getMsisdn();
+		List<CmsCampaignOfferDto> CmscampaignList = new ArrayList<CmsCampaignOfferDto>();
+		try {
+			subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+			GetOffer_Request getOffer_RequestPayLoad = new GetOffer_Request();
+
+			String requestId = AppUtils.dateToString(new Date(), "yyyy-MM-dd'T'HH:mm:ss");
+			String transactionID = AppUtils.dateToString(new Date(), "yyyyMMddHHmmssSSS");
+
+			Selfcare_InboundStub inboundStub;
+
+			inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			getOffer_RequestPayLoad.setMsisdn(subscriberId);
+			getOffer_RequestPayLoad.setRequestID(String.valueOf(AppUtils.randomID()));
+			getOffer_RequestPayLoad.setRequestDateTime(requestId);
+			getOffer_RequestPayLoad.setTransactionID(transactionID);
+			getOffer_RequestPayLoad.setInterfaceType(request.getInterfaceType());
+			getOffer_RequestPayLoad.setLanguageCode(request.getLanguage());
+
+			GetOffer_Response getOffer_Response = inboundStub.getOffer_CMS(getOffer_RequestPayLoad);
+
+			logger.info("#getCmsOfferList -- subscriber= " + subscriberId + ", result= "
+					+ (getOffer_Response != null ? getOffer_Response.getStatusCode() : null) + " Status Message--- "
+					+ getOffer_Response.getStatusMessage() + " ");
+			if (getOffer_Response != null
+					&& (getOffer_Response.getStatusCode().equalsIgnoreCase(TibcoResponse.SUCCESS.code()))
+					|| getOffer_Response.getStatusCode().equalsIgnoreCase("0")) {
+
+				Item_type0[] offers = getOffer_Response.getOfferArray().getItem();
+				if (offers.length > 0 && getOffer_Response.getOfferArray() != null) {
+					for (Item_type0 offer : offers) {
+						CmsCampaignOfferDto cmsCampaignOfferDto = new CmsCampaignOfferDto();
+
+						cmsCampaignOfferDto.setOfferName(offer.getOfferName());
+						cmsCampaignOfferDto.setOfferID(offer.getOfferID());
+						cmsCampaignOfferDto.setOfferDescription(offer.getOfferDescription());
+						cmsCampaignOfferDto.setOfferStartDate(offer.getOfferStartDate());
+						cmsCampaignOfferDto.setOfferEndDate(offer.getOfferEndDate());
+						cmsCampaignOfferDto.setOfferValidity(offer.getOfferValidity());
+					    cmsCampaignOfferDto.setOfferStatus(offer.getOfferValidityStatus().equalsIgnoreCase("activated") ? "1":"0" );
+						CmscampaignList.add(cmsCampaignOfferDto);
+
+					}
+				}
+				
+			}
+			return new HashMap<String, Object>() {
+				{
+					put("offerList", CmscampaignList);
+					put("statusCode", getOffer_Response.getStatusCode());
+					put("statusMessage", getOffer_Response.getStatusMessage());
+				}
+			};
+		} catch (Exception e) {
+			logger.info("# IN activateCmsOffer getCmsOfferList ---- subscriberId =  ", subscriberId);
+			e.printStackTrace();
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+		}
+		
+		
+	}
+
+	@Override
+	public ActivateOffer_Response activateCmsOffer(CmsOfferRequest request) {
+	
+		String	subscriberId=request.getMsisdn();
+		ActivateOffer_Response activateOffer_Response = new ActivateOffer_Response();
+				
+		try {
+		subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriberId, AppDefaultValues.COUNTRY_CODE);
+		ActivateOffer_Request activateOffer_RequestPayLoad = new ActivateOffer_Request();
+		
+		String transactionID = AppUtils.dateToString(new Date(), "yyyyMMddHHmmssSSS");
+		
+		Selfcare_InboundStub inboundStub;
+		
+			inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+			.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			activateOffer_RequestPayLoad.setMsisdn(subscriberId);
+			activateOffer_RequestPayLoad.setOfferID(request.getOfferID());
+			activateOffer_RequestPayLoad.setRequestDateTime(AppUtils.dateToString(new Date(), "yyyy-MM-dd'T'HH:mm:ss"));
+			activateOffer_RequestPayLoad.setRequestID(String.valueOf(transactionID));
+			activateOffer_RequestPayLoad.setLangCode(request.getLanguage());
+			activateOffer_RequestPayLoad.setInterfaceType(request.getInterfaceType());
+
+			
+			 activateOffer_Response = inboundStub.activateOffer_CMS(activateOffer_RequestPayLoad);
+			logger.info("#IN activateCmsOffer ---- ActivateOffer response code = ",activateOffer_Response.getStatusCode());
+			
+		} catch (Exception e) {
+			logger.info("# IN activateCmsOffer ---- subscriberId =  ",subscriberId+" Subscription failed ");
+			e.printStackTrace();
+		}
+		
+		return activateOffer_Response;
+	}
+	/*@Override
+	public Dynamic_Bonus_Response getSelfPackageresponce(Dynamic_Bonus_Request request) {
+		// TODO Auto-generated method stub
+		logger.debug("#selfpackage --- sending request to VASMan, params= " + request);
+		
+		  Selfcare_InboundStub inboundStub;
+		  Dynamic_Bonus_Response response=null;
+			try {
+			 inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+			.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			 
+		//ProvisioningDynamicServiceReq serviceReq = objFactory.createProvisioningDynamicServiceReq();
+		Dynamic_Bonus_Request serviceReq= new Dynamic_Bonus_Request();
+		//serviceReq.setUser("");
+		//serviceReq.setPass(objFactory.createProvisioningCampaignReqPass(connection.getCredential()));
+		serviceReq.setCmdID(""+ACTIVATE_CMD);
+		serviceReq.setMSISDN(request.getMSISDN());
+		serviceReq.setProduct_Code("DYNAMIC_BONUS_1");
+		//serviceReq.setSDescription(request.get);
+		serviceReq.setExtendDate(""+request.getExtendDate());
+		serviceReq.setCharging_Amount(request.getCharging_Amount());
+		serviceReq.setAction_Type("REG");
+		//TODO remove this later
+		//serviceReq.setDataAmount(ONE_MB);
+		serviceReq.setData_Amount("0.0");
+		
+		
+		Balance_Request balance_Request= new Balance_Request();
+		ListBalance_type0 balance_type0 = new ListBalance_type0();
+	
+		for( int i=0;i<request.getListBalance().getBalance_Request().length;i++)
+		{
+			Balance_Request_type0 bal =request.getListBalance().getBalance_Request()[i];
+			Balance_Request_type0 balance_Request_type0= new Balance_Request_type0();	
+		    balance_Request_type0.setBonus_Name(bal.getBonus_Name());
+		    balance_Request_type0.setBonus_Amount(bal.getBonus_Amount());
+		    balance_Request.setBalance_Request(balance_Request_type0);
+		    balance_type0.addBalance_Request(balance_Request_type0);
+		}
+		
+		serviceReq.setListBalance(balance_type0);
+		ListBalance arrBalance = new ListBalance();
+		
+		for (Balance_Request_type0 bal : request.getListBalance().getBalance_Request()) {
+			ListBalance_type0 brequest = new ListBalance_type0();
+			Balance_Request balance_Request= new Balance_Request();
+		   Balance_Request_type0 br= new Balance_Request_type0();
+		    br.setBonus_Name(bal.getBonus_Name());
+			br.setBonus_Amount(bal.getBonus_Amount());
+			brequest.getBalance_Request();
+			arrBalance.setListBalance(brequest);
+		}
+		serviceReq.setListBalance(objFactory.createProvisioningDynamicServiceReqListBalance(arrBalance));
+		logger.debug(String.format("#selfpackage --- serving request to VASMan "+serviceReq));
+		    
+				response = inboundStub.dynamic_Bonus(serviceReq);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		if (response != null) {
+			logger.debug(String.format("#selfpackage --- receiving response from VASMan (msisdn = %s, package_id= %s, resp_code= %s, resp_msg= %s)", 
+					response.getMdn(), response.getNVasID(), response.getErrorCode(), response.getErrorDetail()));
+			
+			 
+		} else {
+			//bar.setStatus(RequestStatus.FAIL);
+		}
+	return response;
+}
+*/
+	@Override
+	public boolean isValidnumber(String msisdn) {
+
+		boolean startvalue = false;
+
+		try {
+			String subscriberId = AppUtils.prependCountryCodeToMsisdn(msisdn, AppDefaultValues.COUNTRY_CODE);
+			ActivateOffer_Request activateOffer_RequestPayLoad = new ActivateOffer_Request();
+
+			Selfcare_InboundStub inboundStub;
+
+			inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+
+			MSISDN_Activation MSISDN_Activation = new MSISDN_Activation();
+			MSISDN_Activation.setMSISDN(subscriberId);
+			MSISDN_Validation_Response mSISDN_Validation_Response = inboundStub.mSISDN_Validation(MSISDN_Activation);
+			logger.debug("#IN MSISDN_Validation_Response ---- MSISDN_Validation_Response response code = ",
+					mSISDN_Validation_Response.getResponse_Code());
+			if (mSISDN_Validation_Response.getResponse_Code().equals("00000")) {
+				startvalue = true;
+			} else {
+				startvalue = false;
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		// TODO Auto-generated method stub
+		return startvalue;
+	}
+	
+	@Override
+	public Dynamic_Bonus_Response getSelfPackageresponce(Dynamic_Bonus_Request request) {
+		// TODO Auto-generated method stub
+		logger.debug("#selfpackage --- sending request to VASMan, params= " + request);
+		
+		  Selfcare_InboundStub inboundStub;
+		  Dynamic_Bonus_Response response=null;
+			try {
+			 inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+			.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			 
+		//ProvisioningDynamicServiceReq serviceReq = objFactory.createProvisioningDynamicServiceReq();
+		Dynamic_Bonus_Request serviceReq= new Dynamic_Bonus_Request();
+		//serviceReq.setUser("");
+		//serviceReq.setPass(objFactory.createProvisioningCampaignReqPass(connection.getCredential()));
+		serviceReq.setCmdID(""+ACTIVATE_CMD);
+		serviceReq.setMSISDN(request.getMSISDN());
+		serviceReq.setProduct_Code("DYNAMIC_BONUS_1");
+		//serviceReq.setSDescription(request.get);
+		serviceReq.setExtendDate(""+request.getExtendDate());
+		serviceReq.setCharging_Amount(request.getCharging_Amount());
+		serviceReq.setAction_Type("REG");
+		//TODO remove this later
+		//serviceReq.setDataAmount(ONE_MB);
+		serviceReq.setData_Amount("0.0");
+		
+		
+		Balance_Request balance_Request= new Balance_Request();
+		ListBalance_type0 balance_type0 = new ListBalance_type0();
+	
+		for( int i=0;i<request.getListBalance().getBalance_Request().length;i++)
+		{
+			Balance_Request_type0 bal =request.getListBalance().getBalance_Request()[i];
+			Balance_Request_type0 balance_Request_type0= new Balance_Request_type0();	
+		    balance_Request_type0.setBonus_Name(bal.getBonus_Name());
+		    balance_Request_type0.setBonus_Amount(bal.getBonus_Amount());
+		    balance_Request.setBalance_Request(balance_Request_type0);
+		    balance_type0.addBalance_Request(balance_Request_type0);
+		}
+		
+		serviceReq.setListBalance(balance_type0);
+		/*ListBalance arrBalance = new ListBalance();
+		
+		for (Balance_Request_type0 bal : request.getListBalance().getBalance_Request()) {
+			ListBalance_type0 brequest = new ListBalance_type0();
+			Balance_Request balance_Request= new Balance_Request();
+		   Balance_Request_type0 br= new Balance_Request_type0();
+		    br.setBonus_Name(bal.getBonus_Name());
+			br.setBonus_Amount(bal.getBonus_Amount());
+			brequest.getBalance_Request();
+			arrBalance.setListBalance(brequest);
+		}
+		serviceReq.setListBalance(objFactory.createProvisioningDynamicServiceReqListBalance(arrBalance));*/
+		logger.debug(String.format("#selfpackage --- serving request to VASMan "+serviceReq));
+		    
+				response = inboundStub.dynamic_Bonus(serviceReq);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		if (response != null) {
+			logger.debug(String.format("#selfpackage --- receiving response from VASMan (msisdn = %s, package_id= %s, resp_code= %s, resp_msg= %s)", 
+					response.getMdn(), response.getNVasID(), response.getErrorCode(), response.getErrorDetail()));
+			
+			//bar.setResponseCode(response.getErrorCode().getValue());
+			//bar.setResponseDescription(response.getErrorDetail().getValue());
+			//bar.setStatus(response.getErrorCode().getValue().equals(VASManErrorMessage.SUCCESS.code()) ? RequestStatus.SUCCESS : RequestStatus.FAIL);
+			
+		} else {
+			//bar.setStatus(RequestStatus.FAIL);
+		}
+	return response;
+}
+}

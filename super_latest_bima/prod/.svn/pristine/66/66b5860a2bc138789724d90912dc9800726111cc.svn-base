@@ -1,0 +1,347 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.TransferPackageDto;
+import id.gnvsolution.d3.api.dto.request.TransferPackageWithOtpDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.model.SubscriberOTP.OTPHelper;
+import id.gnvsolution.d3.api.model.TransferPackageOtp;
+import id.gnvsolution.d3.api.model.TrxTransferPackage;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.TransferPackageService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.Attrubute_type0;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.CRMTIbcoNSMessageRequest;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.CRMTIbcoNSMessageResponse;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.MsgParam_type1;
+import id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.TransferPackageServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Feb 12, 2018 7:41:57 PM
+ *
+ */
+@Service
+@Transactional
+public class TransferPackageServiceImpl extends BaseService implements TransferPackageService {
+
+    public Logger logger = LoggerFactory.getLogger(TransferPackageServiceImpl.class);
+    private static String SOURCE = "ODP_GNV";
+
+    @Autowired
+    private ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+
+    @Autowired
+    private InAppNotificationService inAppNotificationService;
+    
+    @Autowired
+    private NotificationMasterService notificationMasterService;
+
+    @Autowired
+    private NotificationWorker notificationWorker;
+
+    @Override
+    public Map transfer(TransferPackageDto transferPackageDto) {
+    	logger.info("#transfer method of TransferPackageServiceImpl-------msisdn==", transferPackageDto.getMsisdn());
+        String message = notificationMasterService.getMessageText(1, transferPackageDto.getLanguage());
+    	String errorMessage = notificationMasterService.getMessageText(2, transferPackageDto.getLanguage());
+        		
+        try {
+            if(!isMsisdnValid(transferPackageDto.getMsisdn(), transferPackageDto.getSecretKey())) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+            }
+            
+            logger.info("#transfer method of TransferPackageServiceImpl-----find data from Product-----productId==", transferPackageDto.getProductId());
+            BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+            List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {
+                {
+                    put("productId", transferPackageDto.getProductId());
+                }
+            });
+
+            if (products.isEmpty()) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, "Product not found")).all().build();
+            } else {
+            
+                message = message.replace("{getTargetMsisdn}", transferPackageDto.getTargetMsisdn());
+                errorMessage = errorMessage.replace("{getTargetMsisdn}", transferPackageDto.getTargetMsisdn());
+                
+                if (Constants.LANG_EN.equals(transferPackageDto.getLanguage())){
+                    message = message.replace("{getProductName}", products.get(0).getProductNameEn());
+                    errorMessage = errorMessage.replace("{getProductName}", products.get(0).getProductNameEn());
+                } else {
+                    message = message.replace("{getProductName}", products.get(0).getProductNameId());
+                    errorMessage = errorMessage.replace("{getProductName}", products.get(0).getProductNameId());
+                }
+            }
+
+            if (!products.get(0).getIsTransfer()) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+            }
+
+            List<ProductCharging> productChargings = new ArrayList<>(products.get(0).getProductChargingsByProductId());
+            if (productChargings.isEmpty()) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+            }
+            
+            if (productChargings.get(0).getRegistrationKey() == null) {
+                logger.error("no registration key for "+transferPackageDto.getProductId());
+                return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+            }
+
+            String trxId = moduleTransactionIDGenerator.generate(Module.TRF);
+
+            ODPTIB_WSDLServiceStub stub = new ODPTIB_WSDLServiceStub(Constants.TIBCO_URL_TRANSFER_PACKAGE);
+            ODPTIB_WSDLServiceStub.TransferRequest transferRequest = new ODPTIB_WSDLServiceStub.TransferRequest();
+            transferRequest.setAmount(productChargings.get(0).getRegistrationKey().replace("MAU ", ""));
+            transferRequest.setCurrentDate(new Date().getTime() + "");
+            transferRequest.setMSISDN(transferPackageDto.getMsisdn());
+            transferRequest.setTO_MSISDN(transferPackageDto.getTargetMsisdn());
+            transferRequest.setTransactionID(trxId);
+            transferRequest.setSource(SOURCE);
+            transferRequest.setRequest_Type("KASIH");
+
+            ODPTIB_WSDLServiceStub.TransferResponse transferResponse = stub.transferODPTIB(transferRequest);
+
+            TrxTransferPackage transferPackage = new TrxTransferPackage();
+            transferPackage.setAmount(transferPackageDto.getAmount());
+            transferPackage.setMsisdnFrom(transferPackageDto.getMsisdn());
+            transferPackage.setMsisdnTo(transferPackageDto.getTargetMsisdn());
+            transferPackage.setProductId(transferPackageDto.getProductId());
+            transferPackage.setStatus(transferResponse.getResponseCode());
+            transferPackage.setStatusText(transferResponse.getResponseText());
+            transferPackage.setTrxDate(new Date());
+            transferPackage.setTrxId(trxId);
+            transferPackage.setUuid(UUID.randomUUID().toString());
+
+            BaseDao<TrxTransferPackage> trxTransferPackageDao = new BaseDao<>(sessionFactoryDef, TrxTransferPackage.class);
+            trxTransferPackageDao.save(transferPackage);
+            
+            // berhasil
+            if (("00000").equals(transferResponse.getResponseCode())) {
+                inAppNotificationService.saveToInAppNotifications(transferPackageDto.getMsisdn(), null, null, null, 
+                                    "Berhasil", message, "", "", "");
+                inAppNotificationService.saveToInAppNotifications(transferPackageDto.getTargetMsisdn(), null, null, null, 
+                                    "Berhasil", message, "", "", "");
+                notificationWorker.sendNotification(transferPackageDto.getMsisdn(), message);
+                
+                return JSONResultFilter.filter(new ErrorMessageDto(true, message)).all().build();
+            }
+
+            // gagal
+            inAppNotificationService.saveToInAppNotifications(transferPackageDto.getMsisdn(), null, null, null, 
+                                    "Gagal", errorMessage, "", "", "");
+            notificationWorker.sendNotification(transferPackageDto.getMsisdn(), errorMessage);
+
+            return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+        }
+    }
+    
+    @Override
+    public Map<String, Object> requestOtp(TransferPackageWithOtpDto transferPackageWithOtpDto) {
+    	
+    	logger.info("#requestOtp method of TransferPackageServiceImpl-------msisdn==", transferPackageWithOtpDto.getMsisdn());
+    	
+    	BaseDao<TransferPackageOtp> transferPackageOtpDao = new BaseDao<>(sessionFactoryDef, TransferPackageOtp.class);
+		Map<String, Object> response = new HashMap<>();
+		List<TransferPackageOtp> results = new ArrayList<>();
+		
+		transferPackageOtpDao.find("msisdn = :msisdn and targetMsisdn = :targetMsisdn and productId = :productId and createdAt between (sysdate - (1/24)) and sysdate", new HashMap<String, Object>() {{
+            put("msisdn", transferPackageWithOtpDto.getMsisdn());
+            put("targetMsisdn", transferPackageWithOtpDto.getTargetMsisdn());
+            put("productId", transferPackageWithOtpDto.getProductId());
+        }}).forEach(result -> results.add(result));
+		
+		if (results.size() < 10) {
+			results.clear();
+			transferPackageOtpDao.find("msisdn = :msisdn and active = :active", new HashMap<String, Object>() {{
+                put("msisdn", transferPackageWithOtpDto.getMsisdn());
+                put("active", true);
+            }}).forEach(result -> results.add(result));
+    		
+    		for (TransferPackageOtp result : results) {
+    			result.setActive(false);
+    			result.setUpdatedAt(new Date());
+    			transferPackageOtpDao.update(result);
+			}
+    		
+			Date date = new Date();
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			cal.add(Calendar.MINUTE, 5);
+			
+			TransferPackageOtp transferPackageOtp = new TransferPackageOtp();
+			transferPackageOtp.setUuid(UUID.randomUUID().toString());
+			transferPackageOtp.setMsisdn(transferPackageWithOtpDto.getMsisdn());
+			transferPackageOtp.setTargetMsisdn(transferPackageWithOtpDto.getTargetMsisdn());
+			transferPackageOtp.setProductId(transferPackageWithOtpDto.getProductId());
+			transferPackageOtp.setAmount(transferPackageWithOtpDto.getAmount());
+			transferPackageOtp.setOtp(OTPHelper.randomString(6));
+			transferPackageOtp.setCounter(0);
+			transferPackageOtp.setActive(true);
+			transferPackageOtp.setCreatedAt(date);
+			transferPackageOtp.setUpdatedAt(date);
+			transferPackageOtp.setExpiredAt(cal.getTime());
+			transferPackageOtpDao.save(transferPackageOtp);
+			
+			transferPackageWithOtpDto.setOtp(Integer.valueOf(transferPackageOtp.getOtp()));
+			sendOtp(transferPackageWithOtpDto);
+			
+			response.put("status", true);
+			response.put("message", notificationMasterService.getMessageText(11, transferPackageWithOtpDto.getLanguage()));
+		} else {
+			response.put("status", false);
+			response.put("message", notificationMasterService.getMessageText(10, transferPackageWithOtpDto.getLanguage()));
+		}
+		
+		return response;
+    }
+    
+    private void sendOtp(TransferPackageWithOtpDto transferPackageWithOtpDto) {
+    	logger.info("#sendOtp method of TransferPackageServiceImpl-------msisdn=="+transferPackageWithOtpDto.getMsisdn()+"----------product id=="+transferPackageWithOtpDto.getProductId());
+    	try {
+    		CRMTIbcoNSMessageRequest reqParam = new CRMTIbcoNSMessageRequest();                
+            reqParam.setTransactionId(moduleTransactionIDGenerator.generate(Module.SQTX));
+            reqParam.setRequestType(Constants.TIBCO_SMS);
+            reqParam.setRequestId("5");
+            reqParam.setMSISDN(transferPackageWithOtpDto.getMsisdn());
+            reqParam.setMsgId("6711");                
+            reqParam.setOrigSystem(Constants.TIBCO_SOURCE_ODP);
+            
+            BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+            List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {
+                {
+                    put("productId", transferPackageWithOtpDto.getProductId());
+                }
+            });
+            
+            String productName = null;
+            if (products.isEmpty())
+            	productName = "Not Found";
+            else
+            	productName = Constants.LANG_ID.equals(transferPackageWithOtpDto.getLanguage())?
+            			products.get(0).getProductNameId() : products.get(0).getProductNameEn();
+            
+            /* MsgParam has changed to mandatory field need pass to tibco*/
+            MsgParam_type1 param = new MsgParam_type1();
+            Attrubute_type0 att[] = new Attrubute_type0[4];
+            att[0] = new Attrubute_type0();
+            att[0].setName("AMOUNT");
+            att[0].setValue(NumberFormat.getInstance(
+            		Constants.LANG_ID.equals(transferPackageWithOtpDto.getLanguage())?
+            				Locale.GERMAN : Locale.US).format(Long.parseLong(transferPackageWithOtpDto.getAmount())));
+            att[1] = new Attrubute_type0();
+            att[1].setName("PACKAGE_NAME");
+            if (products.isEmpty())
+            	att[1].setValue("Not Found");
+            else
+            	att[1].setValue(Constants.LANG_ID.equals(transferPackageWithOtpDto.getLanguage())?
+            			products.get(0).getProductNameId() : products.get(0).getProductNameEn());
+            att[2] = new Attrubute_type0();
+            att[2].setName("MSISDN_B");
+            if (transferPackageWithOtpDto.getTargetMsisdn().startsWith("62"))
+            	att[2].setValue(transferPackageWithOtpDto.getTargetMsisdn().replaceFirst("62", "0"));
+            else
+				att[2].setValue(transferPackageWithOtpDto.getTargetMsisdn());
+            att[3] = new Attrubute_type0();
+            att[3].setName("OTP");
+            att[3].setValue(transferPackageWithOtpDto.getOtp().toString());
+            param.setAttrubute(att);
+            reqParam.setMsgParam(param);
+            
+            GenericTibcoCRMServicesStub tibcoCustomerSegment = new GenericTibcoCRMServicesStub(Constants.TIBCO_URL_SHAREDQUOTA_ENDPOINT);
+            
+            CRMTIbcoNSMessageResponse resCustomerSegment = tibcoCustomerSegment.cRMNSSMS(reqParam);
+    	} catch (Exception e) {
+    		logger.error(e.getMessage());
+		}
+    }
+
+	@Override
+	public Map transferWithOtp(TransferPackageWithOtpDto transferPackageWithOtpDto) {
+		logger.info("#transferWithOtp method of TransferPackageServiceImpl-------msisdn=="+transferPackageWithOtpDto.getMsisdn()+"----------product id=="+transferPackageWithOtpDto.getProductId());
+		BaseDao<TransferPackageOtp> transferPackageOtpDao = new BaseDao<>(sessionFactoryDef, TransferPackageOtp.class);
+		Map<String, Object> response = new HashMap<>();
+		List<TransferPackageOtp> results = new ArrayList<>();
+		TransferPackageOtp transferPackageOtp = null;
+        
+		transferPackageOtpDao.find("msisdn = :msisdn and targetMsisdn = :targetMsisdn and productId = :productId and active = :active and expiredAt > :datenow order by createdAt desc", new HashMap<String, Object>() {{
+            put("msisdn", transferPackageWithOtpDto.getMsisdn());
+            put("targetMsisdn", transferPackageWithOtpDto.getTargetMsisdn());
+            put("productId", transferPackageWithOtpDto.getProductId());
+            put("active", true);
+            put("datenow", new Date());
+        }}).forEach(result -> results.add(result));
+        
+        if (results.size() > 0) {
+        	transferPackageOtp = results.get(0);
+        	
+        	if (transferPackageOtp.getCounter() >= 5) {
+        		response.put("status", false);
+        		response.put("message", notificationMasterService.getMessageText(10, transferPackageWithOtpDto.getLanguage()));
+        	} else if (transferPackageWithOtpDto.getOtp().equals(Integer.valueOf(transferPackageOtp.getOtp()))) {
+        		transferPackageOtpDao.find("msisdn = :msisdn and active = :active", new HashMap<String, Object>() {{
+                    put("msisdn", transferPackageWithOtpDto.getMsisdn());
+                    put("active", true);
+                }}).forEach(result -> results.add(result));
+        		
+        		for (TransferPackageOtp result : results) {
+        			result.setActive(false);
+        			result.setUpdatedAt(new Date());
+        			transferPackageOtpDao.update(result);
+				}
+        		
+        		return transfer(transferPackageWithOtpDto);
+        	} else {
+        		response.put("status", false);
+        		response.put("message", notificationMasterService.getMessageText(12, transferPackageWithOtpDto.getLanguage()));
+
+        		transferPackageOtp.setCounter(transferPackageOtp.getCounter() + 1);
+        		transferPackageOtp.setUpdatedAt(new Date());
+        		transferPackageOtpDao.update(transferPackageOtp);
+        	}
+        } else {
+        	response.put("status", false);
+        	response.put("message", notificationMasterService.getMessageText(12, transferPackageWithOtpDto.getLanguage()));
+        }
+		
+		return response;
+	}
+}

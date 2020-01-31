@@ -1,0 +1,18 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by aswzen on 10/08/2018
+ */
+public class FacebookRequestDto {
+
+    private String tokenKey;
+
+    public String getTokenKey() {
+        return tokenKey;
+    }
+
+    public void setTokenKey(String tokenKey) {
+        this.tokenKey = tokenKey;
+    }
+    
+}

@@ -1,0 +1,66 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package id.gnvsolution.d3.api.model;
+
+import java.math.BigInteger;
+import java.util.Date;
+import javax.persistence.*;
+
+/**
+ *
+ * @author hyunandar
+ */
+@Entity
+@Table(name = "PRODUCT_WISH_LIST")
+public class ProductWishList {
+    private static final long serialVersionUID = 1L;
+    @Id
+    @Basic(optional = false)
+    @Column(name = "UUID")
+    private String uuid;
+    @Column(name = "MSSIDN")
+    private String mssidn;
+    @Column(name = "PRODUCT_ID")
+    private String productId;
+    @Column(name = "TRX_DATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date trxDate;
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getMssidn() {
+        return mssidn;
+    }
+
+    public void setMssidn(String mssidn) {
+        this.mssidn = mssidn;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public Date getTrxDate() {
+        return trxDate;
+    }
+
+    public void setTrxDate(Date trxDate) {
+        this.trxDate = trxDate;
+    }
+
+   
+    
+}

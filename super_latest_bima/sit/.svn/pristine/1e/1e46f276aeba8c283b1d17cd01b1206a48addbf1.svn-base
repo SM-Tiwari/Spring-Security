@@ -1,0 +1,114 @@
+/**
+ * LoginHistoryEntity.java
+ */
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+/**
+ * @author nandipinto
+ *
+ */
+
+
+@Entity
+@Table(name = "login_history" /*, uniqueConstraints = {@UniqueConstraint(columnNames = "id")}*/)
+@SequenceGenerator(name = "login_history_seq", sequenceName = "login_history_seq", allocationSize = 1)
+public class LoginHistoryEntity  {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "login_history_seq")
+	@Column(name = "id")
+	private Integer id;
+
+	@Column(name = "msisdn", length = 15, nullable = false)
+	private String msisdn;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "last_login_time")
+	private Date lastLoginTime;
+	
+	@Column(name = "INTERFACE_TYPE")
+	private String interfaceTYPE;
+	
+	@Column(name="LOGIN_STATUS")
+	private String loginStatus;
+	
+	@Column(name="MESSAGE")
+	private String message;
+	
+	@Column(name="LOGIN_WITH")
+	private String loginWith;
+	
+	public String getLoginWith() {
+		return loginWith;
+	}
+
+	public void setLoginWith(String loginWith) {
+		this.loginWith = loginWith;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	public Date getLastLoginTime() {
+		return lastLoginTime;
+	}
+
+	public void setLastLoginTime(Date lastLoginTime) {
+		this.lastLoginTime = lastLoginTime;
+	}
+
+	public String getInterfaceTYPE() {
+		return interfaceTYPE;
+	}
+
+	public void setInterfaceTYPE(String interfaceTYPE) {
+		this.interfaceTYPE = interfaceTYPE;
+	}
+
+	public String getLoginStatus() {
+		return loginStatus;
+	}
+
+	public void setLoginStatus(String loginStatus) {
+		this.loginStatus = loginStatus;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	@Override
+	public String toString() {
+		return "LoginHistoryEntity [id=" + id + ", msisdn=" + msisdn + ", lastLoginTime=" + lastLoginTime
+				+ ", interfaceTYPE=" + interfaceTYPE + ", loginStatus=" + loginStatus + ", message=" + message + "]";
+	}	
+}

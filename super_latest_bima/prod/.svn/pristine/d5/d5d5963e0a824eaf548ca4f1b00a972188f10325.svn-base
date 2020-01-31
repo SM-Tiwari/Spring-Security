@@ -1,0 +1,38 @@
+package id.gnvsolution.d3.api.component;
+
+import java.util.ArrayList;
+
+public class JsonTest {
+	
+
+	private ArrayList<Data> DATA ;
+	private ArrayList<Data> VOICE_SMS ;
+	private ArrayList<Data> COMBO ;
+	public ArrayList<Data> getDATA() {
+		return DATA;
+	}
+	public void setDATA(ArrayList<Data> dATA) {
+		DATA = dATA;
+	}
+	public ArrayList<Data> getVOICE_SMS() {
+		return VOICE_SMS;
+	}
+	public void setVOICE_SMS(ArrayList<Data> vOICE_SMS) {
+		VOICE_SMS = vOICE_SMS;
+	}
+	public ArrayList<Data> getCOMBO() {
+		return COMBO;
+	}
+	public void setCOMBO(ArrayList<Data> cOMBO) {
+		COMBO = cOMBO;
+	}
+	/*@Override
+	public String toString() {
+		return "JsonTest [DATA=" + DATA + ", VOICE_SMS=" + VOICE_SMS + ", COMBO=" + COMBO + "]";
+	}*/
+	
+	
+}
+ 
+		
+

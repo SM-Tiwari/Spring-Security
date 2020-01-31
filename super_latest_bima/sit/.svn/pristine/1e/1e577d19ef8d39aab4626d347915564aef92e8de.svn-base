@@ -1,0 +1,262 @@
+package id.gnvsolution.d3.api.dto.response;
+
+/**
+ * Created by aswzen on 19/09/18.
+ */
+public class PackageProfileMappingDto {
+
+    private String billingProductName;
+    private String productId;
+    private String productNameEn;
+    private String productNameIn;
+    private String displayPackages;
+    private String registrationKey;
+    private String unregistrationKey;
+    private String groupPackage;
+    private String emailId;
+    private String pcrfEndDate;
+    private String pcrfRemainingAmount;
+    private String remainingAmount;
+    private String startDate;
+    private String endDate;
+    private String isTransferable;
+    private String isStoppable;
+    private String isShareable;
+    private String detailValidity;
+    private String detailValue;
+    private String detailValueRaw;
+    private String tibBonusType;
+    private String tibBonusSubType;
+    private String tibBonusUom;
+    
+    private Boolean isMore = false;
+    private Boolean isShareQuota = false;
+    
+    /* using Y and N because it from tibco */
+    private String isRenewable = "N";
+    private String isProductBuy = "N";
+
+    public PackageProfileMappingDto(){
+    }
+
+    public String getName() {
+        return displayPackages;
+    }
+
+    public String getBillingProductName() {
+        return billingProductName;
+    }
+
+    public void setBillingProductName(String billingProductName) {
+        this.billingProductName = billingProductName;
+    }
+
+    public String getDisplayPackages() {
+        return displayPackages;
+    }
+
+    public void setDisplayPackages(String displayPackages) {
+        this.displayPackages = displayPackages;
+    }
+
+    public String getUnregistrationKey() {
+        return unregistrationKey;
+    }
+
+    public void setUnregistrationKey(String unregistrationKey) {
+        this.unregistrationKey = unregistrationKey;
+    }
+
+    public String getRegistrationKey() {
+        return registrationKey;
+    }
+
+    public void setRegistrationKey(String registrationKey) {
+        this.registrationKey = registrationKey;
+    }
+
+    public String getEmailId() {
+        return emailId;
+    }
+
+    public void setEmailId(String emailId) {
+        this.emailId = emailId;
+    }
+
+    public String getPcrfEndDate() {
+        return pcrfEndDate;
+    }
+
+    public void setPcrfEndDate(String pcrfEndDate) {
+        this.pcrfEndDate = pcrfEndDate;
+    }
+
+    public String getPcrfRemainingAmount() {
+        return pcrfRemainingAmount;
+    }
+
+    public void setPcrfRemainingAmount(String pcrfRemainingAmount) {
+        this.pcrfRemainingAmount = pcrfRemainingAmount;
+    }
+
+    public String getRemainingAmount() {
+        return remainingAmount;
+    }
+
+    public void setRemainingAmount(String remainingAmount) {
+        this.remainingAmount = remainingAmount;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getGroupPackage() {
+        return groupPackage;
+    }
+
+    public void setGroupPackage(String groupPackage) {
+        this.groupPackage = groupPackage;
+    }
+    
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getProductNameEn() {
+        return productNameEn;
+    }
+
+    public void setProductNameEn(String productNameEn) {
+        this.productNameEn = productNameEn;
+    }
+
+    public String getProductNameIn() {
+        return productNameIn;
+    }
+
+    public void setProductNameIn(String productNameIn) {
+        this.productNameIn = productNameIn;
+    }
+
+    public String getIsTransferable() {
+        return isTransferable;
+    }
+
+    public void setIsTransferable(String isTransferable) {
+        this.isTransferable = isTransferable;
+    }
+
+    public String getIsStoppable() {
+        return isStoppable;
+    }
+
+    public void setIsStoppable(String isStoppable) {
+        this.isStoppable = isStoppable;
+    }
+
+    public String getIsShareable() {
+        return isShareable;
+    }
+
+    public void setIsShareable(String isShareable) {
+        this.isShareable = isShareable;
+    }
+
+    public String getDetailValidity() {
+        return detailValidity;
+    }
+
+    public void setDetailValidity(String detailValidity) {
+        this.detailValidity = detailValidity;
+    }
+
+    public String getDetailValue() {
+        return detailValue;
+    }
+
+    public void setDetailValue(String detailValue) {
+        this.detailValue = detailValue;
+    }
+
+    public Boolean getIsMore() {
+        return isMore;
+    }
+
+    public void setIsMore(Boolean isMore) {
+        this.isMore = isMore;
+    }
+    
+    public String getIsRenewable() {
+        return isRenewable;
+    }
+
+    public void setIsRenewable(String isRenewable) {
+        this.isRenewable = isRenewable;
+    }
+
+    public Boolean getIsShareQuota() {
+        return isShareQuota;
+    }
+
+    public void setIsShareQuota(Boolean isShareQuota) {
+        this.isShareQuota = isShareQuota;
+    }
+
+    public String getIsProductBuy() {
+        return isProductBuy;
+    }
+
+    public void setIsProductBuy(String isProductBuy) {
+        this.isProductBuy = isProductBuy;
+    }
+
+    public String getDetailValueRaw() {
+        return detailValueRaw;
+    }
+
+    public void setDetailValueRaw(String detailValueRaw) {
+        this.detailValueRaw = detailValueRaw;
+    }
+
+    public String getTibBonusUom() {
+        return tibBonusUom;
+    }
+
+    public void setTibBonusUom(String tibBonusUom) {
+        this.tibBonusUom = tibBonusUom;
+    }
+
+    public String getTibBonusType() {
+        return tibBonusType;
+    }
+
+    public void setTibBonusType(String tibBonusType) {
+        this.tibBonusType = tibBonusType;
+    }
+
+    public String getTibBonusSubType() {
+        return tibBonusSubType;
+    }
+
+    public void setTibBonusSubType(String tibBonusSubType) {
+        this.tibBonusSubType = tibBonusSubType;
+    }
+    
+}

@@ -1,0 +1,7 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.model.ProfileFlashColor;
+
+public interface FlashProfileService {
+    ProfileFlashColor getHexColor(long balance, long quota);
+}

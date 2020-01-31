@@ -1,0 +1,38 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.response.PaymentDto;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/payment")
+@ApiIgnore
+public class PaymentController {
+    @RequestMapping("/response-doku")
+    public Map responseDoku(@RequestBody PaymentDto paymentDto) {
+        return new HashMap();
+    }
+
+    @RequestMapping("/response-sprint")
+    public Map responseSprint(@RequestBody PaymentDto paymentDto) {
+        return new HashMap();
+    }
+
+    @RequestMapping("/response-bank")
+    public Map responseBank(@RequestBody PaymentDto paymentDto) {
+        return new HashMap();
+    }
+
+}

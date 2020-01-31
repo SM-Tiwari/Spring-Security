@@ -1,0 +1,63 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.ThemeDto;
+import id.gnvsolution.d3.api.model.Theme;
+import id.gnvsolution.d3.api.service.ThemeService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by rips on 7/5/17.
+ */
+@Service
+@Transactional
+public class ThemeServiceImpl extends BaseService implements ThemeService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ThemeServiceImpl.class);
+
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<Theme> themeDao;
+
+    @Autowired
+    public void initialization(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.themeDao = new BaseDao<>(sessionFactoryDef, Theme.class);
+    }
+
+    @Override
+    public Map<String, Object> themeNow() {
+    	
+    	logger.info("#themeNow-------------");
+
+        ThemeDto themeDto = new ThemeDto();
+        List<Theme> themes = themeDao.listData("from Theme where themeStatus = 1 and themePlace in ('LOGIN', 'HEADER')", 0, 2);
+        if (themes.size() > 0) {
+            for (Theme theme : themes) {
+                if (theme.getThemePlace().equals("HEADER")) {
+                    themeDto.setHeader(theme.getThemeImages());
+                } else if (theme.getThemePlace().equals("LOGIN")) {
+                    themeDto.setLogin(theme.getThemeImages());
+                }
+            }
+        } else {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, "No theme found")).all().build();
+        }
+
+        return new HashMap<String, Object>(){{
+            put("status", true);
+            put("theme", JSONResultFilter.filter(themeDto).all().build());
+        }};
+    }
+}

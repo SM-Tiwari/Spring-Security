@@ -1,0 +1,24 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.LoginInDto;
+import id.gnvsolution.d3.api.dto.request.TransferPackageDto;
+import id.gnvsolution.d3.api.dto.request.TransferPackageWithOtpDto;
+
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.TransferPackageService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Feb 12, 2018 7:41:20 PM
+ *
+ */
+public interface TransferPackageService {
+
+	Map<String, Object> requestOtp(TransferPackageWithOtpDto transferPackageWithOtpDto);
+    Map transfer(TransferPackageDto transferPackageDto);
+    Map transferWithOtp(TransferPackageWithOtpDto transferPackageWithOtpDto);
+    
+}

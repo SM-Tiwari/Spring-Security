@@ -1,0 +1,46 @@
+package id.gnvsolution.d3.api.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import id.gnvsolution.d3.api.security.securityutil.AuthConstants;
+import id.gnvsolution.d3.api.security.securityutil.JwtTokenUtil;
+import id.gnvsolution.d3.api.service.AppConfigService;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.BaseController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Dec 7, 2017 9:23:08 PM
+ *
+ */
+public class BaseController {
+	private JwtTokenUtil jwtTokenUtil;
+	
+	@Autowired
+	AppConfigService applicationConfigurationService;
+    public String accessRight(String imei) {
+        if(imei == null)
+            return "ANDROID";
+        if(imei.contains("-"))
+            return "IPHONE";
+        if(imei.contains("WebSelfcare"))
+            return "SELFCARE";
+        return "ANDROID";
+    }
+   
+    protected JwtTokenUtil getJwtTokenUtil() {
+		if (jwtTokenUtil == null) {
+			String issuer = applicationConfigurationService.get("security.token.issuer", AuthConstants.JWT_ISSUER).toString();
+			String signature = applicationConfigurationService.get("security.token.signature", AuthConstants.JWT_SIGNATURE).toString();
+			long expiration =Long.parseLong(applicationConfigurationService.get("security.token.expirationinminutes",  AuthConstants.JWT_SIGNATURE).toString());
+			
+
+			jwtTokenUtil = new JwtTokenUtil(issuer, signature, expiration * 60 * 60 * 1000);
+		}
+
+		return jwtTokenUtil;
+	}
+    
+}

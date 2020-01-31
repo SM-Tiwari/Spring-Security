@@ -1,0 +1,200 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.Date;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+/**
+ * <pre>
+ *  nitipgenerateentity.TrxPostpaidPayment 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 12, 2017 8:40:25 PM
+ *
+ */
+@Entity
+@Table(name = "TRX_POSTPAID_PAYMENT")
+public class TrxPostpaidPayment implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @Basic(optional = false)
+    @Column(name = "TRANSACTION_ID")
+    private String transactionId;
+    @Basic(optional = false)
+    @Column(name = "TRANSACTION_DATETIME")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date transactionDatetime;
+    @Basic(optional = false)
+    @Column(name = "ACCOUNT_NUMBER")
+    private String accountNumber;
+    @Basic(optional = false)
+    @Column(name = "ACCOUNT_AMOUNT_BILL")
+    private BigInteger accountAmountBill;
+    @Basic(optional = false)
+    @Column(name = "ACCOUNT_AMOUNT_PAID")
+    private BigInteger accountAmountPaid;
+    @Basic(optional = false)
+    @Column(name = "ACCOUNT_NAME")
+    private String accountName;
+    @Basic(optional = false)
+    @Column(name = "ACCOUNT_EMAIL")
+    private String accountEmail;
+    @Basic(optional = false)
+    @Column(name = "TRANSACTION_STATUS")
+    private BigInteger transactionStatus;
+    
+    @Basic(optional = false)
+    @Column(name = "SUBSCRIBER_MSISDN")
+    private String subscriberMsisdn;
+    
+    @Basic(optional = false)
+    @Column(name = "PAYMENT_METHOD_CODE")
+    private String paymentMethodCode;
+    
+    @Basic
+    @Column(name = "INTERFACE_TYPE", nullable = false, length = 15)
+    private String interfaceType;
+    
+    public String getInterfaceType() {
+		return interfaceType;
+	}
+
+	public void setInterfaceType(String interfaceType) {
+		this.interfaceType = interfaceType;
+	}
+
+    public TrxPostpaidPayment() {
+    }
+
+    public TrxPostpaidPayment(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public TrxPostpaidPayment(String transactionId, Date transactionDatetime, String accountNumber, BigInteger accountAmountBill, BigInteger accountAmountPaid, String accountName, String accountEmail, BigInteger transactionStatus) {
+        this.transactionId = transactionId;
+        this.transactionDatetime = transactionDatetime;
+        this.accountNumber = accountNumber;
+        this.accountAmountBill = accountAmountBill;
+        this.accountAmountPaid = accountAmountPaid;
+        this.accountName = accountName;
+        this.accountEmail = accountEmail;
+        this.transactionStatus = transactionStatus;
+    }
+
+    public String getPaymentMethodCode() {
+        return paymentMethodCode;
+    }
+
+    public void setPaymentMethodCode(String paymentMethodCode) {
+        this.paymentMethodCode = paymentMethodCode;
+    }
+
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public Date getTransactionDatetime() {
+        return transactionDatetime;
+    }
+
+    public void setTransactionDatetime(Date transactionDatetime) {
+        this.transactionDatetime = transactionDatetime;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public BigInteger getAccountAmountBill() {
+        return accountAmountBill;
+    }
+
+    public void setAccountAmountBill(BigInteger accountAmountBill) {
+        this.accountAmountBill = accountAmountBill;
+    }
+
+    public BigInteger getAccountAmountPaid() {
+        return accountAmountPaid;
+    }
+
+    public void setAccountAmountPaid(BigInteger accountAmountPaid) {
+        this.accountAmountPaid = accountAmountPaid;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    public String getAccountEmail() {
+        return accountEmail;
+    }
+
+    public void setAccountEmail(String accountEmail) {
+        this.accountEmail = accountEmail;
+    }
+
+    public BigInteger getTransactionStatus() {
+        return transactionStatus;
+    }
+
+    public void setTransactionStatus(BigInteger transactionStatus) {
+        this.transactionStatus = transactionStatus;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (transactionId != null ? transactionId.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof TrxPostpaidPayment)) {
+            return false;
+        }
+        TrxPostpaidPayment other = (TrxPostpaidPayment) object;
+        if ((this.transactionId == null && other.transactionId != null) || (this.transactionId != null && !this.transactionId.equals(other.transactionId))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "TrxPostpaidPayment{" + "transactionId=" + transactionId + ", transactionDatetime=" + transactionDatetime + ", accountNumber=" + accountNumber + ", accountAmountBill=" + accountAmountBill + ", accountAmountPaid=" + accountAmountPaid + ", accountName=" + accountName + ", accountEmail=" + accountEmail + ", transactionStatus=" + transactionStatus + ", subscriberMsisdn=" + subscriberMsisdn + ", paymentMethodCode=" + paymentMethodCode + '}';
+    }
+
+    
+    
+}

@@ -1,0 +1,107 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 7/5/17.
+ */
+@Entity
+@Table(name = "RPT_UTM_COUNTER")
+public class UtmCounter {
+
+	@Id
+    @Column(name = "UUID", nullable = false, precision = 0)
+    private String uuid;
+	
+    @Column(name = "FULL_URL")
+    private String fullUrl;
+
+    @Column(name = "UTM")
+    private String utm;
+
+    @Column(name = "TRX_DATE")
+    private Timestamp trxDate;
+  
+    
+    @Override
+	public String toString() {
+		return "UtmCounter [uuid=" + uuid + ", fullUrl=" + fullUrl + ", utm=" + utm + ", trxDate=" + trxDate + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((fullUrl == null) ? 0 : fullUrl.hashCode());
+		result = prime * result + ((trxDate == null) ? 0 : trxDate.hashCode());
+		result = prime * result + ((utm == null) ? 0 : utm.hashCode());
+		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		UtmCounter other = (UtmCounter) obj;
+		if (fullUrl == null) {
+			if (other.fullUrl != null)
+				return false;
+		} else if (!fullUrl.equals(other.fullUrl))
+			return false;
+		if (trxDate == null) {
+			if (other.trxDate != null)
+				return false;
+		} else if (!trxDate.equals(other.trxDate))
+			return false;
+		if (utm == null) {
+			if (other.utm != null)
+				return false;
+		} else if (!utm.equals(other.utm))
+			return false;
+		if (uuid == null) {
+			if (other.uuid != null)
+				return false;
+		} else if (!uuid.equals(other.uuid))
+			return false;
+		return true;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
+	public String getFullUrl() {
+		return fullUrl;
+	}
+
+	public void setFullUrl(String fullUrl) {
+		this.fullUrl = fullUrl;
+	}
+
+	public String getUtm() {
+		return utm;
+	}
+
+	public void setUtm(String utm) {
+		this.utm = utm;
+	}
+
+	public Timestamp getTrxDate() {
+		return trxDate;
+	}
+
+	public void setTrxDate(Timestamp trxDate) {
+		this.trxDate = trxDate;
+	}
+
+}

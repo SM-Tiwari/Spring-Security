@@ -1,0 +1,230 @@
+package id.gnvsolution.d3.api.controller.inbound;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.model.RptPgUt;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.utils.Helpers;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.inbound.DokuInboundController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 18, 2017 3:45:52 PM
+ *
+ */
+@Controller
+@RequestMapping("/api/v1/inbound/doku")
+@ApiIgnore
+public class DokuInboundController extends PaymentGatewayInboundController {
+    
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger("pg");
+    
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    
+//    @Value("${SHAREDKEY}")
+//    private String SHAREDKEY;
+    
+    /**
+     * 
+     */
+    private final ExternalPayment dokuService;
+
+    @Autowired
+    public DokuInboundController(ExternalPayment dokuService) {
+        this.dokuService = dokuService;
+    }
+
+    /**
+     * 
+     * Block here using WAF
+     * for handling doku inbound notify url
+     * 
+     * @param httpHeaders
+     * @param params
+     * @param request
+     * @param AMOUNT
+     * @param TRANSIDMERCHANT
+     * @param WORDS
+     * @param STATUSTYPE
+     * @param RESPONSECODE
+     * @param APPROVALCODE
+     * @param RESULTMSG
+     * @param PAYMENTCHANNEL
+     * @param PAYMENTCODE
+     * @param SESSIONID
+     * @param BANK
+     * @param MCN
+     * @param PAYMENTDATETIME
+     * @param VERIFYID
+     * @param VERIFYSCORE
+     * @param VERIFYSTATUS
+     * @param CURRENCY
+     * @param PURCHASECURRENCY
+     * @param BRAND
+     * @param CHNAME
+     * @param THREEDSECURESTATUS
+     * @param LIABILITY
+     * @param EDUSTATUS
+     * @return 
+     */
+    @RequestMapping(value = "/notify", method = RequestMethod.POST)
+    public @ResponseBody String notifyEndpoint(@RequestHeader HttpHeaders httpHeaders,
+                                @RequestParam Map<String, String> params,
+                                HttpServletRequest request,
+                                String AMOUNT,
+                                @RequestParam String TRANSIDMERCHANT,
+                                String WORDS,
+                                String STATUSTYPE,
+                                String RESPONSECODE,
+                                String APPROVALCODE,
+                                String RESULTMSG,
+                                String PAYMENTCHANNEL,
+                                String PAYMENTCODE,
+                                String SESSIONID,
+                                String BANK,
+                                String MCN,
+                                String PAYMENTDATETIME,
+                                String VERIFYID,
+                                String VERIFYSCORE,
+                                String VERIFYSTATUS,
+                                String CURRENCY,
+                                String PURCHASECURRENCY,
+                                String BRAND,
+                                String CHNAME,
+                                String THREEDSECURESTATUS,
+                                String LIABILITY,
+                                String EDUSTATUS) {
+        
+        HashMap<String, String> mapHeaderInfo = new HashMap<>();
+        Enumeration headerNames = ((HttpServletRequest)request).getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = ((HttpServletRequest)request).getHeader(key);
+            mapHeaderInfo.put(key, value);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n========== START =============== \r\n"); 
+        sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+        sb.append("Real IP\t\t:\t").append(httpHeaders.get("X-Forwarded-For")).append("\r\n");
+        sb.append("Accessing\t:\t").append(((HttpServletRequest)request).getRequestURI()).append("\r\n");
+        sb.append("PG\t\t:\t").append("DOKU").append("\r\n");
+        sb.append("Ref No\t\t:\t").append(TRANSIDMERCHANT).append("\r\n");
+        sb.append("Amount\t\t:\t").append(AMOUNT).append("\r\n");
+        sb.append("Status\t\t:\t").append(RESPONSECODE).append("\r\n");
+        sb.append("Parameters\t:\t").append(params).append("\r\n");
+        sb.append("Headers\t\t:\t").append(mapHeaderInfo).append("\r\n");
+        sb.append("Response\t:\t").append("OK").append("\r\n");
+        sb.append("==========  END  =============== \r\n"); 
+        logger.debug(sb.toString());
+        
+        RptPgUt rptPgUt = new RptPgUt();
+        rptPgUt.setAmount(new BigDecimal(AMOUNT));
+        rptPgUt.setChannel("DOKU");
+        rptPgUt.setInvoiceNo(TRANSIDMERCHANT);
+        rptPgUt.setMetadata01(""+params);
+        rptPgUt.setStatus("NOTIFY");
+        rptPgUt.setCardNo(MCN);
+        rptPgUt.setApprovalcode(APPROVALCODE);
+        save(rptPgUt);
+        
+        return "CONTINUE";
+    }
+    
+    /**
+     *  everyone can access
+     *  for handling doku thankyou page
+     * 
+     * @param httpHeaders
+     * @param params
+     * @param request
+     * @param STATUSCODE
+     * @param WORDS
+     * @param modelMap
+     * @param TRANSIDMERCHANT
+     * @param AMOUNT
+     * @return 
+     */
+    @RequestMapping(value = "/thankyou")
+    public String thankYouPost(@RequestHeader HttpHeaders httpHeaders,
+                                @RequestParam Map<String, String> params,
+                                HttpServletRequest request,
+                                String STATUSCODE, 
+                                String WORDS,
+                                ModelMap modelMap, 
+                                String TRANSIDMERCHANT, 
+                                String AMOUNT) {
+        String myWords = Helpers.getSHA1(AMOUNT+Constants.SHAREDKEY + TRANSIDMERCHANT + STATUSCODE);
+        
+        boolean succes = false;
+        if(!"0000".equals(STATUSCODE) || WORDS == null || WORDS.isEmpty() || !myWords.equals(WORDS)) {
+            modelMap.put("ErrDesc", "Transaksi Gagal Diproses");
+        } else {
+            try {
+                // validate first for malicious request
+                RptPgUt rptPgUt = select(TRANSIDMERCHANT);
+                if(rptPgUt != null) {
+                    dokuService.purchaseProduct(TRANSIDMERCHANT);
+                    succes = true;
+                } else {
+                    logger.error("MALICIOUS REQUEST FOR "+TRANSIDMERCHANT);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        
+        HashMap<String, String> mapHeaderInfo = new HashMap<>();
+        Enumeration headerNames = ((HttpServletRequest)request).getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = ((HttpServletRequest)request).getHeader(key);
+            mapHeaderInfo.put(key, value);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n========== START =============== \r\n"); 
+        sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+        sb.append("Real IP\t\t:\t").append(httpHeaders.get("X-Forwarded-For")).append("\r\n");
+        sb.append("Accessing\t:\t").append(((HttpServletRequest)request).getRequestURI()).append("\r\n");
+        sb.append("PG\t\t:\t").append("DOKU").append("\r\n");
+        sb.append("Ref No\t\t:\t").append(TRANSIDMERCHANT).append("\r\n");
+        sb.append("Amount\t\t:\t").append(AMOUNT).append("\r\n");
+        sb.append("Status\t\t:\t").append(STATUSCODE).append("\r\n");
+        sb.append("Parameters\t:\t").append(params).append("\r\n");
+        sb.append("Headers\t\t:\t").append(mapHeaderInfo).append("\r\n");
+        sb.append("Response\t:\t").append(succes?"SUCCESS PURCHASE":"FAILED PURCHASE").append("\r\n");
+        sb.append("==========  END  =============== \r\n"); 
+        logger.debug(sb.toString());
+                
+        RptPgUt rptPgUt = new RptPgUt();
+        rptPgUt.setAmount(new BigDecimal(AMOUNT));
+        rptPgUt.setChannel("DOKU");
+        rptPgUt.setInvoiceNo(TRANSIDMERCHANT);
+        rptPgUt.setMetadata02(""+params);
+        rptPgUt.setStatus(succes?"SUCCESS":"FAILED "+STATUSCODE);
+        save(rptPgUt);
+        
+        return "thankyou";
+    }
+}

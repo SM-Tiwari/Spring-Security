@@ -1,0 +1,218 @@
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- Get the ODPDB DataSource from JNDI -->
+   <!--  <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="d3ds" />
+        <property name="resourceRef" value="true" />
+    </bean> -->
+    
+    <!-- <bean id="dataSource_SF_API" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="crmds" />
+        <property name="resourceRef" value="true" />
+    </bean> -->
+
+    <!-- responsible for registering the necessary Spring components that power annotation-driven transaction management;
+         such as when @Transactional methods are invoked -->
+    <tx:annotation-driven/>
+    
+     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"
+       p:driverClassName="oracle.jdbc.OracleDriver" p:url="jdbc:oracle:thin:@10.6.13.44:1521/BIMATST"
+       	  p:username="ODP" p:password="Abcd12345"
+          p:initialSize="10"
+          p:maxActive="30"
+          p:maxIdle="15"
+          p:minIdle="10"
+          p:maxWait="5000"
+          p:removeAbandoned="true"
+          p:removeAbandonedTimeout="10"
+          p:validationQuery="SELECT 1 FROM DUAL" />
+    
+    <bean id="dataSource_SF_API" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"
+     p:driverClassName="oracle.jdbc.OracleDriver" p:url="jdbc:oracle:thin:@10.6.13.44:1521/BIMATST"
+       	  p:username="ODP" p:password="Abcd12345"		
+          p:initialSize="10"
+          p:maxActive="30"
+          p:maxIdle="15"
+          p:minIdle="10"
+          p:maxWait="5000" 
+          p:removeAbandoned="true"
+          p:removeAbandonedTimeout="10"
+          p:validationQuery="SELECT 1 FROM DUAL" />
+
+    <bean id="sessionFactory_API" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource_SF_API"/>
+        <property name="entityInterceptor" ref="hibernateSessionFilter"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+                <prop key="hibernate.hbm2ddl.auto">none</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="transactionManagerSF_API"
+          class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory_API"/>
+    </bean>
+
+    <bean id="hibernateSessionFilter" class="id.gnvsolution.d3.api.filter.HibernateSessionFilter" />
+
+    <bean id="sessionFactory_Def" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="wrappedDataSource"/>
+        <property name="entityInterceptor" ref="hibernateSessionFilter" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+                <prop key="hibernate.hbm2ddl.auto">none</prop>
+                <!-- <prop key="hibernate.show_sql">true</prop> -->
+            </props>
+        </property>
+        <property name="annotatedClasses">
+            <list>
+                <value>id.gnvsolution.d3.api.model.SubscriberOTP</value>
+                <value>id.gnvsolution.d3.api.model.Subscriber</value>
+                <value>id.gnvsolution.d3.api.model.LoginHistories</value>
+                <value>id.gnvsolution.d3.api.model.Broadcast</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist0</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist1</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist2</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist3</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist4</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist5</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist6</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist7</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist8</value>
+                <value>id.gnvsolution.d3.api.model.CampaignWhitelist9</value>
+                <value>id.gnvsolution.d3.api.model.MenuCategory</value>
+                <value>id.gnvsolution.d3.api.model.Notification</value>
+                <value>id.gnvsolution.d3.api.model.Parameter</value>
+                <value>id.gnvsolution.d3.api.model.PaymentMethod</value>
+                <value>id.gnvsolution.d3.api.model.Product</value>
+                <value>id.gnvsolution.d3.api.model.ProductCategory</value>
+                <value>id.gnvsolution.d3.api.model.ProductCharging</value>
+                <value>id.gnvsolution.d3.api.model.ProductHomescreen</value>
+                <value>id.gnvsolution.d3.api.model.ProductHomescreenPosition</value>
+                <value>id.gnvsolution.d3.api.model.ProductMetadata</value>
+                <value>id.gnvsolution.d3.api.model.ProductPriorityPromo</value>
+                <value>id.gnvsolution.d3.api.model.ProductWidget</value>
+                <value>id.gnvsolution.d3.api.model.ProfileMapping</value>
+                <value>id.gnvsolution.d3.api.model.RecommendedForYou</value>
+                <value>id.gnvsolution.d3.api.model.SearchBlacklist</value>
+                <value>id.gnvsolution.d3.api.model.SubMenuCategory</value>
+                <value>id.gnvsolution.d3.api.model.TrxShareQuota</value>
+                <value>id.gnvsolution.d3.api.model.TrxSubscriberEtopup</value>
+                <value>id.gnvsolution.d3.api.model.TrxSubscriberPurchase</value>
+                <value>id.gnvsolution.d3.api.model.TrxSubscriberReload</value>
+                <value>id.gnvsolution.d3.api.model.TrxWelcomeReward</value>
+                <value>id.gnvsolution.d3.api.model.Vendor</value>
+                <value>id.gnvsolution.d3.api.model.NotificationPush</value>
+                <value>id.gnvsolution.d3.api.model.RptInvoiceSummary</value>
+                <value>id.gnvsolution.d3.api.model.TrxPostpaidPayment</value>
+                <value>id.gnvsolution.d3.api.model.TransferPackageOtp</value>
+                
+                <value>id.gnvsolution.d3.api.model.RecommendedForYouBox</value>
+                <value>id.gnvsolution.d3.api.model.Secretkey</value>
+
+                <value>id.gnvsolution.d3.api.model.Campaign</value>
+                <value>id.gnvsolution.d3.api.model.CampaignBanner</value>
+                <value>id.gnvsolution.d3.api.model.CampaignFrequently</value>
+                <value>id.gnvsolution.d3.api.model.CampaignReward</value>
+                <value>id.gnvsolution.d3.api.model.CampaignTargetType</value>
+                
+                <value>id.gnvsolution.d3.api.model.Notification0</value>
+                <value>id.gnvsolution.d3.api.model.Notification1</value>
+                <value>id.gnvsolution.d3.api.model.Notification2</value>
+                <value>id.gnvsolution.d3.api.model.Notification3</value>
+                <value>id.gnvsolution.d3.api.model.Notification4</value>
+                <value>id.gnvsolution.d3.api.model.Notification5</value>
+                <value>id.gnvsolution.d3.api.model.Notification6</value>
+                <value>id.gnvsolution.d3.api.model.Notification7</value>
+                <value>id.gnvsolution.d3.api.model.Notification8</value>
+                <value>id.gnvsolution.d3.api.model.Notification9</value>
+                <value>id.gnvsolution.d3.api.model.NotificationMasterId</value>
+                <value>id.gnvsolution.d3.api.model.NotificationMaster</value>
+
+                <value>id.gnvsolution.d3.api.model.Theme</value>
+                <value>id.gnvsolution.d3.api.model.ProfileFlashColor</value>
+                <value>id.gnvsolution.d3.api.model.RptDummyMsisdn</value>
+                
+                <value>id.gnvsolution.d3.api.model.DwhStatsSubDetailDevice</value>
+                <value>id.gnvsolution.d3.api.model.DwhTransactionPayment</value>
+                <value>id.gnvsolution.d3.api.model.DwhUniqueMsisdnDevice</value>
+                <value>id.gnvsolution.d3.api.model.DwhUserTransactions</value>
+                <value>id.gnvsolution.d3.api.model.SubscriberPreviewWhitelist</value>
+                
+                <value>id.gnvsolution.d3.api.model.RptPgUt</value>
+                <value>id.gnvsolution.d3.api.model.TrxTibcoResponse</value>
+                <value>id.gnvsolution.d3.api.model.UserCallplan</value>
+                <value>id.gnvsolution.d3.api.model.CustomerUiType</value>
+                
+                <value>id.gnvsolution.d3.api.model.DwhProductPerformance</value>
+                <value>id.gnvsolution.d3.api.model.SubscriberAppVersion</value>
+                <value>id.gnvsolution.d3.api.model.SubscriberPictures</value>
+                
+                <value>id.gnvsolution.d3.api.model.ProfileColor</value>
+                <value>id.gnvsolution.d3.api.model.ProductVoucher</value>
+                <value>id.gnvsolution.d3.api.model.DeeplinkUrl</value>
+                <value>id.gnvsolution.d3.api.model.DynamicButton</value>
+                <value>id.gnvsolution.d3.api.model.TrxProductMapping</value>
+                <value>id.gnvsolution.d3.api.model.ProductWishList</value>
+                <value>id.gnvsolution.d3.api.model.ProductLastView</value>
+                
+                <value>id.gnvsolution.d3.api.model.TrxTransferPackage</value>
+                <value>id.gnvsolution.d3.api.model.TrxTransferPulsa</value>
+                <value>id.gnvsolution.d3.api.model.ProductRating</value>
+                <value>id.gnvsolution.d3.api.model.RptCallbackAnalytic</value>
+                <value>id.gnvsolution.d3.api.model.SubcriberSegmentations</value>
+                <value>id.gnvsolution.d3.api.model.SubscriberEmailLogin</value>
+                <value>id.gnvsolution.d3.api.model.SubscriberEmailToken</value>
+                <value>id.gnvsolution.d3.api.model.SubscriberUserProfile</value>
+                
+                <value>id.gnvsolution.d3.api.model.UtmCounter</value>
+                <value>id.gnvsolution.d3.api.model.DefaultLastPurchase</value>
+                
+                <value>id.gnvsolution.d3.api.model.ProductMainCategory</value>
+                
+                <value>id.gnvsolution.d3.api.model.InfoWording</value>
+                <value>id.gnvsolution.d3.api.model.FixSubscriberOtp</value>
+                 <value>id.gnvsolution.d3.api.model.ClassOfServiceEntity</value>
+                 <value>id.gnvsolution.d3.api.dto.request.CustomerCareDto</value>
+                  <value>id.gnvsolution.d3.api.model.MsisdnTokenEntity</value>
+                 <value>id.gnvsolution.d3.api.model.PaymentHistoryEntity</value>
+                 <value>id.gnvsolution.d3.api.model.BankEntity</value>
+                 <value>id.gnvsolution.d3.api.model.AppConfigModel</value>
+                 <value>id.gnvsolution.d3.api.model.Recommedation</value>
+                  <value>id.gnvsolution.d3.api.model.PromotionBalanceHide</value>
+                   <value>id.gnvsolution.d3.api.model.BalanceNameMappingEntity</value>
+                   <value>id.gnvsolution.d3.api.model.PostPaidPaymentHistoryEntity</value>
+                   <value>id.gnvsolution.d3.api.model.MemberGetMember</value>
+                    <value>id.gnvsolution.d3.api.model.TrxCmsOffer</value>
+                      <value>id.gnvsolution.d3.api.model.TopUpTypeEntity</value>
+                      <value>id.gnvsolution.d3.api.model.SelfPackageBalanceNameEntity</value>
+					<value>id.gnvsolution.d3.api.model.SelfPackageCommonConfigEntity</value>
+					<value>id.gnvsolution.d3.api.model.SelfPackagePriceMappingEntity</value>
+					<value>id.gnvsolution.d3.api.model.LoginHistoryEntity</value>
+					<value>id.gnvsolution.d3.api.model.DataUsesEntity</value>
+					<value>id.gnvsolution.d3.api.model.MsisdnWithoutOtp</value>
+					<value>id.gnvsolution.d3.api.model.ScratchBlockHistoryEntity</value>
+							<value>id.gnvsolution.d3.api.model.ScratchStatusEntity</value>
+							<value>id.gnvsolution.d3.api.model.DiscountTopupEntity</value>
+							<value>id.gnvsolution.d3.api.model.TrxSelfPackage</value>
+							<value>id.gnvsolution.d3.api.model.SmsCallHistoryStatus</value>
+							<value>id.gnvsolution.d3.api.dto.request.FattyRequestDto</value>
+							<value>id.gnvsolution.d3.api.model.ProductUnsubscribe</value>
+							<value>id.gnvsolution.d3.api.model.EtopUpStatusEntity</value>
+							
+            </list>
+        </property>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory_Def"/>
+    </bean>
+</beans>

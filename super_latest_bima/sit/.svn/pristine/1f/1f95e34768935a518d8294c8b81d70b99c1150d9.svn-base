@@ -1,0 +1,35 @@
+package id.gnvsolution.d3.api.security.securityutil;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+public class JWTConstant {
+	
+	public static final String JWT_HEADER_NAME			= "Authorization";
+	public static final String JWT_ISSUER				= "Vietnamobile";
+	public static final String JWT_SIGNATURE 			= "VjEzVE40TTBCMUwzIVMzTEZDNFIz"; //V13TN4M0B1L3!S3LFC4R3
+	public static final String JWT_PREFIX 				= "Bearer ";
+	public static final String JWT_CLAIM_FGP				= "fgp";
+	public static final String JWT_CLAIM_KEY_USERNAME 	= "sub";
+	public static final String JWT_CLAIM_KEY_CREATED 		= "iat";
+	public static final long TOKEN_VALIDITY_IN_MINUTES	= 10;
+	
+	   public static final long MILISECOUNDS_IN_ONE_MINUTE=60000;
+	   
+	   public static final String GUEST_USER_CREDINTIAL="6d24fcab1c23fb07595cf809f37775f7cd8e6fb7";
+	     public static final String GUEST_USER_TOKEN="Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIwMTg4ODA0NDAwMiIsImlzcyI6IlZpZXRuYW1vYmlsZSIsImlhdCI6MTUzNjgyMjUwNH0.4eK_pSJbGWvPslejsKXDQMTjT54O5WQVAHs8nlny5XIkiVFeCIDAJNayNQjyfVhBiUGvOquiN8oJnlzaDOJj2w";
+	   
+	   
+	   
+	   public static long getCurrentTimeInMiliSecounds() throws  java.text.ParseException
+       {
+              final Date currentDate = new Date();
+              final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+              sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+              Date date = sdf.parse(sdf.format(currentDate));
+              long millis = date.getTime();
+              return millis;
+       }
+
+}

@@ -1,0 +1,94 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.RptPgUt;
+import id.gnvsolution.d3.api.service.UTService;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.UTServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 20, 2017 12:22:56 AM
+ *
+ */
+@Service
+@Transactional
+public class UTServiceImpl implements UTService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(UTServiceImpl.class);
+
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<RptPgUt> dao;
+    
+    @Autowired
+    public void initialization(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.dao = new BaseDao<>(sessionFactoryDef, RptPgUt.class);
+    }
+    
+    @Override
+    public void save(RptPgUt rptPgUt) {
+    	logger.info("save method of UTServiceImpl-------invoice no.+++++", rptPgUt.getInvoiceNo());
+        List<RptPgUt> rptPgUts = dao.find("invoiceNo = :invoiceNo ", new HashMap<String, Object>() {
+            {
+                put("invoiceNo", rptPgUt.getInvoiceNo());
+            }
+        });
+        
+        // insert
+        if(rptPgUts.isEmpty()) {
+            rptPgUt.setUuid(UUID.randomUUID().toString());
+            rptPgUt.setTrxDate(new Date());
+            dao.save(rptPgUt);
+        } else {
+            // update
+            RptPgUt rptPgUtDB = rptPgUts.get(0);
+            
+            if(rptPgUt.getCardNo() != null)
+                rptPgUtDB.setCardNo(rptPgUt.getCardNo());
+            if(rptPgUt.getStatus()!= null)
+                rptPgUtDB.setStatus(rptPgUt.getStatus());
+            if(rptPgUt.getMetadata01()!= null)
+                rptPgUtDB.setMetadata01(rptPgUt.getMetadata01());
+            if(rptPgUt.getMetadata02()!= null)
+                rptPgUtDB.setMetadata02(rptPgUt.getMetadata02());
+            if(rptPgUt.getMetadata03()!= null)
+                rptPgUtDB.setMetadata03(rptPgUt.getMetadata03());
+            if(rptPgUt.getApprovalcode()!= null)
+                rptPgUtDB.setApprovalcode(rptPgUt.getApprovalcode());
+            
+            dao.update(rptPgUtDB);
+        }
+    }
+    
+    @Override
+    public RptPgUt select(String invoiceNo) {
+    	logger.info("select method of UTServiceImpl-------invoice no.+++++", invoiceNo);
+        List<RptPgUt> rptPgUts = dao.find("invoiceNo = :invoiceNo and status = :status and approvalcode is not null ", new HashMap<String, Object>() {
+            {
+                put("invoiceNo", invoiceNo);
+                put("status", "NOTIFY");
+            }
+        });
+        
+        if(rptPgUts.isEmpty()) 
+            return null; // malicious request
+        return rptPgUts.get(0);
+    }
+
+}

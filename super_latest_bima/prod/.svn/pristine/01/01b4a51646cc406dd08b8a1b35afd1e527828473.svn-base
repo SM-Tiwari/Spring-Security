@@ -1,0 +1,286 @@
+package id.gnvsolution.d3.api.model;
+
+import java.math.BigInteger;
+import javax.persistence.*;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "PRODUCT_CHARGING")
+public class ProductCharging {
+    private Integer productChargingId;
+    private String productId;
+    private String vendorId;
+    private String servicePlan;
+    private String registrationKey;
+    private String unregistrationKey;
+    private String smsmtKeyword;
+    private String smsmtTo;
+    private String paymentMethodCode;
+    private String freeUrl;
+    private String ddcUrl;
+    private long price;
+    private BigInteger originalPrice;
+    private long isPromo;
+    private Product productByProductId;
+    private PaymentMethod paymentMethodByPaymentGatewayId;
+    private Vendor vendor;
+
+    private String nsnSourceId;
+    private String nsnContentId;
+    
+    private String ddcUrlIphone;
+    private String ddcUrlSelfcare;
+    
+    @Basic
+    @Column(name = "PRODUCT_ID", nullable = false, length = 50)
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    @Basic
+    @Column(name = "VENDOR_ID", nullable = false, length = 5)
+    public String getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    @Basic
+    @Column(name = "SERVICE_PLAN", nullable = true, length = 50)
+    public String getServicePlan() {
+        return servicePlan;
+    }
+
+    public void setServicePlan(String servicePlan) {
+        this.servicePlan = servicePlan;
+    }
+
+    @Basic
+    @Column(name = "REGISTRATION_KEY", nullable = true, length = 50)
+    public String getRegistrationKey() {
+        return registrationKey;
+    }
+
+    public void setRegistrationKey(String registrationKey) {
+        this.registrationKey = registrationKey;
+    }
+
+    @Basic
+    @Column(name = "SMSMT_KEYWORD", nullable = true, length = 160)
+    public String getSmsmtKeyword() {
+        return smsmtKeyword;
+    }
+
+    public void setSmsmtKeyword(String smsmtKeyword) {
+        this.smsmtKeyword = smsmtKeyword;
+    }
+
+    @Basic
+    @Column(name = "SMSMT_TO", nullable = true, length = 15)
+    public String getSmsmtTo() {
+        return smsmtTo;
+    }
+
+    public void setSmsmtTo(String smsmtTo) {
+        this.smsmtTo = smsmtTo;
+    }
+
+    @Basic
+    @Column(name = "PAYMENT_METHOD_CODE", unique = true, nullable = true, length = 2)
+    public String getPaymentMethodCode() {
+        return paymentMethodCode;
+    }
+
+    public void setPaymentMethodCode(String paymentMethodCode) {
+        this.paymentMethodCode = paymentMethodCode;
+    }
+
+    @Basic
+    @Column(name = "FREE_URL", nullable = true, length = 255)
+    public String getFreeUrl() {
+        return freeUrl;
+    }
+
+    public void setFreeUrl(String freeUrl) {
+        this.freeUrl = freeUrl;
+    }
+
+    @Basic
+    @Column(name = "PRICE", nullable = false, precision = 0)
+    public long getPrice() {
+        return price;
+    }
+
+    public void setPrice(long price) {
+        this.price = price;
+    }
+    
+    @Basic
+    @Column(name = "ORIG_PRICE")
+    public BigInteger getOriginalPrice() {
+        return originalPrice;
+    }
+
+    public void setOriginalPrice(BigInteger originalPrice) {
+        this.originalPrice = originalPrice;
+    }
+
+    @Basic
+    @Column(name = "IS_PROMO", nullable = false, precision = 0)
+    public long getIsPromo() {
+        return isPromo;
+    }
+
+    public void setIsPromo(long isPromo) {
+        this.isPromo = isPromo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProductCharging that = (ProductCharging) o;
+
+        if (price != that.price) return false;
+        if (originalPrice != that.originalPrice) return false;
+        if (isPromo != that.isPromo) return false;
+        if (productId != null ? !productId.equals(that.productId) : that.productId != null) return false;
+        if (vendorId != null ? !vendorId.equals(that.vendorId) : that.vendorId != null) return false;
+        if (servicePlan != null ? !servicePlan.equals(that.servicePlan) : that.servicePlan != null) return false;
+        if (registrationKey != null ? !registrationKey.equals(that.registrationKey) : that.registrationKey != null)
+            return false;
+        if (smsmtKeyword != null ? !smsmtKeyword.equals(that.smsmtKeyword) : that.smsmtKeyword != null) return false;
+        if (smsmtTo != null ? !smsmtTo.equals(that.smsmtTo) : that.smsmtTo != null) return false;
+        if (paymentMethodCode != null ? !paymentMethodCode.equals(that.paymentMethodCode) : that.paymentMethodCode != null)
+            return false;
+        if (freeUrl != null ? !freeUrl.equals(that.freeUrl) : that.freeUrl != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = productId != null ? productId.hashCode() : 0;
+        result = 31 * result + (vendorId != null ? vendorId.hashCode() : 0);
+        result = 31 * result + (servicePlan != null ? servicePlan.hashCode() : 0);
+        result = 31 * result + (registrationKey != null ? registrationKey.hashCode() : 0);
+        result = 31 * result + (smsmtKeyword != null ? smsmtKeyword.hashCode() : 0);
+        result = 31 * result + (smsmtTo != null ? smsmtTo.hashCode() : 0);
+        result = 31 * result + (paymentMethodCode != null ? paymentMethodCode.hashCode() : 0);
+        result = 31 * result + (freeUrl != null ? freeUrl.hashCode() : 0);
+        result = 31 * result + (int) (price ^ (price >>> 32));
+        result = 31 * result + (int) (isPromo ^ (isPromo >>> 32));
+        return result;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "PRODUCT_ID", referencedColumnName = "PRODUCT_ID", nullable = false, insertable = false, updatable = false)
+    public Product getProductByProductId() {
+        return productByProductId;
+    }
+
+    public void setProductByProductId(Product productByProductId) {
+        this.productByProductId = productByProductId;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "PAYMENT_METHOD_CODE", referencedColumnName = "PAYMENT_METHOD_CODE", insertable = false, updatable = false)
+    public PaymentMethod getPaymentMethodByPaymentGatewayId() {
+        return paymentMethodByPaymentGatewayId;
+    }
+
+    public void setPaymentMethodByPaymentGatewayId(PaymentMethod paymentMethodByPaymentGatewayId) {
+        this.paymentMethodByPaymentGatewayId = paymentMethodByPaymentGatewayId;
+    }
+
+    @Id
+    @SequenceGenerator(name = "SEQ_PRODUCT_CHARGING", sequenceName = "SEQ_PRODUCT_CHARGING", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_PRODUCT_CHARGING", strategy = GenerationType.SEQUENCE)
+    @Column(name = "PRODUCT_CHARGING_ID", nullable = false)
+    public Integer getProductChargingId() {
+        return productChargingId;
+    }
+
+    public void setProductChargingId(Integer productChargingId) {
+        this.productChargingId = productChargingId;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "VENDOR_ID", referencedColumnName = "VENDOR_ID", nullable = false, insertable = false, updatable = false)
+    public Vendor getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(Vendor vendor) {
+        this.vendor = vendor;
+    }
+
+    @Basic
+    @Column(name = "NSN_SOURCE_ID")
+    public String getNsnSourceId() {
+        return nsnSourceId;
+    }
+
+    public void setNsnSourceId(String nsnSourceId) {
+        this.nsnSourceId = nsnSourceId;
+    }
+
+    @Basic
+    @Column(name = "NSN_CONTENT_ID")
+    public String getNsnContentId() {
+        return nsnContentId;
+    }
+
+    public void setNsnContentId(String nsnContentId) {
+        this.nsnContentId = nsnContentId;
+    }
+
+    @Basic
+    @Column(name = "DDC_URL")
+    public String getDdcUrl() {
+        return ddcUrl;
+    }
+
+    public void setDdcUrl(String ddcUrl) {
+        this.ddcUrl = ddcUrl;
+    }
+
+    @Basic
+    @Column(name = "DDC_URL_IPHONE")
+    public String getDdcUrlIphone() {
+        return ddcUrlIphone;
+    }
+
+    public void setDdcUrlIphone(String ddcUrlIphone) {
+        this.ddcUrlIphone = ddcUrlIphone;
+    }
+
+    @Basic
+    @Column(name = "DDC_URL_SELFCARE")
+    public String getDdcUrlSelfcare() {
+        return ddcUrlSelfcare;
+    }
+
+    public void setDdcUrlSelfcare(String ddcUrlSelfcare) {
+        this.ddcUrlSelfcare = ddcUrlSelfcare;
+    }
+
+    @Basic
+    @Column(name = "UNREGISTRATION_KEY", nullable = true, length = 50)
+    public String getUnregistrationKey() {
+        return unregistrationKey;
+    }
+
+    public void setUnregistrationKey(String unregistrationKey) {
+        this.unregistrationKey = unregistrationKey;
+    }
+}

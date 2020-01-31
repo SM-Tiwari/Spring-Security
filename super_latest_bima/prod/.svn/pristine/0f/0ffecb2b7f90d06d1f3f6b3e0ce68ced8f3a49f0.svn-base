@@ -1,0 +1,256 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.Campaign;
+import id.gnvsolution.d3.api.model.CampaignReward;
+import id.gnvsolution.d3.api.service.CampaignService;
+import id.gnvsolution.d3.api.utils.ApiHelpers;
+import java.math.BigInteger;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Service
+@Transactional
+public class CampaignServiceImpl extends BaseService implements CampaignService {
+
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<Campaign> campaignDao;
+    private BaseDao<CampaignReward> campaignRewardDao;
+    
+    @Autowired
+    ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CampaignServiceImpl.class);
+    
+    @Autowired
+    private void initializa(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.campaignDao = new BaseDao<>(sessionFactoryDef, Campaign.class);
+        this.campaignRewardDao = new BaseDao<>(sessionFactoryDef, CampaignReward.class);
+    }
+
+    public boolean isAlreadyRedeemWelcomeReward(String msisdn, String imei) {
+    	LOGGER.info("#isAlreadyRedeemWelcomeReward--------getting count from Campaign based on msisdn or imei::"+ msisdn ,imei );
+        long count = campaignRewardDao.count("claimStatus = 1 and campaignId.isReward = 1 and (msisdn = :msisdn or imei = :imei)", new HashMap<String, Object>() {{
+            put("msisdn", msisdn);
+            put("imei", imei);
+        }});
+        LOGGER.info("#isAlreadyRedeemWelcomeReward-------- count---",count);
+
+        return count > 0;
+    }
+
+    public boolean isAlreadyRedeemOrCancelWelcomeReward(String msisdn, String imei) {
+    	LOGGER.info("#isAlreadyRedeemOrCancelWelcomeReward--------getting count from Campaign based on  claim status and  msisdn or imei::"+ msisdn ,imei );
+        long count = campaignRewardDao.count("(claimStatus = 1 or claimStatus = 9) and campaignId.isReward = 1 and (msisdn = :msisdn or imei = :imei)", new HashMap<String, Object>() {{
+            put("msisdn", msisdn);
+            put("imei", imei);
+        }});
+        LOGGER.info("#isAlreadyRedeemOrCancelWelcomeReward-------- count---",count);
+
+        return count > 0;
+    }
+
+    public boolean isCampaignStillActive(String campaignId) {
+        long count = campaignDao.count("campaignId = :campaignId and sysdate between startdate and enddate and status = 1", new HashMap<String, Object>() {{
+            put("campaignId", campaignId);
+        }});
+
+        return count > 0;
+    }
+
+    public boolean isCampaignStillEligible(String campaignId, String msisdn, boolean isRedeem) {
+    	
+    	LOGGER.info("#isCampaignStillEligible---------");
+        Campaign campaign = getCampaign(campaignId);
+
+        // checking random id from random ghost
+        if (campaign == null) {
+            return false;
+        }
+
+        // checking is campaign still active
+        if (!isCampaignStillActive(campaignId)) {
+            return false;
+        }
+
+        String query = " campaignId.campaignId = :campaignId and claimStatus " + (isRedeem ? "= 1" : "in (1, 9)") + " and msisdn = :msisdn and ";
+        switch (campaign.getFrequency()) {
+            case "hourly": {
+                query = query + " claimDate between (sysdate - (1/24)) and sysdate ";
+                break;
+            }
+            case "daily": {
+                query = query + " claimDate between (sysdate - 1) and sysdate ";
+                break;
+            }
+            case "weekly": {
+                query = query + " claimDate between (sysdate - 7) and sysdate ";
+                break;
+            }
+            case "monthly": {
+                query = query + " claimDate between add_months(sysdate, -1) and sysdate ";
+                break;
+            }
+            case "yearly": {
+                query = query + " claimDate between add_months(sysdate, -12) and sysdate ";
+                break;
+            }
+        }
+
+        Long campaignTimes = new Long(0);
+        if(campaign.getTimes() != null){
+            campaignTimes = Long.valueOf(campaign.getTimes().toString());
+        }
+        
+        return campaignTimes > campaignRewardDao.count(query, new HashMap<String, Object>() {{
+            put("campaignId", campaignId);
+            put("msisdn", msisdn);
+        }});
+    }
+
+    public boolean isMsisdnWhitelisted(String campaignId, String msisdn) {
+    	LOGGER.info("#isMsisdnWhitelisted---------");
+        return (long) sessionFactoryDef.getCurrentSession().createQuery("select count(*) from CampaignWhitelist" + msisdn.charAt(msisdn.length() - 1) + " where promoId = :promoId and msisdn = :msisdn")
+                .setString("promoId", campaignId)
+                .setString("msisdn", msisdn).uniqueResult() > 0;
+    }
+
+    public boolean isMsisdnWhitelistedLimit(String campaignId, String msisdn, int limit) {
+    	LOGGER.info("#isMsisdnWhitelistedLimit---------");
+        return (long) sessionFactoryDef.getCurrentSession().createQuery("select count(*) from CampaignWhitelist" + msisdn.charAt(msisdn.length() - 1) + " where promoId = :promoId and msisdn = :msisdn and processed = :processed")
+                .setString("promoId", campaignId)
+                .setString("msisdn", msisdn)
+                .setInteger("processed", limit).uniqueResult() > 0;
+    }
+
+    public long countCampaignReward(String campaignId, String msisdn, String imei, Short status) {
+    	LOGGER.info("#countCampaignReward---------");
+        return campaignRewardDao.count("campaignId.campaignId = :campaignId and (msisdn = :msisdn or imei = :imei) and claimStatus = :claimStatus", new HashMap<String, Object>() {{
+            put("campaignId", campaignId);
+            put("msisdn", msisdn);
+            put("imei", imei);
+            put("claimStatus", status);
+        }});
+    }
+
+    public Campaign getCampaign(String campaignId) {
+    	LOGGER.info("#getCampaign---------getting campaign based on campaign id:::", campaignId);
+        List<Campaign> campaignList = campaignDao.find("campaignId = :campaignId and status = 1", new HashMap<String, Object>() {{
+            put("campaignId", campaignId);
+        }});
+        return campaignList.isEmpty() ? null : campaignList.get(0);
+    }
+
+    public Campaign getCampaignWelcomeReward(String msisdn) {
+    	LOGGER.info("#getCampaignWelcomeReward---------");
+        
+        List<String> offerIdList = ApiHelpers.getApiClmOfferIdList(moduleTransactionIDGenerator.generate(Module.CLM),msisdn);
+        
+        List<Campaign> campaignList = new ArrayList<>();
+        if(!offerIdList.isEmpty()){
+            String offerIdListData = offerIdList.stream()
+            .map(s -> "'" + s + "'")
+            .collect(Collectors.joining(", "));
+            
+            LOGGER.info("#getCampaignWelcomeReward---------getting campaign data based on msisdn:::", msisdn);
+
+            campaignList = campaignDao.listData("from Campaign where campaignId IN ("+offerIdListData+") AND isReward = 1 and status = 1 and sysdate between startdate and enddate order by priority, enddate");
+        }
+        
+        /* if data from CLM is empty OR data from database based on CLM is empty then use database based only*/
+        if(offerIdList.isEmpty() || campaignList.isEmpty()){
+            
+            LOGGER.info("CLM Response isEmpty : "+offerIdList.isEmpty()+" / CLM Response-Database isEmpty : "+campaignList.isEmpty());
+            campaignList = campaignDao.listData("from Campaign where isReward = 1 and status = 1 and sysdate between startdate and enddate order by priority, enddate", 0, 1);
+        }
+
+        return campaignList.isEmpty() ? null : campaignList.get(0);
+    }
+
+    public CampaignReward getCampaignReward(String campaignId, String msisdn, short claimStatus) {
+    	LOGGER.info("#getCampaignReward---------getting CampaignReward data based on campaignId, msisdn, claimStatus:::", msisdn, campaignId, claimStatus);
+        List<CampaignReward> campaignRewardList = campaignRewardDao.find(" campaignId.campaignId = :campaignId and msisdn = :msisdn and claimStatus = :claimStatus", new HashMap<String, Object>() {{
+            put("campaignId", campaignId);
+            put("msisdn", msisdn);
+            put("claimStatus", claimStatus);
+        }});
+
+        return campaignRewardList.isEmpty() ? null : campaignRewardList.get(0);
+    }
+
+    public List<Campaign> getCampaignRfu(String msisdn) {
+    	LOGGER.info("#getCampaignRfu---------getting Campaign data based on msisdn:::", msisdn);
+        List<Campaign> campaignListEligible = new ArrayList<>();
+        List<Campaign> campaignList = campaignDao.listData("from Campaign where rfy = 1 and status = 1 and sysdate between startdate and enddate and priority between 1 and 20 order by priority, promoNameId");
+
+        for (Campaign campaign : campaignList) {
+            if (isCampaignStillEligible(campaign.getCampaignId(), msisdn, false)) {
+                campaignListEligible.add(campaign);
+            }
+        }
+
+        return campaignListEligible;
+    }
+
+    public List<Campaign> getCampaignRfuAll(String msisdn) {
+    	LOGGER.info("#getCampaignRfuAll---------getting Campaign data based on msisdn:::", msisdn);
+        List<Campaign> campaignListEligible = new ArrayList<>();
+        List<Campaign> campaignList = campaignDao.listData("from Campaign where rfy = 1 and status = 1 and sysdate between startdate and enddate order by priority, promoNameId");
+
+        for (Campaign campaign : campaignList) {
+            if (isCampaignStillEligible(campaign.getCampaignId(), msisdn, false)) {
+                campaignListEligible.add(campaign);
+            }
+        }
+
+        return campaignListEligible;
+    }
+
+    public List<Campaign> getCampaignRfuCanceled(String msisdn) {
+    	LOGGER.info("#getCampaignRfuCanceled---------getting Campaign data based on msisdn:::", msisdn);
+        List<Campaign> campaignList = new ArrayList<>();
+        campaignRewardDao.find("claimStatus = 9 and status = 1 and sysdate between campaignId.startdate and campaignId.enddate and msisdn = :msisdn order by claimDate", new HashMap<String, Object>() {{
+            put("msisdn", msisdn);
+        }}).forEach(campaignReward -> campaignList.add(campaignReward.getCampaignId()));
+        return campaignList;
+    }
+
+    public List<Campaign> getCampaignShake(String msisdn) {
+    	LOGGER.info("#getCampaignShake---------getting Campaign data based on msisdn:::", msisdn);
+    	List<String> offerIdList=new ArrayList<>();
+    	  List<Campaign> campaignList = new ArrayList<>();
+        /*List<String> offerIdList = ApiHelpers.getApiClmOfferIdList(moduleTransactionIDGenerator.generate(Module.CLM),msisdn);
+        
+        List<Campaign> campaignList = new ArrayList<>();
+        if(!offerIdList.isEmpty()){
+            String offerIdListData = offerIdList.stream()
+            .map(s -> "'" + s + "'")
+            .collect(Collectors.joining(", "));
+
+            campaignList = campaignDao.listData("from Campaign where campaignId IN ("+offerIdListData+") and shake = 1 and status = 1 and sysdate between startdate and enddate and priority between 1 and 20 order by priority");
+        }*/
+        
+        /* if data from CLM is empty OR data from database based on CLM is empty then use database based only*/
+        if(offerIdList.isEmpty() || campaignList.isEmpty()){
+            LOGGER.info("CLM Response isEmpty : "+offerIdList.isEmpty()+" / CLM Response-Database isEmpty : "+campaignList.isEmpty());
+            campaignList = campaignDao.listData("from Campaign where shake = 1 and status = 1 and sysdate between startdate and enddate and priority between 1 and 20 order by priority");
+            
+        }
+        
+        return campaignList;
+    }
+
+}

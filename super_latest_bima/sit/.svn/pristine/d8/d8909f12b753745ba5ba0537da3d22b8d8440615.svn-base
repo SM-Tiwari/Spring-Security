@@ -1,0 +1,26 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.ProductVouchersDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 17, 2018 1:27:46 PM
+ *
+ */
+public class ProductVouchersDto extends BaseRequestDto {
+
+    private String subscriberType;
+
+    public ProductVouchersDto() {
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+}

@@ -1,0 +1,82 @@
+package id.gnvsolution.d3.api.dto.request;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+public class ProductRequestDto extends BaseRequestDto implements DTO {
+
+    private String categoryId;
+    private String subCategoryId;
+    private Integer page;
+    private String language;
+    private String subscriberType;
+    private boolean isHome = false;
+    
+    private Integer isFull;
+    
+    private String mainCategoryId;
+
+    public String getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getSubCategoryId() {
+        return subCategoryId;
+    }
+
+    public void setSubCategoryId(String subCategoryId) {
+        this.subCategoryId = subCategoryId;
+    }
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+
+    public boolean getIsHome() {
+        return isHome;
+    }
+
+    public void setIsHome(boolean home) {
+        isHome = home;
+    }
+
+    public Integer getIsFull() {
+        return isFull;
+    }
+
+    public void setIsFull(Integer isFull) {
+        this.isFull = isFull;
+    }
+
+    public String getMainCategoryId() {
+        return mainCategoryId;
+    }
+
+    public void setMainCategoryId(String mainCategoryId) {
+        this.mainCategoryId = mainCategoryId;
+    }
+    
+}

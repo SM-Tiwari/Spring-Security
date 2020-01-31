@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://xmlns.example.com/1491314734182" xmlns:ns0="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:ns2="http://www.tibco.com/schemas/HCPT_PROJECT_BIMA_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:ns1="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd2" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns4="http://www.tibco.com/schemas/HCPT_BIMAPLUS/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:ns3="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd3" name="Untitled" targetNamespace="http://xmlns.example.com/1491314734182">
+    <wsdl:types>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_BIMA_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_BIMA_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="PurchaseMusicNSNRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="MSISDNGroup" type="xs:string" minOccurs="0"/>
+                        <xs:element name="ContentSourceID" type="xs:string"/>
+                        <xs:element name="ContentItemID" type="xs:string"/>
+                        <xs:element name="DeviceID" type="xs:string" minOccurs="0"/>
+                        <xs:element name="GiftPhoneNumber" type="xs:string" minOccurs="0"/>
+                        <xs:element name="GiftPhoneGroup" type="xs:string" minOccurs="0"/>
+                        <xs:element name="PromotionId" type="xs:string" minOccurs="0"/>
+                        <xs:element name="XirHeaders" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PurchaseMusicNSNResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="DownloadURL" type="xs:string"/>
+                        <xs:element name="StatusCode" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="sendOTPRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="OTP" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="sendOTPResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ResponseCode" type="xs:string"/>
+                        <xs:element name="ResponseDescription" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_BIMAPLUS/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_BIMAPLUS/Shared_Resources/Schema/XML/ODP/Schema1.xsd" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="LinkSocialIDRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TrxID" type="xs:string"/>
+                        <xs:element name="Source" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="TYPE" type="xs:string"/>
+                        <xs:element name="VALUE" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="LinkSocialIDResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="StatusCd" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd2" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd2" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="sendOfferRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TRANSACTION_ID" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="OFFERID" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="sendOfferResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ResponseCode" type="xs:string"/>
+                        <xs:element name="ResponseDescription" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd3" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_04Apr/Shared_Resources/Schema/XML/ODP/Schema1.xsd3" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="buyPulsaEVCResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ResponseCode" type="xs:string"/>
+                        <xs:element name="ResponseDescription" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="buyPulsaEVCrequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TRANSACTION_ID" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="DENOMINATION" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="GenricTIBODPservices">
+        <wsdl:port name="GenericTIBODPServices" binding="tns:GenericTIBODPServicesBinding">
+            <soap:address location="http://localhost:15001/Business_Process/ODP_Interfaces/GenricTIBODPservices.serviceagent/GenericTIBODPServices"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="GenericTIBODPServices">
+        <wsdl:operation name="sendOTP">
+            <wsdl:input message="tns:sendOTPRequest"/>
+            <wsdl:output message="tns:sendOTPResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="CLMOffers">
+            <wsdl:input message="tns:CLMOffersRequest"/>
+            <wsdl:output message="tns:CLMOffersResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="PurchaseMusicNSN">
+            <wsdl:input message="tns:PurchaseMusicNSNRequest"/>
+            <wsdl:output message="tns:PurchaseMusicNSNResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="buyPulsaEVC">
+            <wsdl:input message="tns:butPulsaEVCReq"/>
+            <wsdl:output message="tns:butPulsaEVCResp"/>
+        </wsdl:operation>
+        <wsdl:operation name="LinkSocialID">
+            <wsdl:input message="tns:LinkSocialIDRequest"/>
+            <wsdl:output message="tns:LinkSocialIDResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="GenericTIBODPServicesBinding" type="tns:GenericTIBODPServices">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="sendOTP">
+            <soap:operation style="document" soapAction="/Business_Process/ODP_Interfaces/GenricTIBODPservices.serviceagent/GenericTIBODPServicesEndpoint1/sendOTP"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="request"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="response"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CLMOffers">
+            <soap:operation style="document" soapAction="/Business_Process/ODP_Interfaces/GenricTIBODPservices.serviceagent//CLMOffers"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="offersRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="offersResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PurchaseMusicNSN">
+            <soap:operation style="document" soapAction="/Business_Process/ODP_Interfaces/GenricTIBODPservices.serviceagent//PurchaseMusicNSN"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="request"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="response"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="buyPulsaEVC">
+            <soap:operation style="document" soapAction="/Business_Process/ODP_Interfaces/GenricTIBODPservices.serviceagent//buyPulsaEVC"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="buyPulsa"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="buyPulsaResp"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="LinkSocialID">
+            <soap:operation style="document" soapAction="/Business_Process/ODP_Interfaces/GenricTIBODPservices.serviceagent//LinkSocialID"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="request"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="response"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="sendOTPRequest">
+        <wsdl:part name="request" element="ns0:sendOTPRequest"/>
+    </wsdl:message>
+    <wsdl:message name="sendOTPResponse">
+        <wsdl:part name="response" element="ns0:sendOTPResponse"/>
+    </wsdl:message>
+    <wsdl:message name="CLMOffersRequest">
+        <wsdl:part name="offersRequest" element="ns1:sendOfferRequest"/>
+    </wsdl:message>
+    <wsdl:message name="CLMOffersResponse">
+        <wsdl:part name="offersResponse" element="ns1:sendOfferResponse"/>
+    </wsdl:message>
+    <wsdl:message name="PurchaseMusicNSNRequest">
+        <wsdl:part name="request" element="ns2:PurchaseMusicNSNRequest"/>
+    </wsdl:message>
+    <wsdl:message name="PurchaseMusicNSNResponse">
+        <wsdl:part name="response" element="ns2:PurchaseMusicNSNResponse"/>
+    </wsdl:message>
+    <wsdl:message name="butPulsaEVCReq">
+        <wsdl:part name="buyPulsa" element="ns3:buyPulsaEVCrequest"/>
+    </wsdl:message>
+    <wsdl:message name="butPulsaEVCResp">
+        <wsdl:part name="buyPulsaResp" element="ns3:buyPulsaEVCResponse"/>
+    </wsdl:message>
+    <wsdl:message name="LinkSocialIDRequest">
+        <wsdl:part name="request" element="ns4:LinkSocialIDRequest"/>
+    </wsdl:message>
+    <wsdl:message name="LinkSocialIDResponse">
+        <wsdl:part name="response" element="ns4:LinkSocialIDResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

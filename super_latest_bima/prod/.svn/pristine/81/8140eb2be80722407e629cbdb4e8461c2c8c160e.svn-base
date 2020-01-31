@@ -1,0 +1,15 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.HashMap;
+import java.util.List;
+
+import id.gnvsolution.d3.api.dto.request.UsageHistoryRequestDto;
+import id.gnvsolution.d3.api.model.CallRecord;
+import id.gnvsolution.d3.api.model.SmsRecord;
+
+public interface UsageHistoryService {
+	
+	HashMap<String, Object> getCallHistory(UsageHistoryRequestDto usageHistoryRequestDto);
+	HashMap<String, Object> getSmsHistory(UsageHistoryRequestDto usageHistoryRequestDto);
+	
+}

@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "CAMPAIGN_WHITELIST_3")
+public class CampaignWhitelist3 extends CampaignWhitelist {
+}

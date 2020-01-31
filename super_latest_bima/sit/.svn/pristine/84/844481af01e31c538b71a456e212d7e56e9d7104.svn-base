@@ -1,0 +1,16 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.model.TrxTibcoResponse;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.TrxTibcoResponseService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Oct 9, 2017 6:09:05 PM
+ *
+ */
+public interface TrxTibcoResponseService {
+    void save(TrxTibcoResponse response);
+}

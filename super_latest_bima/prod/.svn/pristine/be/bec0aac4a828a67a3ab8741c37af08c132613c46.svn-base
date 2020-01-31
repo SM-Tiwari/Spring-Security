@@ -1,0 +1,108 @@
+package id.gnvsolution.d3.api.model;
+ 
+
+import java.util.Date;
+
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Version;
+
+ 
+
+/*@Entity
+@Table(name = "msisdn_token")
+@SequenceGenerator(name = "msisdn_token_seq", sequenceName = "msisdn_token_seq", allocationSize = 1)
+public class MsisdnTokenEntity  {
+*/
+	@Entity
+	@Table(name = "msisdn_token")
+	@SequenceGenerator(name = "MSISDN_TOKEN_SEQ", sequenceName = "MSISDN_TOKEN_SEQ", allocationSize = 1)
+	public class MsisdnTokenEntity {
+
+	 
+	@Id
+	/*@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "msisdn_token_seq")
+*/	@Column(name = "id")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MSISDN_TOKEN_SEQ")
+	private Integer id;
+	
+	@Column(length = 20)
+	private String msisdn;
+ 
+	@Column(name = "token")
+	private String token;
+	
+	@Column(name="ip_address")
+	private String ipAddress;
+
+	@Version
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "last_modified_timestamp", nullable = false)
+	protected Date lastModifiedTime;
+	
+	 
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "create_timestamp", updatable = false, nullable = false)
+	protected Date createTimestamp = new Date();
+	
+	public Date getCreateTimestamp() {
+		return createTimestamp;
+	}
+
+	public void setCreateTimestamp(Date createTimestamp) {
+		this.createTimestamp = createTimestamp;
+	}
+
+	public Date getLastModifiedTime() {
+		return lastModifiedTime;
+	}
+
+	public void setLastModifiedTime(Date lastModifiedTime) {
+		this.lastModifiedTime = lastModifiedTime;
+	}
+
+	public String getIpAddress() {
+		return ipAddress;
+	}
+
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
+	}
+
+
+	 
+	
+	
+}

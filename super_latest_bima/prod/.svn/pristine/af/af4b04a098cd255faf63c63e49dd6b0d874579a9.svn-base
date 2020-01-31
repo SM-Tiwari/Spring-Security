@@ -1,0 +1,146 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.VersionDto;
+import id.gnvsolution.d3.api.dto.response.VersionResponseDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.model.SubscriberAppVersion;
+import id.gnvsolution.d3.api.service.VersionService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ * id.gnvsolution.d3.api.service.impl.VersionServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com > Oct 2, 2017 8:50:24 PM
+ *
+ */
+@Service
+@Transactional
+public class VersionServiceImpl extends BaseService implements VersionService {
+
+	private static final Logger logger = LoggerFactory.getLogger(VersionServiceImpl.class);
+
+	private static final int HARD_UPDATE = 2;
+	private static final int SOFT_UPDATE = 1;
+	private static final int NO_UPDATE = 0;
+
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Override
+	public VersionResponseDto getVersionResponseDto(VersionDto versionDto) throws Exception {
+		logger.info("#getVersionResponseDto-------");
+		String hardUpdateKey = "";
+		String softUpdateKey = "";
+
+		if (versionDto.getOs().equalsIgnoreCase(Constants.ANDROID_OS)) {
+			hardUpdateKey = "HARD_UPDATE_ANDROID";
+			softUpdateKey = "SOFT_UPDATE_ANDROID";
+		} else if (versionDto.getOs().equalsIgnoreCase(Constants.IOS_OS)) {
+			hardUpdateKey = "HARD_UPDATE_IOS";
+			softUpdateKey = "SOFT_UPDATE_IOS";
+		} else {
+			throw new Exception("Not Valid OS");
+		}
+
+		BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+
+		HashMap<String, Object> keyParamHardUpdate = new HashMap<>();
+		keyParamHardUpdate.put("key", hardUpdateKey);
+
+		HashMap<String, Object> keyParamSoftUpdate = new HashMap<>();
+		keyParamSoftUpdate.put("key", softUpdateKey);
+
+		List<Parameter> hardUpdate = parameterDao.find("key = :key AND active = 1 ", keyParamHardUpdate);
+		List<Parameter> softUpdate = parameterDao.find("key = :key AND active = 1 ", keyParamSoftUpdate);
+
+		/*
+		 * It will save current device version and update if exist based on
+		 * msisdn
+		 */
+		if (versionDto.getMsisdn() != null && versionDto.getVersion() != null) {
+
+			/* change msisdn by Vimal */
+			String msisdn = AppUtils.removeCountryCode(versionDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			versionDto.setMsisdn(msisdn);
+
+			BaseDao<SubscriberAppVersion> subscriberAppVersionDao = new BaseDao<>(sessionFactoryDef,
+					SubscriberAppVersion.class);
+			SubscriberAppVersion subscriberAppVersion = new SubscriberAppVersion();
+			subscriberAppVersion.setAppVersion(versionDto.getVersion());
+			subscriberAppVersion.setMsisdn(versionDto.getMsisdn());
+
+			subscriberAppVersionDao.saveOrUpdate(subscriberAppVersion);
+		}
+
+		/*
+		 * return if result from both tables an empty data
+		 */
+		if (hardUpdate.isEmpty() && softUpdate.isEmpty()) {
+			return new VersionResponseDto(true, "no update available", NO_UPDATE, "");
+		} else if (hardUpdate.size() > 1 || softUpdate.size() > 1) {
+			throw new Exception("duplicate key number");
+		}
+
+		String hardUpdateValue = "";
+		String softUpdateValue = "";
+
+		if (hardUpdate.size() > 0) {
+			hardUpdateValue = hardUpdate.get(0).getValue();
+		}
+
+		if (softUpdate.size() > 0) {
+			softUpdateValue = softUpdate.get(0).getValue();
+		}
+
+		VersionResponseDto responseDtoSuccess = new VersionResponseDto();
+
+		if (hardUpdateValue.compareTo(versionDto.getVersion()) >= 0) {
+
+			responseDtoSuccess.setStatus(true);
+			responseDtoSuccess.setMessage(hardUpdate.get(0).getType());
+			responseDtoSuccess.setUpdateType(HARD_UPDATE);
+			responseDtoSuccess.setLink(hardUpdate.get(0).getUrl());
+
+		} else if (softUpdateValue.compareTo(versionDto.getVersion()) >= 0) {
+
+			responseDtoSuccess.setStatus(true);
+			responseDtoSuccess.setMessage(softUpdate.get(0).getType());
+			responseDtoSuccess.setUpdateType(SOFT_UPDATE);
+			responseDtoSuccess.setLink(softUpdate.get(0).getUrl());
+
+		} else {
+
+			responseDtoSuccess.setStatus(true);
+			responseDtoSuccess.setMessage("");
+			responseDtoSuccess.setUpdateType(NO_UPDATE);
+			responseDtoSuccess.setLink("");
+		}
+
+		return responseDtoSuccess;
+	}
+
+	@Async
+	@Override
+	public void save(VersionDto versionDto) {
+	}
+
+}

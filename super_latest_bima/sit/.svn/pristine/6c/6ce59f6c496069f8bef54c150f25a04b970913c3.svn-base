@@ -1,0 +1,119 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "LOGIN_HISTORIES")
+public class LoginHistories {
+    private long id;
+    private String msisdn;
+    private String imsi;
+    private String channel;
+    private String deviceType;
+    private String activity;
+    private Timestamp loginAt;
+
+    @Id
+    @Column(name = "ID", nullable = false, precision = 0)
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    @Basic
+    @Column(name = "MSISDN", nullable = false, length = 15)
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    @Basic
+    @Column(name = "IMSI", nullable = true, length = 50)
+    public String getImsi() {
+        return imsi;
+    }
+
+    public void setImsi(String imsi) {
+        this.imsi = imsi;
+    }
+
+    @Basic
+    @Column(name = "CHANNEL", nullable = false, length = 10)
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    @Basic
+    @Column(name = "DEVICE_TYPE", nullable = false, length = 10)
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    @Basic
+    @Column(name = "ACTIVITY", nullable = true, length = 255)
+    public String getActivity() {
+        return activity;
+    }
+
+    public void setActivity(String activity) {
+        this.activity = activity;
+    }
+
+    @Basic
+    @Column(name = "LOGIN_AT", nullable = false)
+    public Timestamp getLoginAt() {
+        return loginAt;
+    }
+
+    public void setLoginAt(Timestamp loginAt) {
+        this.loginAt = loginAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        LoginHistories that = (LoginHistories) o;
+
+        if (id != that.id) return false;
+        if (msisdn != null ? !msisdn.equals(that.msisdn) : that.msisdn != null) return false;
+        if (imsi != null ? !imsi.equals(that.imsi) : that.imsi != null) return false;
+        if (channel != null ? !channel.equals(that.channel) : that.channel != null) return false;
+        if (deviceType != null ? !deviceType.equals(that.deviceType) : that.deviceType != null) return false;
+        if (activity != null ? !activity.equals(that.activity) : that.activity != null) return false;
+        if (loginAt != null ? !loginAt.equals(that.loginAt) : that.loginAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (msisdn != null ? msisdn.hashCode() : 0);
+        result = 31 * result + (imsi != null ? imsi.hashCode() : 0);
+        result = 31 * result + (channel != null ? channel.hashCode() : 0);
+        result = 31 * result + (deviceType != null ? deviceType.hashCode() : 0);
+        result = 31 * result + (activity != null ? activity.hashCode() : 0);
+        result = 31 * result + (loginAt != null ? loginAt.hashCode() : 0);
+        return result;
+    }
+}

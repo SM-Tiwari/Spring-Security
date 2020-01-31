@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://xmlns.example.com/1384165396127" xmlns:ns0="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/ODP/EmailRegisterUpdate.xsd" xmlns:ns2="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/Hybrid/InvoiceUsageDetails.xsd5" xmlns:ns1="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/Hybrid/PaymentHistoryDetails.xsd5" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns3="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/ODP/DisplayInvoiceDetails.xsd" name="Untitled" targetNamespace="http://xmlns.example.com/1384165396127">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/ODP/EmailRegisterUpdate.xsd"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/ODP/EmailRegisterUpdate.xsd"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="EmailRegUpdateRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TRANSACTION_ID" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="REQUESTTYPE" type="xs:string"/>
+                        <xs:element name="EMAILID" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="SUB_TYPE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="INVOICE_ID" type="xs:string" minOccurs="0"/>
+                        <xs:element name="BILL_TYPE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MONTH" type="xs:string" minOccurs="0"/>
+                        <xs:element name="YEAR" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="EmailRegUpdateResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUSCODE" type="xs:string"/>
+                        <xs:element name="STATUSTEXT" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/Hybrid/PaymentHistoryDetails.xsd5"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/Hybrid/PaymentHistoryDetails.xsd5"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="PaymentHistoryDetailsRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Transaction_ID" type="xs:string"/>
+                        <xs:element name="SUB_MSISDN" type="xs:string"/>
+                        <xs:element name="Source" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PaymentHistoryDetailsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Status" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string"/>
+                        <xs:element name="PaymentDetails" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="PaymentRefNo" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="TransDTM" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Amount" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Source" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="EAI_KeyID" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Before_Balance" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="After_Balance" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Payment_Status" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Rejected_DTM" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Rejected_Reason" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Rejected_EAIKeyID" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Reatiler_MSISDN" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="FL_ID" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Retailer_QRCode" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/ODP/DisplayInvoiceDetails.xsd"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/ODP/DisplayInvoiceDetails.xsd"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="DisplayInvoiceRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TransactionID" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="RequestType" type="xs:string"/>
+                        <xs:element name="InvoiceID" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Source" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DisplayInvoiceResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="StatusCode" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string"/>
+                        <xs:element name="InvoiceDetails" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="InvoiceMonth" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="OutstandingAmount" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="AmountPaid" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="InvoiceStatus" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="INVOICE_ID" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="CURRENT_DUE" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="PREVIOUS_DUE" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/Hybrid/InvoiceUsageDetails.xsd5"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/Hybrid/InvoiceUsageDetails.xsd5"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="InvoiceUsageDetailsRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="Invoiceid" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="InvoiceUsageDetailsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="StatusCode" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string"/>
+                        <xs:element name="INvoice_ID" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Invoice_Month" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Outstanding_Amount" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Invoice_Status" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Amount_Paid" type="xs:string" minOccurs="0"/>
+                        <xs:element name="CURRENT_DUE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="PREVIOUS_DUE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="InvoiceUsageDetails" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="UsageDTM" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="UsageAmount" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="UsageTtype" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Source" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="UpdateQueryDetails">
+        <wsdl:port name="UpdateQueryHybridDetailsEndpoint1" binding="tns:UpdateQueryHybridDetailsEndpoint1Binding">
+            <soap:address location="http://TIBCO_URL_EMAIL_ENDPOINT"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="UpdateQueryHybridDetails">
+        <wsdl:operation name="EmailRegUpdate">
+            <wsdl:input message="tns:EmailRegUpdateRequest"/>
+            <wsdl:output message="tns:EmailRegUpdateResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="PaymentHistoryDetails">
+            <wsdl:input message="tns:HybridPaymentHistoryRequest"/>
+            <wsdl:output message="tns:HybridPaymentHistoryResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="DisplayInvoiceUsageDetails">
+            <wsdl:input message="tns:InvoiceUsageDetailsRequest"/>
+            <wsdl:output message="tns:InvoiceUsageDetailsResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="DisplayInvoiceDetails">
+            <wsdl:input message="tns:DisplayInvoiceDetailsRequest"/>
+            <wsdl:output message="tns:DisplayInvoiceDetailsResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="UpdateQueryHybridDetailsEndpoint1Binding" type="tns:UpdateQueryHybridDetails">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="EmailRegUpdate">
+            <soap:operation style="document" soapAction="/Business_Process/HYBRID/UpdateQueryDetails.serviceagent/UpdateQueryHybridDetailsEndpoint1/EmailRegUpdate"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="EmailRegUpdateInputRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="EmailRegUpdateResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PaymentHistoryDetails">
+            <soap:operation style="document" soapAction="/Business_Process/HYBRID/UpdateQueryDetails.serviceagent/UpdateQueryHybridDetailsEndpoint1/PaymentHistoryDetails"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="HybridPaymentHistoryRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="HybridPaymentHistoryResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="DisplayInvoiceUsageDetails">
+            <soap:operation style="document" soapAction="/Business_Process/HYBRID/UpdateQueryDetails.serviceagent/UpdateQueryHybridDetailsEndpoint1/DisplayInvoiceUsageDetails"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="InvoiceUsageDetailsRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="InvoiceUsageDetailsResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="DisplayInvoiceDetails">
+            <soap:operation style="document" soapAction="/Business_Process/HYBRID/UpdateQueryDetails.serviceagent/UpdateQueryHybridDetailsEndpoint1/DisplayInvoiceDetails"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="DisplayInvoiceDetailsRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="DisplayInvoiceDetailsResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="EmailRegUpdateRequest">
+        <wsdl:part name="EmailRegUpdateInputRequest" element="ns0:EmailRegUpdateRequest"/>
+    </wsdl:message>
+    <wsdl:message name="EmailRegUpdateResponse">
+        <wsdl:part name="EmailRegUpdateResponse" element="ns0:EmailRegUpdateResponse"/>
+    </wsdl:message>
+    <wsdl:message name="HybridPaymentHistoryRequest">
+        <wsdl:part name="HybridPaymentHistoryRequest" element="ns1:PaymentHistoryDetailsRequest"/>
+    </wsdl:message>
+    <wsdl:message name="HybridPaymentHistoryResponse">
+        <wsdl:part name="HybridPaymentHistoryResponse" element="ns1:PaymentHistoryDetailsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="InvoiceUsageDetailsRequest">
+        <wsdl:part name="InvoiceUsageDetailsRequest" element="ns2:InvoiceUsageDetailsRequest"/>
+    </wsdl:message>
+    <wsdl:message name="InvoiceUsageDetailsResponse">
+        <wsdl:part name="InvoiceUsageDetailsResponse" element="ns2:InvoiceUsageDetailsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="DisplayInvoiceDetailsRequest">
+        <wsdl:part name="DisplayInvoiceDetailsRequest" element="ns3:DisplayInvoiceRequest"/>
+    </wsdl:message>
+    <wsdl:message name="DisplayInvoiceDetailsResponse">
+        <wsdl:part name="DisplayInvoiceDetailsResponse" element="ns3:DisplayInvoiceResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

@@ -1,0 +1,51 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.RecommendedForYouBoxKey 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 31, 2017 10:51:55 AM
+ *
+ */
+@Embeddable
+public class RecommendedForYouBoxKey implements Serializable {
+
+    @Basic
+    @Column(name = "SUBSCRIBER_MSISDN", nullable = false, length = 15)
+    private String subscriberMsisdn;
+    
+    @Basic
+    @Column(name = "CAMPAIGN_ID")
+    private String campaignId;
+
+    public RecommendedForYouBoxKey() {
+    }
+
+    public RecommendedForYouBoxKey(String subscriberMsisdn, String campaignId) {
+        this.subscriberMsisdn = subscriberMsisdn;
+        this.campaignId = campaignId;
+    }
+
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    public String getCampaignId() {
+        return campaignId;
+    }
+
+    public void setCampaignId(String campaignId) {
+        this.campaignId = campaignId;
+    }
+}

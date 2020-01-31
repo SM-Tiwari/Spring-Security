@@ -1,0 +1,234 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.logger.TibcoRequestLogger;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.ChangeEmailDto;
+import id.gnvsolution.d3.api.dto.request.HybridSubscriptionDto;
+import id.gnvsolution.d3.api.dto.request.ResendInvoiceEmailDto;
+import id.gnvsolution.d3.api.dto.request.SubscribeProductRequestDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.service.EmailService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import id.gnvsolution.d3.api.wsdl.UpdateQueryDetailsStub;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import java.util.Properties;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.EmailServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 10, 2017 12:25:23 PM
+ *
+ */
+@Service
+@Transactional
+public class EmailServiceImpl extends BaseService implements EmailService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
+    private BaseDao<Product> productDao;
+    private JavaMailSender javaMailSender;
+    private SessionFactory sessionFactoryDef;
+    private TibcoRequestLogger tibcoRequestLogger;
+    private ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+    private SimpleDateFormat formatResendInvoice = new SimpleDateFormat("MMM-yyyy");
+
+    @Autowired
+    public EmailServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef, ModuleTransactionIDGenerator moduleTransactionIDGenerator, TibcoRequestLogger tibcoRequestLogger, JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.tibcoRequestLogger = tibcoRequestLogger;
+        this.moduleTransactionIDGenerator = moduleTransactionIDGenerator;
+        this.productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+    }
+
+    public void requestUnsubscribe(SubscribeProductRequestDto request) {
+    	
+    	LOGGER.info("#requestUnsubscribe-----getting data from Product based on productId:::", request.getProductId());
+        try {
+            Product product = (Product) productDao.getSessionFactory().getCurrentSession().createQuery("from Product where productId = :productId")
+                    .setString("productId", request.getProductId())
+                    .uniqueResult();
+
+            // use auth for this server
+            Properties properties = new Properties();
+            properties.put("mail.smtp.host", "10.6.2.33");
+            properties.put("mail.smtp.port", 25);
+            Session session = Session.getInstance(properties, new Authenticator() {
+                        @Override
+                        protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
+                            return new javax.mail.PasswordAuthentication("odp.notification", "P@ssw0rd");
+                        }
+                    }
+            );
+            session.setDebug(true);
+
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(Constants.MAIL_CONTACT_FROM));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(Constants.MAIL_CONTACT_TRI));
+            message.setSubject(Constants.MAIL_UNSUBSCRIBER_TITLE + (request.getMsisdn() == null ? "" : request.getMsisdn()));
+            message.setText("Hi 3Care,\nPlease help our subscriber to un-subscribe below package:\n  *Package Name: " + (product == null ? "" : product.getProductNameId()) + "\n  *MSISDN: " + request.getMsisdn() + "\nPlease call/inform subscriber after you finish your activity.\n\n\nRegards,\nBima+ Application");
+            LOGGER.info("#requestUnsubscribe---------- sending message-----msisdn::", request.getMsisdn());
+            Transport.send(message);
+            // TODO:// remove this later on
+//            MimeMessagePreparator preparator = new MimeMessagePreparator() {
+//                @Override
+//                public void prepare(MimeMessage mimeMessage) throws Exception {
+////                    mimeMessage.setRecipients(Message.RecipientType.TO, Constants.MAIL_CONTACT_TRI);
+//                    mimeMessage.setRecipients(Message.RecipientType.TO, "gnvs.test@gmail.com");
+//                    mimeMessage.setFrom(new InternetAddress(Constants.MAIL_CONTACT_FROM));
+//                    mimeMessage.setSubject(Constants.MAIL_UNSUBSCRIBER_TITLE + (request.getMsisdn() == null ? "" : request.getMsisdn()));
+//                    mimeMessage.setText("Hi 3Care,\nPlease help our subscriber to un-subscribe below package:\n  *Package Name: " + (product == null ? "" : product.getProductNameId()) + "\n  *MSISDN: " + request.getMsisdn() + "\nPlease call/inform subscriber after you finish your activity.\n\n\nRegards,\nBima+ Application");
+//                }
+//            };
+//
+//            javaMailSender.send(preparator);
+        } catch (Exception e) {
+            LOGGER.error("#requestUnsubscribe--------Error----",e.getMessage());
+        }
+    }
+    
+    @Override
+    public Map<String, Object> changeEmail(ChangeEmailDto changeEmailDto) {
+    	LOGGER.info("#changeEmail---------");
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(changeEmailDto.getMsisdn(), changeEmailDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        String transactionId = moduleTransactionIDGenerator.generate(Module.MAIL);
+        UpdateQueryDetailsStub.EmailRegUpdateRequest emailRegUpdateRequest = new UpdateQueryDetailsStub.EmailRegUpdateRequest();
+        emailRegUpdateRequest.setTRANSACTION_ID(transactionId);
+        emailRegUpdateRequest.setMSISDN(changeEmailDto.getMsisdn());
+        emailRegUpdateRequest.setREQUESTTYPE("UPDATE_EMAIL");
+        emailRegUpdateRequest.setEMAILID(changeEmailDto.getEmail());
+        emailRegUpdateRequest.setSOURCE("ODP");
+        emailRegUpdateRequest.setSUB_TYPE("POSTPAID");
+        emailRegUpdateRequest.setBILL_TYPE("Non Itemized");
+        emailRegUpdateRequest.setINVOICE_ID(null);
+        emailRegUpdateRequest.setMONTH(null);
+        emailRegUpdateRequest.setYEAR(null);
+        
+        try {
+            
+            // log request
+            tibcoRequestLogger.logging(emailRegUpdateRequest);
+            
+            UpdateQueryDetailsStub updateQueryDetailsStub = new UpdateQueryDetailsStub(Constants.TIBCO_URL_EMAIL_ENDPOINT);
+            UpdateQueryDetailsStub.EmailRegUpdateResponse emailRegUpdateResponse = updateQueryDetailsStub.emailRegUpdate(emailRegUpdateRequest);
+            
+            // log response
+            tibcoRequestLogger.logging(emailRegUpdateResponse);
+            
+            return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+        } catch (Exception e) {
+            LOGGER.error("#changeEmail---------Error---", e.getMessage());
+        }
+        
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "Unable to change email")).all().build();
+    }
+
+    public Map<String, Object> changeSubscription(HybridSubscriptionDto request) {
+    	LOGGER.info("#changeSubscription--------msisdn------", request.getMsisdn());
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+        try {
+            String transactionId = moduleTransactionIDGenerator.generate(Module.MAIL);
+            UpdateQueryDetailsStub.EmailRegUpdateRequest payload = new UpdateQueryDetailsStub.EmailRegUpdateRequest();
+            payload.setTRANSACTION_ID(transactionId);
+            payload.setMSISDN(request.getMsisdn());
+            payload.setREQUESTTYPE(request.getIsSubscribe() ? "REG_EBILL" : "UNREG_EBILL");
+            payload.setSOURCE(Constants.TIBCO_SOURCE);
+            payload.setSUB_TYPE(request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_POSTPAID) ? Constants.SUBSCRIBER_TYPE_POSTPAID : Constants.SUBSCRIBER_TYPE_PREPAID);
+            LOGGER.info("EmailServiceImpl.changeSubscription.payload: " + StringUtils.arrayToCommaDelimitedString(new Object[]{payload.getTRANSACTION_ID(), payload.getMSISDN(), payload.getREQUESTTYPE(), payload.getSOURCE(), payload.getSUB_TYPE()}));
+
+            UpdateQueryDetailsStub stub = new UpdateQueryDetailsStub(Constants.TIBCO_URL_EMAIL_ENDPOINT);
+            UpdateQueryDetailsStub.EmailRegUpdateResponse response = stub.emailRegUpdate(payload);
+            if (response.getSTATUSCODE().equals(Constants.TIBCO_RESPONSE_CODE_SUCCESS)) {
+                if (request.getIsSubscribe()) {
+                    return JSONResultFilter.filter(new ErrorMessageDto(true, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.HYBRID_EBILL_SUBSCRIPTION : Languages.EN.HYBRID_EBILL_SUBSCRIPTION)).all().build();
+                } else {
+                    return JSONResultFilter.filter(new ErrorMessageDto(true, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.HYBRID_EBILL_UNSUBSCRIPTION : Languages.EN.HYBRID_EBILL_UNSUBSCRIPTION)).all().build();
+                }
+            } else {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_EXCEPTION : Languages.EN.COMMON_EXCEPTION)).all().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "Unable to change subscription")).all().build();
+    }
+
+    public Map<String, Object> resendInvoice(ResendInvoiceEmailDto request) {
+    	LOGGER.info("#resendInvoice---------msisdn:::::", request.getMsisdn());
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+        UpdateQueryDetailsStub.EmailRegUpdateRequest emailRegUpdateRequest = new UpdateQueryDetailsStub.EmailRegUpdateRequest();
+        emailRegUpdateRequest.setTRANSACTION_ID(moduleTransactionIDGenerator.generate(Module.MAIL));
+        emailRegUpdateRequest.setMSISDN(request.getMsisdn());
+        emailRegUpdateRequest.setREQUESTTYPE("RESEND_INVOICE");
+        emailRegUpdateRequest.setEMAILID(request.getEmail());
+        emailRegUpdateRequest.setSOURCE(Constants.TIBCO_SOURCE);
+        emailRegUpdateRequest.setSUB_TYPE(Constants.SUBSCRIBER_TYPE_POSTPAID.toUpperCase());
+        emailRegUpdateRequest.setBILL_TYPE("Non Itemized");
+
+        Date date = new Date(request.getInvoiceDate());
+        String[] parts = formatResendInvoice.format(date).split("-");
+        emailRegUpdateRequest.setMONTH(parts[0]);
+        emailRegUpdateRequest.setYEAR(parts[1]);
+
+        try {
+            // request log
+            tibcoRequestLogger.logging(emailRegUpdateRequest);
+
+            // transaction to tibco
+            UpdateQueryDetailsStub stub = new UpdateQueryDetailsStub(Constants.TIBCO_URL_EMAIL_ENDPOINT);
+            UpdateQueryDetailsStub.EmailRegUpdateResponse response = stub.emailRegUpdate(emailRegUpdateRequest);
+
+            // response log
+            tibcoRequestLogger.logging(response);
+
+            if (response.getSTATUSCODE().equals("00000")) {
+                return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+            } else {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)).all().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_EXCEPTION : Languages.EN.COMMON_EXCEPTION)).all().build();
+        }
+    }
+    
+}

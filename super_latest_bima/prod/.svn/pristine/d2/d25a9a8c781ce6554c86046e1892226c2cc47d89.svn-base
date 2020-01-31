@@ -1,0 +1,600 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.BodyPart;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+
+import org.apache.commons.httpclient.auth.MalformedChallengeException;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import id.gnvsolution.d3.api.model.PostPaidPaymentHistoryEntity;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.PostPaidPaymentHistoryService;
+import id.gnvsolution.d3.api.service.StaticService;
+import id.gnvsolution.d3.api.utils.ExtractPdfUtility;
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BillingHistoryDto;
+import id.gnvsolution.d3.api.model.Parameter;
+
+@Service
+@Transactional
+public class PostPaidPaymentHistoryServiceImpl implements PostPaidPaymentHistoryService {
+
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Autowired
+	private StaticService staticService;
+
+	@Autowired
+	private AppConfigService appConfigService;
+	
+	private static final SimpleDateFormat maildateformat = new SimpleDateFormat("dd/MM/yyyy");
+
+	private final String USER_AGENT = "Mozilla/5.0";
+
+	private String smtpHost = "10.8.1.61";
+	private String smtpPort = "25";
+	private String smtpUsername = "";
+	private String smtpPassword = "";
+	private Boolean smtpTls = false;
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+	@Override
+	public Map<String, Object> HistoryDetails(BillingHistoryDto billingHistoryDto) {
+
+		Map<String, Object> returnStatus = new HashMap<>();
+		PostPaidPaymentHistoryEntity postPaidPaymentHistoryEntity = new PostPaidPaymentHistoryEntity();
+		String invoice = billingHistoryDto.getInvoice();
+		BaseDao<PostPaidPaymentHistoryEntity> postPaidPaymentHistoryE = new BaseDao<>(sessionFactoryDef,
+				PostPaidPaymentHistoryEntity.class);
+
+		List<PostPaidPaymentHistoryEntity> inVoiceData = postPaidPaymentHistoryE.find("invoice =:invoice",
+				new HashMap<String, Object>() {
+					{
+						put("invoice", invoice);
+
+					}
+				});
+
+		Parameter parameter = staticService.getParameter("PDF_SAVE_LOCATION");
+		String saveDir = parameter.getValue();
+		//String saveDir ="D:/appxprint/billing_history/"; 
+		Map<String, Object> map = new HashMap<String, Object>();
+		if (!inVoiceData.isEmpty()) {
+
+			// Map<String, Object> map = new HashMap<String, Object>();
+			Iterator<?> it = inVoiceData.iterator();
+
+			while (it.hasNext()) {
+				Object obj = (Object) it.next();
+				PostPaidPaymentHistoryEntity paymentHistoryEntity = (PostPaidPaymentHistoryEntity) obj;
+
+				map.put("id", paymentHistoryEntity.getId());
+				map.put("invoice", paymentHistoryEntity.getInvoice());
+				map.put("lastModifiedTime", paymentHistoryEntity.getLastModifiedTime());
+				map.put("createTimestamp", paymentHistoryEntity.getCreateTimestamp());
+				map.put("brought_forward_charges", paymentHistoryEntity.getBrought_forward_charges());
+
+				map.put("service_registration_fees", paymentHistoryEntity.getService_registration_fees());
+				map.put("monthly_fee", paymentHistoryEntity.getMonthly_fee());
+				map.put("call_charges", paymentHistoryEntity.getCall_charges());
+				map.put("domestic_call_charges", paymentHistoryEntity.getDomestic_call_charges());
+				map.put("international_call_charges", paymentHistoryEntity.getInternational_call_charges());
+				map.put("international_roaming_charges", paymentHistoryEntity.getInternational_roaming_charges());
+				map.put("visited_network_charges", paymentHistoryEntity.getVisited_network_charges());
+				map.put("vietnamobile_administration_fee", paymentHistoryEntity.getVietnamobile_administration_fee());
+				map.put("video_call_and_3G_services_charges",
+						paymentHistoryEntity.getVideo_call_and_3G_services_charges());
+				map.put("value_added_services", paymentHistoryEntity.getValue_added_services());
+				map.put("reduced_tariff", paymentHistoryEntity.getReduced_tariff());
+				map.put("promotion", paymentHistoryEntity.getPromotion());
+				map.put("adjustment", paymentHistoryEntity.getAdjustment());
+				map.put("residual_commited_amount", paymentHistoryEntity.getResidual_commited_amount());
+				map.put("total_current_bill_charge_before_tax",
+						paymentHistoryEntity.getTotal_current_bill_charge_before_tax());
+
+				map.put("total_current_bill_charge_after_tax",
+						paymentHistoryEntity.getTotal_current_bill_charge_after_tax());
+				map.put("total_amount_due", paymentHistoryEntity.getTotal_amount_due());
+				map.put("vat", paymentHistoryEntity.getVAT());
+				map.put("totalAmoutDuedate", paymentHistoryEntity.getTotalAmoutDuedate());
+				map.put("billPeriod", paymentHistoryEntity.getBillPeriod());
+				map.put("issuedDate", paymentHistoryEntity.getIssuedDate());
+				map.put("depositAmount", paymentHistoryEntity.getDepositAmount());
+
+			}
+			returnStatus.put("status", "1");
+			returnStatus.put("message", "Data Found");
+			returnStatus.put("postPaidPaymentHistory", map);
+			return returnStatus;
+		}
+
+		ExtractPdfUtility extractPdfUtility = new ExtractPdfUtility();
+		// String fileURL="http://103.129.188.37:8080/imageserver/";
+		try {
+
+			sendGet(invoice, saveDir);
+
+			File file = new File(saveDir + "/" + invoice + ".pdf");
+
+			if (!file.exists() && file.length() != 0) {
+				returnStatus = new HashMap<>();
+				returnStatus.put("status", "0");
+				String language = billingHistoryDto.getLanguage();
+
+				if (language.equals(Constants.LANG_ID)) {
+					Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_VN");
+					String mesg = parameterfile.getValue();
+					returnStatus.put("message", mesg);
+				} else {
+					Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_EN");
+					String mesg = parameterfile.getValue();
+					returnStatus.put("message", mesg);
+				}
+				returnStatus.put("postPaidPaymentHistory", map);
+				return returnStatus;
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		returnStatus = new HashMap<>();
+		returnStatus.put("status", "1");
+		// Map<String, String> billngMap
+		// =extractPdfUtility.extractTables(invoice,fileURL,saveDir);
+		String FilepathForSize = saveDir + "/" + invoice + ".pdf";
+		File checkF = new File(FilepathForSize);
+		System.out.println("File Size ----------------- " + checkF.length());
+		if (checkF.length() == 0) {
+			returnStatus = new HashMap<>();
+			returnStatus.put("status", "0");
+			String language = billingHistoryDto.getLanguage();
+
+			if (language.equals(Constants.LANG_ID)) {
+				Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_VN");
+				String mesg = parameterfile.getValue();
+				returnStatus.put("message", mesg);
+			} else {
+				Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_EN");
+				String mesg = parameterfile.getValue();
+				returnStatus.put("message", mesg);
+			}
+			returnStatus.put("postPaidPaymentHistory", map);
+			return returnStatus;
+		}
+		Map<String, String> billngMap = extractPdfUtility.extractTables(invoice, saveDir,billingHistoryDto.getMsisdn(),billingHistoryDto.getAcNumber());
+
+		// postPaidPaymentHistoryEntity.setAdjustment(adjustment);
+		if ((billngMap.get("MonthlyFee") != null) || (!billngMap.get("MonthlyFee").equals("0"))) {
+			postPaidPaymentHistoryEntity.setInvoice(invoice);
+			postPaidPaymentHistoryEntity.setBrought_forward_charges(billngMap.get("Broughtforwardcharges"));
+			postPaidPaymentHistoryEntity.setService_registration_fees(billngMap.get("Serviceregistrationfees"));
+			postPaidPaymentHistoryEntity.setMonthly_fee(billngMap.get("MonthlyFee"));
+			postPaidPaymentHistoryEntity.setCall_charges(billngMap.get("Callcharges"));
+			postPaidPaymentHistoryEntity.setDomestic_call_charges(billngMap.get("Domesticcallcharges"));
+			postPaidPaymentHistoryEntity.setInternational_call_charges(billngMap.get("Internationalcallcharges"));
+			postPaidPaymentHistoryEntity.setInternational_roaming_charges(billngMap.get("Internationalroamingcharges"));
+			postPaidPaymentHistoryEntity.setVisited_network_charges(billngMap.get("VisitedNetworkcharges"));
+			postPaidPaymentHistoryEntity
+					.setVietnamobile_administration_fee(billngMap.get("VietnamobileAdministrationfee"));
+			postPaidPaymentHistoryEntity
+					.setVideo_call_and_3G_services_charges(billngMap.get("3GVideocalland3Gservicescharges"));
+			postPaidPaymentHistoryEntity.setValue_added_services(billngMap.get("ValueAddedServices"));
+			postPaidPaymentHistoryEntity.setReduced_tariff(billngMap.get("Reducedtariff"));
+			postPaidPaymentHistoryEntity.setPromotion(billngMap.get("Promotion"));
+			postPaidPaymentHistoryEntity.setAdjustment(billngMap.get("Adjustment"));
+			postPaidPaymentHistoryEntity.setResidual_commited_amount(billngMap.get("ResidualCommitedAmount"));
+			postPaidPaymentHistoryEntity
+					.setTotal_current_bill_charge_before_tax(billngMap.get("TotalCurrentbillchargebeforetax"));
+			postPaidPaymentHistoryEntity
+					.setTotal_current_bill_charge_after_tax(billngMap.get("TotalCurrentbillchargeaftertax"));
+			postPaidPaymentHistoryEntity.setTotal_amount_due(billngMap.get("Totalamountdue"));
+			postPaidPaymentHistoryEntity.setVAT(billngMap.get("VAT"));
+			
+			
+			
+			postPaidPaymentHistoryEntity.setBillPeriod(billngMap.get("BillPeriod"));
+			postPaidPaymentHistoryEntity.setIssuedDate(billngMap.get("issuedDate"));
+			postPaidPaymentHistoryEntity.setDepositAmount(billngMap.get("depositAmount"));
+			postPaidPaymentHistoryEntity.setTotalAmoutDuedate(billngMap.get("totalAmoutDuedate"));
+			
+			BaseDao<PostPaidPaymentHistoryEntity> dao = new BaseDao<>(sessionFactoryDef,
+					PostPaidPaymentHistoryEntity.class);
+
+			dao.save(postPaidPaymentHistoryEntity);
+			returnStatus.put("status", "1");
+			returnStatus.put("message", "Data Found");
+			returnStatus.put("postPaidPaymentHistory", postPaidPaymentHistoryEntity);
+		} else {
+			returnStatus = new HashMap<>();
+			returnStatus.put("status", "0");
+			String language = billingHistoryDto.getLanguage();
+
+			if (language.equals(Constants.LANG_ID)) {
+				Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_VN");
+				String mesg = parameterfile.getValue();
+				returnStatus.put("message", mesg);
+			} else {
+				Parameter parameterfile = staticService.getParameter("INVOICE_NOT_FOUND_EN");
+				String mesg = parameterfile.getValue();
+				returnStatus.put("message", mesg);
+			}
+			returnStatus.put("postPaidPaymentHistory", map);
+			return returnStatus;
+		}
+
+		// return JSONResultFilter.filter(new
+		// RptInvoiceSummaryDTO(rptInvoiceSummarys)).all().build();
+		/*
+		 * try { deletepdf(invoice, saveDir); } catch (Throwable e) {
+		 * 
+		 * }
+		 */
+		return returnStatus;
+	}
+
+	private void deletepdf(String invoice, String saveDir) {
+
+		File file = new File(saveDir + "/" + invoice + ".pdf");
+
+		if (file.exists()) {
+			if (file.delete()) {
+				System.out.println(file.getName() + " is deleted!");
+			} else {
+				System.out.println("Delete operation is failed.");
+			}
+		}
+	}
+
+	// HTTP GET request
+	@Async
+	public String sendGet(String invoice, String saveDir) throws Exception {
+
+		// String url ="http://103.129.188.37:8080/imageserver/4005716231.pdf";
+		String url = appConfigService.get("billhistory.pdf.url",
+				"http://10.6.3.144:19599/6dbillingApp/InvoiceDownload?invoice_seq_id=");
+
+		url = url + invoice + "&file_type=CRM";
+
+		URL obj = new URL(url);
+
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		try {
+			// String url =
+			// "http://10.6.3.144:19599/6dbillingApp/InvoiceDownload?invoice_seq_id=4008050088&file_type=CRM";
+
+			// optional default is GET
+			con.setRequestMethod("GET");
+			if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+				System.out.println("true");
+			} else {
+				con.disconnect();
+				return "";
+			}
+
+			int responseCode = 200;
+			// add request header
+			if (con == null) {
+				con.setRequestProperty("User-Agent", USER_AGENT);
+
+				responseCode = con.getResponseCode();
+			}
+
+			System.out.println("\nSending 'GET' request to URL : " + url);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+			OutputStream out = new FileOutputStream(saveDir + "/" + invoice + ".pdf");
+			byte[] bytes = new byte[1024];
+			int read = 0;
+			while ((read = con.getInputStream().read(bytes)) != -1) {
+				out.write(bytes, 0, read);
+			}
+
+			out.close();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			con.disconnect();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (con != null)
+				con.disconnect();
+		}
+
+		return "0";
+
+	}
+
+	@Override
+	public Map<String, String> sendMail(BillingHistoryDto billingHistoryDto) {
+		Parameter parameter = staticService.getParameter("PDF_SAVE_LOCATION");
+
+		String saveDir = parameter.getValue();
+		boolean emailStatus = false;
+		Map<String, String> statusEmail = new HashMap<>();
+		Map<String, String> data = new HashMap<>();
+		data.put("Invoice", billingHistoryDto.getInvoice());
+		String invoice = billingHistoryDto.getInvoice();
+		try {
+
+			String savePdf = sendGet(invoice, saveDir);
+			if (!savePdf.isEmpty()) {
+				String filePath = saveDir + "/" + invoice + ".pdf";
+				File checkFile = new File(filePath);
+				if ((!checkFile.exists()) || (checkFile.length() == 0)) {
+					statusEmail.put("status", "0");
+					return statusEmail;
+				}
+
+				emailStatus = sendEmail("Invoice", billingHistoryDto.getRecipients(), data, "billinghistory",
+						Constants.EMAIL_SENDER, Constants.EMAIL_SENDER_NAME, billingHistoryDto.getLanguage(),
+						billingHistoryDto.getMsisdn(), billingHistoryDto.getTotalamountdue(),
+						billingHistoryDto.getInvoiceduedate(), billingHistoryDto.getInvoicestartdate());
+
+				if (emailStatus) {
+					statusEmail.put("status", "1");
+				} else {
+					statusEmail.put("status", "0");
+				}
+
+				// deletepdf(invoice, saveDir);
+			} else {
+				statusEmail.put("status", "0");
+				return statusEmail;
+			}
+		} catch (Exception e) {
+			statusEmail.put("status", "0");
+			e.printStackTrace();
+		}
+		System.out.println("Email Status -- " + emailStatus);
+
+		return statusEmail;
+	}
+
+	@Async
+	public Boolean sendEmail(String subject, String recipients, Map paramater, String type, String smtpSender,
+			String smtpSenderName, String language, String msisdn, String totalamountdue, String invoiceduedate,
+			String invoicestartdate) {
+		boolean status = false;
+		String error = "-";
+		if (language == null)
+			language = "0";
+
+		Long ms = System.currentTimeMillis();
+		Map<String, String> emailTemplate = null;
+
+		Parameter parameterfile = staticService.getParameter("PDF_SAVE_LOCATION");
+		String fileLocation = parameterfile.getValue() + "/" + paramater.get("Invoice") + ".pdf";
+		System.out.println(fileLocation);
+		if(isEmptyFile(fileLocation))
+		{
+		try {
+			String content = "";
+
+			if ("billinghistory".equals(type)) {
+				emailTemplate = loadEmailTemplate("BILLING_HISTORY_EN");
+
+				if (language.equals(Constants.LANG_ID)) {
+					emailTemplate = loadEmailTemplate("BILLING_HISTORY_VN");
+
+				}
+				// System.out.println("emailTemplate......."+emailTemplate);
+			}
+
+			content = emailTemplate.get("content");
+
+			if (language.equals(Constants.LANG_ID)) {
+				content = content.replace("dateandamount", invoiceduedate + " là " + totalamountdue);
+			} else {
+				content = content.replace("dateandamount", invoiceduedate + " is " + totalamountdue);
+			}
+			content=content.replace("#msdn", msisdn);
+
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis(Long.parseLong(invoicestartdate));
+			String startDt = maildateformat.format(calendar.getTime());
+
+			subject = emailTemplate.get("subject") + " : " + startDt;
+
+			if (content == null) {
+				status = false;
+				error = "Email template not found for: " + type;
+				return false;
+			}
+
+			content = content.replaceFirst("#NAME", paramater.get("Invoice").toString()).replaceFirst("#LANG", language)
+					.replaceFirst("#DATE", sdf.format(new Date()))
+					.replaceFirst("#DEEPLINK_URL_SHORTENED", Constants.DEEPLINK_URL_SHORTENED1);
+
+			Parameter smtpHostP = staticService.getParameter("smtpHost");
+			Parameter smtpPortP = staticService.getParameter("smtpPort");
+			Parameter smtpSenderP = staticService.getParameter("smtpSender");
+
+			smtpHost = smtpHostP.getValue();
+			smtpSender = smtpSenderP.getValue();
+			smtpPort = smtpPortP.getValue();
+
+			Properties props = System.getProperties();
+			props.put("mail.smtp.starttls.enable", smtpTls);
+			props.put("mail.smtp.host", smtpHost);
+			props.put("mail.smtp.user", smtpUsername);
+			props.put("mail.smtp.password", smtpPassword);
+			props.put("mail.smtp.port", smtpPort);
+
+			props.put("mail.smtp.auth", false);
+			props.put("mail.debug", true);
+
+			Session session = Session.getDefaultInstance(props, null);
+
+			System.out.println("Emaiil Session is ::::" + session);
+			session.setDebug(false);
+
+			String[] to = { recipients };
+			InternetAddress[] toAddress = new InternetAddress[to.length];
+
+			Message msg = new MimeMessage(session);
+			msg.setFrom(new InternetAddress(smtpSender, smtpSenderName));
+			msg.setSubject(subject);
+
+			BodyPart messageBodyPart = new MimeBodyPart();
+
+			// Create a multipar message
+			Multipart multipart = new MimeMultipart();
+
+			// Part two is attachment
+			messageBodyPart = new MimeBodyPart();
+			// String filename =
+			// "D:\\appxprint\\billing_history\\4005657094.pdf";
+
+			System.out.println("fileLocation " + fileLocation + "Invoice " + paramater.get("Invoice").toString());
+			File file=new File(fileLocation);
+			
+				DataSource source = new FileDataSource(fileLocation);
+				messageBodyPart.setDataHandler(new DataHandler(source));
+				messageBodyPart.setFileName(paramater.get("Invoice").toString() + ".pdf");
+				multipart.addBodyPart(messageBodyPart);
+
+				// msg.setContent(multipart);
+
+				// append html on email
+				content = "<!DOCTYPE html><html><meta charset=\"utf-8\"><body>" + content + "</body></html>";
+
+				BodyPart htmlBodyPart = new MimeBodyPart();
+				htmlBodyPart.setContent(content, "text/html; charset=utf-8");
+				multipart.addBodyPart(htmlBodyPart);
+
+				// messageBodyPart.setText(content);
+				msg.setContent(multipart);
+
+				// To get the array of addresses
+				for (int i = 0; i < to.length; i++) { // changed from a while loop
+					toAddress[i] = new InternetAddress(to[i]);
+					msg.addRecipient(Message.RecipientType.TO, toAddress[i]);
+				}
+
+				Transport.send(msg);
+				System.out.println("Mail Send ");
+
+				status = true;
+			
+			
+		} catch (MailException e) {
+			status = false;
+			System.out.println(e.getMessage());
+			error = "Fail to send email, MailException: " + e.getMessage();
+			return true;
+		} catch (UnsupportedEncodingException | MessagingException e) {
+			status = false;
+			error = "Fail to send email, Exception: " + e.getMessage();
+			System.out.println(error);
+			return false;
+		} finally {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("\r\n========== START =============== \r\n");
+			sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+			sb.append("Mail Server\t:\t").append(smtpHost).append("\r\n");
+			sb.append("From\t\t:\t").append(smtpSenderName).append("\r\n");
+			sb.append("To\t\t:\t").append(recipients).append("\r\n");
+			sb.append("Subject\t\t:\t").append(subject).append("\r\n");
+			sb.append("Status\t\t:\t").append(((status) ? "Success" : "Error")).append("\r\n");
+			sb.append("Error\t\t:\t").append(error).append("\r\n");
+			sb.append("Async\t\t:\t").append(true).append("\r\n");
+			sb.append("Time\t\t:\t").append(System.currentTimeMillis() - ms).append("ms \r\n");
+			sb.append("========== END =============== \r\n");
+			System.out.println("finally block :::" + sb.toString());
+
+		}
+		}
+		else
+		{
+			status = false;
+		}
+		return status;
+	}
+
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #emailId")
+	public Map<String, String> loadEmailTemplate(String emailId) {
+		Map<String, String> emailTemplate = new HashMap<>();
+		BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+		List<Parameter> emailParameterData = parameterDao.find("KEY = :key", new HashMap<String, Object>() {
+			{
+				put("key", emailId);
+			}
+		});
+		if (!emailParameterData.isEmpty()) {
+			emailTemplate.put("content", emailParameterData.get(0).getValue());
+			emailTemplate.put("subject", emailParameterData.get(0).getType());
+		}
+		return emailTemplate;
+	}
+	
+	public boolean isEmptyFile(String source) {
+	    try {
+	        for (String line : Files.readAllLines(Paths.get(source),Charset.defaultCharset())) {
+	            if (line != null && !line.trim().isEmpty()) {
+	                return false;
+	            }
+	        }
+	    }
+	    catch (MalformedChallengeException e) {
+			e.printStackTrace();
+			return false;
+		}
+	    catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	    // Default to true.
+	    return true;
+	}
+
+}

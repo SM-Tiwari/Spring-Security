@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by rips on 4/8/17.
+ */
+public class PayBillRequestDto extends BaseRequestDto {
+
+    private String amount;
+
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+}

@@ -1,0 +1,23 @@
+package id.gnvsolution.d3.api.dto.request;
+
+public class HybridSubscriptionDto extends BaseRequestDto {
+
+    private boolean isSubscribe = true;
+    private String subscriberType;
+
+    public boolean getIsSubscribe() {
+        return isSubscribe;
+    }
+
+    public void setIsSubscribe(boolean subscribe) {
+        isSubscribe = subscribe;
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+}

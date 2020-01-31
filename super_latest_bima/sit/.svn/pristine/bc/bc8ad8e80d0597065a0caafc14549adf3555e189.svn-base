@@ -1,0 +1,5 @@
+package com.gnv.vnm.selfcare.core.enums;
+
+public enum CallType {
+	LOCAL, INTERNATIONAL, UNKNOWN;
+}

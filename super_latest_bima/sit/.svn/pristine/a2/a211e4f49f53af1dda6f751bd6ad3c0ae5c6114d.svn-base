@@ -1,0 +1,125 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.RemainingCreditLimitDto;
+import id.gnvsolution.d3.api.dto.response.CreditLimitDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.RptInvoiceSummary;
+import id.gnvsolution.d3.api.service.CreditService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+
+import org.apache.axis2.AxisFault;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tibco.Selfcare_InboundStub;
+import com.tibco.www.schemas._24_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.ViewCreditLimit_Response;
+
+import java.rmi.RemoteException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.CreditServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 24, 2017 3:34:14 PM
+ *
+ */
+@Service
+@Transactional
+public class CreditServiceImpl extends BaseService implements CreditService {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(CreditServiceImpl.class);
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Override
+    public Map getRemainingCreditLimit(RemainingCreditLimitDto base) {
+        // do not forget to validate msisdn + secretKey
+       /* if (!isMsisdnValid(base.getMsisdn(), base.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }*/
+    	
+    	LOGGER.info("#getRemainingCreditLimit------------msisdn is::::",base.getMsisdn());
+    	ViewCreditLimit_Response  res=null;
+        com.tibco.www.schemas._24_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.ViewCreditLimit_Request payload= new com.tibco.www.schemas._24_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.ViewCreditLimit_Request();
+         
+        payload.setMSISDN(base.getMsisdn());
+        payload.setSourceId("Selfcare");
+       // payload.setTransactionId("22222"); 
+        payload.setLocalTxnDtTime(AppUtils.dateToString(new Date(),  getShortDateFormat()));
+        payload.setTransactionId("SC" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+    	Selfcare_InboundStub stub2 = null;
+		try {
+			stub2 = new Selfcare_InboundStub("http://10.8.8.52:45011/Business_Process/Selfcare");
+		} catch (AxisFault e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+    	try {
+			   res=stub2.viewCreditLimit(payload);
+			LOGGER.info("#getRemainingCreditLimit---------status"+res.getStatus()+".........status text...."+res.getStatus_Text());
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
+        BaseDao<RptInvoiceSummary> rptInvoiceSummaryDao = new BaseDao<>(sessionFactoryDef, RptInvoiceSummary.class);
+        List<RptInvoiceSummary> rptInvoiceSummarys = rptInvoiceSummaryDao.find("MSISDN = :MSISDN AND ACCOUNTNUMBER = :ACCOUNTNUMBER ORDER BY INVOICEDATE DESC", new HashMap<String, Object>() {{
+            put("MSISDN", base.getMsisdn());
+            put("ACCOUNTNUMBER", base.getAccountnumber());
+        }}, 0, 1);
+        
+        if(rptInvoiceSummarys.isEmpty())
+        {
+           // return JSONResultFilter.filter(new ErrorMessageDto(false, "Invoice Not Found")).all().build();
+        	// RptInvoiceSummary rptInvoiceSummary = rptInvoiceSummarys.get(0);
+
+        CreditLimitDto dto = new CreditLimitDto();
+        dto.setCurrBill("0");
+        dto.setPrevBill("0");
+        dto.setTotalCreditLimit(res.getTotal_Credit_Limit());
+        dto.setRemainingCreditLimit(res.getRemaining_Credit_Limit());
+        dto.setStatus(true);
+        dto.setPaymentDueDate(res.getPayment_Due_Date());
+        return JSONResultFilter.filter(dto).all().build();
+    }
+        else{
+       
+        try {
+            RptInvoiceSummary rptInvoiceSummary = rptInvoiceSummarys.get(0);
+
+            CreditLimitDto dto = new CreditLimitDto();
+            dto.setCurrBill(rptInvoiceSummary.getThismonthbill());
+            dto.setPrevBill(rptInvoiceSummary.getLastmonthbill());
+            dto.setTotalCreditLimit(res.getTotal_Credit_Limit());
+            dto.setRemainingCreditLimit("-1");
+            dto.setStatus(true);
+            dto.setPaymentDueDate(rptInvoiceSummary.getInvoiceduedate());
+
+            return JSONResultFilter.filter(dto).all().build();
+        } catch (Exception e) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, base.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_EXCEPTION : Languages.EN.COMMON_EXCEPTION)).all().build();
+        }
+        }
+    }
+    private String getShortDateFormat() {
+		return "dd/MM/yyyy";
+	}
+	
+}

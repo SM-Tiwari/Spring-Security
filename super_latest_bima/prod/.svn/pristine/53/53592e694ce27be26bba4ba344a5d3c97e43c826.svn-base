@@ -1,0 +1,9 @@
+-- change this if required
+
+CREATE SEQUENCE transaction_sequence
+  MINVALUE 0
+  MAXVALUE 99999
+  START WITH 1
+  CYCLE
+  INCREMENT BY 1
+  CACHE 20;

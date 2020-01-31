@@ -1,0 +1,17 @@
+127.0.0.1 - - [22/Jan/2020:14:41:39 +0530] "GET / HTTP/1.1" 404 1074
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:14:41:39 +0530] "GET /bima/ HTTP/1.1" 404 1083
+127.0.0.1 - - [22/Jan/2020:14:45:17 +0530] "GET / HTTP/1.1" 404 1074
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:14:45:18 +0530] "GET /bima/ HTTP/1.1" 200 30
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:14:46:07 +0530] "POST /bima/api/v1/purchase/unregister-selfpackage HTTP/1.1" 302 -
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:14:46:36 +0530] "POST /bima/api/v1/purchase/purchase-unscbscribe HTTP/1.1" 200 44
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:14:48:39 +0530] "POST /bima/api/v1/purchase/purchase-unscbscribe HTTP/1.1" 200 44
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:14:49:29 +0530] "POST /bima/api/v1/purchase/purchase-unscbscribe HTTP/1.1" 200 44
+127.0.0.1 - - [22/Jan/2020:14:56:58 +0530] "GET / HTTP/1.1" 404 1074
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:14:56:59 +0530] "GET /bima/ HTTP/1.1" 200 30
+127.0.0.1 - - [22/Jan/2020:15:12:10 +0530] "GET / HTTP/1.1" 404 1074
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:15:12:11 +0530] "GET /bima/ HTTP/1.1" 200 30
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:15:13:35 +0530] "POST /bima/api/v1/purchase/purchase-unscbscribe HTTP/1.1" 200 462
+127.0.0.1 - - [22/Jan/2020:15:29:48 +0530] "GET / HTTP/1.1" 404 1074
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:15:29:49 +0530] "GET /bima/ HTTP/1.1" 200 30
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:16:59:55 +0530] "POST /bima/api/v1/purchase/purchase-unscbscribe HTTP/1.1" 200 50
+0:0:0:0:0:0:0:1 - - [22/Jan/2020:17:01:29 +0530] "POST /bima/api/v1/purchase/purchase-unscbscribe HTTP/1.1" 200 44

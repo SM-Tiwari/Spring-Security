@@ -1,0 +1,106 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.model.helper.HybridInvoice;
+import id.gnvsolution.d3.api.service.HybridService;
+import id.gnvsolution.d3.api.utils.H;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.wsdl.UpdateQueryDetailsStub;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@Transactional
+public class HybridServiceImpl extends BaseService implements HybridService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(HybridServiceImpl.class);
+    private SessionFactory sessionFactoryDef;
+    private ModuleTransactionIDGenerator transactionIDGenerator;
+
+    @Autowired
+    public HybridServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef, ModuleTransactionIDGenerator transactionIDGenerator) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.transactionIDGenerator = transactionIDGenerator;
+    }
+
+    @Cacheable(value = "cache1", key = "#root.methodName.toString() + #request.msisdn + #request.language ")
+    public Map<String, Object> getHybridInvoice(BaseRequestDto request) throws Exception {
+        // validate incoming request
+        if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+
+        Map<String, Object> json = new HashMap<>();
+        json.put("status", true);
+        json.put("billingName", "INDIE+ BILL");
+
+        // prepare the request
+        UpdateQueryDetailsStub.DisplayInvoiceRequest invoiceRequest = new UpdateQueryDetailsStub.DisplayInvoiceRequest();
+        invoiceRequest.setTransactionID(transactionIDGenerator.generate(Module.HYBRID));
+        invoiceRequest.setMSISDN(request.getMsisdn());
+        invoiceRequest.setRequestType("DISPLAY_INVOICE");
+        invoiceRequest.setSource(Constants.TIBCO_SOURCE);
+        LOGGER.info("HybridServiceImpl.getHybridInvoice.invoiceRequest: " + StringUtils.arrayToCommaDelimitedString(new Object[]{invoiceRequest.getTransactionID(), invoiceRequest.getMSISDN(), invoiceRequest.getRequestType(), invoiceRequest.getSource()}));
+
+        UpdateQueryDetailsStub stub = new UpdateQueryDetailsStub(Constants.TIBCO_URL_EMAIL_ENDPOINT);
+        UpdateQueryDetailsStub.DisplayInvoiceResponse response = stub.displayInvoiceDetails(invoiceRequest);
+        if (response.getStatusCode().equals(Constants.TIBCO_RESPONSE_CODE_SUCCESS)) {
+            List<HybridInvoice> hybridInvoiceList = new ArrayList<>();
+
+            for (UpdateQueryDetailsStub.InvoiceDetails_type0 invoiceDetails : response.getInvoiceDetails()) {
+                // master is here
+                HybridInvoice invoice = new HybridInvoice();
+                invoice.setInvoiceId(invoiceDetails.getINVOICE_ID());
+                invoice.setInvoiceDate(invoiceDetails.getInvoiceMonth());
+                invoice.setInvoiceStatus(invoiceDetails.getInvoiceStatus());
+                invoice.setAmountPaid(invoiceDetails.getAmountPaid());
+                invoice.setOutstandingAmount(H.CF(invoiceDetails.getOutstandingAmount(), request.getLanguage()));
+                invoice.setCurrentDue(H.CF(invoiceDetails.getCURRENT_DUE(), request.getLanguage()));
+                invoice.setPreviousDue(H.CF(invoiceDetails.getPREVIOUS_DUE(), request.getLanguage()));
+
+                // add details
+                UpdateQueryDetailsStub.InvoiceUsageDetailsRequest detailsRequest = new UpdateQueryDetailsStub.InvoiceUsageDetailsRequest();
+                detailsRequest.setMSISDN(invoiceRequest.getMSISDN());
+                detailsRequest.setInvoiceid(invoice.getInvoiceId());
+                LOGGER.info("HybridServiceImpl.getHybridInvoice.detailsRequest: " + StringUtils.arrayToCommaDelimitedString(new Object[]{detailsRequest.getMSISDN(), detailsRequest.getInvoiceid()}));
+
+                List<HybridInvoice.Usage> usageList = new ArrayList<>();
+                UpdateQueryDetailsStub.InvoiceUsageDetailsResponse detailsResponse = stub.displayInvoiceUsageDetails(detailsRequest);
+                if (detailsResponse.getStatusCode().equals(Constants.TIBCO_RESPONSE_CODE_SUCCESS)) {
+                    for (UpdateQueryDetailsStub.InvoiceUsageDetails_type0 x : detailsResponse.getInvoiceUsageDetails()) {
+                        HybridInvoice.Usage usage = new HybridInvoice.Usage();
+                        usage.setDate(x.getUsageDTM());
+                        usage.setType(x.getUsageTtype());
+                        usage.setAmount(H.CF(x.getUsageAmount(), request.getLanguage()));
+                        usageList.add(usage);
+                    }
+                }
+                invoice.setUsageList(usageList);
+                hybridInvoiceList.add(0, invoice);
+            }
+
+            json.put("billingList", hybridInvoiceList);
+            return json;
+        } else {
+            throw new RuntimeException("[" + response.getStatusCode() + "] " + response.getStatusText());
+        }
+    }
+
+}

@@ -1,0 +1,14 @@
+package id.gnvsolution.d3.api.service;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.XPrintService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 7, 2017 3:38:25 PM
+ *
+ */
+public interface XPrintService {
+    void generate();
+}

@@ -1,0 +1,1049 @@
+/*==============================================================*/
+/* DBMS name:      ORACLE Version 11g                           */
+/* Created on:     4/17/2017 11:03:08 AM                        */
+/*==============================================================*/
+
+
+ALTER TABLE BROADCAST
+   DROP CONSTRAINT FK_BROADCAS_R_8649221_SUB_MENU;
+
+ALTER TABLE BROADCAST
+   DROP CONSTRAINT FK_BROADCAS_R_9297982_PRODUCT;
+
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_0987550_TRX_SUBS;
+
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_2642870_TRX_SUBS;
+
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_3564873_TRX_SUBS;
+
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_9015016_SUBSCRIB;
+
+ALTER TABLE PRODUCT_CATEGORY
+   DROP CONSTRAINT FK_PRODUCT__R_1909689_SUB_MENU;
+
+ALTER TABLE PRODUCT_CATEGORY
+   DROP CONSTRAINT FK_PRODUCT__R_7399720_PRODUCT;
+
+ALTER TABLE PRODUCT_CATEGORY
+   DROP CONSTRAINT FK_PRODUCT__R_8409950_MENU_CAT;
+
+ALTER TABLE PRODUCT_CHARGING
+   DROP CONSTRAINT FK_PRODUCT__R_0228997_PAYMENT_;
+
+ALTER TABLE PRODUCT_CHARGING
+   DROP CONSTRAINT FK_PRODUCT__R_1234560_VENDOR;
+
+ALTER TABLE PRODUCT_CHARGING
+   DROP CONSTRAINT FK_PRODUCT__R_2847121_PRODUCT;
+
+ALTER TABLE PRODUCT_HOMESCREEN
+   DROP CONSTRAINT FK_PRODUCT__R_4258173_MENU_CAT;
+
+ALTER TABLE PRODUCT_HOMESCREEN
+   DROP CONSTRAINT FK_PRODUCT__R_6265964_SUB_MENU;
+
+ALTER TABLE PRODUCT_METADATA
+   DROP CONSTRAINT FK_PRODUCT__R_7513210_PRODUCT;
+
+ALTER TABLE PRODUCT_PRIORITY_PROMO
+   DROP CONSTRAINT FK_PRODUCT__R_6865999_PRODUCT;
+
+ALTER TABLE PRODUCT_WIDGET
+   DROP CONSTRAINT FK_PRODUCT__R_1732986_PRODUCT;
+
+ALTER TABLE RECOMMENDED_FOR_YOU
+   DROP CONSTRAINT FK_RECOMMEN_R_6589580_PRODUCT;
+
+ALTER TABLE RECOMMENDED_FOR_YOU
+   DROP CONSTRAINT FK_RECOMMEN_R_9593446_PRODUCT_;
+
+ALTER TABLE SEARCH_BLACKLIST
+   DROP CONSTRAINT FK_SEARCH_B_R_9767452_PRODUCT;
+
+ALTER TABLE SUB_MENU_CATEGORY
+   DROP CONSTRAINT FK_SUB_MENU_R_0093590_MENU_CAT;
+
+ALTER TABLE TRX_SHARE_QUOTA
+   DROP CONSTRAINT FK_TRX_SHAR_R_1888366_SUBSCRIB;
+
+ALTER TABLE TRX_SUBSCRIBER_ETOPUP
+   DROP CONSTRAINT FK_TRX_SUBS_R_3347403_SUBSCRIB;
+
+ALTER TABLE TRX_SUBSCRIBER_ETOPUP
+   DROP CONSTRAINT FK_TRX_SUBS_R_3670083_PAYMENT_;
+
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE
+   DROP CONSTRAINT FK_TRX_SUBS_R_0317927_PRODUCT;
+
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE
+   DROP CONSTRAINT FK_TRX_SUBS_R_3959928_SUBSCRIB;
+
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE
+   DROP CONSTRAINT FK_TRX_SUBS_R_6334876_PAYMENT_;
+
+ALTER TABLE TRX_SUBSCRIBER_RELOAD
+   DROP CONSTRAINT FK_TRX_SUBS_R_0083235_SUBSCRIB;
+
+ALTER TABLE TRX_WELCOME_REWARD
+   DROP CONSTRAINT FK_TRX_WELC_R_0200350_PRODUCT;
+
+ALTER TABLE TRX_WELCOME_REWARD
+   DROP CONSTRAINT FK_TRX_WELC_R_9131437_SUBSCRIB;
+
+DROP INDEX R_8649221650_FK;
+
+DROP INDEX R_9297982328_FK;
+
+DROP TABLE BROADCAST CASCADE CONSTRAINTS;
+
+DROP TABLE CAMPAIGN_WHITELIST CASCADE CONSTRAINTS;
+
+DROP TABLE LOGIN_HISTORIES CASCADE CONSTRAINTS;
+
+DROP TABLE MENU_CATEGORY CASCADE CONSTRAINTS;
+
+DROP INDEX R_3564873911_FK;
+
+DROP INDEX R_2642870419_FK;
+
+DROP INDEX R_0987550076_FK;
+
+DROP INDEX R_9015016244_FK;
+
+DROP TABLE NOTIFICATION CASCADE CONSTRAINTS;
+
+DROP TABLE NOTIFICATION_PUSH CASCADE CONSTRAINTS;
+
+DROP TABLE PARAMETER CASCADE CONSTRAINTS;
+
+DROP TABLE PAYMENT_METHOD CASCADE CONSTRAINTS;
+
+DROP TABLE PRODUCT CASCADE CONSTRAINTS;
+
+DROP INDEX R_7399720496_FK;
+
+DROP INDEX R_1909689833_FK;
+
+DROP INDEX R_8409950288_FK;
+
+DROP TABLE PRODUCT_CATEGORY CASCADE CONSTRAINTS;
+
+DROP INDEX R_1234560987_FK;
+
+DROP INDEX R_0228997269_FK;
+
+DROP INDEX R_2847121908_FK;
+
+DROP TABLE PRODUCT_CHARGING CASCADE CONSTRAINTS;
+
+DROP INDEX R_6265964573_FK;
+
+DROP INDEX R_4258173091_FK;
+
+DROP TABLE PRODUCT_HOMESCREEN CASCADE CONSTRAINTS;
+
+DROP INDEX R_7513210409_FK;
+
+DROP TABLE PRODUCT_METADATA CASCADE CONSTRAINTS;
+
+DROP INDEX R_6865999898_FK;
+
+DROP TABLE PRODUCT_PRIORITY_PROMO CASCADE CONSTRAINTS;
+
+DROP TABLE PRODUCT_WIDGET CASCADE CONSTRAINTS;
+
+DROP TABLE PROFILE_MAPPING CASCADE CONSTRAINTS;
+
+DROP INDEX R_9593446890_FK;
+
+DROP INDEX R_6589580007_FK;
+
+DROP TABLE RECOMMENDED_FOR_YOU CASCADE CONSTRAINTS;
+
+DROP TABLE RPT_INVOICE_SUMMARY CASCADE CONSTRAINTS;
+
+DROP TABLE SEARCH_BLACKLIST CASCADE CONSTRAINTS;
+
+DROP TABLE SUBSCRIBER CASCADE CONSTRAINTS;
+
+DROP TABLE SUBSCRIBER_OTP CASCADE CONSTRAINTS;
+
+DROP INDEX R_0093590042_FK;
+
+DROP TABLE SUB_MENU_CATEGORY CASCADE CONSTRAINTS;
+
+DROP INDEX R_1888366664_FK;
+
+DROP TABLE TRX_SHARE_QUOTA CASCADE CONSTRAINTS;
+
+DROP INDEX R_3670083708_FK;
+
+DROP INDEX R_3347403383_FK;
+
+DROP TABLE TRX_SUBSCRIBER_ETOPUP CASCADE CONSTRAINTS;
+
+DROP INDEX R_6334876397_FK;
+
+DROP INDEX R_0317927346_FK;
+
+DROP INDEX R_3959928737_FK;
+
+DROP TABLE TRX_SUBSCRIBER_PURCHASE CASCADE CONSTRAINTS;
+
+DROP INDEX R_0083235839_FK;
+
+DROP TABLE TRX_SUBSCRIBER_RELOAD CASCADE CONSTRAINTS;
+
+DROP INDEX R_0200350952_FK;
+
+DROP TABLE TRX_WELCOME_REWARD CASCADE CONSTRAINTS;
+
+DROP TABLE VENDOR CASCADE CONSTRAINTS;
+
+/*==============================================================*/
+/* Table: BROADCAST                                             */
+/*==============================================================*/
+CREATE TABLE BROADCAST 
+(
+   BROADCAST_ID         INTEGER              NOT NULL,
+   BROADCAST_DATETIME   TIMESTAMP,
+   PRODUCT_ID           VARCHAR2(50),
+   SUB_MENU_CATEGORY_ID INTEGER,
+   BOARDCAST_MESSAGE    VARCHAR2(255),
+   BROADCAST_STATUS     VARCHAR2(10),
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   IS_ACTIVE            SMALLINT             NOT NULL,
+   CONSTRAINT PK_BROADCAST PRIMARY KEY (BROADCAST_ID)
+);
+
+/*==============================================================*/
+/* Index: R_9297982328_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_9297982328_FK ON BROADCAST (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_8649221650_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_8649221650_FK ON BROADCAST (
+   SUB_MENU_CATEGORY_ID ASC
+);
+
+/*==============================================================*/
+/* Table: CAMPAIGN_WHITELIST                                    */
+/*==============================================================*/
+CREATE TABLE CAMPAIGN_WHITELIST 
+(
+   WHITELIST_ID         INTEGER              NOT NULL,
+   MSISDN               VARCHAR2(15),
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_CAMPAIGN_WHITELIST PRIMARY KEY (WHITELIST_ID)
+);
+
+/*==============================================================*/
+/* Table: LOGIN_HISTORIES                                       */
+/*==============================================================*/
+CREATE TABLE LOGIN_HISTORIES 
+(
+   ID                   INTEGER              NOT NULL,
+   MSISDN               VARCHAR2(15)         NOT NULL,
+   IMSI                 VARCHAR2(50),
+   CHANNEL              VARCHAR2(10)         NOT NULL,
+   DEVICE_TYPE          VARCHAR2(10)         NOT NULL,
+   ACTIVITY             VARCHAR2(255),
+   LOGIN_AT             TIMESTAMP            NOT NULL,
+   CONSTRAINT PK_LOGIN_HISTORIES PRIMARY KEY (ID)
+);
+
+/*==============================================================*/
+/* Table: MENU_CATEGORY                                         */
+/*==============================================================*/
+CREATE TABLE MENU_CATEGORY 
+(
+   CATEGORY_ID          INTEGER              NOT NULL,
+   NAME                 VARCHAR2(50)         NOT NULL,
+   ICON_IMAGE           VARCHAR2(100)        NOT NULL,
+   "ORDER"              SMALLINT             NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   IS_ACTIVE            SMALLINT,
+   CONSTRAINT PK_MENU_CATEGORY PRIMARY KEY (CATEGORY_ID)
+);
+
+/*==============================================================*/
+/* Table: NOTIFICATION                                          */
+/*==============================================================*/
+CREATE TABLE NOTIFICATION 
+(
+   NOTIFICATION_ID      INTEGER              NOT NULL,
+   SUBSCRIBER_MSISDN    VARCHAR2(15),
+   TRANSACTION_ID       VARCHAR2(50),
+   TRX_TRANSACTION_ID   VARCHAR2(50),
+   TRX_TRANSACTION_ID2  INTEGER,
+   NOTIFICATION_TITLE   VARCHAR2(255)        NOT NULL,
+   NOTIFICATION_MESSAGE CLOB                 NOT NULL,
+   IS_READ              SMALLINT             NOT NULL,
+   CONSTRAINT PK_NOTIFICATION PRIMARY KEY (NOTIFICATION_ID)
+);
+
+/*==============================================================*/
+/* Index: R_9015016244_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_9015016244_FK ON NOTIFICATION (
+   SUBSCRIBER_MSISDN ASC
+);
+
+/*==============================================================*/
+/* Index: R_0987550076_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_0987550076_FK ON NOTIFICATION (
+   TRANSACTION_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_2642870419_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_2642870419_FK ON NOTIFICATION (
+   TRX_TRANSACTION_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_3564873911_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_3564873911_FK ON NOTIFICATION (
+   TRX_TRANSACTION_ID2 ASC
+);
+
+/*==============================================================*/
+/* Table: NOTIFICATION_PUSH                                     */
+/*==============================================================*/
+CREATE TABLE NOTIFICATION_PUSH 
+(
+   PUSH_MESSAGE         VARCHAR2(255)        NOT NULL,
+   GCM_URL              VARCHAR2(255),
+   APN_URL              VARCHAR2(255),
+   APN_PAYLOAD          VARCHAR2(255),
+   GCM_PAYLOAD          VARCHAR2(255),
+   IS_SEND              SMALLINT             NOT NULL
+);
+
+/*==============================================================*/
+/* Table: PARAMETER                                             */
+/*==============================================================*/
+CREATE TABLE PARAMETER 
+(
+   KEY                  VARCHAR2(100)        NOT NULL,
+   VALUE                VARCHAR2(255)        NOT NULL,
+   TYPE                 VARCHAR2(50)         NOT NULL,
+   CONSTRAINT PK_PARAMETER PRIMARY KEY (KEY)
+);
+
+/*==============================================================*/
+/* Table: PAYMENT_METHOD                                        */
+/*==============================================================*/
+CREATE TABLE PAYMENT_METHOD 
+(
+   PAYMENT_METHOD_CODE  CHAR(2)              NOT NULL,
+   PAYMENT_METHOD_NAME_ID VARCHAR2(50)         NOT NULL,
+   PAYMENT_METHOD_NAME_EN VARCHAR2(50)         NOT NULL,
+   PAYMENT_GATEWAY_NAME VARCHAR2(50),
+   PAYMENT_GATEWAY_URL  VARCHAR2(255),
+   PAYMENT_GATEWAY_REVERSAL_URL VARCHAR2(255),
+   PAYMENT_METHOD_ORDER INTEGER              NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_PAYMENT_METHOD PRIMARY KEY (PAYMENT_METHOD_CODE)
+);
+
+/*==============================================================*/
+/* Table: PRODUCT                                               */
+/*==============================================================*/
+CREATE TABLE PRODUCT 
+(
+   PRODUCT_ID           VARCHAR2(50)         NOT NULL,
+   PRODUCT_NAME_ID      VARCHAR2(100),
+   PRODUCT_NAME_EN      VARCHAR2(100),
+   PRODUCT_DESCRIPTION_ID CLOB,
+   PRODUCT_DESCRIPTION_EN CLOB,
+   PRODUCT_RATING       SMALLINT             NOT NULL,
+   PRODUCT_BUTTON_BUY_ID VARCHAR2(20),
+   PRODUCT_BUTTON_BUY_EN VARCHAR2(20),
+   PRODUCT_PRICE        INTEGER              NOT NULL,
+   PRODUCT_DDC_URL      VARCHAR2(255),
+   CHARGING_MECHANISM   VARCHAR2(20)         NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   IS_ACTIVE            SMALLINT             NOT NULL,
+   IS_PREPAID           SMALLINT             NOT NULL,
+   IS_POSTPAID          SMALLINT             NOT NULL,
+   IS_HYBRID            SMALLINT             NOT NULL,
+   CONSTRAINT PK_PRODUCT PRIMARY KEY (PRODUCT_ID)
+);
+
+/*==============================================================*/
+/* Table: PRODUCT_CATEGORY                                      */
+/*==============================================================*/
+CREATE TABLE PRODUCT_CATEGORY 
+(
+   PRODUCT_ID           VARCHAR2(50)         NOT NULL,
+   MENU_CATEGORY_ID     INTEGER              NOT NULL,
+   SUB_MENU_CATEGORY_ID INTEGER              NOT NULL,
+   PRODUCT_ORDER        INTEGER              NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   IS_ACTIVE            SMALLINT             NOT NULL
+);
+
+/*==============================================================*/
+/* Index: R_8409950288_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_8409950288_FK ON PRODUCT_CATEGORY (
+   MENU_CATEGORY_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_1909689833_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_1909689833_FK ON PRODUCT_CATEGORY (
+   SUB_MENU_CATEGORY_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_7399720496_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_7399720496_FK ON PRODUCT_CATEGORY (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Table: PRODUCT_CHARGING                                      */
+/*==============================================================*/
+CREATE TABLE PRODUCT_CHARGING 
+(
+   PRODUCT_CHARGING_ID  INTEGER              NOT NULL,
+   PRODUCT_ID           VARCHAR2(50)         NOT NULL,
+   VENDOR_ID            INTEGER              NOT NULL,
+   SERVICE_PLAN         VARCHAR2(50),
+   REGISTRATION_KEY     VARCHAR2(50),
+   SMSMT_KEYWORD        VARCHAR2(160),
+   SMSMT_TO             VARCHAR2(15),
+   PAYMENT_METHOD_CODE  CHAR(2),
+   FREE_URL             VARCHAR2(255),
+   PRICE                INTEGER              NOT NULL,
+   IS_PROMO             SMALLINT             NOT NULL,
+   CONSTRAINT PK_PRODUCT_CHARGING PRIMARY KEY (PRODUCT_CHARGING_ID)
+);
+
+/*==============================================================*/
+/* Index: R_2847121908_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_2847121908_FK ON PRODUCT_CHARGING (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_0228997269_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_0228997269_FK ON PRODUCT_CHARGING (
+   PAYMENT_METHOD_CODE ASC
+);
+
+/*==============================================================*/
+/* Index: R_1234560987_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_1234560987_FK ON PRODUCT_CHARGING (
+   VENDOR_ID ASC
+);
+
+/*==============================================================*/
+/* Table: PRODUCT_HOMESCREEN                                    */
+/*==============================================================*/
+CREATE TABLE PRODUCT_HOMESCREEN 
+(
+   ID                   INTEGER              NOT NULL,
+   CATEGORY_ID          INTEGER,
+   SUB_MENU_CATEGORY_ID INTEGER,
+   "ORDER"              SMALLINT             NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_PRODUCT_HOMESCREEN PRIMARY KEY (ID)
+);
+
+/*==============================================================*/
+/* Index: R_4258173091_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_4258173091_FK ON PRODUCT_HOMESCREEN (
+   CATEGORY_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_6265964573_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_6265964573_FK ON PRODUCT_HOMESCREEN (
+   SUB_MENU_CATEGORY_ID ASC
+);
+
+/*==============================================================*/
+/* Table: PRODUCT_METADATA                                      */
+/*==============================================================*/
+CREATE TABLE PRODUCT_METADATA 
+(
+   PRODUCT_ID           VARCHAR2(50)         NOT NULL,
+   KEY                  VARCHAR2(100)        NOT NULL,
+   VALUE                VARCHAR2(255)        NOT NULL,
+   TYPE                 VARCHAR2(10)         NOT NULL
+);
+
+/*==============================================================*/
+/* Index: R_7513210409_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_7513210409_FK ON PRODUCT_METADATA (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Table: PRODUCT_PRIORITY_PROMO                                */
+/*==============================================================*/
+CREATE TABLE PRODUCT_PRIORITY_PROMO 
+(
+   SEQUENCE_ID          INTEGER              NOT NULL,
+   PRODUCT_ID           VARCHAR2(50),
+   PROMO_CHANNEL        VARCHAR2(50),
+   PROMO_PRODUCT_DISPLAY_PRIORITY SMALLINT,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_PRODUCT_PRIORITY_PROMO PRIMARY KEY (SEQUENCE_ID)
+);
+
+/*==============================================================*/
+/* Index: R_6865999898_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_6865999898_FK ON PRODUCT_PRIORITY_PROMO (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Table: PRODUCT_WIDGET                                        */
+/*==============================================================*/
+CREATE TABLE PRODUCT_WIDGET 
+(
+   PRODUCT_ID           VARCHAR2(50)         NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_PRODUCT_WIDGET PRIMARY KEY (PRODUCT_ID)
+);
+
+/*==============================================================*/
+/* Table: PROFILE_MAPPING                                       */
+/*==============================================================*/
+CREATE TABLE PROFILE_MAPPING 
+(
+   BILLING_PRODUCT_NAME VARCHAR2(50)         NOT NULL,
+   DISPLAY_PACKAGES     VARCHAR2(255),
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_PROFILE_MAPPING PRIMARY KEY (BILLING_PRODUCT_NAME)
+);
+
+/*==============================================================*/
+/* Table: RECOMMENDED_FOR_YOU                                   */
+/*==============================================================*/
+CREATE TABLE RECOMMENDED_FOR_YOU 
+(
+   CAMPAIGN_ID          VARCHAR2(50)         NOT NULL,
+   CAMPAIGN_DATETIME    TIMESTAMP,
+   PRODUCT_ID           VARCHAR2(50),
+   PRODUCT_CHARGING_ID  INTEGER,
+   RFU_REGISTRATION_KEY VARCHAR2(20),
+   RFU_CHARGING_MECHANISM VARCHAR2(10),
+   RFU_CHARGING_PRICE   INTEGER,
+   RFU_ORDER            INTEGER,
+   RFU_CLAIM_METHOD     VARCHAR2(50),
+   RFU_DDC              SMALLINT,
+   RFU_DDC_URL          VARCHAR2(255),
+   RFU_PROMO_TITLE      VARCHAR2(100),
+   RFU_PROMO_DESCRIPTION CLOB,
+   RFU_FREQUENCY        VARCHAR2(10),
+   RFU_FREQUENCY_LIMIT  INTEGER,
+   RFU_EVENT_START      TIMESTAMP,
+   RFU_EVENT_END        TIMESTAMP,
+   IS_ACTIVE            SMALLINT             NOT NULL,
+   IS_SHAKE             SMALLINT             NOT NULL,
+   IS_RFU               SMALLINT             NOT NULL,
+   IS_REWARD            SMALLINT             NOT NULL,
+   CONSTRAINT PK_RECOMMENDED_FOR_YOU PRIMARY KEY (CAMPAIGN_ID)
+);
+
+/*==============================================================*/
+/* Index: R_6589580007_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_6589580007_FK ON RECOMMENDED_FOR_YOU (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_9593446890_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_9593446890_FK ON RECOMMENDED_FOR_YOU (
+   PRODUCT_CHARGING_ID ASC
+);
+
+/*==============================================================*/
+/* Table: RPT_INVOICE_SUMMARY                                   */
+/*==============================================================*/
+CREATE TABLE RPT_INVOICE_SUMMARY 
+(
+   ID                   INTEGER              NOT NULL,
+   INVOICEDATE          TIMESTAMP,
+   MSISDN               VARCHAR2(18),
+   INVOICENUMBER        VARCHAR2(50),
+   ACCOUNTNUMBER        VARCHAR2(50),
+   CUSTOMERTYPE         VARCHAR2(50),
+   CREDITLIMIT          VARCHAR2(125),
+   CALLINGPLAN          VARCHAR2(50),
+   ACCOUNTNAME          VARCHAR2(50),
+   SUMMARYCORPID        VARCHAR2(50),
+   CONTRACTNUM          VARCHAR2(125),
+   TAXID                VARCHAR2(50),
+   ADDRESSNAME          VARCHAR2(100),
+   ADDRESS1             VARCHAR2(100),
+   ADDRESS2             VARCHAR2(100),
+   ADDRESS3             VARCHAR2(50),
+   CITY                 VARCHAR2(30),
+   POSTCODE             VARCHAR2(20),
+   STARTPERIOD          VARCHAR2(100),
+   ENDPERIOD            VARCHAR2(100),
+   DEPOSITMONEY         VARCHAR2(100),
+   LASTMONTHBILL        VARCHAR2(100),
+   PAYMENTRECEIVED      VARCHAR2(100),
+   OUTSTANDINGBILLING   VARCHAR2(100),
+   EXCESSPAYMENT        VARCHAR2(100),
+   BALANCEBROUGHTFORWARD VARCHAR2(100),
+   THISMONTHBILL        VARCHAR2(100),
+   TOTALDUE             VARCHAR2(100),
+   INVOICEDUEDATE       VARCHAR2(100),
+   MONTHLYFEE           VARCHAR2(100),
+   FITURDATA            VARCHAR2(100),
+   FITURCALLBARING      VARCHAR2(100),
+   DETAILRECORD         VARCHAR2(100),
+   LOCALCHARGES         VARCHAR2(100),
+   LONGDISTANCE         VARCHAR2(100),
+   IDDCHARGES           VARCHAR2(100),
+   IRCHARGES            VARCHAR2(100),
+   VIDEOCHARGES         VARCHAR2(100),
+   MMSCHARGES           VARCHAR2(100),
+   DATACHARGES          VARCHAR2(100),
+   PLANET3CHARGES       VARCHAR2(100),
+   SMSCHARGES           VARCHAR2(100),
+   TOTALCHARGE          VARCHAR2(100),
+   TOTALDISCOUNT        VARCHAR2(100),
+   TOTALADJUSTMENT      VARCHAR2(100),
+   TOTALSUBTOTAL        VARCHAR2(100),
+   TOTALVAT             VARCHAR2(100),
+   TOTALSTAMPDUTY       VARCHAR2(100),
+   CHARGE               VARCHAR2(100),
+   DISCOUNT             VARCHAR2(100),
+   USAGEVARIANCE        VARCHAR2(100),
+   ADJUSTMENT           VARCHAR2(100),
+   SUBTOTAL             VARCHAR2(100),
+   3XDISCOUNT           VARCHAR2(100),
+   3XDISCONNET          VARCHAR2(100),
+   3XDISCOTHERS         VARCHAR2(100),
+   VAT                  VARCHAR2(100),
+   OTHERS               VARCHAR2(100),
+   OTHERSVAT            VARCHAR2(100),
+   STAMPDUTY            VARCHAR2(100),
+   TOTALBILLING         VARCHAR2(100),
+   NPWPVALUE            VARCHAR2(100),
+   CONTRACTPENALTYCHARGE VARCHAR2(100),
+   PRINTINGCOST         VARCHAR2(100),
+   TOTAL_PAYMENTRECEIVED VARCHAR2(100),
+   TOTAL_OUTSTANDINGBILLING VARCHAR2(100),
+   TOTAL_EXCESSPAYMENT  VARCHAR2(100),
+   PREDISCOUNT          VARCHAR2(100),
+   POSTDISCOUNT         VARCHAR2(100),
+   MONTHLYCHARGE        VARCHAR2(100),
+   TOTALUSAGE           VARCHAR2(100),
+   MINIMUMCOMMITMENTCHARGE VARCHAR2(100),
+   CONSTRAINT PK_RPT_INVOICE_SUMMARY PRIMARY KEY (ID)
+);
+
+/*==============================================================*/
+/* Table: SEARCH_BLACKLIST                                      */
+/*==============================================================*/
+CREATE TABLE SEARCH_BLACKLIST 
+(
+   PRODUCT_ID           VARCHAR2(50)         NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_SEARCH_BLACKLIST PRIMARY KEY (PRODUCT_ID)
+);
+
+/*==============================================================*/
+/* Table: SUBSCRIBER                                            */
+/*==============================================================*/
+CREATE TABLE SUBSCRIBER 
+(
+   SUBSCRIBER_MSISDN    VARCHAR2(15)         NOT NULL,
+   SUBSCRIBER_IMSI      VARCHAR2(50)         NOT NULL,
+   SUBSCRIBER_IMEI      VARCHAR2(50)         NOT NULL,
+   SUBSCRIBER_TYPE      VARCHAR2(50)         NOT NULL,
+   SUBSCRIBER_LANG_CODE VARCHAR2(50)         NOT NULL,
+   SUBSCRIBER_PASSWORD  VARCHAR2(255),
+   SUBSCRIBER_STATUS    VARCHAR2(10)         NOT NULL,
+   SUBSCRIBER_GCM_ID    VARCHAR2(255)        NOT NULL,
+   SUBSCRIBER_APN_ID    VARCHAR2(255)        NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_AT           TIMESTAMP,
+   CONSTRAINT PK_SUBSCRIBER PRIMARY KEY (SUBSCRIBER_MSISDN)
+);
+
+/*==============================================================*/
+/* Table: SUBSCRIBER_OTP                                        */
+/*==============================================================*/
+CREATE TABLE SUBSCRIBER_OTP 
+(
+   ID                   INTEGER              NOT NULL,
+   MSISDN               VARCHAR2(15)         NOT NULL,
+   OTP                  CHAR(6)              NOT NULL,
+   EXPIRED_AT           TIMESTAMP            NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_AT           TIMESTAMP,
+   IS_ACTIVE            SMALLINT             NOT NULL,
+   CONSTRAINT PK_SUBSCRIBER_OTP PRIMARY KEY (ID)
+);
+
+/*==============================================================*/
+/* Table: SUB_MENU_CATEGORY                                     */
+/*==============================================================*/
+CREATE TABLE SUB_MENU_CATEGORY 
+(
+   SUB_MENU_CATEGORY_ID INTEGER              NOT NULL,
+   CATEGORY_ID          INTEGER              NOT NULL,
+   SUB_MENU_NAME        VARCHAR2(50)         NOT NULL,
+   SUB_MENU_ORDER       SMALLINT             NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   IS_ACTIVE            SMALLINT             NOT NULL,
+   CONSTRAINT PK_SUB_MENU_CATEGORY PRIMARY KEY (SUB_MENU_CATEGORY_ID)
+);
+
+/*==============================================================*/
+/* Index: R_0093590042_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_0093590042_FK ON SUB_MENU_CATEGORY (
+   CATEGORY_ID ASC
+);
+
+/*==============================================================*/
+/* Table: TRX_SHARE_QUOTA                                       */
+/*==============================================================*/
+CREATE TABLE TRX_SHARE_QUOTA 
+(
+   TRANSACTION_ID       INTEGER              NOT NULL,
+   SUBSCRIBER_MSISDN    VARCHAR2(15),
+   TRANSACTION_DATETIME TIMESTAMP            NOT NULL,
+   MSISDN_CHILD_1       VARCHAR2(15),
+   MSISDN_CHILD_2       VARCHAR2(15),
+   MSISDN_CHILD_3       VARCHAR2(15),
+   TRANSACTION_QUOTA_1  INTEGER,
+   TRANSACTION_QUOTA_2  INTEGER,
+   TRANSACTION_QUOTA_3  INTEGER,
+   CONSTRAINT PK_TRX_SHARE_QUOTA PRIMARY KEY (TRANSACTION_ID)
+);
+
+/*==============================================================*/
+/* Index: R_1888366664_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_1888366664_FK ON TRX_SHARE_QUOTA (
+   SUBSCRIBER_MSISDN ASC
+);
+
+/*==============================================================*/
+/* Table: TRX_SUBSCRIBER_ETOPUP                                 */
+/*==============================================================*/
+CREATE TABLE TRX_SUBSCRIBER_ETOPUP 
+(
+   TRANSACTION_ID       VARCHAR2(50)         NOT NULL,
+   SUBSCRIBER_MSISDN    VARCHAR2(15)         NOT NULL,
+   PAYMENT_METHOD_CODE  CHAR(2)              NOT NULL,
+   TRANSACTION_DATETIME TIMESTAMP            NOT NULL,
+   MSISDN               VARCHAR2(15)         NOT NULL,
+   EVOUCHER_AMOUNT      INTEGER              NOT NULL,
+   TRANSACTION_STATUS   SMALLINT             NOT NULL,
+   CONSTRAINT PK_TRX_SUBSCRIBER_ETOPUP PRIMARY KEY (TRANSACTION_ID)
+);
+
+/*==============================================================*/
+/* Index: R_3347403383_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_3347403383_FK ON TRX_SUBSCRIBER_ETOPUP (
+   SUBSCRIBER_MSISDN ASC
+);
+
+/*==============================================================*/
+/* Index: R_3670083708_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_3670083708_FK ON TRX_SUBSCRIBER_ETOPUP (
+   PAYMENT_METHOD_CODE ASC
+);
+
+/*==============================================================*/
+/* Table: TRX_SUBSCRIBER_PURCHASE                               */
+/*==============================================================*/
+CREATE TABLE TRX_SUBSCRIBER_PURCHASE 
+(
+   TRANSACTION_ID       VARCHAR2(50)         NOT NULL,
+   TRANSACTION_DATETIME TIMESTAMP            NOT NULL,
+   SUBSCRIBER_MSISDN    VARCHAR2(15)         NOT NULL,
+   PRODUCT_ID           VARCHAR2(50)         NOT NULL,
+   PAYMENT_METHOD_CODE  CHAR(2)              NOT NULL,
+   MENU_CATEGORY_NAME   VARCHAR2(100)        NOT NULL,
+   MENU_SUB_CATEGORY_NAME VARCHAR2(100)        NOT NULL,
+   PRICE                INTEGER              NOT NULL,
+   TRANSACTION_STATUS   SMALLINT             NOT NULL,
+   IS_PROMO             SMALLINT,
+   CONSTRAINT PK_TRX_SUBSCRIBER_PURCHASE PRIMARY KEY (TRANSACTION_ID)
+);
+
+/*==============================================================*/
+/* Index: R_3959928737_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_3959928737_FK ON TRX_SUBSCRIBER_PURCHASE (
+   SUBSCRIBER_MSISDN ASC
+);
+
+/*==============================================================*/
+/* Index: R_0317927346_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_0317927346_FK ON TRX_SUBSCRIBER_PURCHASE (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_6334876397_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_6334876397_FK ON TRX_SUBSCRIBER_PURCHASE (
+   PAYMENT_METHOD_CODE ASC
+);
+
+/*==============================================================*/
+/* Table: TRX_SUBSCRIBER_RELOAD                                 */
+/*==============================================================*/
+CREATE TABLE TRX_SUBSCRIBER_RELOAD 
+(
+   TRANSACTION_ID       INTEGER              NOT NULL,
+   SUBSCRIBER_MSISDN    VARCHAR2(15)         NOT NULL,
+   TRANSACTION_DATETIME TIMESTAMP            NOT NULL,
+   VOUCHER_CODE         VARCHAR2(50)         NOT NULL,
+   TRANSACTION_STATUS   SMALLINT             NOT NULL,
+   CONSTRAINT PK_TRX_SUBSCRIBER_RELOAD PRIMARY KEY (TRANSACTION_ID)
+);
+
+/*==============================================================*/
+/* Index: R_0083235839_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_0083235839_FK ON TRX_SUBSCRIBER_RELOAD (
+   SUBSCRIBER_MSISDN ASC
+);
+
+/*==============================================================*/
+/* Table: TRX_WELCOME_REWARD                                    */
+/*==============================================================*/
+CREATE TABLE TRX_WELCOME_REWARD 
+(
+   SUBSCRIBER_MSISDN    VARCHAR2(15)         NOT NULL,
+   PRODUCT_ID           VARCHAR2(50),
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   CONSTRAINT PK_TRX_WELCOME_REWARD PRIMARY KEY (SUBSCRIBER_MSISDN)
+);
+
+/*==============================================================*/
+/* Index: R_0200350952_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_0200350952_FK ON TRX_WELCOME_REWARD (
+   PRODUCT_ID ASC
+);
+
+/*==============================================================*/
+/* Table: VENDOR                                                */
+/*==============================================================*/
+CREATE TABLE VENDOR 
+(
+   VENDOR_ID            INTEGER              NOT NULL,
+   VENDOR_NAME          VARCHAR2(100)        NOT NULL,
+   VENDOR_PRODUCT       VARCHAR2(255)        NOT NULL,
+   CREATED_BY           INTEGER              NOT NULL,
+   CREATED_AT           TIMESTAMP            NOT NULL,
+   UPDATED_BY           INTEGER,
+   UPDATED_AT           TIMESTAMP,
+   IS_ACTIVE            SMALLINT,
+   CONSTRAINT PK_VENDOR PRIMARY KEY (VENDOR_ID)
+);
+
+ALTER TABLE BROADCAST
+   ADD CONSTRAINT FK_BROADCAS_R_8649221_SUB_MENU FOREIGN KEY (SUB_MENU_CATEGORY_ID)
+      REFERENCES SUB_MENU_CATEGORY (SUB_MENU_CATEGORY_ID);
+
+ALTER TABLE BROADCAST
+   ADD CONSTRAINT FK_BROADCAS_R_9297982_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_0987550_TRX_SUBS FOREIGN KEY (TRANSACTION_ID)
+      REFERENCES TRX_SUBSCRIBER_PURCHASE (TRANSACTION_ID);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_2642870_TRX_SUBS FOREIGN KEY (TRX_TRANSACTION_ID)
+      REFERENCES TRX_SUBSCRIBER_ETOPUP (TRANSACTION_ID);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_3564873_TRX_SUBS FOREIGN KEY (TRX_TRANSACTION_ID2)
+      REFERENCES TRX_SUBSCRIBER_RELOAD (TRANSACTION_ID);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_9015016_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);
+
+ALTER TABLE PRODUCT_CATEGORY
+   ADD CONSTRAINT FK_PRODUCT__R_1909689_SUB_MENU FOREIGN KEY (SUB_MENU_CATEGORY_ID)
+      REFERENCES SUB_MENU_CATEGORY (SUB_MENU_CATEGORY_ID);
+
+ALTER TABLE PRODUCT_CATEGORY
+   ADD CONSTRAINT FK_PRODUCT__R_7399720_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE PRODUCT_CATEGORY
+   ADD CONSTRAINT FK_PRODUCT__R_8409950_MENU_CAT FOREIGN KEY (MENU_CATEGORY_ID)
+      REFERENCES MENU_CATEGORY (CATEGORY_ID);
+
+ALTER TABLE PRODUCT_CHARGING
+   ADD CONSTRAINT FK_PRODUCT__R_0228997_PAYMENT_ FOREIGN KEY (PAYMENT_METHOD_CODE)
+      REFERENCES PAYMENT_METHOD (PAYMENT_METHOD_CODE);
+
+ALTER TABLE PRODUCT_CHARGING
+   ADD CONSTRAINT FK_PRODUCT__R_1234560_VENDOR FOREIGN KEY (VENDOR_ID)
+      REFERENCES VENDOR (VENDOR_ID);
+
+ALTER TABLE PRODUCT_CHARGING
+   ADD CONSTRAINT FK_PRODUCT__R_2847121_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE PRODUCT_HOMESCREEN
+   ADD CONSTRAINT FK_PRODUCT__R_4258173_MENU_CAT FOREIGN KEY (CATEGORY_ID)
+      REFERENCES MENU_CATEGORY (CATEGORY_ID);
+
+ALTER TABLE PRODUCT_HOMESCREEN
+   ADD CONSTRAINT FK_PRODUCT__R_6265964_SUB_MENU FOREIGN KEY (SUB_MENU_CATEGORY_ID)
+      REFERENCES SUB_MENU_CATEGORY (SUB_MENU_CATEGORY_ID);
+
+ALTER TABLE PRODUCT_METADATA
+   ADD CONSTRAINT FK_PRODUCT__R_7513210_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE PRODUCT_PRIORITY_PROMO
+   ADD CONSTRAINT FK_PRODUCT__R_6865999_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE PRODUCT_WIDGET
+   ADD CONSTRAINT FK_PRODUCT__R_1732986_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE RECOMMENDED_FOR_YOU
+   ADD CONSTRAINT FK_RECOMMEN_R_6589580_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE RECOMMENDED_FOR_YOU
+   ADD CONSTRAINT FK_RECOMMEN_R_9593446_PRODUCT_ FOREIGN KEY (PRODUCT_CHARGING_ID)
+      REFERENCES PRODUCT_CHARGING (PRODUCT_CHARGING_ID);
+
+ALTER TABLE SEARCH_BLACKLIST
+   ADD CONSTRAINT FK_SEARCH_B_R_9767452_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE SUB_MENU_CATEGORY
+   ADD CONSTRAINT FK_SUB_MENU_R_0093590_MENU_CAT FOREIGN KEY (CATEGORY_ID)
+      REFERENCES MENU_CATEGORY (CATEGORY_ID);
+
+ALTER TABLE TRX_SHARE_QUOTA
+   ADD CONSTRAINT FK_TRX_SHAR_R_1888366_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);
+
+ALTER TABLE TRX_SUBSCRIBER_ETOPUP
+   ADD CONSTRAINT FK_TRX_SUBS_R_3347403_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);
+
+ALTER TABLE TRX_SUBSCRIBER_ETOPUP
+   ADD CONSTRAINT FK_TRX_SUBS_R_3670083_PAYMENT_ FOREIGN KEY (PAYMENT_METHOD_CODE)
+      REFERENCES PAYMENT_METHOD (PAYMENT_METHOD_CODE);
+
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE
+   ADD CONSTRAINT FK_TRX_SUBS_R_0317927_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE
+   ADD CONSTRAINT FK_TRX_SUBS_R_3959928_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);
+
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE
+   ADD CONSTRAINT FK_TRX_SUBS_R_6334876_PAYMENT_ FOREIGN KEY (PAYMENT_METHOD_CODE)
+      REFERENCES PAYMENT_METHOD (PAYMENT_METHOD_CODE);
+
+ALTER TABLE TRX_SUBSCRIBER_RELOAD
+   ADD CONSTRAINT FK_TRX_SUBS_R_0083235_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);
+
+ALTER TABLE TRX_WELCOME_REWARD
+   ADD CONSTRAINT FK_TRX_WELC_R_0200350_PRODUCT FOREIGN KEY (PRODUCT_ID)
+      REFERENCES PRODUCT (PRODUCT_ID);
+
+ALTER TABLE TRX_WELCOME_REWARD
+   ADD CONSTRAINT FK_TRX_WELC_R_9131437_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);
+
+# added by edwin for table TRX_SUBSCRIBER_PURCHASE
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE 
+ADD (SERVICE_PLAN VARCHAR2(50) );
+
+ALTER TABLE TRX_SUBSCRIBER_PURCHASE 
+ADD (VENDOR_ID VARCHAR2(5) );
+# end
+
+# added by edwin for table PRODUCT_CHARGING
+ALTER TABLE PRODUCT_CHARGING 
+ADD (NSN_SOURCE_ID VARCHAR2(10) );
+
+ALTER TABLE PRODUCT_CHARGING 
+ADD (NSN_CONTENT_ID VARCHAR2(10) );
+# end

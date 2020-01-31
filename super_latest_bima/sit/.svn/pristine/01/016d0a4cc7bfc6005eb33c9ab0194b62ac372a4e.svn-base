@@ -1,0 +1,21 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.OTTPushNotif;
+import id.gnvsolution.d3.api.dto.request.PushNotificationDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.PushNotificationService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 28, 2017 11:47:25 AM
+ *
+ */
+public interface PushNotificationService {
+    Map<String, Object> notify(PushNotificationDto pushNotificationDto);
+    Map<String, Object> notifyDummy(PushNotificationDto pushNotificationDto);
+    Map<String, Object> ott(OTTPushNotif oTTPushNotif);
+    Map<String, Object> ott2(OTTPushNotif oTTPushNotif);
+}

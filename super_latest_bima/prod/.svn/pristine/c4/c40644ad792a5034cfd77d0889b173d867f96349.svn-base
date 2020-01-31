@@ -1,0 +1,128 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+import id.gnvsolution.d3.api.model.ProductMetadata;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.PromoDto
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 24, 2017 12:03:57 PM
+ *
+ */
+public class PromoDto implements DTO {
+
+    private String productId;
+    private String productName;
+    private String productPrice;
+    private Integer productRating;
+    private String productDescription;
+    private String buttonBuy;
+    private String redirectLink;
+    private Boolean isRedirectToLink;
+
+    private Map<String, String> metadata;
+    private List<VendorDto> vendorList;
+    private List<PaymentDto> paymentList;
+
+    public PromoDto(){
+        this.setVendorList(new ArrayList<>());
+        this.setMetadata(new HashMap<>());
+        this.setPaymentList(new ArrayList<>());
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductPrice() {
+        return productPrice;
+    }
+
+    public void setProductPrice(String productPrice) {
+        this.productPrice = productPrice;
+    }
+
+    public Integer getProductRating() {
+        return productRating;
+    }
+
+    public void setProductRating(Integer productRating) {
+        this.productRating = productRating;
+    }
+
+    public String getProductDescription() {
+        return productDescription;
+    }
+
+    public void setProductDescription(String productDescription) {
+        this.productDescription = productDescription;
+    }
+
+    public String getButtonBuy() {
+        return buttonBuy;
+    }
+
+    public void setButtonBuy(String buttonBuy) {
+        this.buttonBuy = buttonBuy;
+    }
+
+    public String getRedirectLink() {
+        return redirectLink;
+    }
+
+    public void setRedirectLink(String redirectLink) {
+        this.redirectLink = redirectLink;
+    }
+
+    public Boolean getIsRedirectToLink() {
+        return isRedirectToLink;
+    }
+
+    public void setIsRedirectToLink(Boolean isRedirectToLink) {
+        this.isRedirectToLink = isRedirectToLink;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public List<VendorDto> getVendorList() {
+        return vendorList;
+    }
+
+    public void setVendorList(List<VendorDto> vendorList) {
+        this.vendorList = vendorList;
+    }
+
+    public List<PaymentDto> getPaymentList() {
+        return paymentList;
+    }
+
+    public void setPaymentList(List<PaymentDto> paymentList) {
+        this.paymentList = paymentList;
+    }
+}

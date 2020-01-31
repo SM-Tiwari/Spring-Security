@@ -1,0 +1,134 @@
+package id.gnvsolution.d3.api.model;
+
+import java.sql.Timestamp;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.Table;
+
+/**
+ * 
+ * @author Ainul Yaqin
+ *
+ */
+@Entity
+@Table(name = "SUBSCRIBER_SEGMENTATIONS")
+public class SubcriberSegmentations {
+	
+	@Id
+	@Column(name = "SEGMENTATION_NAME", nullable = false)
+	private String segmentationName;
+	
+	@Column(name="TITLE_ID")
+	private String titleId;
+	
+	@Column(name="TITLE_EN")
+	private String titleEn;
+	
+	@Lob
+	@Column(name="DESCRIPTION_ID")
+	private String descriptionId;
+	
+	@Lob
+	@Column(name="DESCRIPTION_EN")
+	private String descriptionEn;
+	
+	@Column(name="CREATED_DATE")
+	private Timestamp createdDate;
+	
+	@Column(name="CREATED_BY")
+	private String createdBy;
+	
+	@Column(name="UPDATED_DATE")
+	private Timestamp updatedDate;
+	
+	@Column(name="UPDATED_BY")
+	private String updatedBy;
+	
+	@Column(name="STATUS")
+	private Integer status;
+
+	public String getSegmentationName() {
+		return segmentationName;
+	}
+
+	public void setSegmentationName(String segmentationName) {
+		this.segmentationName = segmentationName;
+	}
+
+	public String getTitleId() {
+		return titleId;
+	}
+
+	public void setTitleId(String titleId) {
+		this.titleId = titleId;
+	}
+
+	public String getTitleEn() {
+		return titleEn;
+	}
+
+	public void setTitleEn(String titleEn) {
+		this.titleEn = titleEn;
+	}
+
+	public String getDescriptionId() {
+		return descriptionId;
+	}
+
+	public void setDescriptionId(String descriptionId) {
+		this.descriptionId = descriptionId;
+	}
+
+	public String getDescriptionEn() {
+		return descriptionEn;
+	}
+
+	public void setDescriptionEn(String descriptionEn) {
+		this.descriptionEn = descriptionEn;
+	}
+
+	public Timestamp getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(Timestamp createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Timestamp getUpdatedDate() {
+		return updatedDate;
+	}
+
+	public void setUpdatedDate(Timestamp updatedDate) {
+		this.updatedDate = updatedDate;
+	}
+
+	public String getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(String updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+	
+	
+}

@@ -1,0 +1,2507 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.HomeScreenRequestDto;
+import id.gnvsolution.d3.api.dto.request.LastViewedDto;
+import id.gnvsolution.d3.api.dto.request.ProductDetailDto;
+import id.gnvsolution.d3.api.dto.request.ProductUpsellRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProductVouchersDto;
+import id.gnvsolution.d3.api.dto.request.SearchAutoCompleteRequestDto;
+import id.gnvsolution.d3.api.dto.request.SearchRequestDto;
+import id.gnvsolution.d3.api.dto.request.StarRatingDto;
+import id.gnvsolution.d3.api.dto.request.WishlistDto;
+import id.gnvsolution.d3.api.dto.response.BonstriEndpointDto;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.ProductDetailListDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.dto.response.ProductPerCategoryDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.dto.response.TriProductDetailDto;
+import id.gnvsolution.d3.api.dto.response.TriProductModDto;
+import id.gnvsolution.d3.api.dto.response.TriProductTabContentDto;
+import id.gnvsolution.d3.api.helper.SqlProductHomescreen;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.*;
+import id.gnvsolution.d3.api.service.CLMService;
+import id.gnvsolution.d3.api.service.CampaignService;
+import id.gnvsolution.d3.api.service.ProductService;
+import id.gnvsolution.d3.api.service.PurchasingService;
+import id.gnvsolution.d3.api.utils.ApiHelpers;
+import id.gnvsolution.d3.api.utils.Helpers;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.Data;
+import com.gnv.vnm.selfcare.core.model.JsonData;
+import com.gnv.vnm.selfcare.core.model.Packege092Responce;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.TimeZone;
+import java.util.UUID;
+import org.hibernate.Query;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Service
+@Transactional
+public class ProductServiceImpl extends BaseService implements ProductService {
+
+	@Autowired
+	CampaignService campaignService;
+	@Autowired
+	ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+
+	private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+
+	@Autowired
+	private ProductCacheService productCacheService;
+
+	@Autowired
+	private CLMService cLMService;
+
+	private SessionFactory sessionFactoryDef;
+	private BaseDao<ProductHomescreenPosition> productHomescreenPositionDao;
+	private BaseDao<Product> productDao;
+	private BaseDao<TrxSubscriberPurchase> trxSubscriberPurchaseDao;
+	private BaseDao<ProductRating> productRatingDao;
+	private BaseDao<ProductWishList> productWishListDao;
+
+	@Autowired
+	public ProductServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+		this.sessionFactoryDef = sessionFactoryDef;
+		this.productHomescreenPositionDao = new BaseDao<>(sessionFactoryDef, ProductHomescreenPosition.class);
+		this.productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		this.trxSubscriberPurchaseDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberPurchase.class);
+
+		this.productRatingDao = new BaseDao<>(sessionFactoryDef, ProductRating.class);
+		this.productWishListDao = new BaseDao<>(sessionFactoryDef, ProductWishList.class);
+	}
+
+	public Product getTrxSubscriberPurchase(String transactionId) {
+		
+		logger.info("Inside getTrxSubscriberPurchase, getting data based on transaction id", transactionId);
+		List<TrxSubscriberPurchase> list = trxSubscriberPurchaseDao.find("transactionId = :transactionId",
+				new HashMap<String, Object>() {
+					{
+						put("transactionId", transactionId);
+					}
+				});
+		return list.isEmpty() ? null : list.get(0).getProductByProductId();
+	}
+
+	/* shadow */
+	@Override
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #categoryId + #page + #language + #subscriberType + #callPlan + #isPreview + #accessRight+ #isFull+ #msisdn")
+	public Map<String, Object> getProductPerCategory(String categoryId, Integer page, String language,
+			String subscriberType, String callPlan, boolean isPreview, String accessRight, String imei, boolean isFull,
+			String msisdn) {
+		return getProductPerCategory(categoryId, page, language, subscriberType, callPlan, isPreview, accessRight, imei,
+				isFull, msisdn, null);
+	}
+
+	/**
+	 * ini product-per-category
+	 * 
+	 * @param categoryId
+	 * @param page
+	 * @param language
+	 * @param subscriberType
+	 * @param callPlan
+	 * @param isPreview
+	 * @param accessRight
+	 * @param imei
+	 * @param isFull
+	 * @param msisdn
+	 * @param mainCategoryId
+	 * @return
+	 */
+	@Override
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #categoryId + #page + #language + #subscriberType + #callPlan + #isPreview + #accessRight+ #isFull+ #msisdn+ #mainCategoryId")
+	public Map<String, Object> getProductPerCategory(String categoryId, Integer page, String language,
+			String subscriberType, String callPlan, boolean isPreview, String accessRight, String imei, boolean isFull,
+			String msisdn, String mainCategoryId) {
+		logger.info("-----inside getProductPerCategory method-------categoryId::::", categoryId);
+		if (categoryId == null) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+		}
+		BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		BaseDao<SubMenuCategory> subMenuCategoryDto = new BaseDao<>(sessionFactoryDef, SubMenuCategory.class);
+
+		if (page == null || page < 1) {
+			page = 1;
+		}
+
+		final String preview = (isPreview ? " p.isPreview between 0 and 1 " : " p.isPreview = 0 ");
+		final String iphone = (isIphoneFromAccessRight(accessRight) ? " and p.isIphone = 1 " : " ");
+
+		// filter based on subscriberType
+		String filterSubscriberType;
+		if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+			filterSubscriberType = " p.isPostpaid = 1 ";
+		} else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+			filterSubscriberType = " p.isHybrid = 1 ";
+		} else {
+			filterSubscriberType = " p.isPrepaid = 1 ";
+		}
+
+		ProductPerCategoryDto productPerCategoryDto = new ProductPerCategoryDto();
+		if (page == 1) {
+			// get banner
+			List<Product> products = productDao.listData(
+					"select p from Product p where p.isFeatured = 1 and p.featuredOrder between 1 and 20 and exists (select 1 from ProductCategory pc where pc.productId = p.productId and pc.menuCategoryId = :menuCategoryId and pc.isActive = true) and "
+							+ filterSubscriberType + " and " + preview + iphone
+							+ " and (p.productCallPlan is null or p.productCallPlan = :productCallPlan) and p.isActive = true"
+							+ " order by case when p.featuredOrder = 0 then null else p.featuredOrder end, p.featuredOrder, p.productNameId",
+					new HashMap<String, Object>() {
+						{
+							put("menuCategoryId", Integer.parseInt(categoryId));
+							put("productCallPlan", callPlan);
+						}
+					}, 0, Constants.MAX_PRODUCT_PER_COLUMN);
+			try {
+				products.forEach(product -> productPerCategoryDto.getBannerList()
+						.add(getProductDto(sessionFactoryDef, product, language, subscriberType, accessRight, true)));
+
+				logger.info("#getProductPerCategory------- product size===",products.size());
+			} catch (Exception e) {
+				// TODO: handle exception
+				logger.error("#getProductPerCategory---Exception message----:", e.getMessage());
+				
+			}
+		}
+
+		/* for 3 products tab , bismillah */
+		String submenusQryMainCat = "";
+		String submenusQryInnerMainCat = "";
+		String productQryMainCat;
+		if (mainCategoryId != null && !mainCategoryId.isEmpty()) {
+			submenusQryMainCat = "AND submenucat0_.MAIN_CATEGORY_ID = :mainCategoryId\n";
+			submenusQryInnerMainCat = "AND a.MAIN_CATEGORY_ID = submenucat0_.MAIN_CATEGORY_ID";
+			productQryMainCat = "AND productcat0_.MAIN_CATEGORY_ID  = :mainCategoryId";
+		} else {
+			productQryMainCat = "";
+		}
+
+		// get valid campaigns, do a simple string append instead of hsql query
+		List<String> campaignIdList = new ArrayList<>();
+		if (msisdn != null && !"0".equals(msisdn))
+			campaignIdList = cLMService.getApiClmOfferIdList(moduleTransactionIDGenerator.generate(Module.CLM), msisdn);
+
+		String campaignIds = "";
+		for (String campaignId : campaignIdList) {
+			campaignIds += "\'" + campaignId + "\',";
+		}
+		campaignIds += "\'0\'";
+
+		final String campaignIdsFinal = campaignIds;
+		final List<String> campaignIdList2 = new ArrayList<>(campaignIdList);
+
+		// filter based on subscriberType
+		final String filterSubscriberType2;
+		final String filterSubscriberType3;
+		if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+			filterSubscriberType2 = " AND product1_.is_Postpaid = 1 ";
+			filterSubscriberType3 = " AND PRODUCT.is_postpaid = 1 ";
+		} else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+			filterSubscriberType2 = " AND product1_.is_Hybrid = 1 ";
+			filterSubscriberType3 = " AND PRODUCT.is_hybrid = 1 ";
+		} else {
+			filterSubscriberType2 = " AND product1_.is_Prepaid = 1 ";
+			filterSubscriberType3 = " AND PRODUCT.is_prepaid = 1 ";
+		}
+
+		final String iphone2 = (isIphoneFromAccessRight(accessRight) ? " and product1_.is_Iphone = 1 " : " ");
+		final String iphone3 = (isIphoneFromAccessRight(accessRight) ? "        AND b.IS_IPHONE = 1\n" : " ");
+		final String preview2 = (isPreview ? " PRODUCT.is_Preview between 0 and 1 " : " PRODUCT.is_Preview = 0 ");
+
+		/*
+		 * ini hanya untuk yg negative -4 Rating -3 Last Purchase -2 My Last
+		 * Viewed -1 Wishlist
+		 */
+		List<BigDecimal> availableSubMenus = subMenuCategoryDto.getSessionFactory().getCurrentSession()
+				.createSQLQuery("select SUB_MENU_CATEGORY_ID from SUB_MENU_CATEGORY\n"
+						+ "where CATEGORY_ID = :categoryId and SUB_MENU_CATEGORY_ID < 0")
+				.setInteger("categoryId", Integer.parseInt(categoryId)).list();
+
+		BigDecimal listOfMinusSubMenu[] = availableSubMenus.toArray(new BigDecimal[] {});
+		StringBuilder stringBuilder = new StringBuilder();
+		for (BigDecimal i : listOfMinusSubMenu) {
+
+			String tableName = null;
+			String whereParam = null;
+			if (i.intValueExact() % 4 == -1) {
+				tableName = "PRODUCT_WISH_LIST, PRODUCT_CATEGORY";
+				whereParam = "PRODUCT_WISH_LIST.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID AND PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId";
+			}
+			if (i.intValueExact() % 4 == -2) {
+				tableName = "PRODUCT_LASTVIEW, PRODUCT_CATEGORY";
+				whereParam = "PRODUCT_LASTVIEW.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID AND PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId";
+			}
+			if (i.intValueExact() % 4 == -3) {
+				tableName = "TRX_SUBSCRIBER_PURCHASE, PRODUCT_CATEGORY";
+				whereParam = "TRX_SUBSCRIBER_PURCHASE.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID AND PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId";
+			}
+			if (i.intValueExact() % 4 == 0) {
+				tableName = "PRODUCT_RATING, PRODUCT_CATEGORY";
+				whereParam = "PRODUCT_RATING.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID AND PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId";
+			}
+
+			String ms = "MSSIDN";
+			if (i.intValueExact() % 4 == 0) {
+				ms = "MSISDN";
+			}
+			if (i.intValueExact() % 4 == -3) {
+				ms = "SUBSCRIBER_MSISDN";
+			}
+
+			if (tableName != null) {
+				stringBuilder.append(" UNION ALL SELECT DISTINCT(submenucat0_.SUB_MENU_CATEGORY_ID) AS SUB_MENU1_21_,\n"
+						+ "      submenucat0_.CATEGORY_ID                           AS CATEGORY2_21_,\n"
+						+ "      submenucat0_.IS_CARD ,\n" + "      submenucat0_.CREATED_AT       AS CREATED_3_21_,\n"
+						+ "      submenucat0_.CREATED_BY       AS CREATED_4_21_,\n"
+						+ "      submenucat0_.IS_ACTIVE        AS IS_ACTIV5_21_,\n"
+						+ "      submenucat0_.SUB_MENU_NAME    AS SUB_MENU6_21_,\n"
+						+ "      submenucat0_.SUB_MENU_ORDER   AS SUB_MENU7_21_,\n"
+						+ "      submenucat0_.UPDATED_AT       AS UPDATED_8_21_,\n"
+						+ "      submenucat0_.UPDATED_BY       AS UPDATED_9_21_,\n"
+						+ "      submenucat0_.SUB_MENU_NAME_EN AS SUB_MENU10_21_,\n"
+						+ "      submenucat0_.MAIN_CATEGORY_ID AS MAIN_CAT_ID\n"
+						+ "    FROM SUB_MENU_CATEGORY submenucat0_,\n" + "      PRODUCT_CATEGORY productcat0_\n"
+						+ "    WHERE submenucat0_.CATEGORY_ID        = :categoryId \n" + submenusQryMainCat
+						+ "    AND submenucat0_.SUB_MENU_CATEGORY_ID = productcat0_.SUB_MENU_CATEGORY_ID\n"
+						+ "    AND (SELECT COUNT(1)\n" + "      FROM " + tableName + " \n" + "      WHERE " + ms
+						+ " = :msisdn and " + whereParam + " ) > 0\n" + "    AND submenucat0_.SUB_MENU_CATEGORY_ID = "
+						+ i + " \n ");
+			}
+		}
+
+		stringBuilder.append(" UNION ALL SELECT distinct\n"
+				+ "  (submenucat0_.SUB_MENU_CATEGORY_ID) AS SUB_MENU1_21_,\n"
+				+ "  submenucat0_.CATEGORY_ID            AS CATEGORY2_21_,\n" + "  submenucat0_.IS_CARD,\n"
+				+ "  submenucat0_.CREATED_AT             AS CREATED_3_21_,\n"
+				+ "  submenucat0_.CREATED_BY             AS CREATED_4_21_,\n"
+				+ "  submenucat0_.IS_ACTIVE              AS IS_ACTIV5_21_,\n"
+				+ "  submenucat0_.SUB_MENU_NAME          AS SUB_MENU6_21_,\n"
+				+ "  submenucat0_.SUB_MENU_ORDER         AS SUB_MENU7_21_,\n"
+				+ "  submenucat0_.UPDATED_AT             AS UPDATED_8_21_,\n"
+				+ "  submenucat0_.UPDATED_BY             AS UPDATED_9_21_,\n"
+				+ "  submenucat0_.SUB_MENU_NAME_EN       AS SUB_MENU10_21_,\n"
+				+ "  submenucat0_.MAIN_CATEGORY_ID AS MAIN_CAT_ID\n"
+				+ "FROM SUB_MENU_CATEGORY submenucat0_, PRODUCT_CATEGORY productcat0_, CAMPAIGN campaign\n" + "WHERE\n"
+				+ "  submenucat0_.CATEGORY_ID = :categoryId " + submenusQryMainCat
+				+ " and submenucat0_.SUB_MENU_CATEGORY_ID = productcat0_.SUB_MENU_CATEGORY_ID AND\n"
+				+ "  (productcat0_.PRODUCT_ORDER BETWEEN 1 AND 20) AND campaign.STATUS = 1 AND sysdate between startdate and enddate AND\n"
+				+ "  campaign.CAMPAIGN_ID= PRODUCTCAT0_.PRODUCT_ID AND\n" + "  submenucat0_.SUB_MENU_CATEGORY_ID > 0 "
+				+ "and campaign.CAMPAIGN_ID IN (" + campaignIds + ") \n"
+		/*
+		 * + " and  ( "+generateCampaignIdFk(campaignIdList2)
+		 * +" CAMPAIGN_ID_FK IS NULL) \n"
+		 */
+		);
+
+		// get product per category/sub-category
+		Query query = subMenuCategoryDto.getSessionFactory().getCurrentSession()
+				.createSQLQuery(
+						"SELECT distinct(SUB_MENU1_21_), CATEGORY2_21_, IS_CARD, CREATED_3_21_, CREATED_4_21_, IS_ACTIV5_21_, SUB_MENU6_21_, SUB_MENU7_21_, UPDATED_8_21_, UPDATED_9_21_, SUB_MENU10_21_, MAIN_CAT_ID FROM ( "
+								+ "SELECT distinct(submenucat0_.SUB_MENU_CATEGORY_ID) AS SUB_MENU1_21_, "
+								+ "    submenucat0_.CATEGORY_ID                AS CATEGORY2_21_, "
+								+ "    submenucat0_.IS_CARD , "
+								+ "    submenucat0_.CREATED_AT                 AS CREATED_3_21_, "
+								+ "    submenucat0_.CREATED_BY                 AS CREATED_4_21_, "
+								+ "    submenucat0_.IS_ACTIVE                  AS IS_ACTIV5_21_, "
+								+ "    submenucat0_.SUB_MENU_NAME              AS SUB_MENU6_21_, "
+								+ "    submenucat0_.SUB_MENU_ORDER             AS SUB_MENU7_21_, "
+								+ "    submenucat0_.UPDATED_AT                 AS UPDATED_8_21_, "
+								+ "    submenucat0_.UPDATED_BY                 AS UPDATED_9_21_, "
+								+ "    submenucat0_.SUB_MENU_NAME_EN           AS SUB_MENU10_21_, "
+								+ "    submenucat0_.MAIN_CATEGORY_ID AS MAIN_CAT_ID "
+								+ "  FROM SUB_MENU_CATEGORY submenucat0_, PRODUCT_CATEGORY productcat0_,  "
+								+ "    PRODUCT product "
+								+ "  WHERE submenucat0_.CATEGORY_ID= :categoryId and submenucat0_.SUB_MENU_CATEGORY_ID = productcat0_.SUB_MENU_CATEGORY_ID  "
+								+ submenusQryMainCat
+								+ "  AND (productcat0_.PRODUCT_ORDER BETWEEN 1 AND 20)  AND product.IS_ACTIVE = 1 AND PRODUCT.PRODUCT_ID = PRODUCTCAT0_.PRODUCT_ID "
+								+ filterSubscriberType3 + " AND " + preview2 + " AND submenucat0_.ACCESS_RIGHT like '%"
+								+ accessRight + "%'  and submenucat0_.SUB_MENU_CATEGORY_ID > 0 "
+								/*
+								 * +
+								 * " and  ("+generateCampaignIdFk(campaignIdList
+								 * )+" CAMPAIGN_ID_FK IS NULL)"
+								 */
+								+ " UNION ALL "
+								+ "SELECT distinct(submenucat0_.SUB_MENU_CATEGORY_ID) AS SUB_MENU1_21_, "
+								+ "    submenucat0_.CATEGORY_ID                AS CATEGORY2_21_, "
+								+ "    submenucat0_.IS_CARD , "
+								+ "    submenucat0_.CREATED_AT                 AS CREATED_3_21_, "
+								+ "    submenucat0_.CREATED_BY                 AS CREATED_4_21_, "
+								+ "    submenucat0_.IS_ACTIVE                  AS IS_ACTIV5_21_, "
+								+ "    submenucat0_.SUB_MENU_NAME              AS SUB_MENU6_21_, "
+								+ "    submenucat0_.SUB_MENU_ORDER             AS SUB_MENU7_21_, "
+								+ "    submenucat0_.UPDATED_AT                 AS UPDATED_8_21_, "
+								+ "    submenucat0_.UPDATED_BY                 AS UPDATED_9_21_, "
+								+ "    submenucat0_.SUB_MENU_NAME_EN           AS SUB_MENU10_21_, "
+								+ "    submenucat0_.MAIN_CATEGORY_ID AS MAIN_CAT_ID "
+								+ "  FROM SUB_MENU_CATEGORY submenucat0_, PRODUCT_CATEGORY productcat0_,  "
+								+ "    PRODUCT product " + "  WHERE submenucat0_.SUB_MENU_CATEGORY_ID <0  "
+								+ submenusQryMainCat + "  AND (productcat0_.PRODUCT_ORDER BETWEEN 1 AND 20) "
+								+ " AND product.IS_ACTIVE = 1 AND PRODUCT.PRODUCT_ID = PRODUCTCAT0_.PRODUCT_ID "
+								+ filterSubscriberType3 + " AND " + preview2 + " AND submenucat0_.IS_ACTIVE = 1 "
+								+ "AND (SELECT count(1)\n" + "        FROM PRODUCT_CATEGORY a,\n"
+								+ "          PRODUCT b, SUB_MENU_CATEGORY c\n"
+								+ "        WHERE a.SUB_MENU_CATEGORY_ID = C.SUB_MENU_CATEGORY_ID \n" + iphone3
+								+ submenusQryInnerMainCat + "        AND b.IS_ACTIVE = 1\n"
+								+ "        AND B.PRODUCT_ID    = a.PRODUCT_ID\n"
+								+ "        and c.CATEGORY_ID        = submenucat0_.CATEGORY_ID\n"
+								+ "        and C.SUB_MENU_CATEGORY_ID = submenucat0_.SUB_MENU_CATEGORY_ID\n"
+								+ "        AND (a.PRODUCT_ORDER BETWEEN 1 AND 20)\n" + "  ) > 0 "
+								+ " AND submenucat0_.ACCESS_RIGHT like '%" + accessRight + "%' "
+								+ "    AND submenucat0_.SUB_MENU_CATEGORY_ID > 0 AND 1 != :msisdn  \n"
+								/*
+								 * + " and  ( "+generateCampaignIdFk(
+								 * campaignIdList)+" CAMPAIGN_ID_FK IS NULL) \n"
+								 */
+								+ stringBuilder.toString() + "  ) ORDER BY\n" + "      CASE SUB_MENU7_21_\n"
+								+ "        WHEN 0\n" + "        THEN 2\n" + "        ELSE 1\n" + "      END,\n"
+								+ "      SUB_MENU7_21_,\n" + "      SUB_MENU6_21_")
+				.setLong("categoryId", Long.parseLong(categoryId)).setString("msisdn", msisdn)
+				.setFirstResult(
+						(page - 1) * (isFull ? Constants.MAX_PRODUCT_PER_PAGE : Constants.MAX_PRODUCT_PER_PAGE_LIGHT))
+				.setMaxResults(isFull ? Constants.MAX_PRODUCT_PER_PAGE : Constants.MAX_PRODUCT_PER_PAGE_LIGHT);
+
+		if (mainCategoryId != null && !mainCategoryId.isEmpty())
+			query.setParameter("mainCategoryId",
+					("".equals(mainCategoryId)) ? Long.parseLong("0") : Long.parseLong(mainCategoryId));
+
+		List<Object[]> submenus = query.list();
+		submenus.forEach(subMenuCategory -> {
+			if (((BigDecimal) subMenuCategory[0]).intValueExact() > 0) {
+				List<Object[]> productList = productDao
+						.listDataUsingNativeSQL("select distinct(PRODUCT_ID), type, PRODUCT_ORDER from (\n"
+								+ "SELECT productcat0_.PRODUCT_ID, PRODUCTCAT0_.type, PRODUCT_ORDER\n"
+								+ "  FROM PRODUCT_CATEGORY productcat0_\n" + "  INNER JOIN PRODUCT product1_\n"
+								+ "  ON productcat0_.PRODUCT_ID           = product1_.PRODUCT_ID\n"
+								+ "INNER JOIN SUB_MENU_CATEGORY C2\n"
+								+ "            on productcat0_.SUB_MENU_CATEGORY_ID = C2.SUB_MENU_CATEGORY_ID\n"
+								+ "  WHERE productcat0_.MENU_CATEGORY_ID  = :menuCategoryId \n"
+								+ "  AND product1_.IS_ACTIVE              = 1\n" + productQryMainCat
+								+ "  AND productcat0_.SUB_MENU_CATEGORY_ID= :subMenuCategoryId \n"
+								+ "  AND (productcat0_.PRODUCT_ORDER BETWEEN 1 AND 20)\n" + filterSubscriberType2
+								+ iphone2 + "  AND (product1_.PRODUCT_CALL_PLAN IS NULL\n"
+								+ "  OR product1_.PRODUCT_CALL_PLAN    = :productCallPlan)\n"
+								+ "  AND productcat0_.IS_ACTIVE        =1 AND C2.IS_ACTIVE = 1 \n" + "  \n"
+								+ "  UNION ALL\n" + "  \n"
+								+ "  SELECT productcat0_.PRODUCT_ID, PRODUCTCAT0_.type, PRODUCT_ORDER\n"
+								+ "  FROM PRODUCT_CATEGORY productcat0_\n" + "  INNER JOIN CAMPAIGN campaign\n"
+								+ "  ON productcat0_.PRODUCT_ID           =campaign.CAMPAIGN_ID\n "
+								+ "INNER JOIN SUB_MENU_CATEGORY S \n"
+								+ "  on productcat0_.SUB_MENU_CATEGORY_ID = S.SUB_MENU_CATEGORY_ID " // ini
+																										// campaign
+								+ "  WHERE productcat0_.MENU_CATEGORY_ID  = :menuCategoryId \n"
+								+ "  AND campaign.status = 1 AND S.IS_ACTIVE = 1 \n"
+								+ "  and sysdate between startdate and enddate\n"
+								+ "  AND productcat0_.SUB_MENU_CATEGORY_ID= :subMenuCategoryId \n"
+								+ "  AND (productcat0_.PRODUCT_ORDER BETWEEN 1 AND 20)\n" + "\n"
+								+ "  AND productcat0_.IS_ACTIVE        =1 \n" + "  AND CAMPAIGN_ID IN ( "
+								+ campaignIdsFinal + " ) \n"
+				/*
+				 * + " and  ( "+generateCampaignIdFk(campaignIdList2)
+				 * +" CAMPAIGN_ID_FK IS NULL) \n"
+				 */
+								+ "  \n" + ")\n" + "\n" + "ORDER BY PRODUCT_ORDER", new HashMap<String, Object>() {
+									{
+										put("menuCategoryId", ((BigDecimal) subMenuCategory[1]).intValueExact());
+										put("subMenuCategoryId", ((BigDecimal) subMenuCategory[0]).intValueExact());
+										put("productCallPlan", callPlan);
+										if (mainCategoryId != null && !mainCategoryId.isEmpty())
+											put("mainCategoryId",
+													(mainCategoryId.equals("")) ? "0" : Long.parseLong(mainCategoryId));
+									}
+								}, 0, getProductSize(imei));
+
+				// only for sub-category with available product
+				if (productList.size() > 0) {
+					productPerCategoryDto.getDetailList().add(new ProductDetailListDto() {
+						{
+							setId(((BigDecimal) subMenuCategory[0]).longValueExact());
+							// adding is_card -- BR 01.03 1. - UI Cards View
+							setIsCard(((BigDecimal) subMenuCategory[2]).intValueExact());
+							setName(Constants.LANG_ID.equals(language) ? (String) subMenuCategory[6]
+									: (String) subMenuCategory[10]);
+
+							for (Object[] objects : productList) {
+								if ("PRODUCT".equals(objects[1])) {
+									getProductList().add(getProductDto(sessionFactoryDef,
+											productDao.find("productId = :productId", new HashMap<String, Object>() {
+												{
+													put("productId", objects[0]);
+												}
+											}).get(0), language, subscriberType, accessRight, isFull));
+								} else {
+									Campaign campaign = campaignService.getCampaign("" + objects[0]);
+									if (campaign != null) {
+										ProductDto dto = productCacheService.fromCampaign(campaign, language, null,
+												isFull);
+										dto.setCampaign(1);
+										getProductList().add(dto);
+									}
+								}
+							}
+
+						}
+					});
+				}
+			} else {
+				/*
+				 * ini hanya untuk yg negative -4 Rating -3 Last Purchase -2 My
+				 * Last Viewed -1 Wishlist
+				 */
+				Integer subMenuId = ((BigDecimal) subMenuCategory[0]).intValueExact();
+				if (subMenuId % 4 == -1) {
+					try {
+						List<ProductDto> products = new ArrayList<>();
+						productDao.listDataUsingNativeSQL("select PRODUCT_ID\n" + "from (SELECT DISTINCT\n"
+								+ "        (PRODUCT_WISH_LIST.PRODUCT_ID),\n" + "        MAX(TRX_DATE) as TRX_DATE\n"
+								+ "      FROM PRODUCT_WISH_LIST, PRODUCT, PRODUCT_CATEGORY\n"
+								+ "      WHERE PRODUCT.PRODUCT_ID = PRODUCT_WISH_LIST.PRODUCT_ID AND PRODUCT_WISH_LIST.MSSIDN = :msisdn and\n"
+								+ "            PRODUCT_WISH_LIST.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID and\n"
+								+ "            PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId\n"
+								+ "group by PRODUCT_WISH_LIST.PRODUCT_ID\n" + ")\n" + "ORDER BY TRX_DATE DESC",
+								new HashMap<String, Object>() {
+									{
+										put("msisdn", msisdn);
+										put("categoryId", Integer.parseInt(categoryId));
+									}
+								}, 0, 5).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+										productDao.find("productId = :productId", new HashMap<String, Object>() {
+											{
+												put("productId", o);
+											}
+										}).get(0), language, subscriberType, accessRight, isFull)));
+
+						if (products.size() > 0) {
+							productPerCategoryDto.getDetailList().add(new ProductDetailListDto() {
+								{
+									setId(((BigDecimal) subMenuCategory[0]).longValueExact());
+									setIsCard(((BigDecimal) subMenuCategory[2]).intValueExact());
+									setName(Constants.LANG_ID.equals(language) ? (String) subMenuCategory[6]
+											: (String) subMenuCategory[10]);
+									getProductList().addAll(products);
+								}
+							});
+						}
+					} catch (Exception e) {
+						logger.error(e.getMessage(), e);
+					}
+				}
+				if (subMenuId % 4 == -2) {
+					try {
+						List<ProductDto> products = new ArrayList<>();
+						productDao.listDataUsingNativeSQL("select (PRODUCT_ID)\n" + "FROM (select PRODUCT_ID\n"
+								+ "      from (SELECT DISTINCT\n" + "              (PRODUCT_LASTVIEW.PRODUCT_ID),\n"
+								+ "              MAX(TRX_DATE) as TRX_DATE\n"
+								+ "            FROM PRODUCT_LASTVIEW, PRODUCT, PRODUCT_CATEGORY\n"
+								+ "            WHERE PRODUCT.PRODUCT_ID = PRODUCT_LASTVIEW.PRODUCT_ID AND MSSIDN = :msisdn and\n"
+								+ "                  PRODUCT_LASTVIEW.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID and\n"
+								+ "                  PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId\n"
+								+ "            group by PRODUCT_LASTVIEW.PRODUCT_ID)\n"
+								+ "      ORDER BY TRX_DATE DESC)", new HashMap<String, Object>() {
+									{
+										put("msisdn", msisdn);
+										put("categoryId", Integer.parseInt(categoryId));
+									}
+								}, 0, 5).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+										productDao.find("productId = :productId", new HashMap<String, Object>() {
+											{
+												put("productId", o);
+											}
+										}).get(0), language, subscriberType, accessRight, isFull)));
+
+						if (products.size() > 0) {
+							productPerCategoryDto.getDetailList().add(new ProductDetailListDto() {
+								{
+									setId(((BigDecimal) subMenuCategory[0]).longValueExact());
+									setIsCard(((BigDecimal) subMenuCategory[2]).intValueExact());
+									setName(Constants.LANG_ID.equals(language) ? (String) subMenuCategory[6]
+											: (String) subMenuCategory[10]);
+									getProductList().addAll(products);
+								}
+							});
+						}
+					} catch (Exception e) {
+						logger.error(e.getMessage(), e);
+					}
+				}
+				if (subMenuId % 4 == 0) {
+					try {
+						List<ProductDto> products = new ArrayList<>();
+						productDao.listDataUsingNativeSQL("select (PRODUCT_ID)\n" + "FROM (select PRODUCT_ID\n"
+								+ "      from (SELECT DISTINCT\n" + "              (PRODUCT_RATING.PRODUCT_ID),\n"
+								+ "              MAX(TRX_DATE) as TRX_DATE\n"
+								+ "            FROM PRODUCT_RATING, PRODUCT, PRODUCT_CATEGORY\n"
+								+ "            WHERE PRODUCT.PRODUCT_ID = PRODUCT_RATING.PRODUCT_ID AND MSISDN = :msisdn AND\n"
+								+ "                  PRODUCT_RATING.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID\n"
+								+ "                  and\n"
+								+ "                  PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId \n"
+								+ "            group by PRODUCT_RATING.PRODUCT_ID)\n" + "      ORDER BY TRX_DATE DESC)",
+								new HashMap<String, Object>() {
+									{
+										put("msisdn", msisdn);
+										put("categoryId", Integer.parseInt(categoryId));
+									}
+								}, 0, 5).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+										productDao.find("productId = :productId", new HashMap<String, Object>() {
+											{
+												put("productId", o);
+											}
+										}).get(0), language, subscriberType, accessRight, isFull)));
+
+						if (products.size() > 0) {
+							productPerCategoryDto.getDetailList().add(new ProductDetailListDto() {
+								{
+									setId(((BigDecimal) subMenuCategory[0]).longValueExact());
+									setIsCard(((BigDecimal) subMenuCategory[2]).intValueExact());
+									setName(Constants.LANG_ID.equals(language) ? (String) subMenuCategory[6]
+											: (String) subMenuCategory[10]);
+									getProductList().addAll(products);
+								}
+							});
+						}
+					} catch (Exception e) {
+						logger.error(e.getMessage(), e);
+					}
+				}
+				if (subMenuId % 4 == -3) {
+					try {
+						List<ProductDto> products = new ArrayList<>();
+						productDao.listDataUsingNativeSQL("select (PRODUCT_ID)\n" + "  FROM (select PRODUCT_ID\n"
+								+ "    from (SELECT DISTINCT\n" + "      (TRX_SUBSCRIBER_PURCHASE.PRODUCT_ID),\n"
+								+ "      max(TRX_SUBSCRIBER_PURCHASE.TRANSACTION_DATETIME) as TRANSACTION_DATETIME\n"
+								+ "      FROM TRX_SUBSCRIBER_PURCHASE, PRODUCT_CATEGORY\n"
+								+ "      WHERE TRX_SUBSCRIBER_PURCHASE.SUBSCRIBER_MSISDN = :msisdn  AND TRX_SUBSCRIBER_PURCHASE.TRANSACTION_DATETIME between (sysdate - 60) and sysdate\n"
+								+ "      and TRX_SUBSCRIBER_PURCHASE.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID and PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId \n"
+								+ "    group by TRX_SUBSCRIBER_PURCHASE.PRODUCT_ID)\n"
+								+ "    ORDER BY TRANSACTION_DATETIME DESC )", new HashMap<String, Object>() {
+									{
+										put("msisdn", msisdn);
+										put("categoryId", Integer.parseInt(categoryId));
+									}
+								}, 0, 5).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+										productDao.find("productId = :productId", new HashMap<String, Object>() {
+											{
+												put("productId", o);
+											}
+										}).get(0), language, subscriberType, accessRight, isFull)));
+
+						if (products.size() > 0) {
+							productPerCategoryDto.getDetailList().add(new ProductDetailListDto() {
+								{
+									setId(((BigDecimal) subMenuCategory[0]).longValueExact());
+									setIsCard(((BigDecimal) subMenuCategory[2]).intValueExact());
+									setName(Constants.LANG_ID.equals(language) ? (String) subMenuCategory[6]
+											: (String) subMenuCategory[10]);
+									getProductList().addAll(products);
+								}
+							});
+						}
+					} catch (Exception e) {
+						logger.error(e.getMessage(), e);
+					}
+				}
+			}
+		});
+		try {
+			if (productPerCategoryDto.getDetailList() != null && productPerCategoryDto.getDetailList().size() > 0) {
+				List<ProductDto> list = productPerCategoryDto.getDetailList().get(0).getProductList();
+
+				if (list != null && list.size() > 0) {
+
+					for (int index = 0; index < list.size(); index++) {
+						ProductDto product = list.get(index);
+						if (product.getRedirectLink() != null) {
+							String link = product.getRedirectLink();
+							if (link == null && link.equals("-")) {
+								// do nothing
+							} else {
+								ProductCharging pcharge = getProductChargingData(product.getProductId());
+								if (msisdn != null && pcharge.getVendorId().equals("3203")) {
+									String cpurl = getCpUrl(msisdn);
+
+									product.setRedirectLink(link + cpurl);
+								}
+								/*
+								 * if (msisdn != null) { String cpurl =
+								 * getCpUrl(msisdn);
+								 * 
+								 * product.setRedirectLink(link + cpurl); }
+								 */
+
+							}
+
+						}
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return JSONResultFilter.filter(productPerCategoryDto).exclude("status").build();
+	}
+
+	@Override
+	public List<ProductDto> getProductPerCategoryPaginated(String subCategoryId, Integer page, String language,
+			String subscriberType, String callPlan, boolean isPreview, String accessRight, boolean isFull,
+			boolean isHome) {
+		return getProductPerCategoryPaginated(subCategoryId, page, language, subscriberType, callPlan, isPreview,
+				accessRight, isFull, isHome, null);
+	}
+
+	/**
+	 * url : product-per-subcategory-paginated
+	 * 
+	 * @param subCategoryId
+	 * @param page
+	 * @param language
+	 * @param subscriberType
+	 * @param callPlan
+	 * @param isPreview
+	 * @param accessRight
+	 * @param isFull
+	 * @param isHome
+	 * @return
+	 */
+	@Override
+	@SuppressWarnings({ "unchecked" })
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #subCategoryId + #language + #subscriberType + #page + #callPlan + #isPreview + #accessRight  + #isFull + #isHome+ #mainCategoryId")
+	public List<ProductDto> getProductPerCategoryPaginated(String subCategoryId, Integer page, String language,
+			String subscriberType, String callPlan, boolean isPreview, String accessRight, boolean isFull,
+			boolean isHome, String mainCategoryId) {
+		logger.info("-----inside getProductPerCategoryPaginated method-------");
+		List<ProductDto> productList = new ArrayList<>();
+
+		String mainCatQry = "";
+		if (mainCategoryId != null && !mainCategoryId.isEmpty())
+			mainCatQry = " and pc.mainCategoryId = :mainCategoryId";
+
+		// if homescreen, no pagination
+		if (isHome)
+			return productList;
+
+		// special subcat, no pagination
+		if (Long.parseLong(subCategoryId) < 0) {
+			return productList;
+		}
+
+		// normal subCategory
+		final String preview = (isPreview ? " pc.productByProductId.isPreview between 0 and 1 "
+				: " pc.productByProductId.isPreview = 0 ");
+		final String phone = (isIphoneFromAccessRight(accessRight) ? " and pc.productByProductId.isIphone = 1 " : " ");
+		final String webselfcare = (isWebselfcareFromAccessRight(accessRight)
+				? " and pc.productByProductId.accessRight like '%SELFCARE%' " : " ");
+
+		// filter based on subscriberType
+		final String filterSubscriberType;
+		if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+			filterSubscriberType = " pc.productByProductId.isPostpaid = 1 ";
+		} else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+			filterSubscriberType = " pc.productByProductId.isHybrid = 1 ";
+		} else {
+			filterSubscriberType = " pc.productByProductId.isPrepaid = 1 ";
+		}
+
+		if (page == null || page < 1)
+			page = 1;
+
+		String order;
+		if ("0".equals(language)) { // indonesia
+			order = " pc.productByProductId.productNameId ASC ";
+		} else { // english
+			order = " pc.productByProductId.productNameEn ASC ";
+		}
+
+		BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		productDao.listData(
+				"select pc.productByProductId from ProductCategory as pc where pc.subMenuCategoryId = :subMenuCategoryId and pc.productByProductId.isActive = true and "
+						+ filterSubscriberType + " AND " + preview + phone + webselfcare + mainCatQry
+						+ " and (pc.productByProductId.productCallPlan is null or pc.productByProductId.productCallPlan = :productCallPlan) and pc.isActive = true "
+						+ " order by (case pc.productOrder when 0 then 21 else pc.productOrder end) asc, " + order,
+				new HashMap<String, Object>() {
+					{
+						put("subMenuCategoryId", Integer.parseInt(subCategoryId));
+						put("productCallPlan", callPlan);
+						if (mainCategoryId != null && !mainCategoryId.isEmpty())
+							put("mainCategoryId", mainCategoryId);
+					}
+				}, (page - 1) * Constants.MAX_PRODUCT_PER_SUBCATEGORY, Constants.MAX_PRODUCT_PER_SUBCATEGORY)
+				.forEach(o -> productList.add(
+						getProductDto(sessionFactoryDef, (Product) o, language, subscriberType, accessRight, isFull)));
+
+		return productList;
+	}
+
+	@Override
+	public List<ProductDto> getProductBySubCategory(String subCategoryId, String language, String subscriberType,
+			Integer page, String callPlan, boolean isPreview, boolean isHome, String accessRight, boolean isFull,
+			String msisdn) {
+		return getProductBySubCategory(subCategoryId, language, subscriberType, page, callPlan, isPreview, isHome,
+				accessRight, isFull, msisdn, null);
+	}
+
+	/**
+	 * ini product-per-sub-category
+	 * 
+	 * @param subCategoryId
+	 * @param language
+	 * @param subscriberType
+	 * @param page
+	 * @param callPlan
+	 * @param isPreview
+	 * @param isHome
+	 * @param accessRight
+	 * @param isFull
+	 * @param msisdn
+	 * @param mainCategoryId
+	 * @return
+	 */
+	@Override
+	@SuppressWarnings({ "unchecked" })
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #subCategoryId + #language + #subscriberType + #page + #callPlan + #isPreview + #isHome + #accessRight  + #isFull + #msisdn + #mainCategoryId ")
+	public List<ProductDto> getProductBySubCategory(String subCategoryId, String language, String subscriberType,
+			Integer page, String callPlan, boolean isPreview, boolean isHome, String accessRight, boolean isFull,
+			String msisdn, String mainCategoryId) {
+		
+		logger.info("-----inside getProductBySubCategory method-------");
+		if (subCategoryId == null) {
+			return new ArrayList<>();
+		}
+		List<ProductDto> productList = new ArrayList<>();
+
+		// get valid campaigns, do a simple string append instead of hsql query
+		List<String> campaignIdList = new ArrayList<>();
+		if (msisdn != null && !"0".equals(msisdn))
+			campaignIdList = null;// cLMService.getApiClmOfferIdList(moduleTransactionIDGenerator.generate(Module.CLM),
+									// msisdn);
+		String campaignIds = "";
+		/*
+		 * for (String campaignId : campaignIdList) {
+		 * campaignIds+="\'"+campaignId+"\',"; }
+		 */
+		campaignIds += "\'0\'";
+
+		/*
+		 * ================ dynamic subcategory goes here ================
+		 */
+		if (Long.parseLong(subCategoryId) < 0) {
+			if (page <= 1)
+				generateDynamicSubcat(subCategoryId, msisdn, language, subscriberType, accessRight, isFull, productList,
+						mainCategoryId);
+			return productList;
+		}
+
+		if (isHome) {
+			// subCategory
+			List<Object[]> productIdList = sessionFactoryDef.getCurrentSession()
+					.createSQLQuery(
+							SqlProductHomescreen.GET_SUB_CATEGORY_QUERY(subscriberType, accessRight, campaignIds))
+					.setInteger("offset",
+							(page == 1 ? 0 : 1) + ((page - 1) * Constants.MAX_PRODUCT_PER_PAGE_SUBCATEGORY_000))
+					.setInteger("max",
+							(page == 1 ? Constants.MAX_PRODUCT_PER_PAGE_SUBCATEGORY_1ST
+									: Constants.MAX_PRODUCT_PER_PAGE_SUBCATEGORY_000))
+					.setInteger("isPreview", isPreview ? 1 : 0).setString("subMenuCategoryId", subCategoryId)
+					.setString("productCallPlan", callPlan).list();
+			// sorry for my sin -> no other way #lol
+			for (Object[] objects : productIdList) {
+				List<Product> products = new ArrayList<>();
+				try {
+					products = productDao.getFindQuery("productId = " + objects[0]).list();
+				} catch (Exception e) {
+				}
+
+				if (!products.isEmpty()) {
+					ProductDto p = getProductDto(sessionFactoryDef, products.get(0), language, subscriberType,
+							(accessRight), isFull);
+					productList.add(p);
+				} else {
+					Campaign campaign = campaignService.getCampaign("" + objects[0]);
+					if (campaign != null) {
+						productList.add(productCacheService.fromCampaign(campaign, language, null, isFull));
+					}
+				}
+			}
+		} else {
+			// normal subCategory
+			final String preview = (isPreview ? " product2_.IS_PREVIEW between 0 and 1 "
+					: " product2_.IS_PREVIEW = 0 ");
+			final String phone = (isIphoneFromAccessRight(accessRight) ? " and product2_.is_Iphone = 1 " : " ");
+			final String selfcare = (isWebselfcareFromAccessRight(accessRight)
+					? " and product2_.access_Right like '%SELFCARE%' " : " ");
+
+			String qryMainCat = "";
+			if (mainCategoryId != null) {
+				qryMainCat = " and productcat0_.MAIN_CATEGORY_ID = :mainCategoryId";
+			}
+
+			// filter based on subscriberType
+			final String filterSubscriberType;
+			if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+				filterSubscriberType = " product2_.IS_POSTPAID = 1 ";
+			} else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+				filterSubscriberType = " product2_.IS_HYBRID = 1 ";
+			} else {
+				filterSubscriberType = " product2_.IS_PREPAID = 1 ";
+			}
+
+			if (page == null || page < 1)
+				page = 1;
+
+			final Integer start = (page == 1 ? 0 : 1) + ((page - 1) * Constants.MAX_PRODUCT_PER_PAGE_SUBCATEGORY_000);
+			final Integer end = start + ((page == 1 ? Constants.MAX_PRODUCT_PER_PAGE_SUBCATEGORY_1ST
+					: Constants.MAX_PRODUCT_PER_PAGE_SUBCATEGORY_000));
+
+			final String campaignIdsFinal = campaignIds;
+
+			List<Object[]> myProductList = productDao.listDataUsingNativeSQL("select *\n" + "from (select\n"
+					+ "        row_.*,\n" + "        rownum rownum_\n" + "      from (SELECT *\n" + "  FROM\n"
+					+ "    (SELECT *\n" + "    FROM\n" + "      (select product1_.PRODUCT_ID,\n"
+					+ "        PRODUCT_ORDER,\n" + "        productcat0_.TYPE FROM PRODUCT_CATEGORY productcat0_\n"
+					+ "  INNER JOIN PRODUCT product1_\n" + "  ON productcat0_.PRODUCT_ID=product1_.PRODUCT_ID,\n"
+					+ "    PRODUCT product2_ " + " WHERE productcat0_.PRODUCT_ID        = product2_.PRODUCT_ID \n"
+					+ "AND productcat0_.SUB_MENU_CATEGORY_ID = :subMenuCategoryId AND product2_.IS_ACTIVE              =1 and "
+					+ filterSubscriberType + " AND " + preview + phone + selfcare + qryMainCat
+					+ " AND (product2_.PRODUCT_CALL_PLAN    IS NULL OR product2_.PRODUCT_CALL_PLAN = :productCallPlan) AND productcat0_.IS_ACTIVE           =1 "
+					+ "UNION ALL\n" + "      SELECT productcat0_.PRODUCT_ID,\n"
+					+ "        productcat0_.PRODUCT_ORDER,\n" + "        productcat0_.TYPE\n"
+					+ "      FROM PRODUCT_CATEGORY productcat0_\n" + "      INNER JOIN CAMPAIGN campaign\n"
+					+ "      ON productcat0_.PRODUCT_ID              =campaign.CAMPAIGN_ID\n"
+					+ "      WHERE productcat0_.SUB_MENU_CATEGORY_ID = :subMenuCategoryId\n" + qryMainCat
+					+ "      AND campaign.status                     =1\n"
+					+ "      AND sysdate BETWEEN startdate AND enddate\n" + "  AND CAMPAIGN_ID IN ( " + campaignIdsFinal
+					+ " ) \n" + "      )\n" + "    )\n" + "  ORDER BY (\n" + "    CASE PRODUCT_ORDER\n"
+					+ "      WHEN 0\n" + "      THEN 21\n" + "      ELSE PRODUCT_ORDER\n" + "    END) ASC) row_"
+					+ ") where rownum_ > :start " + " and rownum_ <= :end " + " ", new HashMap<String, Object>() {
+						{
+							put("subMenuCategoryId", Integer.parseInt(subCategoryId));
+							put("productCallPlan", callPlan);
+							put("start", start);
+							put("end", end);
+							if (mainCategoryId != null)
+								put("mainCategoryId", mainCategoryId);
+						}
+					});
+
+			for (Object[] objects : myProductList) {
+				if ("PRODUCT".equals(objects[2])) {
+					productList.add(getProductDto(sessionFactoryDef,
+							productDao.find("productId = :productId", new HashMap<String, Object>() {
+								{
+									put("productId", (String) objects[0]);
+								}
+							}).get(0), language, subscriberType, (accessRight), isFull));
+				} else {
+					Campaign campaign = campaignService.getCampaign("" + objects[0]);
+					if (campaign != null) {
+						ProductDto dto = productCacheService.fromCampaign(campaign, language, null, isFull);
+						dto.setCampaign(1);
+						productList.add(dto);
+					}
+				}
+			}
+		}
+
+		return productList;
+	}
+
+	private void generateDynamicSubcat(String subCategoryId, String msisdn, String language, String subscriberType,
+			String accessRight, boolean isFull, List<ProductDto> productList, int start, int end, String mainCategoryId)
+			throws NumberFormatException {
+		logger.info("-----inside generateDynamicSubcat method-------");
+
+		String mainCatQry = "";
+		if (mainCategoryId != null && !mainCategoryId.isEmpty())
+			mainCatQry = "and mainCategoryId = :mainCategoryId";
+
+		// we need to get category id first
+		BaseDao<SubMenuCategory> subMenuCategoryDao = new BaseDao<>(sessionFactoryDef, SubMenuCategory.class);
+		List<SubMenuCategory> subMenuCategorys = subMenuCategoryDao
+				.find("subMenuCategoryId = :subMenuCategoryId " + mainCatQry, new HashMap<String, Object>() {
+					{
+						put("subMenuCategoryId", Long.parseLong(subCategoryId));
+						if (mainCategoryId != null && !mainCategoryId.isEmpty())
+							put("mainCategoryId", mainCategoryId);
+					}
+				});
+
+		final long categoryId = subMenuCategorys.isEmpty() ? 0l : subMenuCategorys.get(0).getCategoryId();
+		String queryAppend = "PRODUCT_CATEGORY.MENU_CATEGORY_ID = :categoryId";
+		if (categoryId < 0) {
+			queryAppend = " 0 != :categoryId";
+		}
+
+		if (Long.parseLong(subCategoryId) % 4 == -1) {
+			try {
+				List<ProductDto> products = new ArrayList<>();
+				productDao.listDataUsingNativeSQL(
+						"select PRODUCT_ID from ( SELECT DISTINCT(PRODUCT_WISH_LIST.PRODUCT_ID), MAX(TRX_DATE) as TRX_DATE FROM PRODUCT_WISH_LIST, PRODUCT, PRODUCT_CATEGORY WHERE PRODUCT.PRODUCT_ID =  PRODUCT_WISH_LIST.PRODUCT_ID AND  PRODUCT_WISH_LIST.MSSIDN = :msisdn and PRODUCT_WISH_LIST.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID and "
+								+ queryAppend + " group by PRODUCT_WISH_LIST.PRODUCT_ID ) ORDER BY TRX_DATE DESC",
+						new HashMap<String, Object>() {
+							{
+								put("msisdn", msisdn);
+								put("categoryId", categoryId);
+							}
+						}, start, end).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+								productDao.find("productId = :productId", new HashMap<String, Object>() {
+									{
+										put("productId", o);
+									}
+								}).get(0), language, subscriberType, accessRight, isFull)));
+
+				if (products.size() > 0) {
+					productList.addAll(products);
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+		if (Long.parseLong(subCategoryId) % 4 == -2) {
+			try {
+				List<ProductDto> products = new ArrayList<>();
+				productDao.listDataUsingNativeSQL(
+						"select (PRODUCT_ID) FROM (select PRODUCT_ID from ( SELECT DISTINCT(PRODUCT_LASTVIEW.PRODUCT_ID), max(TRX_DATE) as TRX_DATE FROM PRODUCT_LASTVIEW, PRODUCT, PRODUCT_CATEGORY  WHERE PRODUCT.PRODUCT_ID =  PRODUCT_LASTVIEW.PRODUCT_ID AND MSSIDN = :msisdn and PRODUCT_LASTVIEW.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID and "
+								+ queryAppend + "  group by PRODUCT_LASTVIEW.PRODUCT_ID )ORDER BY TRX_DATE DESC)",
+						new HashMap<String, Object>() {
+							{
+								put("msisdn", msisdn);
+								put("categoryId", categoryId);
+							}
+						}, start, end).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+								productDao.find("productId = :productId", new HashMap<String, Object>() {
+									{
+										put("productId", o);
+									}
+								}).get(0), language, subscriberType, accessRight, isFull)));
+
+				if (products.size() > 0) {
+					productList.addAll(products);
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+		if (Long.parseLong(subCategoryId) % 4 == 0) {
+			try {
+				List<ProductDto> products = new ArrayList<>();
+				productDao.listDataUsingNativeSQL(
+						"select (PRODUCT_ID) FROM (select PRODUCT_ID from ( SELECT DISTINCT(PRODUCT_RATING.PRODUCT_ID), MAX(TRX_DATE) as TRX_DATE FROM PRODUCT_RATING, PRODUCT, PRODUCT_CATEGORY WHERE PRODUCT.PRODUCT_ID =  PRODUCT_RATING.PRODUCT_ID AND  MSISDN = :msisdn  AND PRODUCT_RATING.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID and "
+								+ queryAppend + " group by PRODUCT_RATING.PRODUCT_ID ) ORDER BY TRX_DATE DESC)",
+						new HashMap<String, Object>() {
+							{
+								put("msisdn", msisdn);
+								put("categoryId", categoryId);
+							}
+						}, start, end).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+								productDao.find("productId = :productId", new HashMap<String, Object>() {
+									{
+										put("productId", o);
+									}
+								}).get(0), language, subscriberType, accessRight, isFull)));
+
+				if (products.size() > 0) {
+					productList.addAll(products);
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+		if (Long.parseLong(subCategoryId) % 4 == -3) {
+			try {
+				List<ProductDto> products = new ArrayList<>();
+				productDao.listDataUsingNativeSQL(
+						"select  (PRODUCT_ID)\n" + "FROM (select PRODUCT_ID\n" + "      from (SELECT DISTINCT\n"
+								+ "              (TRX_SUBSCRIBER_PURCHASE.PRODUCT_ID),\n"
+								+ "              TRX_SUBSCRIBER_PURCHASE.TRANSACTION_DATETIME\n"
+								+ "            FROM TRX_SUBSCRIBER_PURCHASE, PRODUCT_CATEGORY\n"
+								+ "            WHERE TRX_SUBSCRIBER_PURCHASE.SUBSCRIBER_MSISDN = :msisdn  AND TRX_SUBSCRIBER_PURCHASE.TRANSACTION_DATETIME between (sysdate - 60) and sysdate\n"
+								+ "                  and TRX_SUBSCRIBER_PURCHASE.PRODUCT_ID = PRODUCT_CATEGORY.PRODUCT_ID and "
+								+ queryAppend + " )\n" + "      ORDER BY TRANSACTION_DATETIME DESC )",
+						new HashMap<String, Object>() {
+							{
+								put("msisdn", msisdn);
+								put("categoryId", categoryId);
+							}
+						}, start, end).forEach(o -> products.add(getProductDto(sessionFactoryDef,
+								productDao.find("productId = :productId", new HashMap<String, Object>() {
+									{
+										put("productId", o);
+									}
+								}).get(0), language, subscriberType, accessRight, isFull)));
+
+				if (products.size() > 0) {
+					productList.addAll(products);
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+	}
+
+	private void generateDynamicSubcat(String subCategoryId, String msisdn, String language, String subscriberType,
+			String accessRight, boolean isFull, List<ProductDto> productList) throws NumberFormatException {
+		generateDynamicSubcat(subCategoryId, msisdn, language, subscriberType, accessRight, isFull, productList, 0, 10,
+				null);
+	}
+
+	private void generateDynamicSubcat(String subCategoryId, String msisdn, String language, String subscriberType,
+			String accessRight, boolean isFull, List<ProductDto> productList, String mainCategoryId)
+			throws NumberFormatException {
+		generateDynamicSubcat(subCategoryId, msisdn, language, subscriberType, accessRight, isFull, productList, 0, 10,
+				mainCategoryId);
+	}
+
+	@Override
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #categoryId + #language + #subscriberType + #page + #callPlan +#isPreview + #accessRight + #isFull")
+	public List<ProductDto> getBannerPerCategory(String categoryId, String language, String subscriberType,
+			Integer page, String callPlan, boolean isPreview, String accessRight, boolean isFull) {
+		logger.info("-----inside getBannerPerCategory method-------");
+		if (categoryId == null) {
+			return new ArrayList<>();
+		}
+
+		if (page == null || page < 0) {
+			page = 1;
+		}
+
+		final String preview = (isPreview ? " p.isPreview between 0 and 1 " : " p.isPreview = 0 ");
+		final String iphone = (isIphoneFromAccessRight(accessRight) ? " and p.isIphone = 1 " : " ");
+		final String selfcare = (isWebselfcareFromAccessRight(accessRight) ? " and p.accessRight like '%SELFCARE%' "
+				: " ");
+
+		// filter based on subscriberType
+		final String filterSubscriberType;
+		if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+			filterSubscriberType = " p.isPostpaid = 1 ";
+		} else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+			filterSubscriberType = " p.isHybrid = 1 ";
+		} else {
+			filterSubscriberType = " p.isPrepaid = 1 ";
+		}
+
+		List<ProductDto> productList = new ArrayList<>();
+		BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		productDao.listData(
+				"select p from Product p where p.isFeatured = 1 and exists (select 1 from ProductCategory pc where pc.productId = p.productId and pc.menuCategoryId = :menuCategoryId) and p.isActive = true and "
+						+ filterSubscriberType + " and " + preview + iphone + selfcare
+						+ " and p.isFeatured = 1 and p.featuredOrder between 1 and 20 "
+						+ " and (p.productCallPlan is null or p.productCallPlan = :productCallPlan) "
+						+ " order by case when p.featuredOrder = 0 then null else p.featuredOrder end, p.featuredOrder, p.productNameId",
+				new HashMap<String, Object>() {
+					{
+						put("menuCategoryId", Integer.parseInt(categoryId));
+						put("productCallPlan", callPlan);
+					}
+				}, (page - 1) * Constants.MAX_PRODUCT_PER_PAGE, Constants.MAX_PRODUCT_PER_PAGE)
+				.forEach(product -> productList
+						.add(getProductDto(sessionFactoryDef, product, language, subscriberType, (accessRight), true)));
+
+		return productList;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #language + #request.subscriberType + #callPlan + #isPreview + #accessRight + #request.page + #isFull + #request.msisdn")
+	public Map<String, Object> getHomeScreen(HomeScreenRequestDto request, String language, String callPlan,
+			boolean isPreview, String accessRight, boolean isFull) {
+		
+		logger.info("-----inside getHomeScreen method-------");
+		// initialization
+		ProductPerCategoryDto productHomescreen = new ProductPerCategoryDto();
+		productHomescreen.setStatus(true);
+		System.out.println("Home Service Call-----");
+		try {
+
+			// get valid campaigns, do a simple string append instead of hsql
+			// query
+			List<String> campaignIdList = new ArrayList<>();
+			if (request.getMsisdn() != null && !"0".equals(request.getMsisdn()))
+				campaignIdList = cLMService.getApiClmOfferIdList(moduleTransactionIDGenerator.generate(Module.CLM),
+						request.getMsisdn());
+			String campaignIds = "";
+			for (String campaignId : campaignIdList) {
+				campaignIds += "\'" + campaignId + "\',";
+			}
+			campaignIds += "\'0\'";
+
+			final String campaignIdsFinal = campaignIds;
+
+			// get product for homescreen
+			String sqlWhere = " ";
+			if (request.getSubscriberType() != null
+					&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+				sqlWhere = sqlWhere + " product1_.is_Postpaid = 1 ";
+			} else if (request.getSubscriberType() != null
+					&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+				sqlWhere = sqlWhere + " product1_.is_Hybrid = 1 ";
+			} else {
+				sqlWhere = sqlWhere + " product1_.is_Prepaid = 1 ";
+			}
+
+			final String iphone = (isIphoneFromAccessRight(accessRight) ? " and product1_.is_Iphone = 1 " : " ");
+			final String webselfcare = (isWebselfcareFromAccessRight(accessRight)
+					? " and product1_.access_Right like '%SELFCARE%' " : " ");
+
+			// take all data, paging it using arraylist instead of paging query.
+			// Should be fast because products and campaign are on cache.
+			List<Object[]> productHomescreenList = productDao
+					.listDataUsingNativeSQL("select distinct(ID), CATEGORY_ID, \"ORDER\" from (\n" + "select *\n"
+							+ "from (" + "select (ID), CATEGORY_ID, PRODUCT_HOMESCREEN_ID, \"ORDER\" from\n" + "(\n"
+							+ "select\n" + "  producthom4_.SUB_MENU_CATEGORY_ID as ID,\n"
+							+ "  producthom4_.CATEGORY_ID as CATEGORY_ID, producthom0_.PRODUCT_HOMESCREEN_ID as PRODUCT_HOMESCREEN_ID,\n"
+							+ "  producthom4_.\"ORDER\",\n" + "  product1_.PRODUCT_NAME_ID as NAME\n"
+							+ "from PRODUCT_HOMESCREEN_POSITION producthom0_, PRODUCT product1_, PRODUCT_HOMESCREEN producthom4_,\n"
+							+ "  SUB_MENU_CATEGORY submenucat5_\n"
+							+ "where producthom0_.PRODUCT_ID = product1_.PRODUCT_ID and producthom0_.PRODUCT_HOMESCREEN_ID = producthom4_.ID and\n"
+							+ "      producthom4_.SUB_MENU_CATEGORY_ID = submenucat5_.SUB_MENU_CATEGORY_ID and producthom0_.IS_ACTIVE = 1 and\n"
+							+ "      product1_.IS_ACTIVE = 1 "
+							+ "and (product1_.PRODUCT_CALL_PLAN is null or product1_.PRODUCT_CALL_PLAN = :productCallPlan) and\n"
+							+ "      (submenucat5_.ACCESS_RIGHT like :accessRight) and (producthom0_.HOMESCREEN_ORDER between 0 and 20) and\n"
+							+ "      " + sqlWhere + iphone + webselfcare + " and product1_.IS_PREVIEW = 0\n" + " and  ("
+							+ generateCampaignIdFk(campaignIdList) + " CAMPAIGN_ID_FK IS NULL) \n" + // CAMPAIGN_ID_FK
+																										// like
+																										// '%"+string+"%'
+																										// OR
+							"\n" + "  union all\n" + "\n" + "    select\n"
+							+ "  producthom4_.SUB_MENU_CATEGORY_ID as ID, producthom4_.CATEGORY_ID as CATEGORY_ID, \n"
+							+ "  producthom0_.PRODUCT_HOMESCREEN_ID,\n" + "  producthom4_.\"ORDER\",\n"
+							+ "  campaign.PROMO_NAME_ID as NAME\n"
+							+ "from PRODUCT_HOMESCREEN_POSITION producthom0_, Campaign campaign, PRODUCT_HOMESCREEN producthom4_,\n"
+							+ "  SUB_MENU_CATEGORY submenucat5_\n"
+							+ "where producthom0_.PRODUCT_ID = campaign.campaign_id and producthom0_.PRODUCT_HOMESCREEN_ID = producthom4_.ID and\n"
+							+ "      producthom4_.SUB_MENU_CATEGORY_ID = submenucat5_.SUB_MENU_CATEGORY_ID and producthom0_.IS_ACTIVE = 1 and\n"
+							+ "      campaign.STATUS = 1 and\n"
+							+ "      (submenucat5_.ACCESS_RIGHT like '%') and (producthom0_.HOMESCREEN_ORDER between 0 and 20) and\n"
+							+ "      sysdate between startdate and enddate \n" +
+							/*
+							 * "  AND CAMPAIGN_ID IN ( "
+							 * +campaignIdsFinal+" ) \n" +
+							 */
+							" and  (" + generateCampaignIdFk(campaignIdList) + "  CAMPAIGN_ID_FK IS NULL) \n" + ")\n"
+							+ "\n" + "\n" + " ) ) order by \"ORDER\"", new HashMap<String, Object>() {
+								{
+									put("productCallPlan", callPlan);
+									put("accessRight", "%" + accessRight + "%");
+								}
+							});
+
+			
+			
+			
+			
+			/*
+			 * System.out.println("Query Is :::::::::"
+			 * +"select distinct(ID), CATEGORY_ID, \"ORDER\" from (\n" +
+			 * "select *\n" + "from (" +
+			 * "select (ID), CATEGORY_ID, PRODUCT_HOMESCREEN_ID, \"ORDER\" from\n"
+			 * + "(\n" + "select\n" +
+			 * "  producthom4_.SUB_MENU_CATEGORY_ID as ID,\n" +
+			 * "  producthom4_.CATEGORY_ID as CATEGORY_ID, producthom0_.PRODUCT_HOMESCREEN_ID as PRODUCT_HOMESCREEN_ID,\n"
+			 * + "  producthom4_.\"ORDER\",\n" +
+			 * "  product1_.PRODUCT_NAME_ID as NAME\n" +
+			 * "from PRODUCT_HOMESCREEN_POSITION producthom0_, PRODUCT product1_, PRODUCT_HOMESCREEN producthom4_,\n"
+			 * + "  SUB_MENU_CATEGORY submenucat5_\n" +
+			 * "where producthom0_.PRODUCT_ID = product1_.PRODUCT_ID and producthom0_.PRODUCT_HOMESCREEN_ID = producthom4_.ID and\n"
+			 * +
+			 * "      producthom4_.SUB_MENU_CATEGORY_ID = submenucat5_.SUB_MENU_CATEGORY_ID and producthom0_.IS_ACTIVE = 1 and\n"
+			 * + "      product1_.IS_ACTIVE = 1 " +
+			 * "and (product1_.PRODUCT_CALL_PLAN is null or product1_.PRODUCT_CALL_PLAN = :productCallPlan) and\n"
+			 * +
+			 * "      (submenucat5_.ACCESS_RIGHT like :accessRight) and (producthom0_.HOMESCREEN_ORDER between 0 and 20) and\n"
+			 * + "      " + sqlWhere + iphone + webselfcare +
+			 * " and product1_.IS_PREVIEW = 0\n" + " and  (" +
+			 * generateCampaignIdFk(campaignIdList) +
+			 * " CAMPAIGN_ID_FK IS NULL) \n" + // CAMPAIGN_ID_FK // like //
+			 * '%"+string+"%' // OR "\n" + "  union all\n" + "\n" +
+			 * "    select\n" +
+			 * "  producthom4_.SUB_MENU_CATEGORY_ID as ID, producthom4_.CATEGORY_ID as CATEGORY_ID, \n"
+			 * + "  producthom0_.PRODUCT_HOMESCREEN_ID,\n" +
+			 * "  producthom4_.\"ORDER\",\n" +
+			 * "  campaign.PROMO_NAME_ID as NAME\n" +
+			 * "from PRODUCT_HOMESCREEN_POSITION producthom0_, Campaign campaign, PRODUCT_HOMESCREEN producthom4_,\n"
+			 * + "  SUB_MENU_CATEGORY submenucat5_\n" +
+			 * "where producthom0_.PRODUCT_ID = campaign.campaign_id and producthom0_.PRODUCT_HOMESCREEN_ID = producthom4_.ID and\n"
+			 * +
+			 * "      producthom4_.SUB_MENU_CATEGORY_ID = submenucat5_.SUB_MENU_CATEGORY_ID and producthom0_.IS_ACTIVE = 1 and\n"
+			 * + "      campaign.STATUS = 1 and\n" +
+			 * "      (submenucat5_.ACCESS_RIGHT like '%') and (producthom0_.HOMESCREEN_ORDER between 0 and 20) and\n"
+			 * + "      sysdate between startdate and enddate \n" +
+			 * 
+			 * "  AND CAMPAIGN_ID IN ( " +campaignIdsFinal+" ) \n" +
+			 * 
+			 * " and  (" + generateCampaignIdFk(campaignIdList) +
+			 * "  CAMPAIGN_ID_FK IS NULL) \n" + ")\n" + "\n" + "\n" +
+			 * " ) ) order by \"ORDER\"");
+			 */
+
+			// prepare category/sub-category
+			List<ProductDto> productList = new ArrayList<>();
+			ProductDetailListDto catSubDetail = new ProductDetailListDto();
+
+			for (Object[] o : productHomescreenList) {
+				// get id for this category/sub-category
+				boolean isCategory = o[0] == null;
+				long id = isCategory ? ((java.math.BigDecimal) o[1]).longValueExact()
+						: ((java.math.BigDecimal) o[0]).longValueExact();
+
+				if (catSubDetail.getId() != (isCategory ? (0 - id) : id)) {
+					// new ProductDetailListDto
+					productList = new ArrayList<>();
+					catSubDetail = new ProductDetailListDto();
+					catSubDetail.setId(isCategory ? (0 - id) : id);
+					catSubDetail.setId2(((java.math.BigDecimal) o[1]).longValueExact());
+
+					// set iscard sesuai dengan field IS_CARD di table
+					// submenucategory
+					if (!isCategory) {
+						BaseDao<SubMenuCategory> subMenuCategoryDto = new BaseDao<>(sessionFactoryDef,
+								SubMenuCategory.class);
+						List<SubMenuCategory> subMenuCategorys = subMenuCategoryDto
+								.find("subMenuCategoryId = :subMenuCategoryId", new HashMap<String, Object>() {
+									{
+										put("subMenuCategoryId", ((java.math.BigDecimal) o[0]).longValueExact());
+									}
+								});
+						catSubDetail.setIsCard(subMenuCategorys.isEmpty() ? 0 : subMenuCategorys.get(0).getIsCard());
+					} else
+						catSubDetail.setIsCard(0);
+
+					// set name dari subcat
+					if (catSubDetail.getName() == null) {
+						String title = "";
+						if (isCategory) {
+							BaseDao<MenuCategory> menuCategoryDto = new BaseDao<>(sessionFactoryDef,
+									MenuCategory.class);
+							List<MenuCategory> menuCategorys = menuCategoryDto.find("categoryId = :categoryId",
+									new HashMap<String, Object>() {
+										{
+											put("categoryId", ((java.math.BigDecimal) o[1]).longValueExact());
+										}
+									});
+
+							if (!menuCategorys.isEmpty())
+								title = menuCategorys.get(0).getName();
+						} else {
+							BaseDao<SubMenuCategory> subMenuCategoryDto = new BaseDao<>(sessionFactoryDef,
+									SubMenuCategory.class);
+							List<SubMenuCategory> subMenuCategorys = subMenuCategoryDto
+									.find("subMenuCategoryId = :subMenuCategoryId", new HashMap<String, Object>() {
+										{
+											put("subMenuCategoryId", ((java.math.BigDecimal) o[0]).longValueExact());
+										}
+									});
+
+							if (!subMenuCategorys.isEmpty())
+								if (language != null) {
+									title = language.equals(Constants.LANG_ID)
+											? subMenuCategorys.get(0).getSubMenuNameId()
+											: subMenuCategorys.get(0).getSubMenuNameEn();
+								}
+						}
+						catSubDetail.setName(title);
+						catSubDetail.setProductList(productList);
+						productHomescreen.getDetailList().add(catSubDetail);
+					}
+				}
+
+				if (!Constants.SELFCARE.equals(request.getImei()) && productList.size() > 3)
+					continue;
+
+				// special subcat is here
+				if (o[0] != null && ((java.math.BigDecimal) o[0]).longValueExact() < 0) {
+					List<ProductDto> myProductList = new ArrayList<>();
+					generateDynamicSubcat(o[0] + "", request.getMsisdn(), language, request.getSubscriberType(),
+							accessRight, isFull, myProductList);
+
+					productList.addAll(myProductList);
+				} else {
+
+					List<String> productIds = sessionFactoryDef.getCurrentSession()
+							.createSQLQuery("select PRODUCT_ID from PRODUCT_HOMESCREEN_POSITION\n"
+									+ "where PRODUCT_HOMESCREEN_ID in "
+									+ "(select ID from PRODUCT_HOMESCREEN where SUB_MENU_CATEGORY_ID = :id) order by HOMESCREEN_ORDER ASC")
+							.setLong("id", ((java.math.BigDecimal) o[0]).longValueExact()).list();
+
+					for (String productId : productIds) {
+						// disini pembeda antara campaign dan product
+
+						String sqlWhereProducType = "productId = :productId ";
+
+						if (request.getSubscriberType() != null
+								&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+							sqlWhereProducType = sqlWhereProducType + " and isPostpaid = true ";
+						} else if (request.getSubscriberType() != null
+								&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+							sqlWhereProducType = sqlWhereProducType + " and isHybrid = true ";
+						} else {
+							sqlWhereProducType = sqlWhereProducType + " and isPrepaid = true ";
+						}
+
+						List<Product> ps = productDao.find(sqlWhereProducType, new HashMap<String, Object>() {
+							{
+								put("productId", productId);
+							}
+						});
+
+						if (!ps.isEmpty()) {
+							productList.add(getProductDto(sessionFactoryDef, ps.get(0), language,
+									request.getSubscriberType(), (accessRight), isFull));
+						} else {
+							BaseDao<Campaign> campaignDao = new BaseDao<>(sessionFactoryDef, Campaign.class);
+							List<Campaign> campaigns = campaignDao.find(
+									"campaignId = :campaignId and campaignId in (" + campaignIdsFinal + ")",
+									new HashMap<String, Object>() {
+										{
+											put("campaignId", productId);
+										}
+									});
+
+							if (!campaigns.isEmpty())
+								// ini campaign
+								productList.add(productCacheService.fromCampaign(campaigns.get(0), language,
+										campaigns.get(0).getCampaignId(), isFull));
+						}
+					}
+				}
+			}
+
+			int pg = 1;
+			if (request.getPage() != null && request.getPage() > 0) {
+				pg = request.getPage();
+			}
+
+			// get banner for homescreen
+			if (pg == 1) {
+				sessionFactoryDef.getCurrentSession()
+						.createSQLQuery("SELECT DISTINCT P.PRODUCT_ID FROM MENU_CATEGORY MC "
+								+ "  LEFT JOIN PRODUCT_CATEGORY PC ON PC.MENU_CATEGORY_ID = MC.CATEGORY_ID "
+								+ "  LEFT JOIN PRODUCT P ON P.PRODUCT_ID = PC.PRODUCT_ID "
+								+ "WHERE MC.CATEGORY_ID > 0 AND P.IS_FEATURED = 1 AND P.FEATURED_ORDER > 0 AND P.IS_ACTIVE = 1 AND PC.IS_ACTIVE = 1 "
+								+ "  AND (P.PRODUCT_CALL_PLAN IS NULL OR P.PRODUCT_CALL_PLAN = :productCallPlan) AND "
+								+ Helpers.querySqlProduct(request.getSubscriberType(), "P") + "  "
+								+ (isPreview ? " AND P.IS_PREVIEW = 1 " : "") + "  "
+								+ (isIphoneFromAccessRight(accessRight) ? " AND P.IS_IPHONE = 1 " : "")
+								+ "ORDER BY P.FEATURED_ORDER, MC.\"ORDER\" " + "FETCH FIRST 5 ROWS ONLY")
+						.setString("productCallPlan", callPlan).list()
+						.forEach(o -> productHomescreen.getBannerList().add(ProductDto.fromProduct(sessionFactoryDef,
+								productDao.find("productId = :productId", new HashMap<String, Object>() {
+									{
+										put("productId", o);
+									}
+								}).get(0), language, request.getSubscriberType(), accessRight, true)));
+				
+				
+			}
+
+			// retro paging, should be handled by cache
+			List list = new ArrayList();
+			for (ProductDetailListDto productDetailListDto : productHomescreen.getDetailList()) {
+				if (!productDetailListDto.getProductList().isEmpty()) {
+					list.add(productDetailListDto);
+				}
+			}
+			productHomescreen.getDetailList().clear();
+
+			// for this page, only take 4 level for full / lite version can take
+			// 8.
+			int size = 4;
+			if (!isFull) {
+				size = Constants.MAX_PRODUCT_PER_PAGE_LIGHT;
+			}
+
+			if (list.size() >= pg * size)
+				list = list.subList((pg - 1) * size, pg * size);
+			else if (list.size() > (pg - 1) * size) {
+				list = list.subList((pg - 1) * size, ((pg - 1) * size) + (list.size() % size));
+			} else {
+				list.clear();
+			}
+			productHomescreen.getDetailList().addAll(list);
+
+		} catch (Exception e) {
+			productHomescreen.setStatus(false);
+			logger.error(e.getMessage(), e);
+		}
+
+		Map mp = new HashMap<>();
+		mp = JSONResultFilter.filter(productHomescreen).exclude("status").build();
+		System.out.println("ProductServiceImpl  " + mp);
+		return JSONResultFilter.filter(productHomescreen).exclude("status").build();
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Cacheable(value = "cache1", key = "#root.methodName.toString() + #language + #page + #request.subscriberType + #callPlan + #isPreview + #accessRight  + #isFull")
+	@Override
+	public Map<String, Object> getHomeScreenBannerAll(HomeScreenRequestDto request, String language, Integer page,
+			String callPlan, boolean isPreview, String accessRight, boolean isFull) {
+		
+		logger.info("-----inside getHomeScreenBannerAll method-------");
+		// page should not weird
+		if (page == null | page < 1)
+			page = 1;
+		ProductPerCategoryDto homeScreenDto = new ProductPerCategoryDto();
+		homeScreenDto.setStatus(true);
+
+		List<String> ids = sessionFactoryDef.getCurrentSession()
+				.createSQLQuery("SELECT PRODUCT_ID FROM (SELECT DISTINCT P.PRODUCT_ID FROM MENU_CATEGORY MC "
+						+ "  LEFT JOIN PRODUCT_CATEGORY PC ON PC.MENU_CATEGORY_ID = MC.CATEGORY_ID "
+						+ "  LEFT JOIN PRODUCT P ON P.PRODUCT_ID = PC.PRODUCT_ID "
+						+ "WHERE MC.CATEGORY_ID > 0 AND P.IS_FEATURED = 1 AND P.FEATURED_ORDER > 0 AND P.IS_ACTIVE = 1 AND PC.IS_ACTIVE = 1 "
+						+ "  AND (P.PRODUCT_CALL_PLAN IS NULL OR P.PRODUCT_CALL_PLAN = :productCallPlan) AND "
+						+ Helpers.querySqlProduct(request.getSubscriberType(), "P") + "  "
+						+ (isPreview ? " AND P.IS_PREVIEW = 1 " : "") + "  "
+						+ (isIphoneFromAccessRight(accessRight) ? " AND P.IS_IPHONE = 1 " : "") + "  "
+						+ (isWebselfcareFromAccessRight(accessRight) ? " AND P.ACCESS_RIGHT LIKE '%SELFCARE%' " : "")
+						+ "ORDER BY P.FEATURED_ORDER, MC.\"ORDER\" "
+						+ "FETCH FIRST 20 ROWS ONLY) X OFFSET :offset ROWS FETCH NEXT :max ROWS ONLY")
+				.setInteger("offset", (page - 1) * Constants.MAX_PRODUCT_PER_PAGE)
+				.setInteger("max", Constants.MAX_PRODUCT_PER_PAGE).setString("productCallPlan", callPlan).list();
+
+		/*
+		 * if (!ids.isEmpty()) { ids.forEach(o ->
+		 * homeScreenDto.getBannerList().add(ProductDto.fromProduct(
+		 * sessionFactoryDef, productDao.find("productId = :productId", new
+		 * HashMap<String, Object>() { { put("productId", o); } }).get(0),
+		 * language, request.getSubscriberType(), accessRight, true))); }
+		 */
+		if (!ids.isEmpty()) {
+			for (String s : ids) {
+				try {
+
+					List<Product> productList = productDao.find("productId = :productId",
+							new HashMap<String, Object>() {
+								{
+									put("productId", s);
+								}
+							});
+					if (productList.size() > 0) {
+						ProductDto productDto = ProductDto.fromProduct(sessionFactoryDef, productList.get(0), language,
+								request.getSubscriberType(), accessRight, true);
+
+						if (productDto != null) {
+							homeScreenDto.getBannerList().add(productDto);
+						}
+					}
+				} catch (Exception e) {
+					System.out.println(e);
+				}
+			}
+		}
+
+		return JSONResultFilter.filter(homeScreenDto).exclude("detailList").build();
+	}
+
+	private ProductDto getProductDto(SessionFactory sessionFactoryDef, Product product, String language,
+			String subscriberType, String accessRight, boolean isFull) {
+		return productCacheService.getProductDto(sessionFactoryDef, product, language, subscriberType, accessRight,
+				isFull);
+	}
+
+	/**
+	 * searching product
+	 * 
+	 * @param request
+	 * @param language
+	 * @param callPlan
+	 * @param accessRight
+	 * @param isFull
+	 * @return
+	 */
+	@Override
+	public List<ProductDto> searchProduct(SearchRequestDto request, String language, String callPlan,
+			String accessRight, boolean isFull) {
+		
+		logger.info("-----inside searchProduct method-------");
+		List<ProductDto> products = new ArrayList<>();
+		Integer page = request.getPage();
+		if (page == null || page < 1)
+			page = 1;
+
+		// filter based on subscriberType
+		final String filterSubscriberType;
+		if (request.getSubscriberType() != null
+				&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+			filterSubscriberType = " is_Postpaid = 1 ";
+		} else if (request.getSubscriberType() != null
+				&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+			filterSubscriberType = " is_Hybrid = 1 ";
+		} else {
+			filterSubscriberType = " IS_PREPAID = 1 ";
+		}
+
+		final String iphone = (isIphoneFromAccessRight(accessRight) ? " and is_Iphone = 1 " : " ");
+		final String selfcare = (isWebselfcareFromAccessRight(accessRight) ? " and access_right like '%SELFCARE%' "
+				: " ");
+
+		// alphanumeric char only and space m(-_- )m
+		// request.setKeyword(request.getKeyword().replaceAll(Constants.REGEXP_SEARCH_REPLACE,
+		// ""));
+
+		// minimum char is 3
+		if (request.getKeyword().trim().length() < 1)
+			return products;
+
+		try {
+			productDao.listDataUsingNativeSQL(
+					"SELECT q1.* FROM (SELECT product_id, PRODUCT_NAME_ID, \n" + "0 as total, " + "0 as price "
+							+ " FROM Product a WHERE (lower(PRODUCT_NAME_ID) like '%'||  :productName|| '%' or lower(PRODUCT_NAME_EN) like '%'||  :productName|| '%' OR lower(SEARCH_KEYWORDS) like '%'||  :productName|| '%' ) and PRODUCT_ID not in (select PRODUCT_ID from SEARCH_BLACKLIST) and "
+							+ filterSubscriberType + iphone + selfcare
+							+ " and (PRODUCT_CALL_PLAN is null or PRODUCT_CALL_PLAN = :productCallPlan) and IS_ACTIVE = 1 AND a.CHARGING_MECHANISM='featurepage' ORDER BY 3 DESC, 4 ASC, 2 ASC)q1 "
+							+ " UNION ALL " + "SELECT q2.* FROM (SELECT product_id, PRODUCT_NAME_ID, \n"
+							+ "0 as total, " + "0 as price "
+							+ " FROM Product a WHERE (lower(PRODUCT_NAME_ID) like '%'||  :productName|| '%' or lower(PRODUCT_NAME_EN) like '%'||  :productName|| '%' OR lower(SEARCH_KEYWORDS) like '%'||  :productName|| '%' ) and PRODUCT_ID not in (select PRODUCT_ID from SEARCH_BLACKLIST) and "
+							+ filterSubscriberType + iphone + selfcare
+							+ " and (PRODUCT_CALL_PLAN is null or PRODUCT_CALL_PLAN = :productCallPlan) and IS_ACTIVE = 1 AND a.CHARGING_MECHANISM!='featurepage' ORDER BY 3 DESC, 4 ASC, 2 ASC)q2 ",
+					new HashMap<String, Object>() {
+						{
+							put("productName", request.getKeyword().toLowerCase());
+							put("productCallPlan", callPlan);
+						}
+					}, (page - 1) * Constants.MAX_PRODUCT_PER_PAGE, Constants.MAX_PRODUCT_PER_PAGE)
+					.forEach(o -> products.add(getProductDto(sessionFactoryDef,
+							productDao.find("productId = :productId", new HashMap<String, Object>() {
+								{
+									put("productId", ((Object[]) o)[0]);
+								}
+							}).get(0), language, request.getSubscriberType(), accessRight, isFull)));
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+
+		return products;
+	}
+
+	@Override
+	public Map<String, Object> getRecommendedForYou(HomeScreenRequestDto request, String language, boolean isFull) {
+		logger.info("-----inside getRecommendedForYou method-------");
+		
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		Map<String, Object> json = new HashMap<>();
+		try {
+			List<ProductDto> products = new ArrayList<>();
+
+			// get canceled Campaign
+			List<Campaign> campaignList = campaignService.getCampaignRfuCanceled(request.getMsisdn());
+			for (Campaign campaign : campaignList) {
+				if (campaign.getClaimMethod() != null) {
+					products.add(productCacheService.fromCampaign(campaign, language,
+							campaign.getClaimMethod().equalsIgnoreCase(Constants.CHARGING_API_CLM)
+									? ApiHelpers.getApiClmOfferId(moduleTransactionIDGenerator.generate(Module.CLM),
+											request.getMsisdn(), campaign.getCampaignId())
+									: null,
+							isFull));
+				}
+			}
+
+			// get available whitelist_clm
+			List<String> offerIdList = cLMService
+					.getApiClmOfferIdList(moduleTransactionIDGenerator.generate(Module.CLM), request.getMsisdn());
+
+			// all available RFU
+			campaignList = campaignService.getCampaignRfuAll(request.getMsisdn());
+			for (Campaign campaign : campaignList) {
+				if (campaign.getClaimMethod() != null) {
+					// validate target type
+					if (campaign.getTargetType().equals(Constants.TARGET_TYPE_CMS_WHITELIST)
+							&& !campaignService.isMsisdnWhitelisted(campaign.getCampaignId(), request.getMsisdn())) {
+						continue;
+					} else if (campaign.getTargetType().equals(Constants.TARGET_TYPE_SPECIFIC_CALLPLAN)
+							&& !campaign.getCallplan().equals(request.getCallPlan())) {
+						continue;
+					}
+
+					if (campaign.getClaimMethod().equals(Constants.CHARGING_API_CLM)
+							&& offerIdList.contains(campaign.getCampaignId())) {
+						products.add(
+								productCacheService.fromCampaign(campaign, language, campaign.getCampaignId(), isFull));
+					} else if (!campaign.getClaimMethod().equals(Constants.CHARGING_API_CLM)) {
+						products.add(productCacheService.fromCampaign(campaign, language, null, isFull));
+					}
+				}
+			}
+
+			json.put("status", true);
+			json.put("products", products);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			json.put("status", false);
+			json.put("message", e.getLocalizedMessage());
+		}
+
+		return json;
+	}
+
+	public Map<String, Object> getRecommendedForYouLimited(HomeScreenRequestDto request, String language,
+			boolean isFull) {
+		logger.info("-----inside getRecommendedForYouLimited method-------");
+		
+		
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		Map<String, Object> json = new HashMap<>();
+		try {
+			List<ProductDto> products = new ArrayList<>();
+
+			// get canceled Campaign
+			List<Campaign> campaignList = campaignService.getCampaignRfuCanceled(request.getMsisdn());
+			for (Campaign campaign : campaignList) {
+				if (campaign.getClaimMethod() != null) {
+					products.add(productCacheService.fromCampaign(campaign, language,
+							campaign.getClaimMethod().equalsIgnoreCase(Constants.CHARGING_API_CLM)
+									? ApiHelpers.getApiClmOfferId(moduleTransactionIDGenerator.generate(Module.CLM),
+											request.getMsisdn(), campaign.getCampaignId())
+									: null,
+							isFull));
+				}
+			}
+
+			// get available whitelist_clm
+			/*
+			 * List<String> offerIdList =
+			 * cLMService.getApiClmOfferIdList(moduleTransactionIDGenerator.
+			 * generate(Module.CLM), request.getMsisdn());
+			 * 
+			 * // get real RFU campaignList =
+			 * campaignService.getCampaignRfu(request.getMsisdn()); for
+			 * (Campaign campaign : campaignList) { if
+			 * (campaign.getClaimMethod() != null) { // validate target type if
+			 * (campaign.getTargetType().equals(Constants.
+			 * TARGET_TYPE_CMS_WHITELIST) &&
+			 * !campaignService.isMsisdnWhitelisted(campaign.getCampaignId(),
+			 * request.getMsisdn())) { continue; } else if
+			 * (campaign.getTargetType().equals(Constants.
+			 * TARGET_TYPE_SPECIFIC_CALLPLAN) &&
+			 * !campaign.getCallplan().equals(request.getCallPlan())) {
+			 * continue; }
+			 * 
+			 * if (campaign.getClaimMethod().equals(Constants.CHARGING_API_CLM)
+			 * && offerIdList.contains(campaign.getCampaignId())) {
+			 * products.add(productCacheService.fromCampaign(campaign, language,
+			 * campaign.getCampaignId(), isFull)); } else if
+			 * (!campaign.getClaimMethod().equals(Constants.CHARGING_API_CLM)) {
+			 * products.add(productCacheService.fromCampaign(campaign, language,
+			 * null, isFull)); } } }
+			 */
+
+			int pg = 1;
+			if (request.getPage() != null && request.getPage() > 0) {
+				pg = request.getPage();
+			}
+
+			// retro paging, should be handled by cache
+			List list = new ArrayList();
+			list.addAll(products);
+			products.clear();
+
+			// for this page, only take 4 level. - RFU selfcare is 20
+			if (list.size() >= pg * getProductSize(request.getImei()))
+				list = list.subList((pg - 1) * getProductSize(request.getImei()),
+						pg * getProductSize(request.getImei()));
+			else if (list.size() > (pg - 1) * getProductSize(request.getImei())) {
+				list = list.subList((pg - 1) * getProductSize(request.getImei()),
+						((pg - 1) * getProductSize(request.getImei()))
+								+ (list.size() % getProductSize(request.getImei())));
+			} else {
+				list.clear();
+			}
+
+			json.put("status", true);
+			json.put("products", list);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			json.put("status", false);
+			json.put("message", e.getLocalizedMessage());
+		}
+
+		return json;
+	}
+
+	@Override
+	public Map<String, Object> productDetail(ProductDetailDto request, boolean isFull, String accessRight) {
+		
+		logger.info("-----inside productDetail method-------");
+		Map map = new HashMap();
+		map.put("status", true);
+
+		List<Product> products = productDao.listData("from Product where productId = :productId",
+				new HashMap<String, Object>() {
+					{
+						put("productId", request.getProductId());
+					}
+				});
+		logger.info("#productDetail------products size ------" + products.size());
+		if (products.isEmpty()) {
+			Campaign campaign = campaignService.getCampaign(request.getProductId());
+
+			if (campaign != null) {
+				ProductDto dto = productCacheService.fromCampaign(campaign, request.getLanguage(), null, isFull);
+				dto.setCampaign(1);
+				map.put("product", dto);
+			} else {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "Product not Found")).all().build();
+			}
+		} else {
+			ProductDto dto = productCacheService
+					.getProductDto(sessionFactoryDef, products.get(0),
+							request.getLanguage(), request.getSubscriberType() == null
+									? Constants.SUBSCRIBER_TYPE_PREPAID : request.getSubscriberType(),
+							accessRight, isFull);
+			map.put("product", dto);
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> productDetail(String id, boolean isFull) {
+		
+		logger.info("-----inside productDetail method-------");
+		Map map = new HashMap();
+
+		try {
+			// id product pasti integer
+			Integer.parseInt(id);
+
+			List<Product> products = productDao.listData("from Product where productId = :productId",
+					new HashMap<String, Object>() {
+						{
+							put("productId", "" + id);
+						}
+					});
+
+			// perhaps its campaign..?
+			if (products.isEmpty())
+				throw new Exception("throwing to campaign " + id);
+
+			Product product = products.get(0);
+			List<String> strings = sessionFactoryDef.getCurrentSession()
+					.createSQLQuery(
+							"SELECT VALUE FROM PRODUCT_METADATA productmet0_ WHERE productmet0_.PRODUCT_ID= :productId AND (productmet0_.KEY        ='IMG_BANNER_BIG' OR productmet0_.KEY          ='IMG_PRODUCT_SQUARE_BIG' OR productmet0_.KEY          ='IMG_PRODUCT_SQUARE' OR productmet0_.KEY          ='IMG_BANNER' OR productmet0_.KEY='IMG_PRODUCT_PORTRAIT')")
+					.setString("productId", "" + id).list();
+
+			if (strings.isEmpty())
+				return map;
+
+			map.put("productname", product.getProductNameId());
+			map.put("productdesc", product.getProductDescriptionId());
+			map.put("productimage", strings.get(0));
+			map.put("productimage2", strings.get(1));
+			map.put("productid", product.getProductId());
+
+		} catch (Exception ex) {
+			// selain integer maka campaigns
+			Campaign campaign = campaignService.getCampaign(id);
+
+			if (campaign != null) {
+				map.put("productname", campaign.getPromoNameId());
+				map.put("productdesc", Helpers.ifnull(campaign.getDescId(), ""));
+				campaign.getCampaignBannerCollection().iterator().forEachRemaining(campaignBanner -> {
+					if (campaignBanner.getBannerType().contains(Constants.KEY_IMAGE_BANNER)) {
+						map.put("productimage", campaignBanner.getBannerPath());
+					} else if (campaignBanner.getBannerType().contains(Constants.KEY_IMAGE_PORTRAIT)
+							|| campaignBanner.getBannerType().contains(Constants.KEY_IMAGE_SQUARE)) {
+						map.put("productimage2", campaignBanner.getBannerPath());
+					}
+				});
+
+				if (!map.containsKey("productimage")) {
+					map.put("productimage", "");
+				}
+				if (!map.containsKey("productimage2")) {
+					map.put("productimage2", "");
+				}
+			}
+		}
+		return map;
+	}
+
+	private int getProductSize(String imei) {
+		if (!Constants.SELFCARE.equals(imei))
+			return 4;
+		return Constants.MAX_PRODUCT_PER_COLUMN;
+	}
+
+	private boolean isIphone(String imei) {
+		if (imei == null)
+			return false;
+		return imei.contains("-");
+	}
+
+	@Override
+	public List<ProductDto> searchProductAutoComplete(SearchAutoCompleteRequestDto request, String language,
+			String callPlan, String accessRight, boolean isFull) {
+		
+		logger.info("-----inside searchProductAutoComplete method-------");
+		
+		List<ProductDto> products = new ArrayList<>();
+		Integer page = request.getPage();
+		if (page == null || page < 1)
+			page = 1;
+
+		// filter based on subscriberType
+		final String filterSubscriberType;
+		if (request.getSubscriberType() != null
+				&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+			filterSubscriberType = " is_Postpaid = 1 ";
+		} else if (request.getSubscriberType() != null
+				&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+			filterSubscriberType = " is_Hybrid = 1 ";
+		} else {
+			filterSubscriberType = " is_Prepaid = 1 ";
+		}
+
+		final String iphone = (isIphoneFromAccessRight(accessRight) ? " and is_Iphone = 1 " : " ");
+		final String selfcare = (isWebselfcareFromAccessRight(accessRight) ? " and access_right like '%SELFCARE%' "
+				: " ");
+
+		// alphanumeric char only and space m(-_- )m
+		// request.setKeyword(request.getKeyword().replaceAll(Constants.REGEXP_SEARCH_REPLACE,
+		// ""));
+
+		// minimum char is 3
+		if (request.getKeyword().trim().length() < 3)
+			return products;
+
+		productDao.listDataUsingNativeSQL(
+				"SELECT q1.* FROM (SELECT product_id, PRODUCT_NAME_ID, \n" + "0                            as total, "
+						+ "0 as price "
+						+ "FROM Product a WHERE (lower(PRODUCT_NAME_ID) like '%'||  :productName|| '%' or lower(PRODUCT_NAME_EN) like '%'||  :productName|| '%' OR lower(SEARCH_KEYWORDS) like '%'||  :productName|| '%' ) and PRODUCT_ID not in (select PRODUCT_ID from SEARCH_BLACKLIST) and "
+						+ filterSubscriberType + " " + iphone + selfcare
+						+ " and (PRODUCT_CALL_PLAN is null or PRODUCT_CALL_PLAN = :productCallPlan) and IS_ACTIVE = 1 and a.CHARGING_MECHANISM='featurepage' ORDER BY 3 DESC, 4 ASC, 2 ASC) q1 "
+						+ " UNION ALL " + "SELECT q2.* FROM (SELECT product_id, PRODUCT_NAME_ID, \n"
+						+ "0                            as total, " + "0 as price "
+						+ "FROM Product a WHERE (lower(PRODUCT_NAME_ID) like '%'||  :productName|| '%' or lower(PRODUCT_NAME_EN) like '%'||  :productName|| '%' OR lower(SEARCH_KEYWORDS) like '%'||  :productName|| '%' ) and PRODUCT_ID not in (select PRODUCT_ID from SEARCH_BLACKLIST) and "
+						+ filterSubscriberType + " " + iphone + selfcare
+						+ " and (PRODUCT_CALL_PLAN is null or PRODUCT_CALL_PLAN = :productCallPlan) and IS_ACTIVE = 1 and a.CHARGING_MECHANISM!='featurepage' ORDER BY 3 DESC, 4 ASC, 2 ASC)q2 ",
+				new HashMap<String, Object>() {
+					{
+						put("productName", request.getKeyword().toLowerCase());
+						put("productCallPlan", callPlan);
+					}
+				}, (page - 1) * Constants.MAX_PRODUCT_PER_PAGE, Constants.MAX_PRODUCT_PER_PAGE)
+				.forEach(o -> products.add(getProductDto(sessionFactoryDef,
+						productDao.find("productId = :productId", new HashMap<String, Object>() {
+							{
+								put("productId", ((Object[]) o)[0]);
+							}
+						}).get(0), language, request.getSubscriberType(), accessRight, isFull)));
+
+		return products;
+	}
+
+	@Override
+	public Map giveRating(StarRatingDto starRatingDto) {
+		
+		logger.info("-----inside giveRating method-------");
+		if (!isMsisdnValid(starRatingDto.getMsisdn(), starRatingDto.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {
+			{
+				put("productId", starRatingDto.getProductId());
+			}
+		});
+
+		if (products.isEmpty()) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+		}
+
+		Product product = products.get(0);
+		Integer ratingNumber = product.getRatingNumber();
+		if (ratingNumber == null)
+			ratingNumber = 0;
+
+		Integer ratingTotal = product.getRatingTotal();
+		if (ratingTotal == null)
+			ratingTotal = 0;
+
+		product.setRatingNumber(++ratingNumber);
+		product.setRatingTotal(ratingTotal + starRatingDto.getRating());
+		productDao.update(product);
+
+		// add to rating table
+		ProductRating productRating = new ProductRating();
+		productRating.setUuid(UUID.randomUUID().toString());
+		productRating.setMssidn(starRatingDto.getMsisdn());
+		productRating.setProductId(starRatingDto.getProductId());
+		productRating.setTrxDate(new Date());
+
+		productRatingDao.save(productRating);
+
+		return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+	}
+
+	@Override
+	public List<ProductDto> getProductUpsell(ProductUpsellRequestDto request, boolean isIphone) {
+		
+		logger.info("-----inside getProductUpsell method-------");
+		List<ProductDto> products = new ArrayList<>();
+
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return Collections.EMPTY_LIST;
+		}
+
+		// filter based on subscriberType
+		final String filterSubscriberType;
+		if (request.getSubscriberType() != null
+				&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+			filterSubscriberType = " and b.is_postpaid = 1 ";
+		} else if (request.getSubscriberType() != null
+				&& request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+			filterSubscriberType = " and b.is_hybrid = 1 ";
+		} else {
+			filterSubscriberType = " and b.is_prepaid = 1 ";
+		}
+
+		final String iphone = (isIphone ? " and b.is_iphone = 1 " : " ");
+
+		try {
+			BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+			sessionFactoryDef.getCurrentSession()
+					.createSQLQuery("select * from (select a.PRODUCT_ID_CHILD from product_upsell a, product b \n"
+							+ "where  a.product_id = :productid and a.PRODUCT_ID_CHILD = b.product_id \n"
+							+ filterSubscriberType + " " + iphone + "order by priority asc) where rownum < 4")
+					.setString("productid", request.getProductId()).list()
+					.forEach(o -> products.add(ProductDto.fromProduct(sessionFactoryDef,
+							productDao.find("productId = :productId", new HashMap<String, Object>() {
+								{
+									put("productId", o);
+								}
+							}).get(0), request.getLanguage(), request.getSubscriberType(), "ANDROID", true)));
+
+			// ambil product dari subcat yang sejenis sehingga minimal
+			// 3products, kecuali productnya null
+			if (!products.isEmpty() && products.size() < 3) {
+				sessionFactoryDef.getCurrentSession()
+						.createSQLQuery("select * from (select a.product_id from product_category a, product b \n"
+								+ "where SUB_MENU_CATEGORY_ID = ( \n"
+								+ "select SUB_MENU_CATEGORY_ID from product_category \n"
+								+ "where product_id = :productid and rownum = 1) and b.PRODUCT_ID != :productid and a.PRODUCT_ID = B.PRODUCT_ID \n"
+								+ filterSubscriberType + " " + iphone + ") where rownum < " + (4 - products.size()))
+						.setString("productid", request.getProductId()).list()
+						.forEach(o -> products.add(ProductDto.fromProduct(sessionFactoryDef,
+								productDao.find("productId = :productId", new HashMap<String, Object>() {
+									{
+										put("productId", o);
+									}
+								}).get(0), request.getLanguage(), request.getSubscriberType(), "ANDROID", true)));
+			}
+
+		} catch (Exception ex) {
+			logger.error("Exception message::::",ex.getMessage());
+		}
+
+		return products;
+	}
+
+	private boolean isIphoneFromAccessRight(String accessRight) {
+		return "IPHONE".equals(accessRight);
+	}
+
+	private boolean isWebselfcareFromAccessRight(String accessRight) {
+		return "SELFCARE".equals(accessRight);
+	}
+
+	/**
+	 * pasti prepaid yang masuk sini, dan pasti product
+	 * 
+	 * @param productVouchersDto
+	 * @param accessRight
+	 * @return
+	 */
+	@Override
+	public List<ProductDto> getProductVouchers(ProductVouchersDto productVouchersDto, String accessRight) {
+		
+		logger.info("-----inside getProductVouchers method-------");
+		
+		List<ProductDto> products = new ArrayList<>();
+		try {
+			BaseDao<ProductVoucher> productVoucherDao = new BaseDao<>(sessionFactoryDef, ProductVoucher.class);
+			productVoucherDao.listData("from ProductVoucher order by position")
+					.forEach(productVoucher -> products.add(ProductDto.fromProduct(sessionFactoryDef,
+							productDao.find("productId = :productId", new HashMap<String, Object>() {
+								{
+									put("productId", productVoucher.getProductId());
+								}
+							}).get(0), productVouchersDto.getLanguage(), productVouchersDto.getSubscriberType(),
+							accessRight, true)));
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return products;
+	}
+
+	/**
+	 * ini select count(1) from product_wishlist
+	 * 
+	 * @param wishlistDto
+	 * @return
+	 */
+	@Override
+	public Map isWishlist(WishlistDto wishlistDto) {
+		
+		logger.info("-----inside isWishlist method-------");
+		
+		if (!isMsisdnValid(wishlistDto.getMsisdn(), wishlistDto.getSecretKey())) {
+			return Collections.EMPTY_MAP;
+		}
+
+		long count = productWishListDao.count("mssidn = :mssidn and productId = :productId",
+				new HashMap<String, Object>() {
+					{
+						put("mssidn", wishlistDto.getMsisdn());
+						put("productId", wishlistDto.getProductId());
+					}
+				});
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(count > 0)).all().build();
+	}
+
+	/**
+	 * ini insert
+	 * 
+	 * @param wishlistDto
+	 * @return
+	 */
+	@Override
+	public Map setWishlist(WishlistDto wishlistDto) {
+		
+		logger.info("-----inside setWishlist method-------");
+		
+		if (!isMsisdnValid(wishlistDto.getMsisdn(), wishlistDto.getSecretKey())) {
+			return Collections.EMPTY_MAP;
+		}
+
+		long count = productWishListDao.count("mssidn = :mssidn and productId = :productId",
+				new HashMap<String, Object>() {
+					{
+						put("mssidn", wishlistDto.getMsisdn());
+						put("productId", wishlistDto.getProductId());
+					}
+				});
+
+		if (count < 1) {
+			ProductWishList productWishList = new ProductWishList();
+			productWishList.setUuid(UUID.randomUUID().toString());
+			productWishList.setMssidn(wishlistDto.getMsisdn());
+			productWishList.setProductId(wishlistDto.getProductId());
+			productWishList.setTrxDate(new Timestamp(new Date().getTime()));
+
+			productWishListDao.save(productWishList);
+		}
+
+		return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+	}
+
+	// TODO remove wishlist here
+	@Override
+	public Map removeWishlist(WishlistDto wishlistDto) {
+		
+		logger.info("-----inside removeWishlist method-------");
+		if (!isMsisdnValid(wishlistDto.getMsisdn(), wishlistDto.getSecretKey())) {
+			return Collections.EMPTY_MAP;
+		}
+
+		BaseDao<ProductWishList> wishListDao = new BaseDao<>(sessionFactoryDef, ProductWishList.class);
+		List<ProductWishList> lists = wishListDao.find("productId = :productId", new HashMap<String, Object>() {
+			{
+				put("productId", wishlistDto.getProductId());
+			}
+		});
+
+		if (lists.isEmpty())
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+
+		wishListDao.delete(lists.get(0));
+
+		return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+	}
+
+	@Override
+	public Map setLastViewed(LastViewedDto lastViewedDto) {
+		
+		logger.info("-----inside setLastViewed method-------");
+		
+		if (!isMsisdnValid(lastViewedDto.getMsisdn(), lastViewedDto.getSecretKey())) {
+			return Collections.EMPTY_MAP;
+		}
+		ProductLastView productLastView = new ProductLastView();
+		productLastView.setUuid(UUID.randomUUID().toString());
+		productLastView.setMssidn(lastViewedDto.getMsisdn());
+		productLastView.setProductId(lastViewedDto.getProductId());
+		productLastView.setTrxDate(new Timestamp(new Date().getTime()));
+
+		BaseDao<ProductLastView> productLastViewDao = new BaseDao<>(sessionFactoryDef, ProductLastView.class);
+		productLastViewDao.save(productLastView);
+
+		return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+	}
+
+	public List<TrxSubscriberPurchase> getLastPurchased(BaseRequestDto request) {
+		
+		logger.info("-----inside getLastPurchased method-------");
+		
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return Collections.EMPTY_LIST;
+		}
+
+		try {
+			List<TrxSubscriberPurchase> list = trxSubscriberPurchaseDao.find(
+					"subscriberMsisdn = :subscriberMsisdn order by transaction_datetime desc",
+					new HashMap<String, Object>() {
+						{
+							put("subscriberMsisdn", request.getMsisdn());
+						}
+					}, 0, 5);
+
+			return list;
+		} catch (Exception e) {
+			logger.error("Exception:::::",e.getMessage());
+			return Collections.EMPTY_LIST;
+		}
+	}
+
+	private String generateCampaignIdFk(List<String> campaignId) {
+
+		if (campaignId.isEmpty())
+			return "1 = 2 OR";
+
+		String q = "";
+		for (String string : campaignId) {
+			q += " CAMPAIGN_ID_FK like '%" + string + "%' OR ";
+		}
+		return q;
+	}
+
+	@Override
+	public Product getProductById(String productId) {
+		List<Product> list = productDao.find("productId = :productId", new HashMap<String, Object>() {
+			{
+				put("productId", productId);
+			}
+		});
+		return list.isEmpty() ? null : list.get(0);
+	}
+
+	@Override
+	public TriProductModDto getTriProductModuleInfo(String categoryId, Integer page, String language,
+			String subscriberType, String callPlan, boolean isPreview, String accessRight, String imei, boolean isFull,
+			String msisdn) {
+
+		BaseDao<ProductMainCategory> productMainCategoryDao = new BaseDao<>(sessionFactoryDef,
+				ProductMainCategory.class);
+		List<ProductMainCategory> originalTabList = productMainCategoryDao.find("isActive = 1 ORDER BY displaySeq asc");
+
+		List<TriProductTabContentDto> tabList = new ArrayList<>();
+		for (ProductMainCategory productMainCategory : originalTabList) {
+			TriProductTabContentDto tab = new TriProductTabContentDto();
+			tab.setTabId(productMainCategory.getMainCategoryId());
+			tab.setMenuId(productMainCategory.getMenuCategoryId());
+			tab.setTabName(productMainCategory.getMainCategoryName());
+			if (language.equals("1"))
+				tab.setTabName(productMainCategory.getMainCategoryNameEn());
+			tabList.add(tab);
+		}
+
+		TriProductModDto tpm = new TriProductModDto();
+		List<ProductDto> productTriProductScreen = new ArrayList<>();
+
+		Map<String, Object> ppc = getProductPerCategory(categoryId, page, language, subscriberType, callPlan, isPreview,
+				accessRight, imei, isFull, msisdn);
+		productTriProductScreen = (List<ProductDto>) ppc.get("bannerList");
+		tpm.setBannerList(productTriProductScreen);
+		tpm.setTabList(tabList);
+		return tpm;
+	}
+
+	@Override
+	public TriProductDetailDto getTriProductModuleProductDetail(String mainCategoryId, String categoryId, Integer page,
+			String language, String subscriberType, String callPlan, boolean isPreview, String accessRight, String imei,
+			boolean isFull, String msisdn) {
+		if (mainCategoryId == null || mainCategoryId.equals("")) {
+			return null;
+		}
+		TriProductDetailDto tpd = new TriProductDetailDto();
+
+		BaseDao<ProductMainCategory> productMainCategoryDao = new BaseDao<>(sessionFactoryDef,
+				ProductMainCategory.class);
+		List<ProductMainCategory> lists = productMainCategoryDao.find("mainCategoryId = :mainCategoryId",
+				new HashMap<String, Object>() {
+					{
+						put("mainCategoryId", Integer.parseInt(mainCategoryId));
+					}
+				});
+
+		Map<String, String> tabDetail = new HashMap<>();
+		if (!lists.isEmpty()) {
+			tabDetail.put("tabId", lists.get(0).getMainCategoryId() + "");
+			tabDetail.put("menuId", lists.get(0).getMenuCategoryId() + "");
+			tabDetail.put("tabName", Constants.LANG_ID.equals(language) ? (String) lists.get(0).getMainCategoryName()
+					: (String) lists.get(0).getMainCategoryNameEn());
+		}
+
+		tpd.setTabDetail(tabDetail);
+
+		List<ProductDetailListDto> productTriProductDetailScreen = new ArrayList<>();
+		Map<String, Object> ppc = getProductPerCategory(categoryId, page, language, subscriberType, callPlan, isPreview,
+				accessRight, imei, isFull, msisdn, mainCategoryId);
+		productTriProductDetailScreen = (List<ProductDetailListDto>) ppc.get("detailList");
+		tpd.setDetailList(productTriProductDetailScreen);
+
+		return tpd;
+	}
+
+	@Override
+	public Packege092Responce getOfferProduct(JsonData jsonData, String lang, String subscriberType, String imei) {
+
+		// producCodetList.add("183571");
+		// producCodetList.add("183568");
+
+		Packege092Responce packege092Responce = new Packege092Responce();
+		ArrayList<ProductDto> dtoListVoice = new ArrayList<>();
+		ArrayList<ProductDto> dtoListData = new ArrayList<>();
+		ArrayList<ProductDto> dtoListCombo = new ArrayList<>();
+		if (jsonData.getCOMBO().size() > 0) {
+			for (Data data : jsonData.getCOMBO()) {
+				logger.info("#getOfferProduct---Product Id Is :::" + data.getPRODUCT_CODE());
+				ProductDto dto = getProductData(data.getPRODUCT_CODE(), lang, subscriberType, imei);
+				if (dto != null && dto.getProductId() != null) {
+					dtoListCombo.add(dto);
+
+				}
+
+			}
+		}
+		if (jsonData.getVOICE_SMS().size() > 0) {
+
+			for (Data data : jsonData.getVOICE_SMS()) {
+				logger.info("#getOfferProduct--------Product Id VOICE_SMS Is :::" + data.getPRODUCT_CODE());
+				ProductDto dto = getProductData(data.getPRODUCT_CODE(), lang, subscriberType, imei);
+				if (dto != null && dto.getProductId() != null) {
+					dtoListVoice.add(dto);
+
+				}
+			}
+		}
+		if (jsonData.getDATA().size() > 0) {
+			for (Data data : jsonData.getDATA()) {
+				logger.info("#getOfferProduct----Product Id Is DATA:::" + data.getPRODUCT_CODE());
+				ProductDto dto = getProductData(data.getPRODUCT_CODE(), lang, subscriberType, imei);
+				if (dto != null && dto.getProductId() != null) {
+					dtoListData.add(dto);
+
+				}
+			}
+		}
+		packege092Responce.setComboList(dtoListCombo);
+		packege092Responce.setVoiceList(dtoListVoice);
+		packege092Responce.setDataList(dtoListData);
+		return packege092Responce;
+
+	}
+
+	public ProductDto getProductData(String registrationKey, String lang, String subscriberType, String imei) {
+		ProductDto dto = new ProductDto();
+		try {
+			BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+			List<ProductCharging> productChargings = productCharginDao.listData(
+					"from ProductCharging where registrationKey = :registrationKey ", new HashMap<String, Object>() {
+						{
+							put("registrationKey", registrationKey);
+						}
+					});
+
+			if (productChargings.size() > 0) {
+				List<Product> products = productDao.listData("from Product where productId = :productId",
+						new HashMap<String, Object>() {
+							{
+								put("productId", productChargings.get(0).getProductId());
+							}
+						});
+
+				logger.debug("#getProductData--------products size ------" + products.size());
+				if (products.size() > 0) {
+					dto = productCacheService.getProductDto(sessionFactoryDef, products.get(0), lang,
+							subscriberType == null || subscriberType.isEmpty() ? Constants.SUBSCRIBER_TYPE_PREPAID
+									: subscriberType,
+							imei, true);
+
+				} else {
+					return new ProductDto();
+				}
+
+			} else {
+				return new ProductDto();
+			}
+		} catch (Exception e) {
+			logger.error("Exception is-----", e.getMessage());
+		}
+		return dto;
+	}
+
+	@Override
+	public List<Recommedation> getRecomended() {
+
+		BaseDao<Recommedation> recomendationDAO = new BaseDao(sessionFactoryDef, Recommedation.class);
+		List<Recommedation> profileMappingList = recomendationDAO.find("status = '1'");
+
+		return profileMappingList;
+
+	}
+
+	public String getCpUrl(String msisdn) {
+
+		BonstriEndpointDto bonstriEndpointDto = new BonstriEndpointDto();
+		// String msisdn = "0929999999";
+
+		// String msisdn = bonstriReqDto.getMsisdn();
+
+		String newMsisdn = msisdn.substring(0, 1);
+		msisdn = AppUtils.prependCountryCodeToMsisdn(msisdn, AppDefaultValues.COUNTRY_CODE);
+		String link = "";
+		String key = "BONSTRI_CP_URL";
+
+		BaseDao<Parameter> profileMappingDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+		List<Parameter> parameter = profileMappingDao.find("key =:key ", new HashMap<String, Object>() {
+			{
+				put("key", key);
+
+			}
+		});
+
+		Iterator<?> it = parameter.iterator();
+
+		while (it.hasNext()) {
+			Object obj = (Object) it.next();
+			Parameter linkC = (Parameter) obj;
+
+			link = linkC.getValue();
+
+		}
+
+		// String link = Constants.API_BONSTRI_GETURL;
+		Random random = new Random();
+
+		String seq = "";
+
+		Date localTime = new Date();
+
+		// creating DateFormat for converting time from local timezone to GMT
+		DateFormat converter = new SimpleDateFormat("yyyyMMddHHmmss");
+
+		// getting GMT timezone, you can get any timezone e.g. UTC
+		converter.setTimeZone(TimeZone.getTimeZone("GMT+7"));
+		seq = converter.format(localTime);
+
+		String PRIVATE_KEY1 = Constants.PRIVATE_KEY1;
+		String PRIVATE_KEY2 = Constants.PRIVATE_KEY2;
+
+		String sig = getSHA(seq + msisdn + PRIVATE_KEY1);
+		String authenKey = getSHA(seq + PRIVATE_KEY2);
+
+		System.out.println("sig" + sig + " /n authenKey " + authenKey);
+
+		String dataM = link + seq + "&isdn=" + msisdn + "&sig=" + sig + "&authenKey=" + authenKey;
+
+		System.out.println("dataM" + dataM);
+
+		bonstriEndpointDto.setEndpoint(link + seq + "&isdn=" + msisdn + "&sig=" + sig + "&authenKey=" + authenKey);
+
+		String cpurl = "seq=" + seq + "&isdn=" + msisdn + "&sig=" + sig + "&authenKey=" + authenKey;
+		return cpurl;
+
+	}
+
+	public String getSHA(String input) {
+
+		try {
+
+			// Static getInstance method is called with hashing SHA
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+			// digest() method called
+			// to calculate message digest of an input
+			// and return array of byte
+			byte[] messageDigest = md.digest(input.getBytes());
+
+			// Convert byte array into signum representation
+			BigInteger no = new BigInteger(1, messageDigest);
+
+			// Convert message digest into hex value
+			String hashtext = no.toString(16);
+
+			while (hashtext.length() < 32) {
+				hashtext = "0" + hashtext;
+			}
+
+			return hashtext;
+		}
+
+		// For specifying wrong message digest algorithms
+		catch (NoSuchAlgorithmException e) {
+			logger.error("## getSHA------Exception thrown" + " for incorrect algorithm: " + e);
+
+			return null;
+		}
+	}
+
+	@Override
+	public ProductCharging getProductChargingData(String productId) {
+		logger.info("##getProductChargingData----Product Id IS ++++" + productId);
+		BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+		List<ProductCharging> productChargings = productCharginDao
+				.listData("from ProductCharging where productId = :productId ", new HashMap<String, Object>() {
+					{
+						put("productId", productId);
+
+					}
+				});
+		if (productChargings.size() > 0) {
+			return productChargings.get(0);
+		}
+		return null;
+	}
+
+}

@@ -1,0 +1,123 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.PostSuccessfulDto;
+import id.gnvsolution.d3.api.dto.request.UtmCounterRequestDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.model.DefaultLastPurchase;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.UtmCounter;
+import id.gnvsolution.d3.api.service.PostSuccessfulService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.PostSuccessfulServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Nov 27, 2017 2:10:57 PM
+ *
+ */
+@Service
+@Transactional
+public class PostSuccessfulServiceImpl extends BaseService implements PostSuccessfulService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PostSuccessfulServiceImpl.class);
+    
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+
+    /**
+     *  1. get this user product purchase history
+     *  2. sort by the most purchased by other people
+     *  3. get top 2
+     * 
+     * @param request
+     * @param isIphone
+     * @return list of productdto
+     */
+    @Override
+    @Cacheable(value = "cache1", key = "#root.methodName.toString() + #request.msisdn + #request.subscriberType + #isIphone")
+    public List<ProductDto> getProducts(PostSuccessfulDto request, boolean isIphone) {
+    	
+    	logger.info("#getProducts----------msisdn=="+request.getMsisdn());
+        if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return Collections.EMPTY_LIST;
+        }
+        List<ProductDto> products = new ArrayList<>();
+        try {
+            
+            // filter based on subscriberType
+            final String filterSubscriberType;
+            if (request.getSubscriberType() != null && request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+                filterSubscriberType = " and c.is_postpaid = 1 ";
+            } else if (request.getSubscriberType() != null && request.getSubscriberType().equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+                filterSubscriberType = " and c.is_hybrid = 1 ";
+            } else {
+                filterSubscriberType = " and c.is_prepaid = 1 ";
+            }
+            
+            final String iphone = (isIphone?" and c.is_iphone = 1 ":" ");
+            
+            BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+            sessionFactoryDef.getCurrentSession().createSQLQuery("select * from ( select distinct(a.product_id), \n" +
+                                "(select count(1) from trx_subscriber_purchase b where b.product_id = a.product_id \n" +
+                                "and b.TRANSACTION_DATETIME between add_months(sysdate, -1) and sysdate group by b.product_id) as numberofpurchase \n" +
+                                "from trx_subscriber_purchase a, product c \n" +
+                                "where subscriber_msisdn = :msisdn \n" +
+                                "and TRANSACTION_DATETIME between add_months(sysdate, -1) and sysdate\n" +
+                                filterSubscriberType+" "+iphone+
+                                "order by 2 desc) where rownum < 3")
+                        .setString("msisdn", request.getMsisdn())
+                        .list()
+                        .forEach(o -> products.add(ProductDto.fromProduct(sessionFactoryDef, productDao.find("productId = :productId", new HashMap<String, Object>() {{
+                            put("productId", ((Object[])o)[0]);
+                        }}).get(0), request.getLanguage(), request.getSubscriberType(), "ANDROID", true)));
+        } catch (Exception ex){
+            logger.error(ex.getMessage(), ex);
+        }
+        
+        if (products.size() > 1){
+        	return products;
+        }else{
+        	return getDefaultLastPurchase(request);
+        }
+    }
+    
+
+	@Override
+	public List<ProductDto> getDefaultLastPurchase(PostSuccessfulDto request) {
+		
+		logger.info("#getDefaultLastPurchase----------msisdn=="+request.getMsisdn());
+
+        List<ProductDto> products = new ArrayList<>();
+
+        BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		sessionFactoryDef.getCurrentSession().createSQLQuery("select PRODUCT_ID from DEFAULT_LAST_PURCHASE ORDER BY \"order\" ASC")
+        .list()
+        .forEach(o -> products.add(ProductDto.fromProduct(sessionFactoryDef, productDao.find("productId = :productId", new HashMap<String, Object>() {{
+            put("productId", o);
+        }}).get(0), request.getLanguage(), request.getSubscriberType(), "ANDROID", true)));
+
+    	return products;
+		
+	}
+
+}

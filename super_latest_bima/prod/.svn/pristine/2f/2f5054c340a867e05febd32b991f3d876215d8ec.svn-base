@@ -1,0 +1,272 @@
+package id.gnvsolution.d3.api.model;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.Collection;
+import org.apache.commons.lang3.RandomStringUtils;
+
+/**
+ *  ignore SUBSCRIBER_GCM_ID and SUBSCRIBER_APN_ID on this table 
+ *  use Secretkey's GCM_ID instead
+ * 
+ * Created by rips on 4/15/17.
+ */
+@Entity
+public class Subscriber {
+    public static final Logger LOGGER = LoggerFactory.getLogger(Subscriber.class);
+    private String subscriberMsisdn;
+    private String subscriberImsi;
+    private String subscriberImei;
+    private String subscriberType;
+    private String subscriberLangCode;
+    private String subscriberPassword;
+    private String subscriberStatus;
+    private String subscriberGcmId;
+    private String subscriberApnId;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private Collection<Notification> notificationsBySubscriberMsisdn;
+    private Collection<TrxShareQuota> trxShareQuotasBySubscriberMsisdn;
+    private Collection<TrxSubscriberEtopup> trxSubscriberEtopupsBySubscriberMsisdn;
+    private Collection<TrxSubscriberPurchase> trxSubscriberPurchasesBySubscriberMsisdn;
+    private Collection<TrxSubscriberReload> trxSubscriberReloadsBySubscriberMsisdn;
+    private Collection<TrxWelcomeReward> trxWelcomeRewardsBySubscriberMsisdn;
+    
+    public Subscriber() {
+        this.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+    }
+
+    public Subscriber(String subscriberMSISDN, String subscriberIMSI, String subscriberIMEI, String subscriberType, String subscriberLangCode, String subscriberPasssword, String subscriberStatus) {
+        this.setSubscriberMsisdn(subscriberMSISDN);
+        this.setSubscriberImsi(subscriberIMSI);
+        this.setSubscriberImei(subscriberIMEI);
+        this.setSubscriberType(subscriberType);
+        this.setSubscriberLangCode(subscriberLangCode);
+        this.setSubscriberPassword(subscriberPasssword);
+        this.setSubscriberStatus(subscriberStatus);
+        this.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+    }
+    
+    @Id
+    @Column(name = "SUBSCRIBER_MSISDN", nullable = false, length = 15)
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_IMSI", nullable = false, length = 50)
+    public String getSubscriberImsi() {
+        return subscriberImsi;
+    }
+
+    public void setSubscriberImsi(String subscriberImsi) {
+        this.subscriberImsi = subscriberImsi;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_IMEI", nullable = false, length = 50)
+    public String getSubscriberImei() {
+        return subscriberImei;
+    }
+
+    public void setSubscriberImei(String subscriberImei) {
+        this.subscriberImei = subscriberImei;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_TYPE", nullable = false, length = 50)
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_LANG_CODE", nullable = false, length = 50)
+    public String getSubscriberLangCode() {
+        return subscriberLangCode;
+    }
+
+    public void setSubscriberLangCode(String subscriberLangCode) {
+        this.subscriberLangCode = subscriberLangCode;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_PASSWORD", nullable = true, length = 255)
+    public String getSubscriberPassword() {
+        return subscriberPassword;
+    }
+
+    public void setSubscriberPassword(String subscriberPassword) {
+        this.subscriberPassword = subscriberPassword;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_STATUS", nullable = false, length = 10)
+    public String getSubscriberStatus() {
+        return subscriberStatus;
+    }
+
+    public void setSubscriberStatus(String subscriberStatus) {
+        this.subscriberStatus = subscriberStatus;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_GCM_ID", nullable = false, length = 255)
+    public String getSubscriberGcmId() {
+        return subscriberGcmId;
+    }
+
+    public void setSubscriberGcmId(String subscriberGcmId) {
+        this.subscriberGcmId = subscriberGcmId;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_APN_ID", nullable = false, length = 255)
+    public String getSubscriberApnId() {
+        return subscriberApnId;
+    }
+
+    public void setSubscriberApnId(String subscriberApnId) {
+        this.subscriberApnId = subscriberApnId;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    /**
+     *  64 digits of random alphanumeric char
+     * 
+     * @return 
+     */
+    public String generateSecret() {
+        return RandomStringUtils.randomAlphanumeric(34, 41);    
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Subscriber that = (Subscriber) o;
+
+        if (subscriberMsisdn != null ? !subscriberMsisdn.equals(that.subscriberMsisdn) : that.subscriberMsisdn != null)
+            return false;
+        if (subscriberImsi != null ? !subscriberImsi.equals(that.subscriberImsi) : that.subscriberImsi != null)
+            return false;
+        if (subscriberImei != null ? !subscriberImei.equals(that.subscriberImei) : that.subscriberImei != null)
+            return false;
+        if (subscriberType != null ? !subscriberType.equals(that.subscriberType) : that.subscriberType != null)
+            return false;
+        if (subscriberLangCode != null ? !subscriberLangCode.equals(that.subscriberLangCode) : that.subscriberLangCode != null)
+            return false;
+        if (subscriberPassword != null ? !subscriberPassword.equals(that.subscriberPassword) : that.subscriberPassword != null)
+            return false;
+        if (subscriberStatus != null ? !subscriberStatus.equals(that.subscriberStatus) : that.subscriberStatus != null)
+            return false;
+        if (subscriberGcmId != null ? !subscriberGcmId.equals(that.subscriberGcmId) : that.subscriberGcmId != null)
+            return false;
+        if (subscriberApnId != null ? !subscriberApnId.equals(that.subscriberApnId) : that.subscriberApnId != null)
+            return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = subscriberMsisdn != null ? subscriberMsisdn.hashCode() : 0;
+        result = 31 * result + (subscriberImsi != null ? subscriberImsi.hashCode() : 0);
+        result = 31 * result + (subscriberImei != null ? subscriberImei.hashCode() : 0);
+        result = 31 * result + (subscriberType != null ? subscriberType.hashCode() : 0);
+        result = 31 * result + (subscriberLangCode != null ? subscriberLangCode.hashCode() : 0);
+        result = 31 * result + (subscriberPassword != null ? subscriberPassword.hashCode() : 0);
+        result = 31 * result + (subscriberStatus != null ? subscriberStatus.hashCode() : 0);
+        result = 31 * result + (subscriberGcmId != null ? subscriberGcmId.hashCode() : 0);
+        result = 31 * result + (subscriberApnId != null ? subscriberApnId.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+
+    @OneToMany(mappedBy = "subscriberBySubscriberMsisdn")
+    public Collection<Notification> getNotificationsBySubscriberMsisdn() {
+        return notificationsBySubscriberMsisdn;
+    }
+
+    public void setNotificationsBySubscriberMsisdn(Collection<Notification> notificationsBySubscriberMsisdn) {
+        this.notificationsBySubscriberMsisdn = notificationsBySubscriberMsisdn;
+    }
+
+    @OneToMany(mappedBy = "subscriberBySubscriberMsisdn")
+    public Collection<TrxShareQuota> getTrxShareQuotasBySubscriberMsisdn() {
+        return trxShareQuotasBySubscriberMsisdn;
+    }
+
+    public void setTrxShareQuotasBySubscriberMsisdn(Collection<TrxShareQuota> trxShareQuotasBySubscriberMsisdn) {
+        this.trxShareQuotasBySubscriberMsisdn = trxShareQuotasBySubscriberMsisdn;
+    }
+
+    @OneToMany(mappedBy = "subscriberBySubscriberMsisdn")
+    public Collection<TrxSubscriberEtopup> getTrxSubscriberEtopupsBySubscriberMsisdn() {
+        return trxSubscriberEtopupsBySubscriberMsisdn;
+    }
+
+    public void setTrxSubscriberEtopupsBySubscriberMsisdn(Collection<TrxSubscriberEtopup> trxSubscriberEtopupsBySubscriberMsisdn) {
+        this.trxSubscriberEtopupsBySubscriberMsisdn = trxSubscriberEtopupsBySubscriberMsisdn;
+    }
+
+    @OneToMany(mappedBy = "subscriberBySubscriberMsisdn")
+    public Collection<TrxSubscriberPurchase> getTrxSubscriberPurchasesBySubscriberMsisdn() {
+        return trxSubscriberPurchasesBySubscriberMsisdn;
+    }
+
+    public void setTrxSubscriberPurchasesBySubscriberMsisdn(Collection<TrxSubscriberPurchase> trxSubscriberPurchasesBySubscriberMsisdn) {
+        this.trxSubscriberPurchasesBySubscriberMsisdn = trxSubscriberPurchasesBySubscriberMsisdn;
+    }
+
+    @OneToMany(mappedBy = "subscriberBySubscriberMsisdn")
+    public Collection<TrxSubscriberReload> getTrxSubscriberReloadsBySubscriberMsisdn() {
+        return trxSubscriberReloadsBySubscriberMsisdn;
+    }
+
+    public void setTrxSubscriberReloadsBySubscriberMsisdn(Collection<TrxSubscriberReload> trxSubscriberReloadsBySubscriberMsisdn) {
+        this.trxSubscriberReloadsBySubscriberMsisdn = trxSubscriberReloadsBySubscriberMsisdn;
+    }
+
+    @OneToMany(mappedBy = "subscriberBySubscriberMsisdn")
+    public Collection<TrxWelcomeReward> getTrxWelcomeRewardsBySubscriberMsisdn() {
+        return trxWelcomeRewardsBySubscriberMsisdn;
+    }
+
+    public void setTrxWelcomeRewardsBySubscriberMsisdn(Collection<TrxWelcomeReward> trxWelcomeRewardsBySubscriberMsisdn) {
+        this.trxWelcomeRewardsBySubscriberMsisdn = trxWelcomeRewardsBySubscriberMsisdn;
+    }
+}

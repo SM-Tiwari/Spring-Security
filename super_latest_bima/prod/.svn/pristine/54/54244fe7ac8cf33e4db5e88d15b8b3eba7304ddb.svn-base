@@ -1,0 +1,45 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+public class ProductPerCategoryDto implements DTO {
+
+    private boolean status;
+    private List<ProductDto> bannerList;
+    private List<ProductDetailListDto> detailList;
+
+    public ProductPerCategoryDto(){
+        bannerList = new ArrayList<>();
+        detailList = new ArrayList<>();
+    }
+
+    public List<ProductDetailListDto> getDetailList() {
+        return detailList;
+    }
+
+    public void setDetailList(List<ProductDetailListDto> detailList) {
+        this.detailList = detailList;
+    }
+
+    public List<ProductDto> getBannerList() {
+        return bannerList;
+    }
+
+    public void setBannerList(List<ProductDto> bannerList) {
+        this.bannerList = bannerList;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+}

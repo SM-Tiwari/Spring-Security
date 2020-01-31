@@ -1,0 +1,149 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "PROFILE_MAPPING")
+public class ProfileMapping {
+    private String billingProductName;
+    private String billingRegistrationKey;
+    private String displayPackages;
+    private boolean isShareQuota;
+    private Integer createdBy;
+    private Timestamp createdAt;
+    private Integer updatedBy;
+    private Timestamp updatedAt;
+    
+    private Boolean isRoaming;
+    private String groupPackage;
+
+    @Id
+    @Column(name = "BILLING_PRODUCT_NAME", nullable = false, length = 50)
+    public String getBillingProductName() {
+        return billingProductName;
+    }
+
+    public void setBillingProductName(String billingProductName) {
+        this.billingProductName = billingProductName;
+    }
+
+    @Basic
+    @Column(name = "DISPLAY_PACKAGES", nullable = true, length = 255)
+    public String getDisplayPackages() {
+        return displayPackages;
+    }
+
+    public void setDisplayPackages(String displayPackages) {
+        this.displayPackages = displayPackages;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProfileMapping that = (ProfileMapping) o;
+
+        if (billingProductName != null ? !billingProductName.equals(that.billingProductName) : that.billingProductName != null)
+            return false;
+        if (displayPackages != null ? !displayPackages.equals(that.displayPackages) : that.displayPackages != null)
+            return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = billingProductName != null ? billingProductName.hashCode() : 0;
+        result = 31 * result + (displayPackages != null ? displayPackages.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY", nullable = false)
+    public Integer getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Integer createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY", nullable = true)
+    public Integer getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Integer updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "BILLING_REGISTRATION_KEY")
+    public String getBillingRegistrationKey() {
+        return billingRegistrationKey;
+    }
+
+    public void setBillingRegistrationKey(String billingRegistrationKey) {
+        this.billingRegistrationKey = billingRegistrationKey;
+    }
+
+    @Basic
+    @Column(name = "IS_SHARE_QUOTA")
+    public boolean getIsShareQuota() {
+        return isShareQuota;
+    }
+
+    public void setIsShareQuota(boolean shareQuota) {
+        isShareQuota = shareQuota;
+    }
+
+    @Basic
+    @Column(name = "IS_ROAMING")
+    public Boolean isIsRoaming() {
+        return isRoaming;
+    }
+
+    public void setIsRoaming(Boolean isRoaming) {
+        this.isRoaming = isRoaming;
+    }
+
+    @Basic
+    @Column(name = "GROUP_PACKAGE")
+    public String getGroupPackage() {
+        return groupPackage;
+    }
+
+    public void setGroupPackage(String groupPackage) {
+        this.groupPackage = groupPackage;
+    }
+}

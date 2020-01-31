@@ -1,0 +1,503 @@
+/* ------------------------------------
+------- Vietnamobile Stylesheet -------
+-------------------------------------*/
+
+/*
+All Contents:
+
+1. Reset.css
+2. Helper Classes
+3. Home Styles
+4.1. Split - Left Section
+4.1.1. Form
+4.1.2. Language Switcher
+4.2. Split - Right Section
+#. All Media Queries
+*/
+
+
+/*----- 1. Reset.css -----*/
+
+/* 
+http://meyerweb.com/eric/tools/css/reset/
+v2.0 | 20110126
+License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/*----- 3. Helper Classes -----*/
+
+html * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, *:after, *:before {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+::-moz-selection {
+    background: transparent;
+}
+
+::selection {
+    background: transparent;
+}
+
+::-webkit-scrollbar {
+	display: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+}
+
+.brand {
+    color: #ff6e00;
+}
+
+
+/*----- 4. Home Styles -----*/
+
+.wrapper {
+	width: 100%;
+	height: 100%;
+}
+
+.main {
+    width: 100%;
+	height: 100%;
+	background: #ffffff;
+}
+
+.split-left {
+    background: linear-gradient(45deg, #e0e55e 0%,#f58233 30%,#f26a54 70%,#ee3780 100%);
+	position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+	padding: 50px;
+    width: 50%;
+	height: 100%;
+	overflow: hidden;
+    overflow-y: auto;
+    z-index: 1;
+}
+
+.split-right {
+    background-color: #ffffff;
+    position: absolute; top: 0; right: 0; bottom: 0;
+	padding: 50px;
+	width: 50%;
+	height: 100%;
+    overflow: hidden;
+    overflow-y: auto;
+    z-index: 99;
+}
+
+/*----- 4.1. Split - Left Section -----*/
+
+.logo {
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.logo img {
+    display: block;
+    margin: 0 auto;
+}
+
+footer {
+    font-size: 12px;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+.social {
+    margin-bottom: 20px;
+}
+
+.social li {
+    display: inline;
+    margin-right: 30px;
+}
+
+.social li:last-child {
+    margin-right: 0;
+}
+
+.social > li > a {
+    color: #FFFFFF;
+    font-size: 24px;
+}
+
+/*----- 4.1.1. Form -----*/
+
+.form-title {
+    margin-bottom: 10px;
+}
+
+.form-title h6 {
+    color: #FFFFFF;
+    font-size: 16px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.14px;
+}
+
+.sign-form {
+    padding: 0;
+    margin-bottom: 50px;
+}
+
+.sign-form p, .sign-form a {
+    font-size: 13px;
+    color: #FFFFFF;
+    letter-spacing: 0.11px;
+    text-align: center;
+}
+
+.sign-form a {
+    text-decoration: underline;
+}
+
+.card {
+    width: 100%;
+    padding: 20px;
+    margin: 10px 0;
+    display: inline-block;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    box-shadow: 
+        0 0px 2px 0 rgba(0, 0, 0, 0.10), 
+        0 0px 1px -2px rgba(0, 0, 0, 0.2), 
+        0 0px 10px 0 rgba(0, 0, 0, 0.15);
+}
+
+.form-group, .form-group .form-control {
+    float: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background-image: linear-gradient(#f58233, #f58233), linear-gradient(#D2D2D2, #D2D2D2);
+    background-size: 0 2px, 100% 1px;
+    background-repeat: no-repeat;
+    background-position: center bottom, center calc(100% - 1px);
+    background-color: transparent;
+    transition: background 0s ease-out;
+    box-shadow: none;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.09px;
+    text-transform: uppercase;
+    color: #424242;
+    margin-bottom: 5px;
+}
+
+.input-group, .input-group-addon {
+    border: 0;
+    background: transparent;
+    padding-left: 0;
+    padding-right: 10px;
+}
+
+.signButton {
+    margin-top: 20px;
+}
+
+.btn {
+    width: 100%;
+    border: none;
+    position: relative;
+    padding: 15px 15px;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.14px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+.btn.btn-primary {
+    background-color: #ff6e00;
+    color: #ffffff;
+    box-shadow: 
+        0 0px 2px 0 rgba(0, 0, 0, 0.10), 
+        0 0px 1px -2px rgba(0, 0, 0, 0.2), 
+        0 0px 10px 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn.btn-primary:focus, 
+.btn.btn-primary:active, 
+.btn.btn-primary:hover {
+    background-color: #ff6e00;
+    box-shadow: 
+        0 14px 26px -12px rgba(255, 110, 0, 0.42), 
+        0 4px 23px 0px rgba(0, 0, 0, 0.12), 
+        0 8px 10px -5px rgba(255, 110, 0, 0.2);
+}
+
+.btn.btn-secondary {
+    background-color: transparent;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.btn.btn-secondary:focus, 
+.btn.btn-secondary:active, 
+.btn.btn-secondary:hover {
+    background-color: #ffffff;
+    color: #ff6e00;
+}
+
+
+.btn.btn-round {
+    border-radius: 50px;
+}
+
+/*----- 4.1.2. Language Switcher -----*/
+
+.language {
+    padding: 0;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.togglebutton.langOpt label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.togglebutton.langOpt label input[type=checkbox] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.togglebutton.langOpt label .toggle, 
+.togglebutton.langOpt label input[type=checkbox][disabled] + .toggle {
+    content: "";
+    display: inline-block;
+    width: 45px;
+    height: 20px;
+    padding: 5px 8px;
+    margin: 0;
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    transition: background 0.3s ease;
+    vertical-align: middle;
+    color: #D7D5D5;
+    font-weight: 600;
+    font-size: 9px;
+    text-align: left;
+}
+
+.togglebutton.langOpt label input[type=checkbox]:checked + .toggle {
+    background-color: #FFFFFF;
+}
+
+.togglebutton.langOpt label .toggle > span {
+    margin-left: 9px;
+}
+
+.togglebutton.langOpt label .toggle:after {
+    content: 'VI';
+    display: inline-block;
+    position: relative;
+    top: -17px;
+    left: -10px;
+    width: 25px;
+    height: 25px;
+    border: 0;
+    border-radius: 50%;
+    background-color: #F57E20;
+    transition: left 0.3s ease, background 0.3s ease, box-shadow 0.1s ease;
+    box-shadow: 
+        0 0px 2px 0 rgba(0, 0, 0, 0.10), 
+        0 0px 1px -2px rgba(0, 0, 0, 0.2), 
+        0 0px 10px 0 rgba(0, 0, 0, 0.15);
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 9px;
+    text-align: center;
+    line-height: 25px;
+}
+
+.togglebutton.langOpt label input[type=checkbox]:checked + .toggle:after {
+    content: 'EN';
+    left: 13px;
+}
+
+/*----- 4.2. Split - Right Section -----*/
+
+.features {
+    width: 100%;
+    height: 100%;
+}
+
+.features-body {
+    padding: 0;
+    margin-bottom: 120px;
+}
+
+.features-title {
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.features-title h1 {
+    font-size: 52px;
+    line-height: 60px;
+    color: #4a4a4a;
+}
+
+.features-article img {
+    margin-bottom: 10px;
+}
+
+.features-article {
+    font-size: 16px;
+    color: #4a4a4a;
+    line-height: 22px;
+    margin-bottom: 30px;
+}
+
+.native-app {
+    padding: 0;
+}
+
+.native-app p {
+    font-weight: 600;
+    font-size: 14px;
+    color: #4a4a4a;
+    margin-bottom: 20px;
+}
+
+.native-app ul li {
+    display: inline;
+    margin-right: 10px;
+}
+
+.native-app ul li:last-child {
+    margin-right: 0;
+}
+
+.native-app ul li img {
+    width: 150px;
+}
+
+/*----- #. All Media Queries -----*/
+
+@media only screen and (max-width : 801px) {
+    .split-left{
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .split-right{
+        position: relative;
+        width: 100%;
+    }
+
+    .features {
+        text-align: center;
+     }
+
+     .features-title h1 {
+        font-size: 35px;
+        line-height: 40px;
+     }
+}
+
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+    .split-right{
+      -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 736px) {
+    .split .split-right,  .split .split-left{
+      -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 736px) and (orientation: landscape) {
+   .split-right{
+      -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 568px) and (orientation : landscape) {
+    .split-left {
+       min-height: 100vh;
+    }
+}
+
+@media only screen and (max-width: 420px) {
+    .split-left, .split-right {
+	    padding: 50px 20px;
+	 }
+
+    .features-body {
+        margin-bottom: 70px;
+    }
+}
+
+.has-error{
+	color: #ff1a1a; 
+	font-size: 12px; 
+	margin-left: 10px;
+}

@@ -1,0 +1,189 @@
+package id.gnvsolution.d3.api.model;
+
+import java.sql.Timestamp;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "APP_CONFIG")
+public class AppConfigModel {
+
+	@Id
+	@Column(name = "ID")
+	private int id;
+	@Basic
+	@Column(name = "CREATE_TIMESTAMP")
+	private Timestamp createTimestamp;
+	@Basic
+	@Column(name = "CREATED_BY")
+	private String createdBy;
+	@Basic
+	@Column(name = "LAST_MODIFIED_BY")
+	private String lastModifiedBy;
+	@Basic
+	@Column(name = "LAST_MODIFIED_TIMESTAMP")
+	private Timestamp last_modifiedTimestamp;
+	@Basic
+	@Column(name = "IS_FLAG")
+	private int isFlag;
+	@Basic
+	@Column(name = "NAME")
+	private String name;
+	@Basic
+	@Column(name = "VALUE")
+	private String value;
+	@Basic
+	@Column(name = "DESCRIPTION")
+	private String description;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public Timestamp getCreateTimestamp() {
+		return createTimestamp;
+	}
+
+	public void setCreateTimestamp(Timestamp createTimestamp) {
+		this.createTimestamp = createTimestamp;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	public void setLastModifiedBy(String lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	public Timestamp getLast_modifiedTimestamp() {
+		return last_modifiedTimestamp;
+	}
+
+	public void setLast_modifiedTimestamp(Timestamp last_modifiedTimestamp) {
+		this.last_modifiedTimestamp = last_modifiedTimestamp;
+	}
+
+	public int getIsFlag() {
+		return isFlag;
+	}
+
+	public void setIsFlag(int isFlag) {
+		this.isFlag = isFlag;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((createTimestamp == null) ? 0 : createTimestamp.hashCode());
+		result = prime * result + ((createdBy == null) ? 0 : createdBy.hashCode());
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + id;
+		result = prime * result + isFlag;
+		result = prime * result + ((lastModifiedBy == null) ? 0 : lastModifiedBy.hashCode());
+		result = prime * result + ((last_modifiedTimestamp == null) ? 0 : last_modifiedTimestamp.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "AppConfigModel [id=" + id + ", createTimestamp=" + createTimestamp + ", createdBy=" + createdBy
+				+ ", lastModifiedBy=" + lastModifiedBy + ", last_modifiedTimestamp=" + last_modifiedTimestamp
+				+ ", isFlag=" + isFlag + ", name=" + name + ", value=" + value + ", description=" + description + "]";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AppConfigModel other = (AppConfigModel) obj;
+		if (createTimestamp == null) {
+			if (other.createTimestamp != null)
+				return false;
+		} else if (!createTimestamp.equals(other.createTimestamp))
+			return false;
+		if (createdBy == null) {
+			if (other.createdBy != null)
+				return false;
+		} else if (!createdBy.equals(other.createdBy))
+			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (id != other.id)
+			return false;
+		if (isFlag != other.isFlag)
+			return false;
+		if (lastModifiedBy == null) {
+			if (other.lastModifiedBy != null)
+				return false;
+		} else if (!lastModifiedBy.equals(other.lastModifiedBy))
+			return false;
+		if (last_modifiedTimestamp == null) {
+			if (other.last_modifiedTimestamp != null)
+				return false;
+		} else if (!last_modifiedTimestamp.equals(other.last_modifiedTimestamp))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
+	}
+
+}

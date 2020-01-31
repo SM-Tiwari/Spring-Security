@@ -1,0 +1,39 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.ArrayList;
+import java.util.List;
+
+ 
+/**
+ * @author nandipinto
+ *
+ */
+public class GetSelfPackagePriceMappingsResponse {
+
+	private static final long serialVersionUID = -58903515356115511L;
+
+	private List<SelfPackagePriceMapping> priceMappings = new ArrayList<>();
+	
+	public GetSelfPackagePriceMappingsResponse() {
+	}
+
+	public GetSelfPackagePriceMappingsResponse(boolean successful, String code, String message, List<SelfPackagePriceMapping> priceMappings) {
+	 
+		this.priceMappings = priceMappings;
+	}
+
+	/**
+	 * @return the priceMappings
+	 */
+	public List<SelfPackagePriceMapping> getPriceMappings() {
+		return priceMappings;
+	}
+
+	/**
+	 * @param priceMappings the priceMappings to set
+	 */
+	public void setPriceMappings(List<SelfPackagePriceMapping> priceMappings) {
+		this.priceMappings = priceMappings;
+	}
+
+}

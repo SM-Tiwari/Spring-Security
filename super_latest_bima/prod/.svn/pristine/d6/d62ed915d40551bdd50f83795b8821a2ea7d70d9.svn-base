@@ -1,0 +1,7 @@
+package id.gnvsolution.d3.api.service;
+
+public interface ProductChargingService {
+
+    String getProductIdFromRegistrationKey(String registrationKey);
+
+}

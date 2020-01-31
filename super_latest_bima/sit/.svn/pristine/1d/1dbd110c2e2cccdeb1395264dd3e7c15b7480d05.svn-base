@@ -1,0 +1,113 @@
+package id.gnvsolution.d3.api.utils;
+    
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Date;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class Encryption {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(Encryption.class);
+    private static String key = "";
+    private static final String initVector = "encryptionIntVec";
+    private static final String ALGORITHM = "AES";
+
+    public Encryption(String key) {
+        this.key = key;
+    }
+
+    public static String encrypt(String value) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+
+            byte[] encrypted = cipher.doFinal(value.getBytes());
+            return Base64.getEncoder().encodeToString(encrypted);
+        } catch (Exception e) {
+            LOGGER.warn("Encryption Fail " + e.getMessage());
+        }
+        return null;
+    }
+
+    public static String decrypt(String encrypted) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+            byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+
+            return new String(original);
+        } catch (Exception e) {
+            LOGGER.warn("Decryption Fail " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Decrypts with bool status (used for login only)
+     *
+     * @param cipherText The data to decrypt
+     */
+    public boolean decryptLogin(String cipherText) {
+        try {
+            System.out.println(cipherText);
+            LOGGER.warn(cipherText);
+            String unhashed = decrypt(cipherText);
+            System.out.println(unhashed);
+            LOGGER.warn(unhashed);
+            boolean status = false;
+            if (unhashed.length() == 18) {
+                if (unhashed.substring(0, 4).equals("BIMA")) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                    Date currentDateTime = new Date();
+                    Date paramDateTime = dateFormat.parse(unhashed.substring(4, 18));
+
+                    //Create 2 intances of calendar
+                    Calendar cal1 = Calendar.getInstance();
+                    Calendar cal2 = Calendar.getInstance();;
+
+                    //set the given date in one of the instance and current date in another
+                    cal1.setTime(paramDateTime);
+                    cal2.setTime(currentDateTime);
+
+                    System.out.println("TEST");
+                    System.out.println(cal1.get(Calendar.HOUR_OF_DAY));
+                    System.out.println(cal2.get(Calendar.HOUR_OF_DAY));
+                    System.out.println(cal2.get(Calendar.HOUR_OF_DAY)+1);
+                    LOGGER.warn(cal1.get(Calendar.HOUR_OF_DAY)+"");
+                    LOGGER.warn(cal2.get(Calendar.HOUR_OF_DAY)+"");
+                    LOGGER.warn((cal2.get(Calendar.HOUR_OF_DAY)+1)+"");
+
+                    boolean isNearHour = false;
+                    //now compare the dates using functions
+                    if (cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR)) {
+                        if (cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH)) {
+                            if (cal1.get(Calendar.DATE) == cal2.get(Calendar.DATE)) {
+                                /* check if token in near system hour */
+                                if (cal1.get(Calendar.HOUR_OF_DAY) <= cal2.get(Calendar.HOUR_OF_DAY)+1 && cal1.get(Calendar.HOUR_OF_DAY) >= cal2.get(Calendar.HOUR_OF_DAY)-1) {
+                                    isNearHour = true;
+                                }
+                            }
+                        }
+                    }
+                    status = isNearHour;
+                }
+            }
+            return status;
+        } catch (Exception e) {
+            LOGGER.warn("Malicious Request on login - Decryption Fail " + e.getMessage());
+            return false;
+        }
+    }
+}

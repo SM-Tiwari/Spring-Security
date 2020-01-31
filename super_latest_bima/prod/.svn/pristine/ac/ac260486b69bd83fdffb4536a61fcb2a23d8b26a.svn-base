@@ -1,0 +1,76 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.OTTPushNotif;
+import id.gnvsolution.d3.api.dto.request.PushNotificationDto;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.PushNotificationService;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+/**
+ * <pre>
+ * id.gnvsolution.d3.api.controller.PushNotificationController
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com > Apr 28, 2017 11:40:46 AM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/push-notification")
+public class PushNotificationController {
+
+	@Autowired
+	private PushNotificationService pushNotificationService;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(PushNotificationController.class);
+
+	@Autowired
+	private TokenExtractor tokenExtractor;
+
+	/**
+	 * 
+	 * @param pushNotificationDto
+	 * @return
+	 */
+	@RequestMapping(value = "/device-id", method = RequestMethod.POST)
+	public Object pushNotification(@RequestBody PushNotificationDto pushNotificationDto) {
+		LOGGER.info("Inside PushNotificationController in pushNotification method::::::::::::");
+
+		Map<String, Object> pushNotification = pushNotificationService.notify(pushNotificationDto);
+		return new ServiceResult(StatusCode.SUCCESS, pushNotification, "Success");
+
+	}
+
+	@RequestMapping(value = "/ott", method = RequestMethod.POST)
+	public Map<String, Object> ott(@RequestBody OTTPushNotif notif) {
+		return pushNotificationService.ott(notif);
+	}
+
+	@RequestMapping(value = "/ott2", method = RequestMethod.POST)
+	public Map<String, Object> ott2(@RequestBody OTTPushNotif notif) {
+		return pushNotificationService.ott2(notif);
+	}
+
+	/**
+	 * dummy notif, without saving gcm and apn to Subscriber table
+	 * 
+	 * @param pushNotificationDto
+	 * @return
+	 */
+	@RequestMapping(value = "/device-id-dummy", method = RequestMethod.POST)
+	public Map<String, Object> pushNotificationDummy(@RequestBody PushNotificationDto pushNotificationDto) {
+		return pushNotificationService.notifyDummy(pushNotificationDto);
+	}
+}

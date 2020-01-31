@@ -1,0 +1,27 @@
+package id.gnvsolution.d3.api.dto.request;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ValidateNumberRequestDto {
+    
+	private List<String> numbers = new ArrayList<>();
+	
+	public ValidateNumberRequestDto() {
+	}
+
+	/**
+	 * @return the numbers
+	 */
+	public List<String> getNumbers() {
+		return numbers;
+	}
+
+	/**
+	 * @param numbers the numbers to set
+	 */
+	public void setNumbers(List<String> numbers) {
+		this.numbers = numbers;
+	}
+
+}

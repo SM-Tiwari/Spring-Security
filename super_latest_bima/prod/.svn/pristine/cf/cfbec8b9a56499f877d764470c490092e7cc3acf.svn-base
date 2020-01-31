@@ -1,0 +1,302 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.*;
+
+/**
+ * Created by rips on 4/28/17.
+ */
+@XmlRootElement(name = "VoucherTopUp")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"businessHourIndicator", "bonusBal", "graceDate", "curr", "domainID", "vlrId", "cellId", "languageID", "priority", "gracePeriod", "transactionID", "procCode", "localTxnDtTime", "mobNum", "messageID", "voucherBal", "actCode", "validityDate", "addonBalance", "stan", "voucherDenom", "messageType", "deliveryChannelCtrlID", "voucherNum"})
+public class VoucherTopUp {
+
+    public VoucherTopUp() {
+        transactionID = "";
+        messageType = "";
+        procCode = "";
+        stan = "";
+        localTxnDtTime = "";
+        mobNum = "";
+        voucherNum = "";
+        domainID = "";
+        deliveryChannelCtrlID = "";
+        vlrId = "";
+        cellId = "";
+        voucherBal = "";
+        validityDate = "";
+        gracePeriod = "";
+        voucherDenom = "";
+    }
+
+
+    @XmlElement(name = "TransactionID")
+    private String transactionID;
+
+    @XmlElement(name = "MessageType")
+    private String messageType;
+
+    @XmlElement(name = "ProcCode")
+    private String procCode;
+
+    @XmlElement(name = "STAN")
+    private String stan;
+
+    @XmlElement(name = "LocalTxnDtTime")
+    private String localTxnDtTime;
+
+    @XmlElement(name = "MobNum")
+    private String mobNum;
+
+    @XmlElement(name = "VoucherNum")
+    private String voucherNum;
+
+    @XmlElement(name = "DomainID")
+    private String domainID;
+
+    @XmlElement(name = "DeliveryChannelCtrlID")
+    private String deliveryChannelCtrlID;
+
+    @XmlElement(name = "ActCode")
+    private String actCode;
+
+    @XmlElement(name = "Curr")
+    private String curr;
+
+    @XmlElement(name = "VoucherBal")
+    private String voucherBal;
+
+    @XmlElement(name = "ValidityDate")
+    private String validityDate;
+
+    @XmlElement(name = "GraceDate")
+    private String graceDate;
+
+    @XmlElement(name = "GracePeriod")
+    private String gracePeriod;
+
+    @XmlElement(name = "AddonBalance")
+    private String addonBalance;
+
+    @XmlElement(name = "BonusBal")
+    private String bonusBal;
+
+    @XmlElement(name = "VoucherDenom")
+    private String voucherDenom;
+
+    @XmlElement(name = "MessageID")
+    private String messageID;
+
+    @XmlElement(name = "LanguageID")
+    private String languageID;
+
+    @XmlElement(name = "Priority")
+    private String priority;
+
+    @XmlElement(name = "BusinessHourIndicator")
+    private String businessHourIndicator;
+
+    @XmlElement(name = "VlrId")
+    private String vlrId;
+
+    @XmlElement(name = "CellId")
+    private String cellId;
+
+    public String getBusinessHourIndicator() {
+        return businessHourIndicator;
+    }
+
+    public void setBusinessHourIndicator(String businessHourIndicator) {
+        this.businessHourIndicator = businessHourIndicator;
+    }
+
+    public String getBonusBal() {
+        return bonusBal;
+    }
+
+    public void setBonusBal(String bonusBal) {
+        this.bonusBal = bonusBal;
+    }
+
+    public String getGraceDate() {
+        return graceDate;
+    }
+
+    public void setGraceDate(String graceDate) {
+        this.graceDate = graceDate;
+    }
+
+    public String getCurr() {
+        return curr;
+    }
+
+    public void setCurr(String curr) {
+        this.curr = curr;
+    }
+
+    public String getDomainID() {
+        return domainID;
+    }
+
+    public void setDomainID(String domainID) {
+        this.domainID = domainID;
+    }
+
+    public String getVlrId() {
+        return vlrId;
+    }
+
+    public void setVlrId(String vlrId) {
+        this.vlrId = vlrId;
+    }
+
+    public String getCellId() {
+        return cellId;
+    }
+
+    public void setCellId(String cellId) {
+        this.cellId = cellId;
+    }
+
+    public String getLanguageID() {
+        return languageID;
+    }
+
+    public void setLanguageID(String languageID) {
+        this.languageID = languageID;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public String getGracePeriod() {
+        return gracePeriod;
+    }
+
+    public void setGracePeriod(String gracePeriod) {
+        this.gracePeriod = gracePeriod;
+    }
+
+    public String getTransactionID() {
+        return transactionID;
+    }
+
+    public void setTransactionID(String transactionID) {
+        this.transactionID = transactionID;
+    }
+
+    public String getProcCode() {
+        return procCode;
+    }
+
+    public void setProcCode(String procCode) {
+        this.procCode = procCode;
+    }
+
+    public String getLocalTxnDtTime() {
+        return localTxnDtTime;
+    }
+
+    public void setLocalTxnDtTime(String localTxnDtTime) {
+        this.localTxnDtTime = localTxnDtTime;
+    }
+
+    public String getMobNum() {
+        return mobNum;
+    }
+
+    public void setMobNum(String mobNum) {
+        this.mobNum = mobNum;
+    }
+
+    public String getMessageID() {
+        return messageID;
+    }
+
+    public void setMessageID(String messageID) {
+        this.messageID = messageID;
+    }
+
+    public String getVoucherBal() {
+        return voucherBal;
+    }
+
+    public void setVoucherBal(String voucherBal) {
+        this.voucherBal = voucherBal;
+    }
+
+    public String getActCode() {
+        return actCode;
+    }
+
+    public void setActCode(String actCode) {
+        this.actCode = actCode;
+    }
+
+    public String getValidityDate() {
+        return validityDate;
+    }
+
+    public void setValidityDate(String validityDate) {
+        this.validityDate = validityDate;
+    }
+
+    public String getAddonBalance() {
+        return addonBalance;
+    }
+
+    public void setAddonBalance(String addonBalance) {
+        this.addonBalance = addonBalance;
+    }
+
+    public String getStan() {
+        return stan;
+    }
+
+    public void setStan(String stan) {
+        this.stan = stan;
+    }
+
+    public String getVoucherDenom() {
+        return voucherDenom;
+    }
+
+    public void setVoucherDenom(String voucherDenom) {
+        this.voucherDenom = voucherDenom;
+    }
+
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
+    }
+
+    public String getDeliveryChannelCtrlID() {
+        return deliveryChannelCtrlID;
+    }
+
+    public void setDeliveryChannelCtrlID(String deliveryChannelCtrlID) {
+        this.deliveryChannelCtrlID = deliveryChannelCtrlID;
+    }
+
+    public String getVoucherNum() {
+        return voucherNum;
+    }
+
+    public void setVoucherNum(String voucherNum) {
+        this.voucherNum = voucherNum;
+    }
+
+    @Override
+    public String toString() {
+        return "VoucherTopUp{" + "transactionID=" + transactionID + ", messageType=" + messageType + ", procCode=" + procCode + ", stan=" + stan + ", localTxnDtTime=" + localTxnDtTime + ", mobNum=" + mobNum + ", voucherNum=" + voucherNum + ", domainID=" + domainID + ", deliveryChannelCtrlID=" + deliveryChannelCtrlID + ", actCode=" + actCode + ", curr=" + curr + ", voucherBal=" + voucherBal + ", validityDate=" + validityDate + ", graceDate=" + graceDate + ", gracePeriod=" + gracePeriod + ", addonBalance=" + addonBalance + ", bonusBal=" + bonusBal + ", voucherDenom=" + voucherDenom + ", messageID=" + messageID + ", languageID=" + languageID + ", priority=" + priority + ", businessHourIndicator=" + businessHourIndicator + ", vlrId=" + vlrId + ", cellId=" + cellId + '}';
+    }
+    
+    
+}

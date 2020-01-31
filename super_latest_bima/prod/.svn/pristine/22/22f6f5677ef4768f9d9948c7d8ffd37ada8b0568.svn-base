@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api;
+
+/**
+ * Created by Arie
+ * on 04/04/2017.
+ */
+public enum Status {
+    SUCCESS,FAIL
+}

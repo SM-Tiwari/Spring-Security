@@ -1,0 +1,821 @@
+package id.gnvsolution.d3.api.model;
+
+import id.gnvsolution.d3.api.utils.Helpers;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.RptInvoiceSummary 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 7, 2017 2:21:47 PM
+ *
+ */
+@Entity
+@Table(name = "RPT_INVOICE_SUMMARY")
+public class RptInvoiceSummary implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_RPT_INVOICE_SUMMARY", sequenceName = "SEQ_RPT_INVOICE_SUMMARY", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_RPT_INVOICE_SUMMARY", strategy = GenerationType.SEQUENCE)
+    private BigDecimal id;
+    
+    @Column(name = "INVOICEDATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date invoicedate;
+    @Column(name = "MSISDN")
+    private String msisdn;
+    @Column(name = "INVOICENUMBER")
+    private String invoicenumber;
+    @Column(name = "ACCOUNTNUMBER")
+    private String accountnumber;
+    @Column(name = "CUSTOMERTYPE")
+    private String customertype;
+    @Column(name = "CREDITLIMIT")
+    private String creditlimit;
+    @Column(name = "CALLINGPLAN")
+    private String callingplan;
+    @Column(name = "ACCOUNTNAME")
+    private String accountname;
+    @Column(name = "SUMMARYCORPID")
+    private String summarycorpid;
+    @Column(name = "CONTRACTNUM")
+    private String contractnum;
+    @Column(name = "TAXID")
+    private String taxid;
+    @Column(name = "ADDRESSNAME")
+    private String addressname;
+    @Column(name = "ADDRESS1")
+    private String address1;
+    @Column(name = "ADDRESS2")
+    private String address2;
+    @Column(name = "ADDRESS3")
+    private String address3;
+    @Column(name = "CITY")
+    private String city;
+    @Column(name = "POSTCODE")
+    private String postcode;
+    @Column(name = "STARTPERIOD")
+    private String startperiod;
+    @Column(name = "ENDPERIOD")
+    private String endperiod;
+    @Column(name = "DEPOSITMONEY")
+    private String depositmoney;
+    @Column(name = "LASTMONTHBILL")
+    private String lastmonthbill;
+    @Column(name = "PAYMENTRECEIVED")
+    private String paymentreceived;
+    @Column(name = "OUTSTANDINGBILLING")
+    private String outstandingbilling;
+    @Column(name = "EXCESSPAYMENT")
+    private String excesspayment;
+    @Column(name = "BALANCEBROUGHTFORWARD")
+    private String balancebroughtforward;
+    @Column(name = "THISMONTHBILL")
+    private String thismonthbill;
+    @Column(name = "TOTALDUE")
+    private String totaldue;
+    @Column(name = "INVOICEDUEDATE")
+    private String invoiceduedate;
+    @Column(name = "MONTHLYFEE")
+    private String monthlyfee;
+    @Column(name = "FITURDATA")
+    private String fiturdata;
+    @Column(name = "FITURCALLBARING")
+    private String fiturcallbaring;
+    @Column(name = "DETAILRECORD")
+    private String detailrecord;
+    @Column(name = "LOCALCHARGES")
+    private String localcharges;
+    @Column(name = "LONGDISTANCE")
+    private String longdistance;
+    @Column(name = "IDDCHARGES")
+    private String iddcharges;
+    @Column(name = "IRCHARGES")
+    private String ircharges;
+    @Column(name = "VIDEOCHARGES")
+    private String videocharges;
+    @Column(name = "MMSCHARGES")
+    private String mmscharges;
+    @Column(name = "DATACHARGES")
+    private String datacharges;
+    @Column(name = "PLANET3CHARGES")
+    private String planet3charges;
+    @Column(name = "SMSCHARGES")
+    private String smscharges;
+    @Column(name = "TOTALCHARGE")
+    private String totalcharge;
+    @Column(name = "TOTALDISCOUNT")
+    private String totaldiscount;
+    @Column(name = "TOTALADJUSTMENT")
+    private String totaladjustment;
+    @Column(name = "TOTALSUBTOTAL")
+    private String totalsubtotal;
+    @Column(name = "TOTALVAT")
+    private String totalvat;
+    @Column(name = "TOTALSTAMPDUTY")
+    private String totalstampduty;
+    @Column(name = "CHARGE")
+    private String charge;
+    @Column(name = "DISCOUNT")
+    private String discount;
+    @Column(name = "USAGEVARIANCE")
+    private String usagevariance;
+    @Column(name = "ADJUSTMENT")
+    private String adjustment;
+    @Column(name = "SUBTOTAL")
+    private String subtotal;
+    @Column(name = "\"3XDISCOUNT\"")
+    private String xdiscount;
+    @Column(name = "\"3XDISCONNET\"")
+    private String xdisconnet;
+    @Column(name = "\"3XDISCOTHERS\"")
+    private String xdiscothers;
+    @Column(name = "VAT")
+    private String vat;
+    @Column(name = "OTHERS")
+    private String others;
+    @Column(name = "OTHERSVAT")
+    private String othersvat;
+    @Column(name = "STAMPDUTY")
+    private String stampduty;
+    @Column(name = "TOTALBILLING")
+    private String totalbilling;
+    @Column(name = "NPWPVALUE")
+    private String npwpvalue;
+    @Column(name = "CONTRACTPENALTYCHARGE")
+    private String contractpenaltycharge;
+    @Column(name = "PRINTINGCOST")
+    private String printingcost;
+    @Column(name = "TOTAL_PAYMENTRECEIVED")
+    private String totalPaymentreceived;
+    @Column(name = "TOTAL_OUTSTANDINGBILLING")
+    private String totalOutstandingbilling;
+    @Column(name = "TOTAL_EXCESSPAYMENT")
+    private String totalExcesspayment;
+    @Column(name = "PREDISCOUNT")
+    private String prediscount;
+    @Column(name = "POSTDISCOUNT")
+    private String postdiscount;
+    @Column(name = "MONTHLYCHARGE")
+    private String monthlycharge;
+    @Column(name = "TOTALUSAGE")
+    private String totalusage;
+    @Column(name = "MINIMUMCOMMITMENTCHARGE")
+    private String minimumcommitmentcharge;
+
+    @Transient
+    private String abodemen;
+
+    public RptInvoiceSummary() {
+    }
+
+    public RptInvoiceSummary(BigDecimal id) {
+        this.id = id;
+    }
+
+    public BigDecimal getId() {
+        return id;
+    }
+
+    public void setId(BigDecimal id) {
+        this.id = id;
+    }
+
+    public Date getInvoicedate() {
+        return invoicedate;
+    }
+
+    public void setInvoicedate(Date invoicedate) {
+        this.invoicedate = invoicedate;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getInvoicenumber() {
+        return invoicenumber;
+    }
+
+    public void setInvoicenumber(String invoicenumber) {
+        this.invoicenumber = invoicenumber;
+    }
+
+    public String getAccountnumber() {
+        return accountnumber;
+    }
+
+    public void setAccountnumber(String accountnumber) {
+        this.accountnumber = accountnumber;
+    }
+
+    public String getCustomertype() {
+        return customertype;
+    }
+
+    public void setCustomertype(String customertype) {
+        this.customertype = customertype;
+    }
+
+    public String getCreditlimit() {
+        return creditlimit;
+    }
+
+    public void setCreditlimit(String creditlimit) {
+        this.creditlimit = creditlimit;
+    }
+
+    public String getCallingplan() {
+        return callingplan;
+    }
+
+    public void setCallingplan(String callingplan) {
+        this.callingplan = callingplan;
+    }
+
+    public String getAccountname() {
+        return accountname;
+    }
+
+    public void setAccountname(String accountname) {
+        this.accountname = accountname;
+    }
+
+    public String getSummarycorpid() {
+        return summarycorpid;
+    }
+
+    public void setSummarycorpid(String summarycorpid) {
+        this.summarycorpid = summarycorpid;
+    }
+
+    public String getContractnum() {
+        return contractnum;
+    }
+
+    public void setContractnum(String contractnum) {
+        this.contractnum = contractnum;
+    }
+
+    public String getTaxid() {
+        return taxid;
+    }
+
+    public void setTaxid(String taxid) {
+        this.taxid = taxid;
+    }
+
+    public String getAddressname() {
+        return addressname;
+    }
+
+    public void setAddressname(String addressname) {
+        this.addressname = addressname;
+    }
+
+    public String getAddress1() {
+        return address1;
+    }
+
+    public void setAddress1(String address1) {
+        this.address1 = address1;
+    }
+
+    public String getAddress2() {
+        return address2;
+    }
+
+    public void setAddress2(String address2) {
+        this.address2 = address2;
+    }
+
+    public String getAddress3() {
+        return address3;
+    }
+
+    public void setAddress3(String address3) {
+        this.address3 = address3;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getPostcode() {
+        return postcode;
+    }
+
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
+    }
+
+    public String getStartperiod() {
+        return startperiod;
+    }
+
+    public void setStartperiod(String startperiod) {
+        this.startperiod = startperiod;
+    }
+
+    public String getEndperiod() {
+        return endperiod;
+    }
+
+    public void setEndperiod(String endperiod) {
+        this.endperiod = endperiod;
+    }
+
+    public String getDepositmoney() {
+        return depositmoney;
+    }
+
+    public void setDepositmoney(String depositmoney) {
+        this.depositmoney = depositmoney;
+    }
+
+    public String getLastmonthbill() {
+        return lastmonthbill;
+    }
+
+    public void setLastmonthbill(String lastmonthbill) {
+        this.lastmonthbill = lastmonthbill;
+    }
+
+    public String getPaymentreceived() {
+        return paymentreceived;
+    }
+
+    public void setPaymentreceived(String paymentreceived) {
+        this.paymentreceived = paymentreceived;
+    }
+
+    public String getOutstandingbilling() {
+        return outstandingbilling;
+    }
+
+    public void setOutstandingbilling(String outstandingbilling) {
+        this.outstandingbilling = outstandingbilling;
+    }
+
+    public String getExcesspayment() {
+        return excesspayment;
+    }
+
+    public void setExcesspayment(String excesspayment) {
+        this.excesspayment = excesspayment;
+    }
+
+    public String getBalancebroughtforward() {
+        return balancebroughtforward;
+    }
+
+    public void setBalancebroughtforward(String balancebroughtforward) {
+        this.balancebroughtforward = balancebroughtforward;
+    }
+
+    public String getThismonthbill() {
+        return thismonthbill;
+    }
+
+    public void setThismonthbill(String thismonthbill) {
+        this.thismonthbill = thismonthbill;
+    }
+
+    public String getTotaldue() {
+        return totaldue;
+    }
+
+    public void setTotaldue(String totaldue) {
+        this.totaldue = totaldue;
+    }
+
+    public String getInvoiceduedate() {
+        return invoiceduedate;
+    }
+
+    public void setInvoiceduedate(String invoiceduedate) {
+        this.invoiceduedate = invoiceduedate;
+    }
+
+    public String getMonthlyfee() {
+        return monthlyfee;
+    }
+
+    public void setMonthlyfee(String monthlyfee) {
+        this.monthlyfee = monthlyfee;
+    }
+
+    public String getFiturdata() {
+        return fiturdata;
+    }
+
+    public void setFiturdata(String fiturdata) {
+        this.fiturdata = fiturdata;
+    }
+
+    public String getFiturcallbaring() {
+        return fiturcallbaring;
+    }
+
+    public void setFiturcallbaring(String fiturcallbaring) {
+        this.fiturcallbaring = fiturcallbaring;
+    }
+
+    public String getDetailrecord() {
+        return detailrecord;
+    }
+
+    public void setDetailrecord(String detailrecord) {
+        this.detailrecord = detailrecord;
+    }
+
+    public String getLocalcharges() {
+        return localcharges;
+    }
+
+    public void setLocalcharges(String localcharges) {
+        this.localcharges = localcharges;
+    }
+
+    public String getLongdistance() {
+        return longdistance;
+    }
+
+    public void setLongdistance(String longdistance) {
+        this.longdistance = longdistance;
+    }
+
+    public String getIddcharges() {
+        return iddcharges;
+    }
+
+    public void setIddcharges(String iddcharges) {
+        this.iddcharges = iddcharges;
+    }
+
+    public String getIrcharges() {
+        return ircharges;
+    }
+
+    public void setIrcharges(String ircharges) {
+        this.ircharges = ircharges;
+    }
+
+    public String getVideocharges() {
+        return videocharges;
+    }
+
+    public void setVideocharges(String videocharges) {
+        this.videocharges = videocharges;
+    }
+
+    public String getMmscharges() {
+        return mmscharges;
+    }
+
+    public void setMmscharges(String mmscharges) {
+        this.mmscharges = mmscharges;
+    }
+
+    public String getDatacharges() {
+        return datacharges;
+    }
+
+    public void setDatacharges(String datacharges) {
+        this.datacharges = datacharges;
+    }
+
+    public String getPlanet3charges() {
+        return planet3charges;
+    }
+
+    public void setPlanet3charges(String planet3charges) {
+        this.planet3charges = planet3charges;
+    }
+
+    public String getSmscharges() {
+        return smscharges;
+    }
+
+    public void setSmscharges(String smscharges) {
+        this.smscharges = smscharges;
+    }
+
+    public String getTotalcharge() {
+        return totalcharge;
+    }
+
+    public void setTotalcharge(String totalcharge) {
+        this.totalcharge = totalcharge;
+    }
+
+    public String getTotaldiscount() {
+        return totaldiscount;
+    }
+
+    public void setTotaldiscount(String totaldiscount) {
+        this.totaldiscount = totaldiscount;
+    }
+
+    public String getTotaladjustment() {
+        return totaladjustment;
+    }
+
+    public void setTotaladjustment(String totaladjustment) {
+        this.totaladjustment = totaladjustment;
+    }
+
+    public String getTotalsubtotal() {
+        return totalsubtotal;
+    }
+
+    public void setTotalsubtotal(String totalsubtotal) {
+        this.totalsubtotal = totalsubtotal;
+    }
+
+    public String getTotalvat() {
+        return totalvat;
+    }
+
+    public void setTotalvat(String totalvat) {
+        this.totalvat = totalvat;
+    }
+
+    public String getTotalstampduty() {
+        return totalstampduty;
+    }
+
+    public void setTotalstampduty(String totalstampduty) {
+        this.totalstampduty = totalstampduty;
+    }
+
+    public String getCharge() {
+        return charge;
+    }
+
+    public void setCharge(String charge) {
+        this.charge = charge;
+    }
+
+    public String getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(String discount) {
+        this.discount = discount;
+    }
+
+    public String getUsagevariance() {
+        return usagevariance;
+    }
+
+    public void setUsagevariance(String usagevariance) {
+        this.usagevariance = usagevariance;
+    }
+
+    public String getAdjustment() {
+        return adjustment;
+    }
+
+    public void setAdjustment(String adjustment) {
+        this.adjustment = adjustment;
+    }
+
+    public String getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(String subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public String getXdiscount() {
+        return xdiscount;
+    }
+
+    public void setXdiscount(String xdiscount) {
+        this.xdiscount = xdiscount;
+    }
+
+    public String getXdisconnet() {
+        return xdisconnet;
+    }
+
+    public void setXdisconnet(String xdisconnet) {
+        this.xdisconnet = xdisconnet;
+    }
+
+    public String getXdiscothers() {
+        return xdiscothers;
+    }
+
+    public void setXdiscothers(String xdiscothers) {
+        this.xdiscothers = xdiscothers;
+    }
+
+    public String getVat() {
+        return vat;
+    }
+
+    public void setVat(String vat) {
+        this.vat = vat;
+    }
+
+    public String getOthers() {
+        return others;
+    }
+
+    public void setOthers(String others) {
+        this.others = others;
+    }
+
+    public String getOthersvat() {
+        return othersvat;
+    }
+
+    public void setOthersvat(String othersvat) {
+        this.othersvat = othersvat;
+    }
+
+    public String getStampduty() {
+        return stampduty;
+    }
+
+    public void setStampduty(String stampduty) {
+        this.stampduty = stampduty;
+    }
+
+    public String getTotalbilling() {
+        return totalbilling;
+    }
+
+    public void setTotalbilling(String totalbilling) {
+        this.totalbilling = totalbilling;
+    }
+
+    public String getNpwpvalue() {
+        return npwpvalue;
+    }
+
+    public void setNpwpvalue(String npwpvalue) {
+        this.npwpvalue = npwpvalue;
+    }
+
+    public String getContractpenaltycharge() {
+        return contractpenaltycharge;
+    }
+
+    public void setContractpenaltycharge(String contractpenaltycharge) {
+        this.contractpenaltycharge = contractpenaltycharge;
+    }
+
+    public String getPrintingcost() {
+        return printingcost;
+    }
+
+    public void setPrintingcost(String printingcost) {
+        this.printingcost = printingcost;
+    }
+
+    public String getTotalPaymentreceived() {
+        return totalPaymentreceived;
+    }
+
+    public void setTotalPaymentreceived(String totalPaymentreceived) {
+        this.totalPaymentreceived = totalPaymentreceived;
+    }
+
+    public String getTotalOutstandingbilling() {
+        return totalOutstandingbilling;
+    }
+
+    public void setTotalOutstandingbilling(String totalOutstandingbilling) {
+        this.totalOutstandingbilling = totalOutstandingbilling;
+    }
+
+    public String getTotalExcesspayment() {
+        return totalExcesspayment;
+    }
+
+    public void setTotalExcesspayment(String totalExcesspayment) {
+        this.totalExcesspayment = totalExcesspayment;
+    }
+
+    public String getPrediscount() {
+        return prediscount;
+    }
+
+    public void setPrediscount(String prediscount) {
+        this.prediscount = prediscount;
+    }
+
+    public String getPostdiscount() {
+        return postdiscount;
+    }
+
+    public void setPostdiscount(String postdiscount) {
+        this.postdiscount = postdiscount;
+    }
+
+    public String getMonthlycharge() {
+        return monthlycharge;
+    }
+
+    public void setMonthlycharge(String monthlycharge) {
+        this.monthlycharge = monthlycharge;
+    }
+
+    public String getTotalusage() {
+        return totalusage;
+    }
+
+    public void setTotalusage(String totalusage) {
+        this.totalusage = totalusage;
+    }
+
+    public String getMinimumcommitmentcharge() {
+        return minimumcommitmentcharge;
+    }
+
+    public void setMinimumcommitmentcharge(String minimumcommitmentcharge) {
+        this.minimumcommitmentcharge = minimumcommitmentcharge;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof RptInvoiceSummary)) {
+            return false;
+        }
+        RptInvoiceSummary other = (RptInvoiceSummary) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "nitipgenerateentity.RptInvoiceSummary[ id=" + id + " ]";
+    }
+
+    public String getAbodemen() {
+        if (abodemen != null && !abodemen.isEmpty()) {
+            return abodemen;
+        } else {
+            try {
+                if (getSubtotal() == null) {
+                    setSubtotal("0");
+                }
+                if (getLocalcharges() == null) {
+                    setLocalcharges("0");
+                }
+                if (getLongdistance() == null) {
+                    setLongdistance("0");
+                }
+                if (getIddcharges() == null) {
+                    setIddcharges("0");
+                }
+
+                long subtotal = Long.parseLong(getSubtotal().replaceAll(",", "")),
+                        localcharges = Long.parseLong(getLocalcharges().replaceAll(",", "")),
+                        longdistance = Long.parseLong(getLongdistance().replaceAll(",", "")),
+                        iddcharges = Long.parseLong(getIddcharges().replaceAll(",", ""));
+                return Helpers.formatNumber(subtotal - localcharges - longdistance - iddcharges);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "0";
+            }
+        }
+
+    }
+
+    public void setAbodemen(String abodemen) {
+        this.abodemen = abodemen;
+    }
+}

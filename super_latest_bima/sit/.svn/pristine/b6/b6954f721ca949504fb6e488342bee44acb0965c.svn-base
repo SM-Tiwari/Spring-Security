@@ -1,0 +1,36 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+public class StaticDto implements DTO {
+
+    private boolean status;
+    private String url;
+
+    public StaticDto(){}
+
+    public StaticDto(boolean status, String url) {
+        this.status = status;
+        this.url = url;
+    }
+
+    public boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+}

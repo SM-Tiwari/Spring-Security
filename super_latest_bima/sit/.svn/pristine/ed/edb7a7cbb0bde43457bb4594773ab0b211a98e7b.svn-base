@@ -1,0 +1,70 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.ProductPerformanceDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.DwhProductPerformance;
+import id.gnvsolution.d3.api.service.ProductPerformanceService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.ProductPerformanceServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Dec 29, 2017 10:07:04 PM
+ *
+ */
+@Service
+@Transactional
+public class ProductPerformanceServiceImpl extends BaseService implements ProductPerformanceService {
+	private final Logger logger = LoggerFactory.getLogger(ProductPerformanceServiceImpl.class);
+    
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Override
+    public Map add(ProductPerformanceDto productPerformanceDto) {
+    	
+    	logger.info("#add------------msisdn------", productPerformanceDto.getMsisdn());
+
+        if(!isMsisdnValid(productPerformanceDto.getMsisdn(), productPerformanceDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        /*change msisdn by Vimal*/
+    	if(productPerformanceDto.getMsisdn()!= null){
+    	String msisdn = AppUtils.removeCountryCode(productPerformanceDto.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+    	productPerformanceDto.setMsisdn(msisdn);
+    	}
+        
+        DwhProductPerformance dwhProductPerformance = new DwhProductPerformance();
+        dwhProductPerformance.setMsisdn(productPerformanceDto.getMsisdn());
+        dwhProductPerformance.setProductId(productPerformanceDto.getProductId());
+        dwhProductPerformance.setTrxDate(new Date());
+        dwhProductPerformance.setType(productPerformanceDto.getType());
+        dwhProductPerformance.setUuid(UUID.randomUUID().toString());
+         
+        logger.info("#add-----------save DwhProductPerformance data");
+        BaseDao<DwhProductPerformance> baseDao = new BaseDao<>(sessionFactoryDef, DwhProductPerformance.class);
+        baseDao.save(dwhProductPerformance);
+        
+        return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+    }
+    
+}

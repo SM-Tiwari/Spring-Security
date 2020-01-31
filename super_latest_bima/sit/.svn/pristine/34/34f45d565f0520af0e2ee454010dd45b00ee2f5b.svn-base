@@ -1,0 +1,45 @@
+ALTER TABLE RECOMMENDED_FOR_YOU_BOX
+   DROP CONSTRAINT FK_RECOMMEN_R_1705291_RECOMMEN;
+
+ALTER TABLE RECOMMENDED_FOR_YOU_BOX
+   DROP CONSTRAINT FK_RECOMMEN_R_1705291_SUBSCRIB;
+
+DROP INDEX R_1705291846_FK;
+
+DROP INDEX R_1705291844_FK;
+
+DROP TABLE RECOMMENDED_FOR_YOU_BOX CASCADE CONSTRAINTS;
+
+/*==============================================================*/
+/* Table: RECOMMENDED_FOR_YOU_BOX                               */
+/*==============================================================*/
+CREATE TABLE RECOMMENDED_FOR_YOU_BOX 
+(
+   SUBSCRIBER_MSISDN    VARCHAR2(15)         NOT NULL,
+   CAMPAIGN_ID          VARCHAR2(50)         NOT NULL,
+   BOX_STATUS           SMALLINT             NOT NULL,
+   BOX_END_AT           TIMESTAMP            NOT NULL,
+   CONSTRAINT PK_RECOMMENDED_FOR_YOU_BOX PRIMARY KEY (SUBSCRIBER_MSISDN, CAMPAIGN_ID)
+);
+
+/*==============================================================*/
+/* Index: R_1705291844_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_1705291844_FK ON RECOMMENDED_FOR_YOU_BOX (
+   CAMPAIGN_ID ASC
+);
+
+/*==============================================================*/
+/* Index: R_1705291846_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_1705291846_FK ON RECOMMENDED_FOR_YOU_BOX (
+   SUBSCRIBER_MSISDN ASC
+);
+
+ALTER TABLE RECOMMENDED_FOR_YOU_BOX
+   ADD CONSTRAINT FK_RECOMMEN_R_1705291_RECOMMEN FOREIGN KEY (CAMPAIGN_ID)
+      REFERENCES RECOMMENDED_FOR_YOU (CAMPAIGN_ID);
+
+ALTER TABLE RECOMMENDED_FOR_YOU_BOX
+   ADD CONSTRAINT FK_RECOMMEN_R_1705291_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);

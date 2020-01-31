@@ -1,0 +1,140 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.DynamicButton 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 25, 2018 5:23:56 PM
+ *
+ */
+@Entity
+@Table(name = "DYNAMIC_BUTTON")
+public class DynamicButton {
+
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Column(name = "UUID")
+    private String uuid;
+    
+    @Column(name = "BUTTON_NAME")
+    private String buttonName;
+    
+    @Column(name = "BUTTON_CAPTION")
+    private String buttonCaption;
+    
+    @Column(name = "BUTTON_URL")
+    private String buttonUrl;
+    
+    @Column(name = "DESTINATION_TYPE")
+    private String destinationType;
+    
+    @Column(name = "DESTINATION_NAME")
+    private String destinationName;
+    
+    @Column(name = "CREATED_DATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdDate;
+    
+    @Column(name = "CREATED_BY")
+    private String createdBy;
+    
+    @Column(name = "BUTTON_CAPTION_EN")
+    private String buttonCaptionEn;
+    
+    @Column(name = "PARAMETER")
+    private String parameter;
+
+    public DynamicButton() {
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getButtonName() {
+        return buttonName;
+    }
+
+    public void setButtonName(String buttonName) {
+        this.buttonName = buttonName;
+    }
+
+    public String getButtonCaption() {
+        return buttonCaption;
+    }
+
+    public void setButtonCaption(String buttonCaption) {
+        this.buttonCaption = buttonCaption;
+    }
+
+    public String getButtonUrl() {
+        return buttonUrl;
+    }
+
+    public void setButtonUrl(String buttonUrl) {
+        this.buttonUrl = buttonUrl;
+    }
+
+    public String getDestinationType() {
+        return destinationType;
+    }
+
+    public void setDestinationType(String destinationType) {
+        this.destinationType = destinationType;
+    }
+
+    public String getDestinationName() {
+        return destinationName;
+    }
+
+    public void setDestinationName(String destinationName) {
+        this.destinationName = destinationName;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getButtonCaptionEn() {
+        return buttonCaptionEn;
+    }
+
+    public void setButtonCaptionEn(String buttonCaptionEn) {
+        this.buttonCaptionEn = buttonCaptionEn;
+    }
+
+    public String getParameter() {
+        return parameter;
+    }
+
+    public void setParameter(String parameter) {
+        this.parameter = parameter;
+    }
+}

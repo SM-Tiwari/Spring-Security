@@ -1,0 +1,165 @@
+/**
+ * 
+ */
+package com.gnv.vnm.selfcare.dao.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+
+/**
+ * @author nandipinto
+ *
+ */
+
+@Entity
+@Table(name = "self_pkg_balance_name",  uniqueConstraints = { @UniqueConstraint(columnNames = "name") })
+@SequenceGenerator(name = "selfpkg_balname_seq", sequenceName = "selfpkg_balname_seq", allocationSize = 1)
+public class SelfPackageBalanceNameEntity extends BaseEntity {
+
+	private static final long serialVersionUID = -3650915028663723555L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "selfpkg_balname_seq")
+	@Column
+	private Integer id;
+	
+	@Column(name = "name", nullable = false)
+	private String name;
+	
+	@Column(name = "desc_en")
+	private String descriptionEN;
+	
+	@Column(name = "desc_vi")
+	private String descriptionVI;
+
+	@Column(name = "multiplier_val")
+	private Double multiplierValue = 1.0;
+
+	/**
+	 * @return the id
+	 */
+	public Integer getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @return the descriptionEN
+	 */
+	public String getDescriptionEN() {
+		return descriptionEN;
+	}
+
+	/**
+	 * @param descriptionEN the descriptionEN to set
+	 */
+	public void setDescriptionEN(String descriptionEN) {
+		this.descriptionEN = descriptionEN;
+	}
+
+	/**
+	 * @return the descriptionVI
+	 */
+	public String getDescriptionVI() {
+		return descriptionVI;
+	}
+
+	/**
+	 * @param descriptionVI the descriptionVI to set
+	 */
+	public void setDescriptionVI(String descriptionVI) {
+		this.descriptionVI = descriptionVI;
+	}
+
+	/**
+	 * @return the multiplierValue
+	 */
+	public Double getMultiplierValue() {
+		return multiplierValue;
+	}
+
+	/**
+	 * @param multiplierValue the multiplierValue to set
+	 */
+	public void setMultiplierValue(Double multiplierValue) {
+		this.multiplierValue = multiplierValue;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SelfPackageBalanceNameEntity other = (SelfPackageBalanceNameEntity) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("SelfPackageBalanceNameEntity [id=");
+		builder.append(id);
+		builder.append(", name=");
+		builder.append(name);
+		builder.append(", descriptionEN=");
+		builder.append(descriptionEN);
+		builder.append(", descriptionVI=");
+		builder.append(descriptionVI);
+		builder.append(", multiplierValue=");
+		builder.append(multiplierValue);
+		builder.append("]");
+		return builder.toString();
+	}
+
+}

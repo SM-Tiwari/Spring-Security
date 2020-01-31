@@ -1,0 +1,73 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.CreditLimitDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 24, 2017 3:34:39 PM
+ *
+ */
+public class CreditLimitDto implements DTO {
+
+    private String totalCreditLimit;
+    private String remainingCreditLimit;
+    private String prevBill;
+    private String currBill;
+    private boolean status;
+    private String paymentDueDate;
+
+    public CreditLimitDto() {
+    }
+
+    public boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getPaymentDueDate() {
+        return paymentDueDate;
+    }
+
+    public void setPaymentDueDate(String paymentDueDate) {
+        this.paymentDueDate = paymentDueDate;
+    }
+
+    public String getTotalCreditLimit() {
+        return totalCreditLimit;
+    }
+
+    public void setTotalCreditLimit(String totalCreditLimit) {
+        this.totalCreditLimit = totalCreditLimit;
+    }
+
+    public String getRemainingCreditLimit() {
+        return remainingCreditLimit;
+    }
+
+    public void setRemainingCreditLimit(String remainingCreditLimit) {
+        this.remainingCreditLimit = remainingCreditLimit;
+    }
+
+    public String getPrevBill() {
+        return prevBill;
+    }
+
+    public void setPrevBill(String prevBill) {
+        this.prevBill = prevBill;
+    }
+
+    public String getCurrBill() {
+        return currBill;
+    }
+
+    public void setCurrBill(String currBill) {
+        this.currBill = currBill;
+    }
+}

@@ -1,0 +1,19 @@
+-------------------------------------------------------------------------------
+Test set: id.gnvsolution.d3.api.utils.JSONResultFilterTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 5, Skipped: 0, Time elapsed: 0 sec <<< FAILURE!
+testParse(id.gnvsolution.d3.api.utils.JSONResultFilterTest)  Time elapsed: 0 sec  <<< ERROR!
+mockit.internal.ClassFile$NotFoundException: Unable to find class file for id.gnvsolution.d3.api.utils.JSONResultFilterTest
+
+parseClmResp(id.gnvsolution.d3.api.utils.JSONResultFilterTest)  Time elapsed: 0 sec  <<< ERROR!
+mockit.internal.ClassFile$NotFoundException: Unable to find class file for id.gnvsolution.d3.api.utils.JSONResultFilterTest
+
+testFileName(id.gnvsolution.d3.api.utils.JSONResultFilterTest)  Time elapsed: 0 sec  <<< ERROR!
+mockit.internal.ClassFile$NotFoundException: Unable to find class file for id.gnvsolution.d3.api.utils.JSONResultFilterTest
+
+build(id.gnvsolution.d3.api.utils.JSONResultFilterTest)  Time elapsed: 0 sec  <<< ERROR!
+mockit.internal.ClassFile$NotFoundException: Unable to find class file for id.gnvsolution.d3.api.utils.JSONResultFilterTest
+
+generateXML(id.gnvsolution.d3.api.utils.JSONResultFilterTest)  Time elapsed: 0 sec  <<< ERROR!
+mockit.internal.ClassFile$NotFoundException: Unable to find class file for id.gnvsolution.d3.api.utils.JSONResultFilterTest
+

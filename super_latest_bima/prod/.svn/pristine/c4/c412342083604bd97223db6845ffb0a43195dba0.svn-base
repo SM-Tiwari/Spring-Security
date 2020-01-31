@@ -1,0 +1,83 @@
+package id.gnvsolution.d3.api.model;
+
+import java.math.BigDecimal;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.SubscriberPreviewWhitelist 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 1, 2017 5:40:37 PM
+ *
+ */
+@Entity
+@Table(name = "SUBSCRIBER_PREVIEW_WHITELIST")
+public class SubscriberPreviewWhitelist {
+
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_SUBSCRIBER_PREVIEW", sequenceName = "SEQ_SUBSCRIBER_PREVIEW", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_SUBSCRIBER_PREVIEW", strategy = GenerationType.SEQUENCE)
+    private BigDecimal id;
+    
+    @Column(name = "MSISDN")
+    private String msisdn;
+    
+    @Column(name = "STATUS")
+    private Integer status;
+    
+    @Column(name = "NOTE")
+    private String note;
+
+    public SubscriberPreviewWhitelist() {
+    }
+
+    public SubscriberPreviewWhitelist(BigDecimal id, String msisdn, Integer status, String note) {
+        this.id = id;
+        this.msisdn = msisdn;
+        this.status = status;
+        this.note = note;
+    }
+
+    public BigDecimal getId() {
+        return id;
+    }
+
+    public void setId(BigDecimal id) {
+        this.id = id;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+}

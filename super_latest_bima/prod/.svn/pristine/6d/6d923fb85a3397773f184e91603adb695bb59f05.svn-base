@@ -1,0 +1,63 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+import java.io.Serializable;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.VersionResponseDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Oct 2, 2017 8:46:53 PM
+ *
+ */
+    public class VersionResponseDto implements DTO, Serializable {
+
+    private boolean status;
+    private String message;
+    private Integer updateType;
+    private String link;
+
+    public VersionResponseDto() {
+    }
+
+    public VersionResponseDto(boolean status, String message, Integer updateType, String link) {
+        this.status = status;
+        this.message = message;
+        this.updateType = updateType;
+        this.link = link;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Integer getUpdateType() {
+        return updateType;
+    }
+
+    public void setUpdateType(Integer updateType) {
+        this.updateType = updateType;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+}

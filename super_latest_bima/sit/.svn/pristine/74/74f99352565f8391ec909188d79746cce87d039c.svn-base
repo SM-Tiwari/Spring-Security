@@ -1,0 +1,462 @@
+package id.gnvsolution.d3.api.model;
+
+import id.gnvsolution.d3.api.utils.Helpers;
+
+import javax.persistence.*;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.Date;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.Campaign 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 7, 2017 6:03:50 PM
+ *
+ */
+@Entity
+@Table(name = "CAMPAIGN")
+public class Campaign implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @Basic(optional = false)
+    @Column(name = "CAMPAIGN_ID")
+    private String campaignId;
+    @Column(name = "PROMO_NAME_ID")
+    private String promoNameId;
+    @Column(name = "PROMO_NAME_EN")
+    private String promoNameEn;
+    @Column(name = "PACKAGE_CODE")
+    private String packageCode;
+    @Column(name = "DESC_ID")
+    private String descId;
+    @Column(name = "DESC_EN")
+    private String descEn;
+    @Column(name = "FREQUENCY")
+    private String frequency;
+    @Column(name = "TIMES")
+    private BigInteger times;
+    @Column(name = "STARTDATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date startdate;
+    @Column(name = "ENDDATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    @DateTimeFormat(pattern="yyyy.MM.dd hh:mm:ss")
+    private Date enddate;
+    @Column(name = "STARTHOUR")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date starthour;
+    @Column(name = "ENDHOUR")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date endhour;
+    @Column(name = "PRIORITY")
+    private BigInteger priority;
+    @Column(name = "TARGET_TYPE")
+    private String targetType;
+    @Column(name = "CALLPLAN")
+    private String callplan;
+    @Column(name = "SHAKE")
+    private Short shake;
+    @Column(name = "RFY")
+    private Short rfy;
+    @Column(name = "CLAIM_METHOD")
+    private String claimMethod;
+    @Column(name = "DETAIL_ID")
+    private String detailId;
+    @Column(name = "CLAIM_CHARGE")
+    private Short claimCharge;
+    @Column(name = "CAMPAIGN_ASSETS")
+    private Short campaignAssets;
+    @Column(name = "STATUS")
+    private String status;
+    @Basic(optional = false)
+    @Column(name = "CREATED")
+    private Date created;
+    @Column(name = "SDC")
+    private String sdc;
+    @Column(name = "KEYWORD")
+    private String keyword;
+    @Basic(optional = false)
+    @Column(name = "IS_REWARD")
+    private short isReward;
+    @Column(name = "TYPEPRICE")
+    private String typeprice;
+    @Column(name = "PRICE")
+    private BigInteger price;
+    @Column(name = "ORIG_PRICE")
+    private BigInteger origPrice;
+    @Column(name = "WORDING_BUTTON_ID")
+    private String wordingButtonId;
+    @Column(name = "WORDING_BUTTON_EN")
+    private String wordingButtonEn;
+    @Column(name = "TYPE_DATA")
+    private String typeData;
+    @Column(name = "DDC_URL")
+    private String ddcUrl;
+    @Column(name = "FREE_URL")
+    private String freeUrl;
+    @Column(name = "DDC_FEATURE")
+    private String ddcFeature;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "campaignId")
+    private Collection<CampaignBanner> campaignBannerCollection;
+//    @OneToMany(cascade = CascadeType.ALL, mappedBy = "campaignId")
+//    private Collection<CampaignReward> campaignRewardCollection;
+
+    public Campaign() {
+    }
+
+    public Campaign(String campaignId) {
+        this.campaignId = campaignId;
+    }
+
+    public Campaign(String campaignId, Date created, short isReward) {
+        this.campaignId = campaignId;
+        this.created = created;
+        this.isReward = isReward;
+    }
+
+    public Product convertToProduct() {
+        Product product = new Product();
+        product.setProductId(getCampaignId());
+        product.setProductNameId(getPromoNameId());
+        product.setProductNameEn(getPromoNameEn());
+        product.setProductDescriptionId(getDescId());
+        product.setProductDescriptionEn(getDescEn());
+        product.setProductButtonBuyId(getWordingButtonId());
+        product.setProductButtonBuyEn(getWordingButtonEn());
+        product.setChargingMechanism(getClaimMethod());
+        product.setProductPrice(getPrice() == null ? null : Helpers.formatNumber(getPrice().longValue()));
+
+        product.setProductRating(0);
+
+        return product;
+    }
+
+    public String getCampaignId() {
+        return campaignId;
+    }
+
+    public void setCampaignId(String campaignId) {
+        this.campaignId = campaignId;
+    }
+
+    public String getPromoNameId() {
+        return promoNameId;
+    }
+
+    public void setPromoNameId(String promoNameId) {
+        this.promoNameId = promoNameId;
+    }
+
+    public String getPromoNameEn() {
+        return promoNameEn;
+    }
+
+    public void setPromoNameEn(String promoNameEn) {
+        this.promoNameEn = promoNameEn;
+    }
+
+    public String getPackageCode() {
+        return packageCode;
+    }
+
+    public void setPackageCode(String packageCode) {
+        this.packageCode = packageCode;
+    }
+
+    public String getDescId() {
+        return descId;
+    }
+
+    public void setDescId(String descId) {
+        this.descId = descId;
+    }
+
+    public String getDescEn() {
+        return descEn;
+    }
+
+    public void setDescEn(String descEn) {
+        this.descEn = descEn;
+    }
+
+    public String getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(String frequency) {
+        this.frequency = frequency;
+    }
+
+    public BigInteger getTimes() {
+        return times;
+    }
+
+    public void setTimes(BigInteger times) {
+        this.times = times;
+    }
+
+    public Date getStartdate() {
+        return startdate;
+    }
+
+    public void setStartdate(Date startdate) {
+        this.startdate = startdate;
+    }
+
+    public Date getEnddate() {
+        return enddate;
+    }
+
+    public void setEnddate(Date enddate) {
+        this.enddate = enddate;
+    }
+
+    public Date getStarthour() {
+        return starthour;
+    }
+
+    public void setStarthour(Date starthour) {
+        this.starthour = starthour;
+    }
+
+    public Date getEndhour() {
+        return endhour;
+    }
+
+    public void setEndhour(Date endhour) {
+        this.endhour = endhour;
+    }
+
+    public BigInteger getPriority() {
+        return priority;
+    }
+
+    public void setPriority(BigInteger priority) {
+        this.priority = priority;
+    }
+
+    public String getTargetType() {
+        return targetType;
+    }
+
+    public void setTargetType(String targetType) {
+        this.targetType = targetType;
+    }
+
+    public String getCallplan() {
+        return callplan;
+    }
+
+    public void setCallplan(String callplan) {
+        this.callplan = callplan;
+    }
+
+    public Short getShake() {
+        return shake;
+    }
+
+    public void setShake(Short shake) {
+        this.shake = shake;
+    }
+
+    public Short getRfy() {
+        return rfy;
+    }
+
+    public void setRfy(Short rfy) {
+        this.rfy = rfy;
+    }
+
+    public String getClaimMethod() {
+        return claimMethod;
+    }
+
+    public void setClaimMethod(String claimMethod) {
+        this.claimMethod = claimMethod;
+    }
+
+    public String getDetailId() {
+        return detailId;
+    }
+
+    public void setDetailId(String detailId) {
+        this.detailId = detailId;
+    }
+
+    public Short getClaimCharge() {
+        return claimCharge;
+    }
+
+    public void setClaimCharge(Short claimCharge) {
+        this.claimCharge = claimCharge;
+    }
+
+    public Short getCampaignAssets() {
+        return campaignAssets;
+    }
+
+    public void setCampaignAssets(Short campaignAssets) {
+        this.campaignAssets = campaignAssets;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public String getSdc() {
+        return sdc;
+    }
+
+    public void setSdc(String sdc) {
+        this.sdc = sdc;
+    }
+
+    public String getKeyword() {
+        return keyword;
+    }
+
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
+    }
+
+    public short getIsReward() {
+        return isReward;
+    }
+
+    public void setIsReward(short isReward) {
+        this.isReward = isReward;
+    }
+
+    public String getTypeprice() {
+        return typeprice;
+    }
+
+    public void setTypeprice(String typeprice) {
+        this.typeprice = typeprice;
+    }
+
+    public BigInteger getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigInteger price) {
+        this.price = price;
+    }
+
+    public String getWordingButtonId() {
+        return wordingButtonId;
+    }
+
+    public void setWordingButtonId(String wordingButtonId) {
+        this.wordingButtonId = wordingButtonId;
+    }
+
+    public String getWordingButtonEn() {
+        return wordingButtonEn;
+    }
+
+    public void setWordingButtonEn(String wordingButtonEn) {
+        this.wordingButtonEn = wordingButtonEn;
+    }
+
+    public String getTypeData() {
+        return typeData;
+    }
+
+    public void setTypeData(String typeData) {
+        this.typeData = typeData;
+    }
+
+    public String getDdcUrl() {
+        return ddcUrl;
+    }
+
+    public void setDdcUrl(String ddcUrl) {
+        this.ddcUrl = ddcUrl;
+    }
+
+    public String getFreeUrl() {
+        return freeUrl;
+    }
+
+    public void setFreeUrl(String freeUrl) {
+        this.freeUrl = freeUrl;
+    }
+
+    public String getDdcFeature() {
+        return ddcFeature;
+    }
+
+    public void setDdcFeature(String ddcFeature) {
+        this.ddcFeature = ddcFeature;
+    }
+
+    public Collection<CampaignBanner> getCampaignBannerCollection() {
+        return campaignBannerCollection;
+    }
+
+    public void setCampaignBannerCollection(Collection<CampaignBanner> campaignBannerCollection) {
+        this.campaignBannerCollection = campaignBannerCollection;
+    }
+
+//    public Collection<CampaignReward> getCampaignRewardCollection() {
+//        return campaignRewardCollection;
+//    }
+//
+//    public void setCampaignRewardCollection(Collection<CampaignReward> campaignRewardCollection) {
+//        this.campaignRewardCollection = campaignRewardCollection;
+//    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (campaignId != null ? campaignId.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof Campaign)) {
+            return false;
+        }
+        Campaign other = (Campaign) object;
+        if ((this.campaignId == null && other.campaignId != null) || (this.campaignId != null && !this.campaignId.equals(other.campaignId))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.Campaign[ campaignId=" + campaignId + " ]";
+    }
+
+    public BigInteger getOrigPrice() {
+        return origPrice;
+    }
+
+    public void setOrigPrice(BigInteger origPrice) {
+        this.origPrice = origPrice;
+    }
+
+}

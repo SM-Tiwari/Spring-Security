@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workingSetManager>
+<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1554448011812_0" label="Java Main Sources" name="Java Main Sources">
+<item elementID="=vnm-selfcare-core-2.0/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-core-2.0/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-core-2.0/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-core-2.0/src\/test\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-dao-2.0/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-dao-2.0/target\/generated-sources\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-fcm-client/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-fcm-client/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-api-2.0/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-api-2.0/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-api-2.0/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-api-2.0/src\/test\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-portal-2.0/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-portal-2.0/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-portal-2.0/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=vnm-selfcare-web-portal-2.0/src\/test\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+</workingSet>
+<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1554448011824_1" label="Java Test Sources" name="Java Test Sources"/>
+<workingSet editPageId="org.eclipse.ui.resourceWorkingSetPage" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1554448038202_3" label="vnm-selfcare-apps-mega2" name="vnm-selfcare-apps-mega2">
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/vnm-selfcare-web-portal-2.0" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/vnm-selfcare-webapps-mega2-master" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/vnm-selfcare-dao-2.0" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/vnm-selfcare-web-api-2.0" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/vnm-selfcare-web-imgsvr" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/vnm-selfcare-fcm-client" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/vnm-selfcare-core-2.0" type="4"/>
+</workingSet>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1554448014296_2" label="Window Working Set" name="Aggregate for window 1554448014296"/>
+</workingSetManager>

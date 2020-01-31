@@ -1,0 +1,37 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by rips on 4/29/17.
+ */
+public class SearchRequestDto extends BaseRequestDto {
+
+    private String keyword;
+    private String subscriberType;
+    private Integer page;
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+
+    public String getKeyword() {
+        return keyword;
+    }
+
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
+    }
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+    
+    
+}

@@ -1,0 +1,79 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+import java.util.List;
+
+/**
+ * Created by aswzen on 19/09/18.
+ */
+public class PackageProductDto implements DTO {
+
+    private boolean isTransferable = false;
+    private boolean isShareable = false;
+    private boolean isStoppable = false;
+    private String productId;
+    private String name;
+    private List<String> groupIds;
+
+    public PackageProductDto(){
+    }
+
+    public PackageProductDto(boolean isTransferable, boolean isShareable, boolean isStoppable, String productId, String name, List<String> groupIds) {
+        this.isTransferable = isTransferable;
+        this.isShareable = isShareable;
+        this.isStoppable = isStoppable;
+        this.productId = productId;
+        this.name = name;
+        this.groupIds = groupIds;
+    }
+
+    public boolean isIsTransferable() {
+        return isTransferable;
+    }
+
+    public void setIsTransferable(boolean isTransferable) {
+        this.isTransferable = isTransferable;
+    }
+
+    public boolean isIsShareable() {
+        return isShareable;
+    }
+
+    public void setIsShareable(boolean isShareable) {
+        this.isShareable = isShareable;
+    }
+
+    public boolean isIsStoppable() {
+        return isStoppable;
+    }
+
+    public void setIsStoppable(boolean isStoppable) {
+        this.isStoppable = isStoppable;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+    
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<String> getGroupIds() {
+        return groupIds;
+    }
+
+    public void setGroupIds(List<String> groupIds) {
+        this.groupIds = groupIds;
+    }
+
+}

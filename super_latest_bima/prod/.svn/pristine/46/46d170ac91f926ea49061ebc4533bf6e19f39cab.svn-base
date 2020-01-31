@@ -1,0 +1,21 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.PostSuccessfulDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import java.util.List;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.PostSuccessfulService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Nov 27, 2017 2:10:46 PM
+ *
+ */
+public interface PostSuccessfulService {
+    List<ProductDto> getProducts(PostSuccessfulDto request, boolean isIphone);
+
+
+	List<ProductDto> getDefaultLastPurchase(PostSuccessfulDto request);
+}

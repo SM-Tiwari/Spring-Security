@@ -1,0 +1,154 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+
+/**
+ * Created by rips on 4/28/17.
+ *     <MakePayment>
+ *         <Account_num>SV-ACC-0000371546</Account_num>
+ *         <Payment_Date>2017-04-27 18:17:01</Payment_Date>
+ *         <Amount>1000</Amount>
+ *         <Payment_Type>PAYMENT</Payment_Type>
+ *         <Payment_Text />
+ *         <Payment_Refence>PBIL17042700001</Payment_Refence>
+ *         <Payment_Method>CC</Payment_Method>
+ *         <Payment_Level />
+ *         <Status_Code />
+ *         <Status_Text />
+ *     </MakePayment>
+ */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"accountNum", "paymentDate", "Amount", "paymentType", "paymentText", "paymentRefence", "paymentMethod", "paymentLevel", "statusCode", "statusText"})
+public class MakePayment {
+
+    public MakePayment(){
+        setAccountNum("");
+        setPaymentDate("");
+        setAmount("");
+        setPaymentType("");
+        setPaymentText("");
+        setPaymentRefence("");
+        setPaymentMethod("");
+        setPaymentLevel("");
+        setStatusCode("");
+        setStatusText("");
+    }
+
+    @XmlElement(name = "Account_num")
+    private String accountNum;
+
+    @XmlElement(name = "Payment_Date")
+    private String paymentDate;
+
+    @XmlElement(name = "Amount")
+    private String Amount;
+
+    @XmlElement(name = "Payment_Type")
+    private String paymentType;
+
+    @XmlElement(name = "Payment_Text")
+    private String paymentText;
+
+    @XmlElement(name = "Payment_Refence")
+    private String paymentRefence;
+
+    @XmlElement(name = "Payment_Method")
+    private String paymentMethod;
+
+    @XmlElement(name = "Payment_Level")
+    private String paymentLevel;
+
+    @XmlElement(name = "Status_Code")
+    private String statusCode;
+
+    @XmlElement(name = "Status_Text")
+    private String statusText;
+
+    public String getAccountNum() {
+        return accountNum;
+    }
+
+    public void setAccountNum(String accountNum) {
+        this.accountNum = accountNum;
+    }
+
+    public String getPaymentDate() {
+        return paymentDate;
+    }
+
+    public void setPaymentDate(String paymentDate) {
+        this.paymentDate = paymentDate;
+    }
+
+    public String getAmount() {
+        return Amount;
+    }
+
+    public void setAmount(String amount) {
+        Amount = amount;
+    }
+
+    public String getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
+
+    public String getPaymentText() {
+        return paymentText;
+    }
+
+    public void setPaymentText(String paymentText) {
+        this.paymentText = paymentText;
+    }
+
+    public String getPaymentRefence() {
+        return paymentRefence;
+    }
+
+    public void setPaymentRefence(String paymentRefence) {
+        this.paymentRefence = paymentRefence;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getPaymentLevel() {
+        return paymentLevel;
+    }
+
+    public void setPaymentLevel(String paymentLevel) {
+        this.paymentLevel = paymentLevel;
+    }
+
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(String statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    @Override
+    public String toString() {
+        return "MakePayment{" + "accountNum=" + accountNum + ", paymentDate=" + paymentDate + ", Amount=" + Amount + ", paymentType=" + paymentType + ", paymentText=" + paymentText + ", paymentRefence=" + paymentRefence + ", paymentMethod=" + paymentMethod + ", paymentLevel=" + paymentLevel + ", statusCode=" + statusCode + ", statusText=" + statusText + '}';
+    }
+}

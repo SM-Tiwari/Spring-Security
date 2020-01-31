@@ -1,0 +1,370 @@
+package id.gnvsolution.d3.api.model.helper;
+
+import java.io.Serializable;
+
+public class GetProfileDetail implements Serializable {
+
+    public static String[] columnNames = new String[]{
+            "QTANAME", "SRVNAME", "SRVUSAGESTATE", "SRVENDDATETIME", "QTAVALUE", "QTABALANCE", "QTACONSUMPTION", "QTACLASS", "QTASTATUS", "QTACUSTOMSTATUS", "QTALASTRSTDATETIME", "QTARSTDATETIME", "QTAFLAG", "QTAUPCONSUMPTION", "QTADOWNCONSUMPTION", "QTATIMESTAMP", "QTACUSTOMINITIALVALUE", "ACCUMULATIONVALUE", "ACCUMULATIONBALANCE", "ACCUMULATIONCONSUMPTION", "ACCUMULATIONSTARTTIME", "ACCUMULATIONENDTIME", "ACCUMULATIONEXPIREFLAG", "PLMNIDENTIFY", "TIMEZONE"
+    };
+
+    private String QTANAME;
+    private String SRVNAME;
+    private String SRVUSAGESTATE;
+    private String SRVENDDATETIME;
+    private String QTAVALUE;
+    private String QTABALANCE;
+    private String QTACONSUMPTION;
+    private String QTACLASS;
+    private String QTASTATUS;
+    private String QTACUSTOMSTATUS;
+    private String QTALASTRSTDATETIME;
+    private String QTARSTDATETIME;
+    private String QTAFLAG;
+    private String QTAUPCONSUMPTION;
+    private String QTADOWNCONSUMPTION;
+    private String QTATIMESTAMP;
+    private String QTACUSTOMINITIALVALUE;
+    private String ACCUMULATIONVALUE;
+    private String ACCUMULATIONBALANCE;
+    private String ACCUMULATIONCONSUMPTION;
+    private String ACCUMULATIONSTARTTIME;
+    private String ACCUMULATIONENDTIME;
+    private String ACCUMULATIONEXPIREFLAG;
+    private String PLMNIDENTIFY;
+    private String TIMEZONE;
+
+    @Override
+    public String toString() {
+        return "QTANAME: " + getQTANAME() +
+                ", SRVNAME: " + getSRVNAME() +
+                ", SRVUSAGESTATE: " + getSRVUSAGESTATE() +
+                ", SRVENDDATETIME: " + getSRVENDDATETIME() +
+                ", QTAVALUE: " + getQTAVALUE() +
+                ", QTABALANCE: " + getQTABALANCE() +
+                ", QTACONSUMPTION: " + getQTACONSUMPTION() +
+                ", QTACLASS: " + getQTACLASS() +
+                ", QTASTATUS: " + getQTASTATUS() +
+                ", QTACUSTOMSTATUS: " + getQTACUSTOMSTATUS() +
+                ", QTALASTRSTDATETIME: " + getQTALASTRSTDATETIME() +
+                ", QTARSTDATETIME: " + getQTARSTDATETIME() +
+                ", QTAFLAG: " + getQTAFLAG() +
+                ", QTAUPCONSUMPTION: " + getQTAUPCONSUMPTION() +
+                ", QTADOWNCONSUMPTION: " + getQTADOWNCONSUMPTION() +
+                ", QTATIMESTAMP: " + getQTATIMESTAMP() +
+                ", QTACUSTOMINITIALVALUE: " + getQTACUSTOMINITIALVALUE() +
+                ", ACCUMULATIONVALUE: " + getACCUMULATIONVALUE() +
+                ", ACCUMULATIONBALANCE: " + getACCUMULATIONBALANCE() +
+                ", ACCUMULATIONCONSUMPTION: " + getACCUMULATIONCONSUMPTION() +
+                ", ACCUMULATIONSTARTTIME: " + getACCUMULATIONSTARTTIME() +
+                ", ACCUMULATIONENDTIME: " + getACCUMULATIONENDTIME() +
+                ", ACCUMULATIONEXPIREFLAG: " + getACCUMULATIONEXPIREFLAG() +
+                ", PLMNIDENTIFY: " + getPLMNIDENTIFY() +
+                ", TIMEZONE: " + getTIMEZONE();
+    }
+
+    public String getQTANAME() {
+        return QTANAME;
+    }
+
+    public void setQTANAME(String QTANAME) {
+        this.QTANAME = QTANAME;
+    }
+
+    public String getSRVNAME() {
+        return SRVNAME;
+    }
+
+    public void setSRVNAME(String SRVNAME) {
+        this.SRVNAME = SRVNAME;
+    }
+
+    public String getQTAVALUE() {
+        return QTAVALUE;
+    }
+
+    public void setQTAVALUE(String QTAVALUE) {
+        this.QTAVALUE = QTAVALUE;
+    }
+
+    public String getQTABALANCE() {
+        return QTABALANCE;
+    }
+
+    public void setQTABALANCE(String QTABALANCE) {
+        this.QTABALANCE = QTABALANCE;
+    }
+
+    public String getQTACONSUMPTION() {
+        return QTACONSUMPTION;
+    }
+
+    public void setQTACONSUMPTION(String QTACONSUMPTION) {
+        this.QTACONSUMPTION = QTACONSUMPTION;
+    }
+
+    public String getQTACLASS() {
+        return QTACLASS;
+    }
+
+    public void setQTACLASS(String QTACLASS) {
+        this.QTACLASS = QTACLASS;
+    }
+
+    public String getQTASTATUS() {
+        return QTASTATUS;
+    }
+
+    public void setQTASTATUS(String QTASTATUS) {
+        this.QTASTATUS = QTASTATUS;
+    }
+
+    public String getQTACUSTOMSTATUS() {
+        return QTACUSTOMSTATUS;
+    }
+
+    public void setQTACUSTOMSTATUS(String QTACUSTOMSTATUS) {
+        this.QTACUSTOMSTATUS = QTACUSTOMSTATUS;
+    }
+
+    public String getQTALASTRSTDATETIME() {
+        return QTALASTRSTDATETIME;
+    }
+
+    public void setQTALASTRSTDATETIME(String QTALASTRSTDATETIME) {
+        this.QTALASTRSTDATETIME = QTALASTRSTDATETIME;
+    }
+
+    public String getQTARSTDATETIME() {
+        return QTARSTDATETIME;
+    }
+
+    public void setQTARSTDATETIME(String QTARSTDATETIME) {
+        this.QTARSTDATETIME = QTARSTDATETIME;
+    }
+
+    public String getQTAFLAG() {
+        return QTAFLAG;
+    }
+
+    public void setQTAFLAG(String QTAFLAG) {
+        this.QTAFLAG = QTAFLAG;
+    }
+
+    public String getQTAUPCONSUMPTION() {
+        return QTAUPCONSUMPTION;
+    }
+
+    public void setQTAUPCONSUMPTION(String QTAUPCONSUMPTION) {
+        this.QTAUPCONSUMPTION = QTAUPCONSUMPTION;
+    }
+
+    public String getQTADOWNCONSUMPTION() {
+        return QTADOWNCONSUMPTION;
+    }
+
+    public void setQTADOWNCONSUMPTION(String QTADOWNCONSUMPTION) {
+        this.QTADOWNCONSUMPTION = QTADOWNCONSUMPTION;
+    }
+
+    public String getQTATIMESTAMP() {
+        return QTATIMESTAMP;
+    }
+
+    public void setQTATIMESTAMP(String QTATIMESTAMP) {
+        this.QTATIMESTAMP = QTATIMESTAMP;
+    }
+
+    public String getQTACUSTOMINITIALVALUE() {
+        return QTACUSTOMINITIALVALUE;
+    }
+
+    public void setQTACUSTOMINITIALVALUE(String QTACUSTOMINITIALVALUE) {
+        this.QTACUSTOMINITIALVALUE = QTACUSTOMINITIALVALUE;
+    }
+
+    public String getACCUMULATIONVALUE() {
+        return ACCUMULATIONVALUE;
+    }
+
+    public void setACCUMULATIONVALUE(String ACCUMULATIONVALUE) {
+        this.ACCUMULATIONVALUE = ACCUMULATIONVALUE;
+    }
+
+    public String getACCUMULATIONBALANCE() {
+        return ACCUMULATIONBALANCE;
+    }
+
+    public void setACCUMULATIONBALANCE(String ACCUMULATIONBALANCE) {
+        this.ACCUMULATIONBALANCE = ACCUMULATIONBALANCE;
+    }
+
+    public String getACCUMULATIONCONSUMPTION() {
+        return ACCUMULATIONCONSUMPTION;
+    }
+
+    public void setACCUMULATIONCONSUMPTION(String ACCUMULATIONCONSUMPTION) {
+        this.ACCUMULATIONCONSUMPTION = ACCUMULATIONCONSUMPTION;
+    }
+
+    public String getACCUMULATIONSTARTTIME() {
+        return ACCUMULATIONSTARTTIME;
+    }
+
+    public void setACCUMULATIONSTARTTIME(String ACCUMULATIONSTARTTIME) {
+        this.ACCUMULATIONSTARTTIME = ACCUMULATIONSTARTTIME;
+    }
+
+    public String getACCUMULATIONENDTIME() {
+        return ACCUMULATIONENDTIME;
+    }
+
+    public void setACCUMULATIONENDTIME(String ACCUMULATIONENDTIME) {
+        this.ACCUMULATIONENDTIME = ACCUMULATIONENDTIME;
+    }
+
+    public String getACCUMULATIONEXPIREFLAG() {
+        return ACCUMULATIONEXPIREFLAG;
+    }
+
+    public void setACCUMULATIONEXPIREFLAG(String ACCUMULATIONEXPIREFLAG) {
+        this.ACCUMULATIONEXPIREFLAG = ACCUMULATIONEXPIREFLAG;
+    }
+
+    public String getPLMNIDENTIFY() {
+        return PLMNIDENTIFY;
+    }
+
+    public void setPLMNIDENTIFY(String PLMNIDENTIFY) {
+        this.PLMNIDENTIFY = PLMNIDENTIFY;
+    }
+
+    public String getTIMEZONE() {
+        return TIMEZONE;
+    }
+
+    public void setTIMEZONE(String TIMEZONE) {
+        this.TIMEZONE = TIMEZONE;
+    }
+
+    public void setValue(String columnName, String value) {
+        switch (columnName) {
+            case "QTANAME": {
+                setQTANAME(value);
+                break;
+            }
+            case "SRVNAME": {
+                setSRVNAME(value);
+                break;
+            }
+            case "SRVUSAGESTATE": {
+                setSRVUSAGESTATE(value);
+                break;
+            }
+            case "SRVENDDATETIME": {
+                setSRVENDDATETIME(value);
+                break;
+            }
+            case "QTAVALUE": {
+                setQTAVALUE(value);
+                break;
+            }
+            case "QTABALANCE": {
+                setQTABALANCE(value);
+                break;
+            }
+            case "QTACONSUMPTION": {
+                setQTACONSUMPTION(value);
+                break;
+            }
+            case "QTACLASS": {
+                setQTACLASS(value);
+                break;
+            }
+            case "QTASTATUS": {
+                setQTASTATUS(value);
+                break;
+            }
+            case "QTACUSTOMSTATUS": {
+                setQTACUSTOMSTATUS(value);
+                break;
+            }
+            case "QTALASTRSTDATETIME": {
+                setQTALASTRSTDATETIME(value);
+                break;
+            }
+            case "QTARSTDATETIME": {
+                setQTARSTDATETIME(value);
+                break;
+            }
+            case "QTAFLAG": {
+                setQTAFLAG(value);
+                break;
+            }
+            case "QTAUPCONSUMPTION": {
+                setQTAUPCONSUMPTION(value);
+                break;
+            }
+            case "QTADOWNCONSUMPTION": {
+                setQTADOWNCONSUMPTION(value);
+                break;
+            }
+            case "QTATIMESTAMP": {
+                setQTATIMESTAMP(value);
+                break;
+            }
+            case "QTACUSTOMINITIALVALUE": {
+                setQTACUSTOMINITIALVALUE(value);
+                break;
+            }
+            case "ACCUMULATIONVALUE": {
+                setACCUMULATIONVALUE(value);
+                break;
+            }
+            case "ACCUMULATIONBALANCE": {
+                setACCUMULATIONBALANCE(value);
+                break;
+            }
+            case "ACCUMULATIONCONSUMPTION": {
+                setACCUMULATIONCONSUMPTION(value);
+                break;
+            }
+            case "ACCUMULATIONSTARTTIME": {
+                setACCUMULATIONSTARTTIME(value);
+                break;
+            }
+            case "ACCUMULATIONENDTIME": {
+                setACCUMULATIONENDTIME(value);
+                break;
+            }
+            case "ACCUMULATIONEXPIREFLAG": {
+                setACCUMULATIONEXPIREFLAG(value);
+                break;
+            }
+            case "PLMNIDENTIFY": {
+                setPLMNIDENTIFY(value);
+                break;
+            }
+            case "TIMEZONE": {
+                setTIMEZONE(value);
+                break;
+            }
+        }
+    }
+
+    public String getSRVUSAGESTATE() {
+        return SRVUSAGESTATE;
+    }
+
+    public void setSRVUSAGESTATE(String SRVUSAGESTATE) {
+        this.SRVUSAGESTATE = SRVUSAGESTATE;
+    }
+
+    public String getSRVENDDATETIME() {
+        return SRVENDDATETIME;
+    }
+
+    public void setSRVENDDATETIME(String SRVENDDATETIME) {
+        this.SRVENDDATETIME = SRVENDDATETIME;
+    }
+}

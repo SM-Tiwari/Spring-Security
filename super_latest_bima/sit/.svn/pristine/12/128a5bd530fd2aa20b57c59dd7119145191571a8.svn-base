@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:tns="http://xmlns.example.com/1392286913694/OperationImpl/Business__Process/ODP__Interfaces"
+                  xmlns:ns0="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema.xsd2"
+                  xmlns:ns1="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema.xsd3"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="Untitled"
+                  targetNamespace="http://xmlns.example.com/1392286913694/OperationImpl/Business__Process/ODP__Interfaces">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema.xsd2"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema.xsd2"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="ActionType" type="xs:string"/>
+            <xs:element name="AttribDtl">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="Name" type="xs:string"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Attribute">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element ref="ns0:AttribDtl" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="AutoRenewalFlag" type="xs:string"/>
+            <xs:element name="CPName" type="xs:string"/>
+            <xs:element name="Charge" type="xs:string"/>
+            <xs:element name="Current_Date" type="xs:string"/>
+            <xs:element name="HYBRID_FLAG" type="xs:string"/>
+            <xs:element name="MSISDN" type="xs:string"/>
+            <xs:element name="MsgParam">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element ref="ns0:Attribute" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ResponseCode" type="xs:string"/>
+            <xs:element name="ResponseDescription" type="xs:string"/>
+            <xs:element name="ServiceRegRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element ref="ns0:TransactionID"/>
+                        <xs:element ref="ns0:Current_Date"/>
+                        <xs:element ref="ns0:Source"/>
+                        <xs:element ref="ns0:Charge" minOccurs="0"/>
+                        <xs:element ref="ns0:HYBRID_FLAG" minOccurs="0"/>
+                        <xs:element ref="ns0:ResponseCode" minOccurs="0"/>
+                        <xs:element ref="ns0:ResponseDescription" minOccurs="0"/>
+                        <xs:element ref="ns0:MSISDN"/>
+                        <xs:element ref="ns0:ActionType" minOccurs="0"/>
+                        <xs:element ref="ns0:ServiceType"/>
+                        <xs:element ref="ns0:CPName" minOccurs="0"/>
+                        <xs:element ref="ns0:AutoRenewalFlag" minOccurs="0"/>
+                        <xs:element ref="ns0:Signature"/>
+                        <xs:element ref="ns0:MsgParam" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ServiceType" type="xs:string"/>
+            <xs:element name="Signature" type="xs:string"/>
+            <xs:element name="Source" type="xs:string"/>
+            <xs:element name="TransactionID" type="xs:string"/>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema.xsd3"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema.xsd3"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="ResponseCode" type="xs:string"/>
+            <xs:element name="ResponseDescription" type="xs:string"/>
+            <xs:element name="ServiceRegResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element ref="ns1:ResponseCode" minOccurs="0"/>
+                        <xs:element ref="ns1:ResponseDescription" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="Service__Registration__APISecurity">
+        <wsdl:port name="ServiceRegSource" binding="tns:ServiceRegSourceBinding">
+            <soap:address location="http://TIBCO_URL_DATA_PACKAGE_ENDPOINT"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="Service_Registration">
+        <wsdl:operation name="Service_Registration">
+            <wsdl:input message="tns:ServiceRegRequest"/>
+            <wsdl:output message="tns:ServiceRegResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="ServiceRegSourceBinding" type="tns:Service_Registration">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="Service_Registration">
+            <soap:operation style="document"
+                            soapAction="/Business_Process/ODP_Interfaces/Service_Registration_APISecurity"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="ServiceRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="ServiceRegResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="ServiceRegRequest">
+        <wsdl:part name="ServiceRequest" element="ns0:ServiceRegRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ServiceRegResponse">
+        <wsdl:part name="ServiceRegResponse" element="ns1:ServiceRegResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

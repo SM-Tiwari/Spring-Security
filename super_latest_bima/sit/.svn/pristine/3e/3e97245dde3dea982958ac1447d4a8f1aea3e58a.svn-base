@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.model.DwhUserTransactions;
+
+public interface DwhUserTransactionsService {
+
+    void save(DwhUserTransactions dwhUserTransactions);
+
+}

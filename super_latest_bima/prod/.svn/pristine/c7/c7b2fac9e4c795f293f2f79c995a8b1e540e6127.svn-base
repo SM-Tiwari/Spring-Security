@@ -1,0 +1,166 @@
+package id.gnvsolution.d3.api.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import id.gnvsolution.d3.api.dto.request.InviteMemberRequestDto;
+import id.gnvsolution.d3.api.dto.request.ValidateNumberRequestDto;
+import id.gnvsolution.d3.api.dto.response.ValidateNumberResponse;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.security.securityutil.ApiResponse;
+import id.gnvsolution.d3.api.security.securityutil.DefaultApiResponse;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.SubscriberService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+@RestController
+@RequestMapping("/api/v1/friend")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+public class InviteFriendController extends BaseController{
+	
+	@Autowired
+	SubscriberService subscriberService;
+	
+	 @Autowired
+		private AppConfigService applicationConfigurationService;
+	    public static final Logger LOGGER = LoggerFactory.getLogger(InviteFriendController.class);
+		@Autowired
+		private TokenExtractor tokenExtractor;
+	
+	@PostMapping(value = "/validatenumbers")
+	public Object validateMsisdn(@RequestBody ValidateNumberRequestDto request,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken){
+		
+		LOGGER.info("Inside InviteFriendController in validateMsisdn method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				if (request.getNumbers() == null || request.getNumbers().isEmpty()) {
+					/*return new ResponseEntity<>(new ApiResponse(false, DefaultApiResponse.MISSING_REQUIRED_PARAMETER.code(), 
+							String.format(DefaultApiResponse.MISSING_REQUIRED_PARAMETER.message(), "numbers")), HttpStatus.OK);*/
+					return new ServiceResult(StatusCode.SUCCESS, (new ApiResponse(false, DefaultApiResponse.MISSING_REQUIRED_PARAMETER.code(), 
+							String.format(DefaultApiResponse.MISSING_REQUIRED_PARAMETER.message(), "numbers"))), "Success");
+				}
+				
+				ValidateNumberResponse response = new ValidateNumberResponse(true, DefaultApiResponse.SUCCESS.code(), DefaultApiResponse.SUCCESS.message());
+
+				List<ValidateNumberResponse.NumberValidationResult> numberValidationResults = new ArrayList<>();
+				String regex = applicationConfigurationService.get("phonenumber.regex", AppDefaultValues.PHONE_NO_REGEX).toString();
+
+				for (String no : request.getNumbers()) {
+					ValidateNumberResponse.NumberValidationResult validated = new ValidateNumberResponse.NumberValidationResult(no, isValidNumber(no, regex) ? 1 : 0);
+					numberValidationResults.add(validated);
+				}
+				response.setValidationResults(numberValidationResults);
+				
+				return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside InviteFriendController in validateMsisdn method" + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside InviteFriendController in validateMsisdn method" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside InviteFriendController in validateMsisdn method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	
+	}
+	
+	
+	
+	@PostMapping(value = "/invite")
+	public Object inviteMembers(@RequestBody InviteMemberRequestDto request,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken){
+		if (request == null || !StringUtils.hasLength(request.getMsisdn())){
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+		LOGGER.info("Inside InviteFriendController in inviteMembers method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null && request.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				ApiResponse response = new ApiResponse();
+							boolean res = subscriberService.inviteMembers(request.getMsisdn(), request.getInvitedNumbers(), request.getLanguage());
+							if(res) {
+							response.setSuccessful(res);
+							response.setCode(DefaultApiResponse.SUCCESS.code());
+							response.setMessage(DefaultApiResponse.SUCCESS.message());
+							}
+							else {
+								response.setCode(DefaultApiResponse.UNAUTHORIZED.code());
+								response.setMessage(DefaultApiResponse.UNAUTHORIZED.message());
+							}
+				
+				return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside InviteFriendController in inviteMembers method" + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside InviteFriendController in inviteMembers method" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside InviteFriendController in inviteMembers method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		/*
+		 * if (!request.getMsisdn().equals(getCurrentUserName())) { return new
+		 * ResponseEntity<>(new ApiResponse(false,
+		 * DefaultApiResponse.UNAUTHORIZED.code(),
+		 * DefaultApiResponse.UNAUTHORIZED.message()), HttpStatus.UNAUTHORIZED); }
+		 */
+
+	}
+
+	
+	private boolean isValidNumber(String no, String regex) {
+		return no.matches(regex);
+	}
+	
+	protected String getCurrentUserName() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		System.out.println( "--- current principal is= " + (auth != null ? auth.getName() : null));
+		return auth != null ? auth.getName() : null;
+	}
+
+}

@@ -1,0 +1,127 @@
+package id.gnvsolution.d3.api.component.notif;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.NotificationPush;
+import id.gnvsolution.d3.api.model.Secretkey;
+import id.gnvsolution.d3.api.service.AppConfigService;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.component.notif.NotificationWorker 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 28, 2017 1:02:54 PM
+ *
+ */
+@Component
+@Transactional
+public class NotificationWorker {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Autowired
+	private AppConfigService applicationConfig;
+    
+    public static final Logger logger = LoggerFactory.getLogger(NotificationWorker.class);
+    
+    @Async
+    public void sendNotification(String msisdn, String message) {
+    	logger.info("-------sendNotification------");
+        try {
+            BaseDao<Secretkey> baseDao = new BaseDao<>(sessionFactoryDef, Secretkey.class);
+            List<Secretkey> secretkeys = baseDao.find("msisdn = :msisdn order by active_date desc ", new HashMap<String, Object>() {
+                {
+                    put("msisdn", msisdn);
+                }
+            });
+            
+            if (secretkeys.isEmpty()) throw new Exception("MSISDN "+msisdn+" not found");
+            logger.debug("#sendNotification-------List Size is :::"+secretkeys.size());
+            // iterate for each msisdn on secretkey
+            for (Secretkey secretkey : secretkeys)
+            {
+                if(secretkey.getGcmId() != null && !secretkey.getGcmId().trim().isEmpty()) {
+                    NotificationPush notificationPush = new NotificationPush();
+                    notificationPush.setUuid(UUID.randomUUID().toString());
+                    notificationPush.setPushMessage(" ");
+                    notificationPush.setApnPayload(message);
+                    notificationPush.setApnUrl(secretkey.getGcmId());
+                    notificationPush.setGcmPayload(message);
+                    notificationPush.setLink(""+applicationConfig.get("DEEPLINKCONSTANT", "https://bima.vietnamobile.com.vn")+"/notification?");
+                    if(secretkey.getGcmId()!=null)
+                    {
+                    	notificationPush.setGcmUrl(secretkey.getGcmId());
+                        notificationPush.setIsSend(Boolean.FALSE);
+
+                        BaseDao<NotificationPush> notificationPushDao = new BaseDao<>(sessionFactoryDef, NotificationPush.class);
+                        logger.debug("storing notificatioPush object");
+                        notificationPushDao.save(notificationPush);
+                        break;
+                    }
+                    
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+    
+    @Async
+    public void sendNotificationWithURL(String msisdn, String message, String link, String img_link) {
+    	logger.info("-------sendNotification------");
+        try {
+            BaseDao<Secretkey> baseDao = new BaseDao<>(sessionFactoryDef, Secretkey.class);
+            List<Secretkey> secretkeys = baseDao.find("msisdn = :msisdn order by active_date desc ", new HashMap<String, Object>() {
+                {
+                    put("msisdn", msisdn);
+                }
+            });
+    		
+            if (secretkeys.isEmpty()) throw new Exception("MSISDN "+msisdn+" not found");
+            logger.debug("#sendNotification-------List Size is :::"+secretkeys.size());
+            // iterate for each msisdn on secretkey
+            for (Secretkey secretkey : secretkeys)
+            {
+                if(secretkey.getGcmId() != null && !secretkey.getGcmId().trim().isEmpty()) {
+                    NotificationPush notificationPush = new NotificationPush();
+                    notificationPush.setUuid(UUID.randomUUID().toString());
+                    notificationPush.setPushMessage(" ");
+                    notificationPush.setApnPayload(message);
+                    notificationPush.setApnUrl(secretkey.getGcmId());
+                    notificationPush.setGcmPayload(message);
+                    notificationPush.setLink(link);
+                    notificationPush.setIcon(img_link);
+                    if(secretkey.getGcmId()!=null)
+                    {
+                    	notificationPush.setGcmUrl(secretkey.getGcmId());
+                        notificationPush.setIsSend(Boolean.FALSE);
+
+                        BaseDao<NotificationPush> notificationPushDao = new BaseDao<>(sessionFactoryDef, NotificationPush.class);
+                        logger.debug("storing notificatioPush object");
+                        notificationPushDao.save(notificationPush);
+                        break;
+                    }
+                    
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+}

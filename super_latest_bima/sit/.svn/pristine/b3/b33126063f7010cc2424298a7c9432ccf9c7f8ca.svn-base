@@ -1,0 +1,59 @@
+package id.gnvsolution.d3.api.utils;
+ 
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.gnv.vnm.selfcare.core.model.JsonData;
+import com.google.gson.Gson;
+
+public class Util092Packages {
+	  public static final Logger LOGGER = LoggerFactory.getLogger(ApiHelpers.class);
+	  public static JsonData getProductCode(String response){
+		
+		 /* response = "[ { \"DATA\": [ { \"NAME_LV1\": \"D10:10K/ngay - 4GB\", \"NAME_LV2\": \"Nhan ngay 4GB data toc do cao chi voi 10.000d/ngay.\", \"PRODUCT_CODE\": \"D10\", \"PRODUCT_ID\": 136757, \"REGISTER_SC\": \"345\", \"SMS_KEYWORD\": \"DK D10\" }, { \"NAME_LV1\": \"M40T:40K/30 ngay - 6GB\", \"NAME_LV2\": \"Nhan ngay 6GB Data toc do cao chi voi 40.000d/30 ngay\", \"PRODUCT_CODE\": \"M40T\", \"PRODUCT_ID\": 136984, \"REGISTER_SC\": \"345\", \"SMS_KEYWORD\": \"DK M40T\" }, { \"NAME_LV1\": \"VFLEX:15K-2GB\", \"NAME_LV2\": \"Nhan ngay 2GB Data toc do cao trong 30 ngay chi 15.000d. Het 2GB tu dong gia han goi cuoc.\", \"PRODUCT_CODE\": \"VFLEX\", \"PRODUCT_ID\": 128000, \"REGISTER_SC\": \"345\", \"SMS_KEYWORD\": \"vFlex\" }, { \"NAME_LV1\": \"4GM108:108K-24GB\", \"NAME_LV2\": \"24GB Data toc do cao su dung trong 30 ngay chi 108.000d.\", \"PRODUCT_CODE\": \"4GM108\", \"PRODUCT_ID\": 135489, \"REGISTER_SC\": \"345\", \"SMS_KEYWORD\": \"DK 4GM108\" }, { \"NAME_LV1\": \"4GM150:150K/30ngay-40GB\", \"NAME_LV2\": \"Co ngay 40GB Data toc do cao trong 30 ngay chi 150.000d.\", \"PRODUCT_CODE\": \"4GM150\", \"PRODUCT_ID\": 135490, \"REGISTER_SC\": \"345\", \"SMS_KEYWORD\": \"DK 4GM150\" } ] }, { \"VOICE_SMS\": [ { \"NAME_LV1\": \"V10: 10K-13p ngoai mang/30 ngay\", \"NAME_LV2\": \"13 phut goi ngoai mang su dung trong 30 ngay chi voi 10.000d\", \"PRODUCT_CODE\": \"V10\", \"PRODUCT_ID\": 134523, \"REGISTER_SC\": \"242\", \"SMS_KEYWORD\": \"DK V10\" }, { \"NAME_LV1\": \"V7:7K/ngay-10p ngoai mang\", \"NAME_LV2\": \"Co ngay 10 phut goi ngoai mang thoa thich chi 7.000d/ngay\", \"PRODUCT_CODE\": \"V7\", \"PRODUCT_ID\": 134604, \"REGISTER_SC\": \"242\", \"SMS_KEYWORD\": \"DK V7\" }, { \"NAME_LV1\": \"V3:3K/ngay-4p ngoai mang\", \"NAME_LV2\": \"Co ngay 4 phut goi ngoai mang chi 3.000d/ngay\", \"PRODUCT_CODE\": \"V3\", \"PRODUCT_ID\": 134603, \"REGISTER_SC\": \"242\", \"SMS_KEYWORD\": \"DK V3\" }, { \"NAME_LV1\": \"V50: 50K=59p LM+Mien phi NM/30ngay\", \"NAME_LV2\": \"Mien phi Thoai & SMS noi mang & 59 phut ngoai mang trong 30 ngay chi voi 50.000d.\", \"PRODUCT_CODE\": \"V50\", \"PRODUCT_ID\": 134525, \"REGISTER_SC\": \"242\", \"SMS_KEYWORD\": \"DK V50\" }, { \"NAME_LV1\": \"V20: 20K-29p ngoai mang/7ngay\", \"NAME_LV2\": \"Co ngay 29 phut ngoai mang su dung trong 7 ngay chi 20.000d\", \"PRODUCT_CODE\": \"V20\", \"PRODUCT_ID\": 134524, \"REGISTER_SC\": \"242\", \"SMS_KEYWORD\": \"DK V20\" } ] }, { \"COMBO\": [ { \"NAME_LV1\": \"VEASY:50K=2GB/ngay+100K goi noi mang\", \"NAME_LV2\": \"Co ngay 100.000d goi noi mang + 2GB/ngay + 2phut goi lien mang trong 30 ngay . Cuoc phi: 50.000d.\", \"PRODUCT_CODE\": \"VEASY\", \"PRODUCT_ID\": 131127, \"REGISTER_SC\": \"345\", \"SMS_KEYWORD\": \"DK vEasy\" }, { \"NAME_LV1\": \"CB045:45K-Mien phi Data+Goi+42p lien man\", \"NAME_LV2\": \"Mien phi Data 4GB/ngay va Thoai noi mang, 42 phut ngoai mang su dung trong 7 ngay chi 45.000d\", \"PRODUCT_CODE\": \"CB045\", \"PRODUCT_ID\": 135938, \"REGISTER_SC\": \"888\", \"SMS_KEYWORD\": \"DK CB045\" } ] }, { \"TOPUP\": \"Quy khach dung quen nap the hang thang de thoai mai ket noi voi moi nguoi va dang ky cac goi cuoc sieu hap dan tu Vietnambile.\" } ] ";*/
+		  
+		//List<String> producCodetList = new ArrayList<String>();
+		JSONParser parser = new JSONParser();
+		Object obj;
+		  JsonData dataList = new JsonData();
+		  LOGGER.info(" JSON value!!!!!!  "+response.toString());
+		try {
+			if((response!=null&&!response.isEmpty()) && (!"Msisdn isn't of number Vietnamobile".equalsIgnoreCase(response.trim())))
+			{
+			obj = parser.parse(response);
+		
+        JSONArray array = (JSONArray)obj;
+      
+		Gson gson = new Gson();
+		JsonData json = gson.fromJson(array.get(0).toString(), JsonData.class);
+		dataList.setDATA(json.getDATA());
+		json = gson.fromJson(array.get(1).toString(), JsonData.class);
+		dataList.setVOICE_SMS(json.getVOICE_SMS());
+		json = gson.fromJson(array.get(2).toString(), JsonData.class);
+		dataList.setCOMBO(json.getCOMBO());
+		json = gson.fromJson(array.get(3).toString(), JsonData.class);
+		dataList.setTOPUP(json.getTOPUP());
+		
+	
+	//	producCodetList.addAll(dataList.getDATA().stream().map(item->item.getPRODUCT_ID()).collect(Collectors.toList()));
+	//	producCodetList.addAll(dataList.getVOICE_SMS().stream().map(item->item.getPRODUCT_ID()).collect(Collectors.toList()));
+	//	producCodetList.addAll(dataList.getCOMBO().stream().map(item->item.getPRODUCT_ID()).collect(Collectors.toList()));
+		}
+			else
+			{
+				dataList=null;
+			}
+			
+		
+		} catch (Exception e) {
+			LOGGER.error("Exception to get JSON !!!!!!  "+e.getMessage(), e);
+			
+		}
+		
+		return dataList;
+		
+	}
+
+}

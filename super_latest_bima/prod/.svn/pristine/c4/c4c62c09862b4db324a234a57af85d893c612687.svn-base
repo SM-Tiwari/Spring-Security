@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:ns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd" xmlns:ns0="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd4" xmlns:ns2="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd8" xmlns:ns1="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd7" xmlns:ns4="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/HotBillingInfo.xsd6" xmlns:ns3="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd5" xmlns:ns6="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/PRM/Schema.xsd13" xmlns:ns5="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/ChkOutStandingBal.xsd9" xmlns:ns8="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd3" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns7="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd2" xmlns:ns9="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd6" xmlns:ns10="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Query_VoucherDetails.xsd9" xmlns:tns="http://xmlns.example.com/1417503070742" xmlns:ns11="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Query_VoucherDetails.xsd11" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="Untitled" targetNamespace="http://xmlns.example.com/1417503070742">
+    <wsdl:types>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/ChkOutStandingBal.xsd9" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/ChkOutStandingBal.xsd9" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="ChkOutStandingBalReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="ACCOUNT_NUM" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ChkOutStandingBalResp">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/PRM/Schema.xsd13" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/PRM/Schema.xsd13" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="BalanceCheckRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SubMSISDN" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="BalanceCheckResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Status" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string"/>
+                        <xs:element name="BalanceDetails" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Attribdtl" minOccurs="0" maxOccurs="unbounded">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PaymentHistoryRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="SubMSISDN" type="xs:string"/>
+                        <xs:element name="StartDate" type="xs:string"/>
+                        <xs:element name="EndDate" type="xs:string"/>
+                        <xs:element name="Source" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PaymentHistoryResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Status" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string"/>
+                        <xs:element name="PaymentDetails" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Attribdtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/HotbillingInfo.xsd6" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/HotBillingInfo.xsd6" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="HotBillingInfoRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="SUB_TYPE" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="HotBillingInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd3" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd3" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="AdjustMentDetailsQueryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="START_DATE" type="xs:string"/>
+                        <xs:element name="END_DATE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="RESULT_SIZE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="ACCOUNT_NUMBER" type="xs:string" minOccurs="0"/>
+                        <xs:element name="ADJUSTMENT_TYPE_ID" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="AdjustMentDetailsQueryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Query_VoucherDetails.xsd9" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Query_VoucherDetails.xsd9" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="VoucherQueryRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="VOUCHER_NUM" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="VoucherQueryResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd2" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd2" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="BalanceDetailsQueryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="EFFECTIVE_DATE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="ACCOUNT_NUMBER" type="xs:string" minOccurs="0"/>
+                        <xs:element name="XML_TYPE_FLAG" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SUB_TYPE" type="xs:string"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="BalanceDetailsQueryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd5" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd5" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="PaymentHistoryQueryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="ACC_NUM" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="SUB_TYPE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="FROM_DATE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="TO_DATE" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PaymentHistoryQueryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd4" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd4" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="BillingBonusDetailsQueryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="ACCOUNT_NUMBER" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="BONUS_KEYWORD" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SUB_TYPE" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="BillingBonusDetailsQueryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd7" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd7" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="VASBonusDetailsQueryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="ACC_NUM" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="SUB_TYPE" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="VASBonusDetailsQueryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd6" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd6" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="UsageDetailsQueryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="DATE" type="xs:string"/>
+                        <xs:element name="EVENT_TYPE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="ACCOUNT_NUMBER" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="FROM_DATE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="TO_DATE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="SUB_TYPE" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="UsageDetailsQueryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd8" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/EAI/Schema.xsd8" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="VocuherHistoryQueryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="STATUS_CODE" type="xs:string"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string" minOccurs="0"/>
+                        <xs:element name="QUERY_RESPONSE" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="VoucherHistoryQueryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="FROM_DATE" type="xs:string"/>
+                        <xs:element name="TO_DATE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="VOUCHER_NUM" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="ACCOUNT_NUM" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="GenericTIBCOQueryServices2">
+        <wsdl:port name="GenericQueryPTEndpoint1" binding="tns:GenericQueryPTEndpoint1Binding">
+            <soap:address location="http://TIBCO_URL_PURCHASE_HISTORY_URL"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="GenericQueryPT">
+        <wsdl:operation name="BillingBonusDetailsOperation">
+            <wsdl:input message="tns:BillingBonusDetailsReq"/>
+            <wsdl:output message="tns:BillingBonusDetailsRes"/>
+        </wsdl:operation>
+        <wsdl:operation name="VASBonusDetailsOperation">
+            <wsdl:input message="tns:VASBonusDetailsReq"/>
+            <wsdl:output message="tns:VASBonusDetailsRes"/>
+        </wsdl:operation>
+        <wsdl:operation name="VoucherHistoryOperation">
+            <wsdl:input message="tns:VoucherHistoryReq"/>
+            <wsdl:output message="tns:VoucherHistoryResp"/>
+        </wsdl:operation>
+        <wsdl:operation name="PaymentQueryOperation">
+            <wsdl:input message="tns:PaymentHistoryReq"/>
+            <wsdl:output message="tns:PaymentHistoryRes"/>
+        </wsdl:operation>
+        <wsdl:operation name="HotBillingInfoOperation">
+            <wsdl:input message="tns:HotBillingInfoRequest"/>
+            <wsdl:output message="tns:HotBillingInfoResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="ChkOutStandingBalOp">
+            <wsdl:input message="tns:ChkOutStandingBalReq"/>
+            <wsdl:output message="tns:ChkOutStandingBalResp"/>
+        </wsdl:operation>
+        <wsdl:operation name="HybridBalanceQueryOp">
+            <wsdl:input message="tns:HybridBalanceQueryReq"/>
+            <wsdl:output message="tns:HybridBalanceQueryResp"/>
+        </wsdl:operation>
+        <wsdl:operation name="BalanceDetailsOperation">
+            <wsdl:input message="tns:BalanceDetailsReq"/>
+            <wsdl:output message="tns:BalanceDetailsRes"/>
+        </wsdl:operation>
+        <wsdl:operation name="AdjustmentDetailsOperation">
+            <wsdl:input message="tns:AdjustmentDetailsReq"/>
+            <wsdl:output message="tns:AdjustmentDetailsRes"/>
+        </wsdl:operation>
+        <wsdl:operation name="UsageDetailsOperation">
+            <wsdl:input message="tns:UsageDetailsReq"/>
+            <wsdl:output message="tns:UsageDetailsRes"/>
+        </wsdl:operation>
+        <wsdl:operation name="VoucherQueryDetailsOp">
+            <wsdl:input message="tns:VoucherQueryRequest"/>
+            <wsdl:output message="tns:VoucherQueryResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="GenericQueryPTEndpoint1Binding" type="tns:GenericQueryPT">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="BillingBonusDetailsOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent/GenericQueryPTEndpoint1/BillingBonusDetailsOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="BillingBonusDetailsReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="BillingBonusDetails"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="VASBonusDetailsOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent/GenericQueryPTEndpoint1/VASBonusDetailsOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="VASBonusDetailsReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="VASBonusDetailsRes"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="VoucherHistoryOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent//VoucherHistoryOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="VoucherHistoryReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="VoucherHistoryResp"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PaymentQueryOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent/GenericQueryPTEndpoint1/PaymentQueryOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="PaymentHistoryReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="PaymentHistoryRes"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="HotBillingInfoOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent//HotBillingInfoOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="HotBillingInfoReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="HotBillingInfoResp"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ChkOutStandingBalOp">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent//ChkOutStandingBalOp"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="ChkOutStandingBalReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="ChkOutStandingBalResp"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="HybridBalanceQueryOp">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent//HybridBalanceQueryOp"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="HybridBalanceQueryReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="HybridBalanceQueryResp"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="BalanceDetailsOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent/GenericQueryPTEndpoint1/BalanceDetailsOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="BalanceDetailsReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="BalanceDetailsRes"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="AdjustmentDetailsOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent/GenericQueryPTEndpoint1/AdjustmentDetailsOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="AdjustmentDetailsReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="AdjustmentDetailsRes"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UsageDetailsOperation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent/GenericQueryPTEndpoint1/UsageDetailsOperation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="UsageDetailsReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="UsageDetailsRes"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="VoucherQueryDetailsOp">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoQueryServices/GenericTIBCOQueryServices.serviceagent//VoucherQueryDetailsOp"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="VoucherQueryRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="VoucherQueryResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="BillingBonusDetailsReq">
+        <wsdl:part name="BillingBonusDetailsReq" element="ns0:BillingBonusDetailsQueryReq"/>
+    </wsdl:message>
+    <wsdl:message name="BillingBonusDetailsRes">
+        <wsdl:part name="BillingBonusDetails" element="ns0:BillingBonusDetailsQueryRes"/>
+    </wsdl:message>
+    <wsdl:message name="VASBonusDetailsReq">
+        <wsdl:part name="VASBonusDetailsReq" element="ns1:VASBonusDetailsQueryReq"/>
+    </wsdl:message>
+    <wsdl:message name="VASBonusDetailsRes">
+        <wsdl:part name="VASBonusDetailsRes" element="ns1:VASBonusDetailsQueryRes"/>
+    </wsdl:message>
+    <wsdl:message name="VoucherHistoryReq">
+        <wsdl:part name="VoucherHistoryReq" element="ns2:VoucherHistoryQueryReq"/>
+    </wsdl:message>
+    <wsdl:message name="VoucherHistoryResp">
+        <wsdl:part name="VoucherHistoryResp" element="ns2:VocuherHistoryQueryRes"/>
+    </wsdl:message>
+    <wsdl:message name="PaymentHistoryReq">
+        <wsdl:part name="PaymentHistoryReq" element="ns3:PaymentHistoryQueryReq"/>
+    </wsdl:message>
+    <wsdl:message name="PaymentHistoryRes">
+        <wsdl:part name="PaymentHistoryRes" element="ns3:PaymentHistoryQueryRes"/>
+    </wsdl:message>
+    <wsdl:message name="HotBillingInfoRequest">
+        <wsdl:part name="HotBillingInfoReq" element="ns4:HotBillingInfoRequest"/>
+    </wsdl:message>
+    <wsdl:message name="HotBillingInfoResponse">
+        <wsdl:part name="HotBillingInfoResp" element="ns4:HotBillingInfoResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ChkOutStandingBalReq">
+        <wsdl:part name="ChkOutStandingBalReq" element="ns5:ChkOutStandingBalReq"/>
+    </wsdl:message>
+    <wsdl:message name="ChkOutStandingBalResp">
+        <wsdl:part name="ChkOutStandingBalResp" element="ns5:ChkOutStandingBalResp"/>
+    </wsdl:message>
+    <wsdl:message name="HybridBalanceQueryReq">
+        <wsdl:part name="HybridBalanceQueryReq" element="ns6:BalanceCheckRequest"/>
+    </wsdl:message>
+    <wsdl:message name="HybridBalanceQueryResp">
+        <wsdl:part name="HybridBalanceQueryResp" element="ns6:BalanceCheckResponse"/>
+    </wsdl:message>
+    <wsdl:message name="BalanceDetailsReq">
+        <wsdl:part name="BalanceDetailsReq" element="ns7:BalanceDetailsQueryReq"/>
+    </wsdl:message>
+    <wsdl:message name="BalanceDetailsRes">
+        <wsdl:part name="BalanceDetailsRes" element="ns7:BalanceDetailsQueryRes"/>
+    </wsdl:message>
+    <wsdl:message name="AdjustmentDetailsReq">
+        <wsdl:part name="AdjustmentDetailsReq" element="ns8:AdjustMentDetailsQueryReq"/>
+    </wsdl:message>
+    <wsdl:message name="AdjustmentDetailsRes">
+        <wsdl:part name="AdjustmentDetailsRes" element="ns8:AdjustMentDetailsQueryRes"/>
+    </wsdl:message>
+    <wsdl:message name="UsageDetailsReq">
+        <wsdl:part name="UsageDetailsReq" element="ns9:UsageDetailsQueryReq"/>
+    </wsdl:message>
+    <wsdl:message name="UsageDetailsRes">
+        <wsdl:part name="UsageDetailsRes" element="ns9:UsageDetailsQueryRes"/>
+    </wsdl:message>
+    <wsdl:message name="VoucherQueryRequest">
+        <wsdl:part name="VoucherQueryRequest" element="ns10:VoucherQueryRequest"/>
+    </wsdl:message>
+    <wsdl:message name="VoucherQueryResponse">
+        <wsdl:part name="VoucherQueryResponse" element="ns10:VoucherQueryResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

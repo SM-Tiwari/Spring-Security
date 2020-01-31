@@ -1,0 +1,36 @@
+package id.gnvsolution.d3.api.filter;
+
+import org.hibernate.EmptyInterceptor;
+import org.hibernate.type.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+
+/**
+ * Created by Arie
+ * on 15/04/2017.
+ */
+public class HibernateSessionFilter extends EmptyInterceptor {
+    private static final Logger LOGGER = LoggerFactory.getLogger("datalogAppender");
+
+    protected HibernateSessionFilter() {
+        LOGGER.trace("INIT HibernateSessionFilter");
+    }
+
+    @Override
+    public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+        if (id == null) {
+            LOGGER.info("Saving {} ", entity.getClass());
+        } else {
+            LOGGER.info("Update {} ", entity.getClass());
+        }
+        return false;
+    }
+
+    @Override
+    public String onPrepareStatement(String sql) {
+        return super.onPrepareStatement(sql);
+    }
+
+}

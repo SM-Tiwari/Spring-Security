@@ -1,0 +1,103 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by rips on 4/18/17.
+ */
+public class PurchaseRequestDto extends BaseRequestDto {
+
+    private String language;
+    private String secretKey;
+    private String productId;
+    private String paymentMethod;
+    private String menuCategoryName;
+    private String menuSubCategoryName;
+    private String vendorId;
+    private String servicePlan;
+    private boolean status;
+    private String statuscode;
+    
+
+	public String getStatuscode() {
+		return statuscode;
+	}
+
+	public void setStatuscode(String statuscode) {
+		this.statuscode = statuscode;
+	}
+
+	public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getMenuCategoryName() {
+        return menuCategoryName;
+    }
+
+    public void setMenuCategoryName(String menuCategoryName) {
+        this.menuCategoryName = menuCategoryName;
+    }
+
+    public String getMenuSubCategoryName() {
+        return menuSubCategoryName;
+    }
+
+    public void setMenuSubCategoryName(String menuSubCategoryName) {
+        this.menuSubCategoryName = menuSubCategoryName;
+    }
+
+    public String getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    public String getServicePlan() {
+        return servicePlan;
+    }
+
+    public void setServicePlan(String servicePlan) {
+        this.servicePlan = servicePlan;
+    }
+
+	public boolean isStatus() {
+		return status;
+	}
+
+	public void setStatus(boolean status) {
+		this.status = status;
+	}
+
+	
+    
+    
+}

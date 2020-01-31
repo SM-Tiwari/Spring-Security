@@ -1,0 +1,154 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+
+/**
+ * Created by rips on 4/18/17.
+ */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"transactionId", "responseCode", "responseDescription", "msisdn", "actionType", "registrationKey", "charge", "hibridFlag", "source", "startDate", "endDate"})
+public class BonusRequest {
+
+    public BonusRequest(){
+        transactionId = "";
+        responseCode = "";
+        responseDescription = "";
+        msisdn = "";
+        actionType = "";
+        registrationKey = "";
+        source = "ODP_GNV";
+        charge = "";
+        hibridFlag = "";
+        startDate = "";
+        endDate = "";
+    }
+
+    @XmlElement(name = "TransactionID")
+    private String transactionId;
+
+    @XmlElement(name = "ResponseCode")
+    private String responseCode;
+
+    @XmlElement(name = "ResponseDescription")
+    private String responseDescription;
+
+    @XmlElement(name = "MSISDN")
+    private String msisdn;
+
+    @XmlElement(name = "ActionType")
+    private String actionType;
+
+    @XmlElement(name = "RegistrationKey")
+    private String registrationKey;
+
+    @XmlElement(name = "Source")
+    private String source;
+
+    @XmlElement(name = "Charge")
+    private String charge;
+
+    @XmlElement(name = "HYBRID_FLAG")
+    private String hibridFlag;
+
+    @XmlElement(name = "StartDate")
+    private String startDate;
+
+    @XmlElement(name = "EndDate")
+    private String endDate;
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getResponseCode() {
+        return responseCode;
+    }
+
+    public void setResponseCode(String responseCode) {
+        this.responseCode = responseCode;
+    }
+
+    public String getResponseDescription() {
+        return responseDescription;
+    }
+
+    public void setResponseDescription(String responseDescription) {
+        this.responseDescription = responseDescription;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
+    }
+
+    public String getRegistrationKey() {
+        return registrationKey;
+    }
+
+    public void setRegistrationKey(String registrationKey) {
+        this.registrationKey = registrationKey;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getCharge() {
+        return charge;
+    }
+
+    public void setCharge(String charge) {
+        this.charge = charge;
+    }
+
+    public String getHibridFlag() {
+        return hibridFlag;
+    }
+
+    public void setHibridFlag(String hibridFlag) {
+        this.hibridFlag = hibridFlag;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    @Override
+    public String toString() {
+        return "BonusRequest{" + "transactionId=" + transactionId + ", responseCode=" + responseCode + ", responseDescription=" + responseDescription + ", msisdn=" + msisdn + ", actionType=" + actionType + ", registrationKey=" + registrationKey + ", source=" + source + ", charge=" + charge + ", hibridFlag=" + hibridFlag + ", startDate=" + startDate + ", endDate=" + endDate + '}';
+    }
+}

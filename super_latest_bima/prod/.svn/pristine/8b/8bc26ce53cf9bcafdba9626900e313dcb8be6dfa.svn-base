@@ -1,0 +1,336 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "RECOMMENDED_FOR_YOU")
+public class RecommendedForYou {
+    private String campaignId;
+    private Timestamp campaignDatetime;
+    private String productId;
+    private int productCharginId;
+    private String rfuRegistrationKey;
+    private String rfuChargingMechanism;
+    private Long rfuChargingPrice;
+    private Long rfuOrder;
+    private String rfuClaimMethod;
+    private Long rfuDdc;
+    private String rfuDdcUrl;
+    private String rfuPromoTitle;
+    private String rfuPromoDescription;
+    private String rfuFrequency;
+    private Long rfuFrequencyLimit;
+    private Timestamp rfuEventStart;
+    private Timestamp rfuEventEnd;
+    private boolean isActive;
+    private boolean isShake;
+    private boolean isRfu;
+    private boolean isReward;
+    private String clmOfferId;
+    private ProductCharging productCharging;
+    private Product product;
+
+    @Id
+    @Column(name = "CAMPAIGN_ID", nullable = false, length = 50)
+    public String getCampaignId() {
+        return campaignId;
+    }
+
+    public void setCampaignId(String campaignId) {
+        this.campaignId = campaignId;
+    }
+
+    @Basic
+    @Column(name = "CAMPAIGN_DATETIME", nullable = true)
+    public Timestamp getCampaignDatetime() {
+        return campaignDatetime;
+    }
+
+    public void setCampaignDatetime(Timestamp campaignDatetime) {
+        this.campaignDatetime = campaignDatetime;
+    }
+
+    @Basic
+    @Column(name = "RFU_REGISTRATION_KEY", nullable = true, length = 20)
+    public String getRegistrationKey() {
+        return rfuRegistrationKey;
+    }
+
+    public void setRegistrationKey(String rfuRegistrationKey) {
+        this.rfuRegistrationKey = rfuRegistrationKey;
+    }
+
+    @Basic
+    @Column(name = "RFU_CHARGING_MECHANISM", nullable = true, length = 10)
+    public String getChargingMechanism() {
+        return rfuChargingMechanism;
+    }
+
+    public void setChargingMechanism(String rfuChargingMechanism) {
+        this.rfuChargingMechanism = rfuChargingMechanism;
+    }
+
+    @Basic
+    @Column(name = "RFU_CHARGING_PRICE", nullable = true, precision = 0)
+    public Long getChargingPrice() {
+        return rfuChargingPrice;
+    }
+
+    public void setChargingPrice(Long rfuChargingPrice) {
+        this.rfuChargingPrice = rfuChargingPrice;
+    }
+
+    @Basic
+    @Column(name = "RFU_ORDER", nullable = true, precision = 0)
+    public Long getOrder() {
+        return rfuOrder;
+    }
+
+    public void setOrder(Long rfuOrder) {
+        this.rfuOrder = rfuOrder;
+    }
+
+    @Basic
+    @Column(name = "RFU_CLAIM_METHOD", nullable = true, length = 50)
+    public String getClaimMethod() {
+        return rfuClaimMethod;
+    }
+
+    public void setClaimMethod(String rfuClaimMethod) {
+        this.rfuClaimMethod = rfuClaimMethod;
+    }
+
+    @Basic
+    @Column(name = "RFU_DDC", nullable = true, precision = 0)
+    public Long getDdc() {
+        return rfuDdc;
+    }
+
+    public void setDdc(Long rfuDdc) {
+        this.rfuDdc = rfuDdc;
+    }
+
+    @Basic
+    @Column(name = "RFU_DDC_URL", nullable = true, length = 255)
+    public String getDdcUrl() {
+        return rfuDdcUrl;
+    }
+
+    public void setDdcUrl(String rfuDdcUrl) {
+        this.rfuDdcUrl = rfuDdcUrl;
+    }
+
+    @Basic
+    @Column(name = "RFU_PROMO_TITLE", nullable = true, length = 100)
+    public String getPromoTitle() {
+        return rfuPromoTitle;
+    }
+
+    public void setPromoTitle(String rfuPromoTitle) {
+        this.rfuPromoTitle = rfuPromoTitle;
+    }
+
+    @Basic
+    @Column(name = "RFU_PROMO_DESCRIPTION", nullable = true)
+    public String getPromoDescription() {
+        return rfuPromoDescription;
+    }
+
+    public void setPromoDescription(String rfuPromoDescription) {
+        this.rfuPromoDescription = rfuPromoDescription;
+    }
+
+    @Basic
+    @Column(name = "RFU_FREQUENCY", nullable = true, length = 10)
+    public String getFrequency() {
+        return rfuFrequency;
+    }
+
+    public void setFrequency(String rfuFrequency) {
+        this.rfuFrequency = rfuFrequency;
+    }
+
+    @Basic
+    @Column(name = "RFU_FREQUENCY_LIMIT", nullable = true, precision = 0)
+    public Long getFrequencyLimit() {
+        return rfuFrequencyLimit;
+    }
+
+    public void setFrequencyLimit(Long rfuFrequencyLimit) {
+        this.rfuFrequencyLimit = rfuFrequencyLimit;
+    }
+
+    @Basic
+    @Column(name = "RFU_EVENT_START", nullable = true)
+    public Timestamp getEventStart() {
+        return rfuEventStart;
+    }
+
+    public void setEventStart(Timestamp rfuEventStart) {
+        this.rfuEventStart = rfuEventStart;
+    }
+
+    @Basic
+    @Column(name = "RFU_EVENT_END", nullable = true)
+    public Timestamp getEventEnd() {
+        return rfuEventEnd;
+    }
+
+    public void setEventEnd(Timestamp rfuEventEnd) {
+        this.rfuEventEnd = rfuEventEnd;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE", nullable = false, precision = 0)
+    public boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    @Basic
+    @Column(name = "IS_SHAKE", nullable = false, precision = 0)
+    public boolean getIsShake() {
+        return isShake;
+    }
+
+    public void setIsShake(boolean isShake) {
+        this.isShake = isShake;
+    }
+
+    @Basic
+    @Column(name = "IS_RFU", nullable = false, precision = 0)
+    public boolean getIsRfu() {
+        return isRfu;
+    }
+
+    public void setIsRfu(boolean isRfu) {
+        this.isRfu = isRfu;
+    }
+
+    @Basic
+    @Column(name = "IS_REWARD", nullable = false, precision = 0)
+    public boolean getIsReward() {
+        return isReward;
+    }
+
+    public void setIsReward(boolean isReward) {
+        this.isReward = isReward;
+    }
+
+    @Column(name="PRODUCT_ID")
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    @Column(name = "PRODUCT_CHARGING_ID")
+    public int getProductCharginId() {
+        return productCharginId;
+    }
+
+    public void setProductCharginId(int productCharginId) {
+        this.productCharginId = productCharginId;
+    }
+
+    @Column(name = "CLM_OFFER_ID")
+    public String getClmOfferId() {
+        return clmOfferId;
+    }
+
+    public void setClmOfferId(String clmOfferId) {
+        this.clmOfferId = clmOfferId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RecommendedForYou that = (RecommendedForYou) o;
+
+        if (isActive != that.isActive) return false;
+        if (isShake != that.isShake) return false;
+        if (isRfu != that.isRfu) return false;
+        if (isReward != that.isReward) return false;
+        if (campaignId != null ? !campaignId.equals(that.campaignId) : that.campaignId != null) return false;
+        if (campaignDatetime != null ? !campaignDatetime.equals(that.campaignDatetime) : that.campaignDatetime != null)
+            return false;
+        if (rfuRegistrationKey != null ? !rfuRegistrationKey.equals(that.rfuRegistrationKey) : that.rfuRegistrationKey != null)
+            return false;
+        if (rfuChargingMechanism != null ? !rfuChargingMechanism.equals(that.rfuChargingMechanism) : that.rfuChargingMechanism != null)
+            return false;
+        if (rfuChargingPrice != null ? !rfuChargingPrice.equals(that.rfuChargingPrice) : that.rfuChargingPrice != null)
+            return false;
+        if (rfuOrder != null ? !rfuOrder.equals(that.rfuOrder) : that.rfuOrder != null) return false;
+        if (rfuClaimMethod != null ? !rfuClaimMethod.equals(that.rfuClaimMethod) : that.rfuClaimMethod != null)
+            return false;
+        if (rfuDdc != null ? !rfuDdc.equals(that.rfuDdc) : that.rfuDdc != null) return false;
+        if (rfuDdcUrl != null ? !rfuDdcUrl.equals(that.rfuDdcUrl) : that.rfuDdcUrl != null) return false;
+        if (rfuPromoTitle != null ? !rfuPromoTitle.equals(that.rfuPromoTitle) : that.rfuPromoTitle != null)
+            return false;
+        if (rfuPromoDescription != null ? !rfuPromoDescription.equals(that.rfuPromoDescription) : that.rfuPromoDescription != null)
+            return false;
+        if (rfuFrequency != null ? !rfuFrequency.equals(that.rfuFrequency) : that.rfuFrequency != null) return false;
+        if (rfuFrequencyLimit != null ? !rfuFrequencyLimit.equals(that.rfuFrequencyLimit) : that.rfuFrequencyLimit != null)
+            return false;
+        if (rfuEventStart != null ? !rfuEventStart.equals(that.rfuEventStart) : that.rfuEventStart != null)
+            return false;
+        if (rfuEventEnd != null ? !rfuEventEnd.equals(that.rfuEventEnd) : that.rfuEventEnd != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = campaignId != null ? campaignId.hashCode() : 0;
+        result = 31 * result + (campaignDatetime != null ? campaignDatetime.hashCode() : 0);
+        result = 31 * result + (rfuRegistrationKey != null ? rfuRegistrationKey.hashCode() : 0);
+        result = 31 * result + (rfuChargingMechanism != null ? rfuChargingMechanism.hashCode() : 0);
+        result = 31 * result + (rfuChargingPrice != null ? rfuChargingPrice.hashCode() : 0);
+        result = 31 * result + (rfuOrder != null ? rfuOrder.hashCode() : 0);
+        result = 31 * result + (rfuClaimMethod != null ? rfuClaimMethod.hashCode() : 0);
+        result = 31 * result + (rfuDdc != null ? rfuDdc.hashCode() : 0);
+        result = 31 * result + (rfuDdcUrl != null ? rfuDdcUrl.hashCode() : 0);
+        result = 31 * result + (rfuPromoTitle != null ? rfuPromoTitle.hashCode() : 0);
+        result = 31 * result + (rfuPromoDescription != null ? rfuPromoDescription.hashCode() : 0);
+        result = 31 * result + (rfuFrequency != null ? rfuFrequency.hashCode() : 0);
+        result = 31 * result + (rfuFrequencyLimit != null ? rfuFrequencyLimit.hashCode() : 0);
+        result = 31 * result + (rfuEventStart != null ? rfuEventStart.hashCode() : 0);
+        result = 31 * result + (rfuEventEnd != null ? rfuEventEnd.hashCode() : 0);
+        result = 31 * result + ((isActive ? 1 : 0) ^ ((isActive ? 1 : 0) >>> 32));
+        result = 31 * result + ((isShake ? 1 : 0) ^ ((isShake ? 1 : 0) >>> 32));
+        result = 31 * result + ((isRfu ? 1 : 0) ^ ((isRfu ? 1 : 0) >>> 32));
+        result = 31 * result + ((isReward ? 1 : 0) ^ ((isReward ? 1 : 0) >>> 32));
+        return result;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "PRODUCT_CHARGING_ID", referencedColumnName = "PRODUCT_CHARGING_ID", nullable = false, updatable = false, insertable = false)
+    public ProductCharging getProductChargingByProductCharginId(){
+        return productCharging;
+    }
+
+    public void setProductChargingByProductCharginId(ProductCharging productCharging){
+        this.productCharging = productCharging;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "PRODUCT_ID", referencedColumnName = "PRODUCT_ID", nullable = false, updatable = false, insertable = false)
+    public Product getProductByProductId(){
+        return product;
+    }
+
+    public void setProductByProductId(Product product){
+        this.product = product;
+    }
+}

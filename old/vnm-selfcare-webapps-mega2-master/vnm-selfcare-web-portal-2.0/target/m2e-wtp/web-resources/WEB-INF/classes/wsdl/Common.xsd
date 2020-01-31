@@ -1,0 +1,312 @@
+<?xml version="1.0"?>
+<!-- edited with XML Spy v4.0.1 U (http://www.xmlspy.com) by Michael Thomas (ADC Software Systems) -->
+<xs:schema targetNamespace="http://www.intecbilling.com/HCPT/prepaid_soap" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<!-- This schema defines common elements of the HCPT API. -->
+	<xs:simpleType name="abbreviation">
+		<xs:annotation>
+			<xs:documentation>Text which may come from a reference type.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="40"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="currencyValue">
+		<xs:annotation>
+			<xs:documentation>Defines valid values for currency.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:decimal"/>
+	</xs:simpleType>
+	<xs:simpleType name="imsi">
+		<xs:annotation>
+			<xs:documentation>The required format for an IMSI.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="20"/>
+			<xs:pattern value="[0-9]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="msisdn">
+		<xs:annotation>
+			<xs:documentation>Fifteen digit mobile telephone number.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="15"/>
+			<xs:pattern value="[0-9]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nativeDate">
+		<xs:annotation>
+			<xs:documentation>The native Singl.eView date format.  The format is DD/MM/YYYY.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:pattern value="([0-9]{2}/){2}[0-9]{4}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nativeDateTime">
+		<xs:annotation>
+			<xs:documentation>The native Singl.eView date format.  The format is DD/MM/YYYY HH:MI:SS.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="19"/>
+			<xs:pattern value="([0-9]{2}/){2}[0-9]{4} ([0-9]{2}:){2}[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="populatedText">
+		<xs:annotation>
+			<xs:documentation>Describes a text value that must have non-zero length.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="255"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="positiveInteger">
+		<xs:annotation>
+			<xs:documentation>Describes a simple positive integer format.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="999999999999999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="referenceId">
+		<xs:annotation>
+			<xs:documentation>A reference id used for integer ids, like reference codes, subscription id, etc.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="999999999999999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="referenceString">
+		<xs:annotation>
+			<xs:documentation>A reference number used for accounts, adjustments, payments, etc.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="32"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="responseCode">
+		<xs:annotation>
+			<xs:documentation>The return value of an operation.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="responseText">
+		<xs:annotation>
+			<xs:documentation>Describes an error message.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="0"/>
+			<xs:maxLength value="255"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="sim">
+		<xs:annotation>
+			<xs:documentation>The required format for a SIM.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="25"/>
+			<xs:pattern value="[0-9]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="simpleText">
+		<xs:annotation>
+			<xs:documentation>Describes a simple text format.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="0"/>
+			<xs:maxLength value="255"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="NameAddress">
+		<xs:annotation>
+			<xs:documentation>Name and Address format.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="80"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PhoneNumber">
+		<xs:annotation>
+			<xs:documentation>Phone number format.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="FnFNumber">
+		<xs:annotation>
+			<xs:documentation>FNF Number format.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="15"/>
+			<xs:pattern value="[0-9]+|[+][0-9]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="FormatDate">
+		<xs:annotation>
+			<xs:documentation>Date Format : DD-MON-YY.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="9"/>
+			<xs:pattern value="([0-9]{2}-)[A-Z]{3}(-)[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="EventDateTime">
+		<xs:annotation>
+			<xs:documentation>The Event date time format.  The format is YYYY/MM/DD HH:MI:SS.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="19"/>
+			<xs:pattern value="([0-9]{4}/)[0-9]{2}(/)[0-9]{2} ([0-9]{2}:){2}[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="referenceLongString">
+		<xs:annotation>
+			<xs:documentation>For Bonus Name Field.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="40"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- Types Added for Postpaid Phase-->
+   	<!-- Types Added for Postpaid Phase-->
+   <xs:simpleType name="strNManFldLen30">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="0"/>
+			<xs:maxLength value="30"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="strManFldLen10">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="strNManFldLen10">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="0"/>
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	 <xs:simpleType name="strManFldLen15">
+		<xs:restriction base="xs:string">
+      		<xs:minLength value="1"/>
+      		<xs:maxLength value="15"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+	<xs:simpleType name="strNManFldLen15">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="0"/>
+      		<xs:maxLength value="15"/>
+    	</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="strNManFldLen8">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="0"/>
+      		<xs:maxLength value="8"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+  	<xs:simpleType name="strManFldLen20">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="1"/>
+      		<xs:maxLength value="20"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+	<xs:simpleType name="strNManFldLen20">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="0"/>
+      		<xs:maxLength value="20"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+	<xs:simpleType name="strManFldLen12">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="1"/>
+      		<xs:maxLength value="12"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+	<xs:simpleType name="strManFldLen5">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="1"/>
+      		<xs:maxLength value="5"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+	<xs:simpleType name="strManFldLen50">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="1"/>
+      		<xs:maxLength value="50"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+	<xs:simpleType name="strNManFldLen50">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="0"/>
+      		<xs:maxLength value="50"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+
+	<xs:simpleType name="strManFldLen60">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="60"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="strNManFldLen60">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="0"/>
+			<xs:maxLength value="60"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="intManFld10">
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="9999999999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="intNManFld10">
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="9999999999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="strAddress">
+    	<xs:restriction base="xs:string">
+      		<xs:minLength value="0"/>
+      		<xs:maxLength value="80"/>
+    	</xs:restriction>
+  	</xs:simpleType>
+        <xs:simpleType name="strNManFldLen65">
+               <xs:annotation>
+                   <xs:documentation>A new data type that is added for Custmore Name as per HCPT.</xs:documentation>
+               </xs:annotation>
+               <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="65"/>
+               </xs:restriction>
+         </xs:simpleType>
+	 <xs:simpleType name="preferredlanguage">
+                <xs:restriction base="xs:integer">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="9999999999"/>
+                </xs:restriction>
+        </xs:simpleType>
+
+</xs:schema>

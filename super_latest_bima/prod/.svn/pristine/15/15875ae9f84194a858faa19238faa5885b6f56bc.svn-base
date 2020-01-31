@@ -1,0 +1,36 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by aswzen on 10/08/2018
+ */
+public class EmailLoginRequestDto extends LoginInDto {
+
+    private String email;
+    private String password;
+    /* safe key */
+    private String s_;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    
+    public String getS_() {
+        return s_;
+    }
+
+    public void setS_(String s_) {
+        this.s_ = s_;
+    }
+}

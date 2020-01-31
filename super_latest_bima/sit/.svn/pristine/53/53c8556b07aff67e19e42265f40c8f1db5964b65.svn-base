@@ -1,0 +1,63 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.OTTPushNotif 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Sep 12, 2017 1:31:58 PM
+ *
+ */
+
+public class OTTPushNotif extends BaseRequestDto {
+
+    private String fromId;
+    private String toId;
+    private String fromNumber;
+    private String toNumber;
+    private String message;
+
+    public OTTPushNotif() {
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getFromId() {
+        return fromId;
+    }
+
+    public void setFromId(String fromId) {
+        this.fromId = fromId;
+    }
+
+    public String getToId() {
+        return toId;
+    }
+
+    public void setToId(String toId) {
+        this.toId = toId;
+    }
+
+    public String getFromNumber() {
+        return fromNumber;
+    }
+
+    public void setFromNumber(String fromNumber) {
+        this.fromNumber = fromNumber;
+    }
+
+    public String getToNumber() {
+        return toNumber;
+    }
+
+    public void setToNumber(String toNumber) {
+        this.toNumber = toNumber;
+    }
+}

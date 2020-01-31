@@ -1,0 +1,50 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.TransferPackageDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Feb 12, 2018 7:39:46 PM
+ *
+ */
+public class TransferPackageDto extends BaseRequestDto {
+
+    private String targetMsisdn;
+    private String productId;
+    private String amount;
+
+    public TransferPackageDto() {
+    }
+    
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+
+    public String getTargetMsisdn() {
+        if (targetMsisdn != null && targetMsisdn.startsWith("0")) {
+            targetMsisdn = String.format("62%s", targetMsisdn.substring(1));
+        }
+        if (targetMsisdn != null && targetMsisdn.startsWith("8")) {
+            targetMsisdn = String.format("62%s", targetMsisdn);
+        }
+        return targetMsisdn;
+    }
+
+    public void setTargetMsisdn(String targetMsisdn) {
+        this.targetMsisdn = targetMsisdn;
+    }
+}

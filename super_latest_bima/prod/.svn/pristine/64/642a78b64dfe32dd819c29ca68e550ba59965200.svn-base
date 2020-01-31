@@ -1,0 +1,14 @@
+package id.gnvsolution.d3.api.service;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.SubscriberWhitelistService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 1, 2017 5:38:30 PM
+ *
+ */
+public interface SubscriberWhitelistService {
+    boolean isWhitelist(String msisdn);
+}

@@ -1,0 +1,512 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.PostPaidPaymentDto;
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.model.*;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.service.PurchasingService;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.DokuServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 19, 2017 7:37:03 PM
+ *
+ */
+@Service
+@Transactional
+public class ExternalPaymentServiceImpl implements ExternalPayment {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(ExternalPaymentServiceImpl.class);
+    
+    private final PurchasingService purchasingService;
+    
+    @Autowired
+    private ProfileService profileService;
+    
+    @Autowired
+    private ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+    
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+
+    @Autowired
+    public ExternalPaymentServiceImpl(PurchasingService purchasingService ) {
+        this.purchasingService = purchasingService;
+    }
+    
+    @Override
+    public void saveToTrxSubscriberPurchase(TrxSubscriberPurchase subscriberPurchase) {
+    	LOGGER.info("#saveToTrxSubscriberPurchase------save TrxSubscriberPurchase data based on subscriberPurchase:::", subscriberPurchase);
+        BaseDao<TrxSubscriberPurchase> trxSubscriberDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberPurchase.class);
+        subscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+        subscriberPurchase.setTransactionStatus(0);
+        trxSubscriberDao.save(subscriberPurchase);
+    }
+    
+    @Override
+    public String generateTrxNumber() {
+        return moduleTransactionIDGenerator.generate(Module.PURCHASE);
+    }
+    
+    @Override
+    public String generateTrxNumberHybrid() {
+        return moduleTransactionIDGenerator.generate(Module.HYBRID);
+    }
+    
+    @Override
+    public String generateTrxNumberPostpaid() {
+        return moduleTransactionIDGenerator.generate(Module.POST);
+    }
+
+    /**
+     * 
+     * @param TRANSIDMERCHANT 
+     */
+    @Override
+    public void purchaseProduct(String TRANSIDMERCHANT) throws Exception {
+    	LOGGER.info("#purchaseProduct------TRANSIDMERCHANT:::", TRANSIDMERCHANT);
+        if (TRANSIDMERCHANT.toUpperCase().contains(Module.POST.getCode())) {
+            // POST
+            postpaidPurchase(TRANSIDMERCHANT);
+        } else if (TRANSIDMERCHANT.toUpperCase().contains(Module.HYBRID.getCode())) {
+            // HYBR
+            hybridPurchase(TRANSIDMERCHANT);
+        } else {
+            // PURC
+            ordinaryProductPurchase(TRANSIDMERCHANT);
+        }
+    }
+
+    private void ordinaryProductPurchase(String TRANSIDMERCHANT) throws Exception {
+    	LOGGER.info("#ordinaryProductPurchase------getting data from TrxSubscriberPurchase based on TRANSIDMERCHANT:::", TRANSIDMERCHANT);
+        try {
+            // validate purc with status 0
+            BaseDao<TrxSubscriberPurchase> trxSubscriberDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberPurchase.class);
+            List<TrxSubscriberPurchase> trxSubscriberPurchases = trxSubscriberDao.find("TRANSACTION_ID = :TRANSIDMERCHANT and TRANSACTION_STATUS = '0'", new HashMap<String, Object>() {{
+                put("TRANSIDMERCHANT", TRANSIDMERCHANT);
+            }});
+            
+            if(trxSubscriberPurchases.isEmpty()) {
+                throw new Exception("TRANSIDMERCHANT dengan nomer "+TRANSIDMERCHANT+" tidak diketemukan ===");
+            }
+            
+            PurchaseRequestDto purchaseRequestDto = new PurchaseRequestDto();
+            TrxSubscriberPurchase subscriberPurchase = trxSubscriberPurchases.get(0);
+            
+            // validate with product charging
+            LOGGER.info("#ordinaryProductPurchase------getting data from ProductCharging based on productId:::", subscriberPurchase.getProductId());
+            BaseDao<ProductCharging> productChargingDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+            List<ProductCharging> productChargings = productChargingDao.find("PRODUCT_ID = :productId and PRICE = :price", new HashMap<String, Object>() {{
+                put("productId", subscriberPurchase.getProductId());
+                put("price", subscriberPurchase.getPrice());
+            }});
+            
+            if(productChargings.isEmpty()) {
+                throw new Exception("TRANSIDMERCHANT dengan nomer "+TRANSIDMERCHANT+" tidak punya CHARGING ===");
+            }
+            
+            LOGGER.info("#ordinaryProductPurchase------getting data from Subscriber based on msisdn:::", subscriberPurchase.getSubscriberMsisdn());
+            BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+            List<Subscriber> subscribers = subscriberDao.find("subscriberMsisdn = :msisdn", new HashMap<String, Object>() {{
+                put("msisdn", subscriberPurchase.getSubscriberMsisdn());
+            }});
+            
+            if(subscribers.isEmpty()) {
+                throw new Exception("msisdn dengan nomer "+subscriberPurchase.getSubscriberMsisdn()+" tidak diketemukan ===");
+            }
+            
+            purchaseRequestDto.setMsisdn(subscriberPurchase.getSubscriberMsisdn());
+            purchaseRequestDto.setLanguage("0");
+            purchaseRequestDto.setSecretKey(subscribers.get(0).getSubscriberPassword());
+            purchaseRequestDto.setProductId(subscriberPurchase.getProductId());
+            purchaseRequestDto.setPaymentMethod(subscriberPurchase.getPaymentMethodCode());
+            purchaseRequestDto.setMenuCategoryName("menu_name");
+            purchaseRequestDto.setMenuSubCategoryName("sub_menu_name");
+            purchaseRequestDto.setServicePlan(subscriberPurchase.getServicePlan());
+            purchaseRequestDto.setVendorId(subscriberPurchase.getVendorId());
+            
+            // purchase
+            boolean success = purchasingService.subscribeProduct(subscriberPurchase.getTransactionId(), purchaseRequestDto);
+            
+            // setelah di purchase lalu di flag success trx-nya
+            subscriberPurchase.setTransactionStatus(success?1:0);
+            LOGGER.info("#ordinaryProductPurchase------save TrxSubscriberPurchase");
+            trxSubscriberDao.saveOrUpdate(subscriberPurchase);
+            
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public TrxSubscriberPurchase checkPurchase(String transactionId) {
+    	LOGGER.info("#checkPurchase------getting data from TrxSubscriberPurchase based on transactionId:::", transactionId);
+        try {
+            BaseDao<TrxSubscriberPurchase> trxSubscriberDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberPurchase.class);
+            List<TrxSubscriberPurchase> trxSubscriberPurchases = trxSubscriberDao.find("TRANSACTION_ID = :TRANSACTION_ID", 
+                    new HashMap<String, Object>() {{
+                put("TRANSACTION_ID", transactionId);
+            }});
+            
+            if(trxSubscriberPurchases.isEmpty()) {
+                throw new Exception("TRANSACTION_ID dengan nomer "+transactionId+" tidak diketemukan ===");
+            }
+            
+            return trxSubscriberPurchases.get(0);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    @Override
+    public PaymentMethod getPaymentMethod(String paymentMethodCode) {
+    	LOGGER.info("#getPaymentMethod------getting data from PaymentMethod based on paymentMethodCode:::", paymentMethodCode);
+        BaseDao<PaymentMethod> paymentMethodBaseDao = new BaseDao<>(sessionFactoryDef, PaymentMethod.class);
+        List<PaymentMethod> paymentMethods = paymentMethodBaseDao.find("paymentMethodCode = :paymentMethodCode", 
+                    new HashMap<String, Object>() {{
+            put("paymentMethodCode", paymentMethodCode);
+        }});
+        
+        if(paymentMethods.isEmpty())
+            return null;
+        return paymentMethods.get(0);
+    }
+
+    @Override
+    public Subscriber getSubscriber(String msisdn) {
+    	LOGGER.info("#getSubscriber------getting data from Subscriber based on msisdn:::", msisdn);
+        BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+        List<Subscriber> subscribers = subscriberDao.find("subscriberMsisdn = :msisdn", new HashMap<String, Object>() {{
+            put("msisdn", msisdn);
+        }});
+        
+        if(subscribers.isEmpty())
+            return null;
+        return subscribers.get(0);
+    }
+
+    @Override
+    public void saveToTrxPostpaidPayment(TrxPostpaidPayment trxPostpaidPayment) {
+    	LOGGER.info("#saveToTrxPostpaidPayment------save TrxPostpaidPayment data based on trxPostpaidPayment:::", trxPostpaidPayment);
+        BaseDao<TrxPostpaidPayment> trxPostpaidPaymentDao = new BaseDao<>(sessionFactoryDef, TrxPostpaidPayment.class);
+        trxPostpaidPayment.setTransactionDatetime(new Date());
+        trxPostpaidPayment.setTransactionStatus(BigInteger.ZERO);
+        trxPostpaidPaymentDao.save(trxPostpaidPayment);
+    }
+    
+    @Override
+    public void saveToTrxPrepaidPayment(TrxSubscriberEtopup trxprepaidPayment) {
+    	LOGGER.info("#saveToTrxPrepaidPayment------save TrxSubscriberEtopup data based on trxprepaidPayment:::", trxprepaidPayment);
+        BaseDao<TrxSubscriberEtopup> trxPostpaidPaymentDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberEtopup.class);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        trxprepaidPayment.setTransactionDatetime((timestamp));
+        trxprepaidPayment.setTransactionStatus(BigInteger.ZERO.longValue());
+        trxPostpaidPaymentDao.save(trxprepaidPayment);
+    }
+    
+    @Override
+    public void updateToTrxPrepaidPayment(TrxSubscriberEtopup trxprepaidPayment) {
+    	LOGGER.info("#updateToTrxPrepaidPayment------updating TrxSubscriberEtopup based on trxprepaidPayment:::", trxprepaidPayment);
+        BaseDao<TrxSubscriberEtopup> trxPostpaidPaymentDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberEtopup.class);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        trxprepaidPayment.setTransactionDatetime((timestamp));
+       
+        trxPostpaidPaymentDao.saveOrUpdate(trxprepaidPayment);
+    }
+    
+    @Override
+    public void updateToTrxPostPayment(TrxPostpaidPayment trxpostPayment) {
+    	LOGGER.info("#updateToTrxPostPayment------updating TrxPostpaidPayment based on trxpostPayment:::", trxpostPayment);
+        BaseDao<TrxPostpaidPayment> trxPostpaidPaymentDao = new BaseDao<>(sessionFactoryDef, TrxPostpaidPayment.class);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        trxpostPayment.setTransactionDatetime((timestamp));
+       // trxpostPayment.setAccountName("accountName");
+        trxPostpaidPaymentDao.saveOrUpdate(trxpostPayment);
+    }
+    
+    @Override
+    public void savePaymentHistory(PaymentHistoryEntity trxpayementHistory) {
+    	LOGGER.info("#savePaymentHistory------save PaymentHistoryEntity based on transaction payement history:::", trxpayementHistory);
+        BaseDao<PaymentHistoryEntity> trxpayementHistoryDao = new BaseDao<>(sessionFactoryDef, PaymentHistoryEntity.class);
+        trxpayementHistory.setCreatedBy("system");
+        trxpayementHistory.setCreateTimestamp(new Date());
+        trxpayementHistory.setLastModifiedBy("system");
+        trxpayementHistory.setLastModifiedTime(new Date());
+        trxpayementHistoryDao.save(trxpayementHistory);
+
+    }
+    
+    @Override
+    public void updatePaymentHistory(PaymentHistoryEntity trxpayementHistory) {
+    	LOGGER.info("#updatePaymentHistory------updating PaymentHistoryEntity based on transaction payement history:::", trxpayementHistory);
+        BaseDao<PaymentHistoryEntity> trxpayementHistoryDao = new BaseDao<>(sessionFactoryDef, PaymentHistoryEntity.class);
+        trxpayementHistory.setLastModifiedTime(new Date());
+        trxpayementHistory.setLastModifiedBy("system");
+        trxpayementHistoryDao.saveOrUpdate(trxpayementHistory);
+
+    }
+    
+	@Override
+	public TrxPostpaidPayment getPostPaidTransectionDetails(String trxId) {
+		LOGGER.info("#getPostPaidTransectionDetails------getting data from TrxPostpaidPayment based on TRANSACTION_ID:::", trxId);
+		 BaseDao<TrxPostpaidPayment> trxDAO = new BaseDao<>(sessionFactoryDef, TrxPostpaidPayment.class);
+        List<TrxPostpaidPayment> trxDetails = trxDAO.find("TRANSACTION_ID = :TRANSACTION_ID", new HashMap<String, Object>() {{
+            put("TRANSACTION_ID", trxId);
+        }});
+        if(trxDetails.isEmpty())
+        	return null;
+        return trxDetails.get(0);
+	}
+	
+    @Override
+    public TrxSubscriberEtopup getPrePaidTransectionDetails(String trxId) {
+    	LOGGER.info("#getPrePaidTransectionDetails------getting data from TrxSubscriberEtopup based on TRANSACTION_ID:::", trxId);
+        BaseDao<TrxSubscriberEtopup> trxDAO = new BaseDao<>(sessionFactoryDef, TrxSubscriberEtopup.class);
+        List<TrxSubscriberEtopup> trxDetails = trxDAO.find("TRANSACTION_ID = :trxId", new HashMap<String, Object>() {{
+            put("trxId", trxId);
+        }});
+        if(trxDetails.isEmpty())
+        	return null;
+        return trxDetails.get(0);
+    }
+    
+    @Override
+    public Product getProduct(String productId) {
+    	LOGGER.info("#getProduct-------getting data from Product based on Product id::::", productId);
+        BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+        List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {{
+            put("productId", productId);
+        }});
+        
+        if(products.isEmpty())
+            return null;
+        return products.get(0);
+    }
+    
+    private void postpaidPurchase(String TRANSIDMERCHANT) throws Exception {
+    	
+    	LOGGER.info("#postpaidPurchase-----getting data from TrxPostpaidPayment based on TRANSIDMERCHANT:::::", TRANSIDMERCHANT);
+        try {
+            BaseDao<TrxPostpaidPayment> trxPostpaidPaymentDao = new BaseDao<>(sessionFactoryDef, TrxPostpaidPayment.class);
+            List<TrxPostpaidPayment> trxSubscriberPurchases = trxPostpaidPaymentDao.find("TRANSACTION_ID = :TRANSIDMERCHANT and TRANSACTION_STATUS = '0'", new HashMap<String, Object>() {{
+                put("TRANSIDMERCHANT", TRANSIDMERCHANT);
+            }});
+
+            if(trxSubscriberPurchases.isEmpty()) {
+                throw new Exception("TRANSIDMERCHANT dengan nomer "+TRANSIDMERCHANT+" tidak diketemukan ===");
+            }
+
+            TrxPostpaidPayment trxPostpaidPayment = trxSubscriberPurchases.get(0);
+            
+            BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+            List<Subscriber> subscribers = subscriberDao.find("subscriberMsisdn = :msisdn", new HashMap<String, Object>() {{
+                put("msisdn", trxPostpaidPayment.getSubscriberMsisdn());
+            }});
+
+            if(subscribers.isEmpty()) {
+                throw new Exception("msisdn dengan nomer "+trxPostpaidPayment.getSubscriberMsisdn()+" tidak diketemukan ===");
+            }
+            
+            PostPaidPaymentDto postPaidPaymentDto = new PostPaidPaymentDto();
+            postPaidPaymentDto.setAccountNumber(trxPostpaidPayment.getAccountNumber());
+            postPaidPaymentDto.setAmount(trxPostpaidPayment.getAccountAmountPaid().toString());
+            postPaidPaymentDto.setPaymentMethod(trxPostpaidPayment.getPaymentMethodCode());
+            postPaidPaymentDto.setTrxId(TRANSIDMERCHANT);
+            
+            // payment 
+            profileService.postPaidPayment(postPaidPaymentDto);
+            
+            // setelah di paid lalu di flag success trx-nya
+            trxPostpaidPayment.setTransactionStatus(BigInteger.ONE);
+            trxPostpaidPaymentDao.saveOrUpdate(trxPostpaidPayment);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 
+     * @param TRANSIDMERCHANT
+     * @throws Exception 
+     */
+    private void hybridPurchase(String TRANSIDMERCHANT) throws Exception {
+    	
+    	LOGGER.info("#hybridPurchase------getting data from TrxPostpaidPayment based on TRANSIDMERCHANT:::", TRANSIDMERCHANT);
+        try {
+            BaseDao<TrxPostpaidPayment> trxPostpaidPaymentDao = new BaseDao<>(sessionFactoryDef, TrxPostpaidPayment.class);
+            List<TrxPostpaidPayment> trxSubscriberPurchases = trxPostpaidPaymentDao.find("TRANSACTION_ID = :TRANSIDMERCHANT and TRANSACTION_STATUS = '0'", new HashMap<String, Object>() {{
+                put("TRANSIDMERCHANT", TRANSIDMERCHANT);
+            }});
+
+            if(trxSubscriberPurchases.isEmpty()) {
+                throw new Exception("TRANSIDMERCHANT dengan nomer "+TRANSIDMERCHANT+" tidak diketemukan ===");
+            }
+
+            TrxPostpaidPayment trxPostpaidPayment = trxSubscriberPurchases.get(0);
+            
+            BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+            List<Subscriber> subscribers = subscriberDao.find("subscriberMsisdn = :msisdn", new HashMap<String, Object>() {{
+                put("msisdn", trxPostpaidPayment.getSubscriberMsisdn());
+            }});
+
+            if(subscribers.isEmpty()) {
+                throw new Exception("msisdn dengan nomer "+trxPostpaidPayment.getSubscriberMsisdn()+" tidak diketemukan ===");
+            }
+            
+            PostPaidPaymentDto postPaidPaymentDto = new PostPaidPaymentDto();
+            postPaidPaymentDto.setAccountNumber(trxPostpaidPayment.getAccountNumber());
+            postPaidPaymentDto.setAmount(trxPostpaidPayment.getAccountAmountPaid().toString());
+            postPaidPaymentDto.setPaymentMethod(trxPostpaidPayment.getPaymentMethodCode());
+
+            // process hybrid payment to tibco
+            Map makePayment = profileService.hybridPayment(postPaidPaymentDto, trxPostpaidPayment);
+            if (makePayment.get("status").equals(true)) {
+                // setelah di paid lalu di flag success trx-nya
+                trxPostpaidPayment.setTransactionStatus(BigInteger.ONE);
+                trxPostpaidPaymentDao.saveOrUpdate(trxPostpaidPayment);
+            } else {
+                // do nothing
+            }
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public ProductCharging getProductCharging(String productId, String vendorId, String servicePlan, String paymentMethod, Long price) {
+    	
+    	LOGGER.info("#getProductCharging----getting data from ProductCharging based on Product id = "+productId+" :::: vendor id = "+vendorId+" :::: service plan = "+servicePlan+" ::::payment method = "+paymentMethod+" :::: and price = "+price);
+        BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+        List<ProductCharging> productChargings = productCharginDao.listData("from ProductCharging where productId = :productId and vendorId = :vendorId and servicePlan = :servicePlan and paymentMethodCode = :paymentMethodCode and price = :price", new HashMap<String, Object>() {{
+            put("productId", productId);
+            put("vendorId", vendorId);
+            put("servicePlan", servicePlan);
+            put("paymentMethodCode", paymentMethod);
+            put("price", price);
+        }});
+        if (productChargings.size() > 0) {
+            return productChargings.get(0);
+        }
+        return null;
+    }
+    @Override
+	public String getOrderIdByExtTrxId(String extTrxId) {
+    	LOGGER.info("getOrderIdByExtTrxId-----------getting data from PaymentHistory based on id---------",extTrxId);
+		if (!StringUtils.hasText(extTrxId)) return "";
+		try {
+			
+			BaseDao<PaymentHistoryEntity> paymentDAO = new BaseDao<>(sessionFactoryDef,
+					PaymentHistoryEntity.class);
+			List<PaymentHistoryEntity> paymentHistory = paymentDAO.find("extTrxId = :ext_trx_id",
+					new HashMap<String, Object>() {
+						{
+							put("ext_trx_id", extTrxId);
+						}
+					});
+			if(!paymentHistory.isEmpty()) return paymentHistory.get(0).getOrderId();
+			
+			
+			return "";
+		} catch (Exception e) {
+			LOGGER.error("#getOrderIdByExtTrxId --- error retriving order_id for ext_trx_id= " + extTrxId, e);
+		}
+		return "";
+	}
+    
+    @Override
+   	public PaymentHistoryEntity getOrderDeatilsBasedOnExtTrxId(String extTrxId) {
+       	LOGGER.info("#getOrderDeatilsBasedOnExtTrxId---getting data from PaymentHistory based on id---",extTrxId);
+   		if (!StringUtils.hasText(extTrxId)) return null;
+   		try {
+   			
+   			BaseDao<PaymentHistoryEntity> paymentDAO = new BaseDao<>(sessionFactoryDef,
+   					PaymentHistoryEntity.class);
+   			List<PaymentHistoryEntity> paymentHistory = paymentDAO.find("extTrxId = :ext_trx_id",
+   					new HashMap<String, Object>() {
+   						{
+   							put("ext_trx_id", extTrxId);
+   						}
+   					});
+   			if(!paymentHistory.isEmpty()) return paymentHistory.get(0);
+   			
+   			
+   			return null;
+   		} catch (Exception e) {
+   			LOGGER.error("#getOrderIdByExtTrxId --- error retriving order_id for ext_trx_id= " + extTrxId, e);
+   		}
+   		return null;
+   	}
+    @Override
+    public PaymentHistoryEntity getPaymentHistoryBasedOnTrx(String orderId) {
+		PaymentHistoryEntity paymentHistoryEntity = new PaymentHistoryEntity();
+		LOGGER.info("Inside NapasPaymentServiceImpl in getPaymentHistoryBasedOnTrx ");
+		try {
+			LOGGER.info("#getPaymentHistoryBasedOnTrx----getting data from PaymentHistory for id:::::", orderId);
+			BaseDao<PaymentHistoryEntity> paymentHistoryDao = new BaseDao<>(sessionFactoryDef,
+					PaymentHistoryEntity.class);
+			List<PaymentHistoryEntity> paymentHistoryDetails = paymentHistoryDao.find("ORDER_ID = :orderId",
+					new HashMap<String, Object>() {
+						{
+							put("orderId", orderId);
+						}
+					});
+			if (paymentHistoryDetails.isEmpty())
+				return null;
+			return paymentHistoryDetails.get(0);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return paymentHistoryEntity;
+	}
+    @Override
+    public int getPaymentHistoryStatus(String orderId) {
+		PaymentHistoryEntity paymentHistoryEntity = new PaymentHistoryEntity();
+		LOGGER.info("Inside NapasPaymentServiceImpl in #getPaymentHistoryBasedOnTrx ");
+		try {
+			BaseDao<PaymentHistoryEntity> paymentHistoryDao = new BaseDao<>(sessionFactoryDef,
+					PaymentHistoryEntity.class);
+			LOGGER.info("#getPaymentHistoryStatus----getting data from PaymentHistory for id:::::", orderId);
+			List<PaymentHistoryEntity> paymentHistoryDetails = paymentHistoryDao.find("ORDER_ID = :orderId",
+					new HashMap<String, Object>() {
+						{
+							put("orderId", orderId);
+						}
+					});
+			if (paymentHistoryDetails.isEmpty())
+				return 0;
+			return paymentHistoryDetails.get(0).getStatus();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return 0;
+	}
+    
+
+}

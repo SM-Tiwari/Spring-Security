@@ -1,0 +1,16 @@
+package id.gnvsolution.d3.api.utils;
+
+import org.junit.Test;
+
+/**
+ * Created by Arie
+ * on 29/04/2017.
+ */
+public class SqlParserHelperTest {
+    @Test
+    public void parseSQL() throws Exception {
+        StringBuilder parse = new SqlParserHelper().parse("select * from ( select product0_.PRODUCT_ID as PRODUCT_1_8_, product0_.\"CHARGING_MECHANISM\" as CHARGING2_8_, product0_.CREATED_AT as CREATED_3_8_, product0_.CREATED_BY as CREATED_4_8_, product0_.IS_ACTIVE as IS_ACTIV5_8_, product0_.IS_HYBRID as IS_HYBRI6_8_, product0_.IS_POSTPAID as IS_POSTP7_8_, product0_.IS_PREPAID as IS_PREPA8_8_, product0_.PRODUCT_BUTTON_BUY_EN as PRODUCT_9_8_, product0_.PRODUCT_BUTTON_BUY_ID as PRODUCT10_8_, product0_.PRODUCT_DDC_URL as PRODUCT11_8_, product0_.PRODUCT_DESCRIPTION_EN as PRODUCT12_8_, product0_.PRODUCT_DESCRIPTION_ID as PRODUCT13_8_, product0_.PRODUCT_NAME_EN as PRODUCT14_8_, product0_.PRODUCT_NAME_ID as PRODUCT15_8_, product0_.PRODUCT_PRICE as PRODUCT16_8_, product0_.PRODUCT_RATING as PRODUCT17_8_, product0_.UPDATED_AT as UPDATED18_8_, product0_.UPDATED_BY as UPDATED19_8_ from PRODUCT product0_ where lower(product0_.PRODUCT_NAME_ID) like lower(?) or (lower(product0_.PRODUCT_NAME_EN) like lower(?)) and (product0_.PRODUCT_ID is null) ) where rownum <= ?");
+        System.out.println(parse);
+    }
+
+}

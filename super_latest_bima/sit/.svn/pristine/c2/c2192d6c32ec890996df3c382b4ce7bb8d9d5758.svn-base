@@ -1,0 +1,64 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.CallbackRequestDto;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.model.RptCallbackAnalytic;
+import id.gnvsolution.d3.api.service.CallbackService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.CallbackServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 23, 2018 4:56:43 PM
+ *
+ */
+@Service
+@Transactional
+public class CallbackServiceImpl extends BaseService implements CallbackService {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(CallbackServiceImpl.class);
+
+    @Override
+    public Map add(CallbackRequestDto callbackRequestDto) {
+        try {
+            if(callbackRequestDto.getMsisdn() == null 
+                    || callbackRequestDto.getProductName() == null 
+                    || callbackRequestDto.getTrxType()== null 
+                    || callbackRequestDto.getChannel() == null)
+                return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+            
+            RptCallbackAnalytic analytic = new RptCallbackAnalytic();
+            analytic.setTrxDate(new Date());
+            analytic.setUuid(UUID.randomUUID().toString());
+            BeanUtils.copyProperties(callbackRequestDto, analytic);
+            
+            BaseDao<RptCallbackAnalytic> dao = new BaseDao<>(sessionFactoryDef, RptCallbackAnalytic.class);
+            dao.save(analytic);
+            
+            return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+    }
+
+}

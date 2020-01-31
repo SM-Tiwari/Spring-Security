@@ -1,0 +1,70 @@
+package id.gnvsolution.d3.api.component.social;
+
+import id.gnvsolution.d3.api.Constants;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.social.InvalidAuthorizationException;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.TwitterProfile;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Created by aswzen on 10/8/2018.
+ */
+@Component
+@Transactional
+public class TwitterComponent {
+
+    private final Logger logger = LoggerFactory.getLogger("social");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private Long ms;
+    
+    public Twitter generateTwitterInterface(String accessToken, String accessTokenSecret) {
+        ms = System.currentTimeMillis();
+        
+        TwitterTemplate template = new TwitterTemplate(Constants.TWITTER_API_KEY, Constants.TWITTER_API_SECRET, accessToken, accessTokenSecret);
+        return template;
+    }
+    
+    public Map loadUserDetails(String token, String accessTokenSecret){
+        Map<String, Object> data = new HashMap();
+        data.put("status", false);
+        data.put("id", "");
+        data.put("name", "");
+        
+        String error = "-";
+        String ep = "https://api.twitter.com";
+        try {
+            Twitter twitterApi = generateTwitterInterface(token, accessTokenSecret);
+            TwitterProfile p = twitterApi.userOperations().getUserProfile();
+            
+            data.put("status", true);
+            data.put("id", p.getId());
+            data.put("name", p.getName());
+        
+        } catch (InvalidAuthorizationException e) {
+            error = "Fetching twitter data InvalidAuthorizationException: "+e.getMessage();
+        } catch (Exception e) {
+            error = "Fetching twitter data Exception: "+e.getMessage();
+        } finally {
+            final StringBuilder sb=new StringBuilder();    
+            sb.append("\r\n========== START =============== \r\n"); 
+            sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+            sb.append("Destination\t:\t").append("Twitter API").append("\r\n");
+            sb.append("Base\t\t:\t").append(ep).append("\r\n");
+            sb.append("Token\t\t:\t").append(token).append("\r\n");
+            sb.append("Fields\t\t:\t").append("{id,name,url}").append("\r\n");
+            sb.append("Error\t\t:\t").append(error).append("\r\n");
+            sb.append("Time\t\t:\t").append(System.currentTimeMillis()-ms).append("ms \r\n");
+            sb.append("==========  END  =============== \r\n"); 
+            logger.debug(sb.toString());
+        }
+        return data;
+    }
+}

@@ -1,0 +1,46 @@
+package id.gnvsolution.d3.api.model;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Date;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.INotification
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 12, 2017 9:02:30 PM
+ *
+ */
+public interface INotification {
+
+    public BigDecimal getNotificationId();
+    public void setNotificationId(BigDecimal notificationId);
+
+    public String getNotificationTitle() ;
+    public void setNotificationTitle(String notificationTitle) ;
+
+    public String getNotificationMessage() ;
+    public void setNotificationMessage(String notificationMessage);
+
+    public BigInteger getIsRead() ;
+    public void setIsRead(BigInteger isRead) ;
+
+    public Date getNotificationAt() ;
+    public void setNotificationAt(Date notificationAt);
+    
+    public void setSubscriberMsisdn(String subscriberMsisdn);
+    
+    public void setProduct(String productId);
+    public String getProduct();
+    
+    public void setImage(String image);
+    public String getImage();
+    
+    public void setLink(String link);
+    public String getLink();
+    
+    public void setDeviceType(BigDecimal deviceType);
+    public BigDecimal getDeviceType();
+}

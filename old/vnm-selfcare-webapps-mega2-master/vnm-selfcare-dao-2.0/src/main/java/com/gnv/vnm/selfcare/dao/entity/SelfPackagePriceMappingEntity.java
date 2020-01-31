@@ -1,0 +1,215 @@
+/**
+ *
+ */
+package com.gnv.vnm.selfcare.dao.entity;
+
+import java.math.BigDecimal;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+/**
+ * @author nandipinto
+ *
+ */
+
+@Entity
+@Table(name = "self_pkg_price_map")
+@SequenceGenerator(name = "selfpkg_pricemap_seq", sequenceName = "selfpkg_pricemap_seq", allocationSize = 1)
+public class SelfPackagePriceMappingEntity extends BaseEntity {
+
+	private static final long serialVersionUID = -4713163625008420773L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "selfpkg_pricemap_seq")
+	@Column
+	private Integer id;
+
+	@Column(name = "type", length = 20, nullable = false)
+	private String type;
+
+	@Column(name = "min_amount")
+	private Integer minAmount;
+
+	@Column(name = "max_amount")
+	private Integer maxAmount;
+
+	@Column(name = "price")//, precision = 10, scale = 2)
+	private BigDecimal price;
+
+	@Column(name = "normal_price")//, precision = 10, scale = 2)
+	private BigDecimal normalPrice;
+
+	@Column(name = "cycle")
+	private Integer cycle;
+
+	/**
+	 * @return the id
+	 */
+	public Integer getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	/**
+	 * @return the minAmount
+	 */
+	public Integer getMinAmount() {
+		return minAmount;
+	}
+
+	/**
+	 * @param minAmount the minAmount to set
+	 */
+	public void setMinAmount(Integer amount) {
+		this.minAmount = amount;
+	}
+
+	/**
+	 * @return the maxAmount
+	 */
+	public Integer getMaxAmount() {
+		return maxAmount;
+	}
+
+	/**
+	 * @param maxAmount the maxAmount to set
+	 */
+	public void setMaxAmount(Integer maxAmount) {
+		this.maxAmount = maxAmount;
+	}
+
+	/**
+	 * @return the price
+	 */
+	public BigDecimal getPrice() {
+		return price;
+	}
+
+	/**
+	 * @param price the price to set
+	 */
+	public void setPrice(BigDecimal price) {
+		this.price = price;
+	}
+
+	/**
+	 * @return the normalPrice
+	 */
+	public BigDecimal getNormalPrice() {
+		return normalPrice;
+	}
+
+	/**
+	 * @param normalPrice the normalPrice to set
+	 */
+	public void setNormalPrice(BigDecimal normalPrice) {
+		this.normalPrice = normalPrice;
+	}
+
+	/**
+	 * @return the cycle
+	 */
+	public Integer getCycle() {
+		return cycle;
+	}
+
+	/**
+	 * @param cycle the cycle to set
+	 */
+	public void setCycle(Integer cycle) {
+		this.cycle = cycle;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((minAmount == null) ? 0 : minAmount.hashCode());
+		result = prime * result + ((price == null) ? 0 : price.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SelfPackagePriceMappingEntity other = (SelfPackagePriceMappingEntity) obj;
+		if (minAmount == null) {
+			if (other.minAmount != null)
+				return false;
+		} else if (!minAmount.equals(other.minAmount))
+			return false;
+		if (price == null) {
+			if (other.price != null)
+				return false;
+		} else if (!price.equals(other.price))
+			return false;
+		if (type == null) {
+			if (other.type != null)
+				return false;
+		} else if (!type.equals(other.type))
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("SelfPackagePriceMappingEntity [id=");
+		builder.append(id);
+		builder.append(", type=");
+		builder.append(type);
+		builder.append(", minAmount=");
+		builder.append(minAmount);
+		builder.append(", maxAmount=");
+		builder.append(maxAmount);
+		builder.append(", price=");
+		builder.append(price);
+		builder.append(", normalPrice=");
+		builder.append(normalPrice);
+		builder.append(", cycle=");
+		builder.append(cycle);
+		builder.append("]");
+		return builder.toString();
+	}
+}

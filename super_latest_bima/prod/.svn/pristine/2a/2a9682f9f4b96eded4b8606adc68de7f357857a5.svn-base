@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <environments default="prd">
+       <environment id="prd">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="oracle.jdbc.OracleDriver"/>
+                <property name="url" value="${JDBC.ConnectionURL}"/>
+                <property name="username" value="${JDBC.Username}"/>
+                <property name="password" value="${JDBC.Password}"/>
+                
+                <property name="poolMaximumActiveConnections" value="100" />
+            </dataSource>
+        </environment>          
+    </environments>
+     <mappers>        		
+        <mapper resource="sqlmap/NotificationPushMapper.xml" />  
+        <mapper resource="sqlmap/SecretkeyMapper.xml" />  
+    </mappers>              		
+</configuration>

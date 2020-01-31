@@ -1,0 +1,94 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+/**
+ *
+ * @author RA0C68364
+ */
+@Entity
+@Table(name = "CUSTOMER_UI_TYPE")
+public class CustomerUiType implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_UI_TYPE", sequenceName = "SEQ_UI_TYPE", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_UI_TYPE", strategy = GenerationType.SEQUENCE)
+    private Long id;
+    @Column(name = "MSISDN")
+    private String msisdn;
+    @Column(name = "UI_TYPE")
+    private String uiType;
+
+    public CustomerUiType() {
+    }
+
+    public CustomerUiType(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getUiType() {
+        return uiType;
+    }
+
+    public void setUiType(String uiType) {
+        this.uiType = uiType;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof CustomerUiType)) {
+            return false;
+        }
+        CustomerUiType other = (CustomerUiType) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.CustomerUiType[ id=" + id + " ]";
+    }
+    
+}

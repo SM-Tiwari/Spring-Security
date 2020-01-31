@@ -1,0 +1,39 @@
+/*==============================================================*/
+/* Table: TRX_POSTPAID_PAYMENT                                  */
+/*==============================================================*/
+CREATE TABLE TRX_POSTPAID_PAYMENT 
+(
+   TRANSACTION_ID       VARCHAR2(15)         NOT NULL,
+   SUBSCRIBER_MSISDN    VARCHAR2(15)         NOT NULL,
+   TRANSACTION_DATETIME TIMESTAMP            NOT NULL,
+   PAYMENT_METHOD_CODE  CHAR(2)              NOT NULL,
+   ACCOUNT_NUMBER       VARCHAR2(15)         NOT NULL,
+   ACCOUNT_AMOUNT_BILL  INTEGER              NOT NULL,
+   ACCOUNT_AMOUNT_PAID  INTEGER              NOT NULL,
+   ACCOUNT_NAME         VARCHAR2(100)        NOT NULL,
+   ACCOUNT_EMAIL        VARCHAR2(255)        NOT NULL,
+   TRANSACTION_STATUS   INTEGER              NOT NULL,
+   CONSTRAINT PK_TRX_POSTPAID_PAYMENT PRIMARY KEY (TRANSACTION_ID)
+);
+
+/*==============================================================*/
+/* Index: R_23478545671_FK                                      */
+/*==============================================================*/
+CREATE INDEX R_23478545671_FK ON TRX_POSTPAID_PAYMENT (
+   SUBSCRIBER_MSISDN ASC
+);
+
+/*==============================================================*/
+/* Index: R_5674238931_FK                                       */
+/*==============================================================*/
+CREATE INDEX R_5674238931_FK ON TRX_POSTPAID_PAYMENT (
+   PAYMENT_METHOD_CODE ASC
+);
+
+ALTER TABLE TRX_POSTPAID_PAYMENT
+   ADD CONSTRAINT FK_TRX_POST_R_2347854_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);
+
+ALTER TABLE TRX_POSTPAID_PAYMENT
+   ADD CONSTRAINT FK_TRX_POST_R_5674238_PAYMENT_ FOREIGN KEY (PAYMENT_METHOD_CODE)
+      REFERENCES PAYMENT_METHOD (PAYMENT_METHOD_CODE);

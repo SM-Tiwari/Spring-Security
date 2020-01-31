@@ -1,0 +1,33 @@
+package id.gnvsolution.d3.api.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import id.gnvsolution.d3.api.dto.request.NotificationMessageDto;
+import id.gnvsolution.d3.api.model.NotificationMaster;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/notification-master")
+public class NotificationMasterController {
+
+	@Autowired
+	private NotificationMasterService notificationMasterService;
+	
+	@RequestMapping(value = "/list/{limit}/{offset}", method = RequestMethod.GET)
+	public List<NotificationMaster> getList(@PathVariable Integer limit, @PathVariable Integer offset) {
+		return notificationMasterService.getList(limit, offset);
+	}
+	
+	@RequestMapping(value = "/saveOrUpdate", method = RequestMethod.POST)
+	public NotificationMessageDto saveOrUpdate(@RequestBody NotificationMessageDto request) {
+		return notificationMasterService.saveOrUpdate(request);
+	}
+}

@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://xmlns.example.com/1403585702606" xmlns:ns0="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd4" xmlns:ns2="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/CRMTIbcoNSMessage.xsd5" xmlns:ns1="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd2" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns4="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd" xmlns:ns3="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd3" name="Untitled" targetNamespace="http://xmlns.example.com/1403585702606">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/CRMTIbcoNSMessage.xsd5"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/CRMTIbcoNSMessage.xsd5"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="CRMTIbcoNSMessageRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TransactionId" type="xs:string"/>
+                        <xs:element name="RequestType" type="xs:string"/>
+                        <xs:element name="RequestId" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="MsgId" type="xs:string"/>
+                        <xs:element name="OrigSystem" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MsgParam" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attrubute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="name" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="value" type="xs:string" minOccurs="0"/>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CRMTIbcoNSMessageResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="StatusCode" type="xs:string"/>
+                        <xs:element name="StatusText" type="xs:string" minOccurs="0"/>
+                        <xs:element name="CustomerType" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MsgParam" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="name" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="value" type="xs:string" minOccurs="0"/>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd4"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd4"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="SQBonusEnquiryReq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Account_Num" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MSISDN" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Txn_Id" type="xs:string"/>
+                        <xs:element name="Child_Msisdn" type="xs:string" minOccurs="0"/>
+                        <xs:element name="New_SQ_Limit" type="xs:string" minOccurs="0"/>
+                        <xs:element name="New_SQ_Balance" type="xs:string" minOccurs="0"/>
+                        <xs:element name="Request_Type" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SQBonusEnquiryRes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ResponseCode" type="xs:string"/>
+                        <xs:element name="ResponseDescription" type="xs:string" minOccurs="0"/>
+                        <xs:element name="BONUS_INFO">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="InvoiceHistoryRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Account_Number" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="InvoiceHistoryResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="INVOICE_DETAILS" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="INVOICE_DATE" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="INVOICE_NUM" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="TOTAL_BILLING_SUMMARY" type="xs:int" minOccurs="0"/>
+                                    <xs:element name="AMOUNT_PAID" type="xs:int" minOccurs="0"/>
+                                    <xs:element name="UNALLOCATED_AMOUNT" type="xs:int" minOccurs="0"/>
+                                    <xs:element name="OUTSTANDING" type="xs:int" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="STATUS" type="xs:string"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd3"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd3"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="ManualAllocationRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ACCOUNT_NUMBER" type="xs:string" minOccurs="0"/>
+                        <xs:element name="REQUESTED_DATE" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ManualAllocationResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="MANUAL_ALLOCATION_DETAILS" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="UNALLOCATED_AMOUNT" type="xs:int" minOccurs="0"/>
+                                    <xs:element name="OUTSTANDING" type="xs:int" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="STATUS" type="xs:string"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd2"
+                   targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/CRM/Schema.xsd2"
+                   elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="PaymentHistoryRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ACCOUNT_NUMBER" type="xs:string" minOccurs="0"/>
+                        <xs:element name="FROM_DATE" type="xs:string" minOccurs="0"/>
+                        <xs:element name="MSISDN" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PaymentHistoryResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="PAYMENT_DETAILS" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="PAYMENT_TYPE_NAME" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="PAYMENT_RECEIVED_DATE" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="AMOUNT" type="xs:int" minOccurs="0"/>
+                                    <xs:element name="CREATED_DATE" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="APPLIED_DATE" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="PAYMENT_ID" type="xs:int" minOccurs="0"/>
+                                    <xs:element name="PAYMENT_METHOD_NAME" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="PAYMENT_TXT" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="INVOICE_NUM" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="STATUS" type="xs:string"/>
+                        <xs:element name="STATUS_TEXT" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="GenericTibcoCRMServices">
+        <wsdl:port name="PortTypeEndpoint1" binding="tns:PortTypeEndpoint1Binding">
+            <soap:address location="http://TIBCO_URL_SHAREDQUOTA_ENDPOINT"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="PortType">
+        <wsdl:operation name="BonusEnquiry">
+            <wsdl:input message="tns:SQBonusEnquiryReq"/>
+            <wsdl:output message="tns:SQBonusEnquiryRes"/>
+        </wsdl:operation>
+        <wsdl:operation name="PaymentHistory">
+            <wsdl:input message="tns:PaymentHistoryRequest"/>
+            <wsdl:output message="tns:PaymentHistoryResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="CRMNSSMS">
+            <wsdl:input message="tns:CRMNSSMSRequest"/>
+            <wsdl:output message="tns:CRMNSSMSResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="ManualAllocation">
+            <wsdl:input message="tns:ManualAllocationRequest"/>
+            <wsdl:output message="tns:ManualAllocationResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="InvoiceHistory">
+            <wsdl:input message="tns:InvoiceHistoryRequest"/>
+            <wsdl:output message="tns:InvoiceHistoryResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="PortTypeEndpoint1Binding" type="tns:PortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="BonusEnquiry">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoCRMServices/GenericTibcoCRMServices.serviceagent/PortTypeEndpoint1/BonusEnquiry"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="SQBonusEnquiryReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="SQBonusEnquiryRes"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PaymentHistory">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoCRMServices/GenericTibcoCRMServices.serviceagent/PortTypeEndpoint1/PaymentHistory"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="PaymentHistoryRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="PaymentHistoryResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CRMNSSMS">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoCRMServices/GenericTibcoCRMServices.serviceagent//CRMNSSMS"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="CRMNSSMSRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="CRMNSSMSResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ManualAllocation">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoCRMServices/GenericTibcoCRMServices.serviceagent/PortTypeEndpoint1/ManualAllocation"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="ManualAllocationRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="ManualAllocationResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="InvoiceHistory">
+            <soap:operation style="document" soapAction="/Business_Process/GenericTibcoCRMServices/GenericTibcoCRMServices.serviceagent/PortTypeEndpoint1/InvoiceHistory"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="InvoiceHistoryRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="InvoiceHistoryResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="SQBonusEnquiryReq">
+        <wsdl:part name="SQBonusEnquiryReq" element="ns0:SQBonusEnquiryReq"/>
+    </wsdl:message>
+    <wsdl:message name="SQBonusEnquiryRes">
+        <wsdl:part name="SQBonusEnquiryRes" element="ns0:SQBonusEnquiryRes"/>
+    </wsdl:message>
+    <wsdl:message name="PaymentHistoryRequest">
+        <wsdl:part name="PaymentHistoryRequest" element="ns1:PaymentHistoryRequest"/>
+    </wsdl:message>
+    <wsdl:message name="PaymentHistoryResponse">
+        <wsdl:part name="PaymentHistoryResponse" element="ns1:PaymentHistoryResponse"/>
+    </wsdl:message>
+    <wsdl:message name="CRMNSSMSRequest">
+        <wsdl:part name="CRMNSSMSRequest" element="ns2:CRMTIbcoNSMessageRequest"/>
+    </wsdl:message>
+    <wsdl:message name="CRMNSSMSResponse">
+        <wsdl:part name="CRMNSSMSResponse" element="ns2:CRMTIbcoNSMessageResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ManualAllocationRequest">
+        <wsdl:part name="ManualAllocationRequest" element="ns3:ManualAllocationRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ManualAllocationResponse">
+        <wsdl:part name="ManualAllocationResponse" element="ns3:ManualAllocationResponse"/>
+    </wsdl:message>
+    <wsdl:message name="InvoiceHistoryRequest">
+        <wsdl:part name="InvoiceHistoryRequest" element="ns4:InvoiceHistoryRequest"/>
+    </wsdl:message>
+    <wsdl:message name="InvoiceHistoryResponse">
+        <wsdl:part name="InvoiceHistoryResponse" element="ns4:InvoiceHistoryResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

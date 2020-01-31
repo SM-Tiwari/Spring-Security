@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.ProductPerformanceDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.ProductPerformanceService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Dec 29, 2017 10:06:52 PM
+ *
+ */
+public interface ProductPerformanceService {
+    public Map add(ProductPerformanceDto productPerformanceDto);
+}

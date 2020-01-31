@@ -1,0 +1,55 @@
+/**
+ * Mar 12, 2018 8:52:06 PM
+ */
+package com.gnv.vnm.selfcare.webapi.security;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.http.MediaType;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gnv.vnm.selfcare.webapi.DefaultApiResponse;
+import com.gnv.vnm.selfcare.webapi.model.ApiResponse;
+
+/**
+ * @author nandipinto
+ *
+ */
+
+@Component
+public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
+
+	private static final long serialVersionUID = 7313036174948159387L;
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.web.AuthenticationEntryPoint#commence(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.security.core.AuthenticationException)
+	 */
+	@Override
+	public void commence(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException authException) throws IOException, ServletException {
+
+//		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+		
+		ApiResponse apiResp = new ApiResponse(false, DefaultApiResponse.UNAUTHORIZED.code(), DefaultApiResponse.UNAUTHORIZED.message());
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		response.setContentType(MediaType.APPLICATION_JSON.toString());
+		
+        final ObjectMapper mapper = new ObjectMapper();
+        final String json = mapper.writeValueAsString(apiResp);
+        final PrintWriter writer = response.getWriter();
+        writer.write(json);
+        writer.flush();
+        writer.close();
+        
+	}
+
+}

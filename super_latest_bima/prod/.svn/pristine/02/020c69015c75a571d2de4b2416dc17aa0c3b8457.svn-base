@@ -1,0 +1,90 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.HomeScreenRequestDto;
+import id.gnvsolution.d3.api.dto.request.LastViewedDto;
+import id.gnvsolution.d3.api.dto.request.ProductDetailDto;
+import id.gnvsolution.d3.api.dto.request.ProductUpsellRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProductVouchersDto;
+import id.gnvsolution.d3.api.dto.request.SearchAutoCompleteRequestDto;
+import id.gnvsolution.d3.api.dto.request.SearchRequestDto;
+import id.gnvsolution.d3.api.dto.request.StarRatingDto;
+import id.gnvsolution.d3.api.dto.request.WishlistDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.dto.response.TriProductDetailDto;
+import id.gnvsolution.d3.api.dto.response.TriProductModDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.model.Recommedation;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+
+import java.util.List;
+import java.util.Map;
+
+import com.gnv.vnm.selfcare.core.model.JsonData;
+import com.gnv.vnm.selfcare.core.model.Packege092Responce;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+public interface ProductService {
+
+    Product getTrxSubscriberPurchase(String transactionId);
+    Product getProductById(String productId);
+
+    Map<String, Object> getProductPerCategory(String categoryId, Integer page, String language, String subscriberType, String callPlan, 
+            boolean isPreview, String accessRight, String imei, boolean isFull, String msisdn);
+    
+    Map<String, Object> getProductPerCategory(String categoryId, Integer page, String language, String subscriberType, String callPlan, 
+            boolean isPreview, String accessRight, String imei, boolean isFull, String msisdn, String mainCategoryId);
+    
+    List<ProductDto> getProductPerCategoryPaginated(String subCategoryId, Integer page, String language, String subscriberType, String callPlan, 
+            boolean isPreview, String accessRight, boolean isFull, boolean isHome);
+    
+    List<ProductDto> getProductPerCategoryPaginated(String subCategoryId, Integer page, String language, String subscriberType, String callPlan, 
+            boolean isPreview, String accessRight, boolean isFull, boolean isHome, String mainCategoryId);
+
+    List<ProductDto> getProductBySubCategory(String subCategoryId, String language, String subscriberType, Integer page, String callPlan, 
+            boolean isPreview, boolean isHome, String accessRight, boolean isFull, String msisdn, String mainCategoryId);
+    
+    List<ProductDto> getProductBySubCategory(String subCategoryId, String language, String subscriberType, Integer page, String callPlan, 
+            boolean isPreview, boolean isHome, String accessRight, boolean isFull, String msisdn);
+    
+    List<ProductDto> getBannerPerCategory(String categoryId, String language, String subscriberType, Integer page, String callPlan, 
+            boolean isPreview, String accessRight, boolean isFull);
+
+    Map<String, Object> getHomeScreen(HomeScreenRequestDto request, String language, String callPlan, boolean isPreview, String accessRight, boolean isFull);
+
+    Map<String, Object> getRecommendedForYou(HomeScreenRequestDto request, String language, boolean isFull);
+
+    Map<String, Object> getRecommendedForYouLimited(HomeScreenRequestDto request, String language, boolean isFull);
+
+    Map<String, Object> getHomeScreenBannerAll(HomeScreenRequestDto request, String language, Integer page, String callPlan, boolean isPreview, String accessRight, boolean isFull);
+
+    List<ProductDto> searchProduct(SearchRequestDto request, String language, String callPlan, String accessRight, boolean isFull);
+    Map<String, Object> productDetail(ProductDetailDto request, boolean isFull, String accessRight);
+
+    Map<String, Object> productDetail(String id, boolean isFull);
+    
+    List<ProductDto> searchProductAutoComplete(SearchAutoCompleteRequestDto request, String language, String callPlan, String accessRight, boolean isFull);
+   
+    Map giveRating(StarRatingDto starRatingDto);
+    List<ProductDto> getProductVouchers(ProductVouchersDto productVouchersDto, String accessRight);
+    
+    List<ProductDto> getProductUpsell(ProductUpsellRequestDto productUpsellRequestDto, boolean isIphone);
+    
+    Map isWishlist(WishlistDto wishlistDto);
+    Map removeWishlist(WishlistDto wishlistDto);
+    Map setWishlist(WishlistDto wishlistDto);
+    Map setLastViewed(LastViewedDto lastViewedDto);
+    List<TrxSubscriberPurchase> getLastPurchased(BaseRequestDto request);
+
+    TriProductModDto getTriProductModuleInfo(String categoryId, Integer page, String language, String subscriberType, String callPlan, 
+            boolean isPreview, String accessRight, String imei, boolean isFull, String msisdn);
+    
+    TriProductDetailDto getTriProductModuleProductDetail(String mainCategoryId, String categoryId, Integer page, String language, String subscriberType, String callPlan, 
+            boolean isPreview, String accessRight, String imei, boolean isFull, String msisdn);
+	Packege092Responce getOfferProduct(JsonData jsonData,String lang, String subscriberType,String imei);
+	List<Recommedation> getRecomended();
+	ProductCharging getProductChargingData(String productId);
+}

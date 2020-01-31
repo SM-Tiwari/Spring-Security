@@ -1,0 +1,10 @@
+#Thu Dec 26 16:05:05 IST 2019
+id.gnvsolution\:d3-web\:pom\:\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\bimaweb\\pom.xml
+id.gnvsolution\:d3-service\:jar\:tests\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\bimaservice\\target\\test-classes
+id.gnvsolution\:d3-service\:pom\:\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\bimaservice\\pom.xml
+id.gnvsolution\:d3-service\:jar\:\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\bimaservice\\target\\classes
+id.gnvsolution\:spring-json-view\:jar\:tests\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\spring-json-view\\target\\test-classes
+id.gnvsolution\:d3-web\:war\:\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\bimaweb\\target\\classes
+id.gnvsolution\:d3-web\:jar\:tests\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\bimaweb\\target\\test-classes
+id.gnvsolution\:spring-json-view\:pom\:\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\spring-json-view\\pom.xml
+id.gnvsolution\:spring-json-view\:jar\:\:1.0-SNAPSHOT=D\:\\merge wala\\0506-2019Latest\\spring-json-view\\target\\classes

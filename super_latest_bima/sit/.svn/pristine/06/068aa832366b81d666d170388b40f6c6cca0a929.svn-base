@@ -1,0 +1,48 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.HybridSubscriptionDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.service.EmailService;
+import id.gnvsolution.d3.api.service.HybridService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/hybrid")
+public class HybridController {
+
+    private HybridService hybridService;
+    private EmailService emailService;
+
+    @Autowired
+    public HybridController(HybridService hybridService, EmailService emailService) {
+        this.hybridService = hybridService;
+        this.emailService = emailService;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/bills")
+    public Map<String, Object> getInvoices(@RequestBody BaseRequestDto request) {
+        try {
+            return hybridService.getHybridInvoice(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_EXCEPTION : Languages.EN.COMMON_EXCEPTION)).all().build();
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/subscription")
+    public Map<String, Object> setSubscription(@RequestBody HybridSubscriptionDto request) {
+        return emailService.changeSubscription(request);
+    }
+
+}

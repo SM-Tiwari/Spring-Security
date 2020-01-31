@@ -1,0 +1,44 @@
+package id.gnvsolution.d3.api.model.helper;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.helper.SMSAndVoiceBean 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 30, 2018 12:53:13 PM
+ *
+ */
+public class SMSAndVoiceBean {
+
+    private Integer i;
+    private String name;
+    private String value;
+
+    public SMSAndVoiceBean() {
+    }
+
+    public Integer getI() {
+        return i;
+    }
+
+    public void setI(Integer i) {
+        this.i = i;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}

@@ -1,0 +1,53 @@
+package id.gnvsolution.d3.api.utils;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.monitorjbl.json.*;
+import id.gnvsolution.d3.api.dto.response.RewardDto;
+import id.gnvsolution.d3.api.dto.response.VendorDto;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import static org.junit.Assert.*;
+
+/**
+ * Created by Arie
+ * on 23/04/2017.
+ */
+public class JSONResultParserTest {
+    @Test
+    public void name001() throws Exception {
+        JsonViewSupportFactoryBean jsonViewSupportFactoryBean = new JsonViewSupportFactoryBean();
+
+        RewardDto rewardDto = new RewardDto();
+        rewardDto.setStatus(true);
+        ArrayList<VendorDto> vendorList = new ArrayList<>();
+        VendorDto vendorDto = new VendorDto();
+        vendorDto.setVendorName("vendorName");
+        vendorList.add(vendorDto);
+        rewardDto.setVendorList(vendorList);
+
+        JSONResultParser<RewardDto> rewardDtoJSONResultParser = new JSONResultParser<>(rewardDto);
+        rewardDtoJSONResultParser.excludeAll(RewardDto.class);
+        rewardDtoJSONResultParser.includes(RewardDto.class, "productId");
+        rewardDtoJSONResultParser.excludes(VendorDto.class, "vendorId");
+        RewardDto build = rewardDtoJSONResultParser.build();
+        ObjectMapper objectMapper = new ObjectMapper();
+        SimpleModule module = new JsonViewModule();
+        module.addSerializer(JsonView.class, new JsonViewSerializer());
+        objectMapper.registerModule(module);
+        System.out.println(objectMapper.writeValueAsString(build));
+
+        JsonView<RewardDto> rewardDtoJsonView = JsonView.with(rewardDto).onClass(RewardDto.class, Match.match().exclude("*").include("status", "vendorList")).onClass(VendorDto.class, Match.match().exclude("*").include("vendorName"));
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JsonViewModule());
+        System.out.println(objectMapper.writeValueAsString(rewardDtoJsonView));
+    }
+}

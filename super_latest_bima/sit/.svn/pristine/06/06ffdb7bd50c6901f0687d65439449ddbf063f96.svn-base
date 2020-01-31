@@ -1,0 +1,29 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+public class InfoWordingDto implements DTO {
+
+	private String descHdr;
+	private String desc;
+	
+	public InfoWordingDto() {
+		
+	}
+
+	public String getDescHdr() {
+		return descHdr;
+	}
+
+	public void setDescHdr(String descHdr) {
+		this.descHdr = descHdr;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+}

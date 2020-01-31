@@ -1,0 +1,78 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.HybridEmail 
+ * </pre>
+ * 
+ * <?xml version="1.0" encoding="UTF-8"?>
+
+<ns1:DisplayInvoiceRequest 
+*   xmlns:ns1="http://www.tibco.com/schemas/HCPT_ANGIE/Shared_Resources/XML/ODP/DisplayInvoiceDetails.xsd" 
+*   xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+*       <ns1:TransactionID>150072407812844</ns1:TransactionID>
+*       <ns1:MSISDN>628995180819</ns1:MSISDN>
+*       <ns1:RequestType>DISPLAY_INVOICE</ns1:RequestType>
+*       <ns1:Source>ODP</ns1:Source>
+* </ns1:DisplayInvoiceRequest>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 2, 2017 9:24:11 PM
+ *
+ */
+@XmlRootElement(name = "DisplayInvoiceRequest")
+@XmlAccessorType(XmlAccessType.FIELD)
+public class HybridEmail {
+
+    @XmlElement(name = "TransactionID")
+    private String transactionId;
+
+    @XmlElement(name = "MSISDN")
+    private String msisdn;
+
+    @XmlElement(name = "RequestType")
+    private String requestType;
+
+    @XmlElement(name = "Source")
+    private String source;
+
+    public HybridEmail() {
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getRequestType() {
+        return requestType;
+    }
+
+    public void setRequestType(String requestType) {
+        this.requestType = requestType;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+}

@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by rips on 4/12/17.
+ */
+public class ProfileRequsetDto  extends BaseRequestDto{
+
+    private String subscriberType;
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+}

@@ -1,0 +1,14 @@
+/**
+ * BalanceType.java
+ */
+package id.gnvsolution.d3.api.helper.enums;
+
+/**
+ * @author nandipinto
+ *
+ */
+public enum BalanceType {
+	
+	CORE, VOICE, SMS, DATA, PROMOTION,LMSPONT,FULLNAME
+
+}

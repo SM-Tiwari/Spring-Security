@@ -1,0 +1,38 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/6/17.
+ */
+public class BoolStatusOutDto implements DTO {
+
+    private boolean status;
+    private String statuscode;
+    public BoolStatusOutDto(){}
+
+    public BoolStatusOutDto(boolean status) {
+        this.status = status;
+    }
+    public BoolStatusOutDto(boolean status,String statuscode) {
+        this.status = status;
+        this.statuscode=statuscode;
+    }
+    public boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+	public String getStatuscode() {
+		return statuscode;
+	}
+
+	public void setStatuscode(String statuscode) {
+		this.statuscode = statuscode;
+	}
+
+	 
+}

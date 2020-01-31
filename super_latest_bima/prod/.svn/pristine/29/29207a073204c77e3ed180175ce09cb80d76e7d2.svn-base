@@ -1,0 +1,84 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.response.*;
+import id.gnvsolution.d3.api.model.ProductWidget;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.service.WidgetService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by rips on 5/10/17.
+ */
+@Service
+@Transactional
+public class WidgetServiceImpl extends BaseService implements WidgetService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(WidgetServiceImpl.class);
+
+    private static String SOURCE = "ODP_GNV";
+    @Autowired
+    ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+    @Autowired
+    ProfileService profileService;
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+
+    @Override
+    public Map<String, Object> getProfile(BaseRequestDto request) {
+        
+        if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        logger.info("#getProfile--------msisdn:::", request.getMsisdn());
+        BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+        List<Subscriber> subscribers = subscriberDao.find("subscriberMsisdn = :msisdn", new HashMap<String, Object>() {{
+            put("msisdn", request.getMsisdn());
+        }});
+        if (subscribers.size() > 0) {
+            Subscriber subscriber = subscribers.get(0);
+            ProfileDto profileDto = profileService.getProfile(request.getMsisdn(), subscriber.getSubscriberType(), subscriber.getSubscriberLangCode(), moduleTransactionIDGenerator.generate(Module.WIDGET), sessionFactoryDef);
+            ProfileWidgetDto result = new ProfileWidgetDto();
+            result.getProfile().setMsisdn(profileDto.getMsisdn());
+            result.getProfile().setBalance(profileDto.getBalance());
+            result.getProfile().setQuota(profileDto.getQuotaValue());
+            result.setStatus(true);
+
+            return JSONResultFilter.filter(result).all().build();
+        }
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "invalid msisdn")).all().build();
+    }
+
+    @Override
+    public Map<String, Object> getProducts(BaseRequestDto request) {
+        
+        if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        ProductWidgetDto result = new ProductWidgetDto();
+        BaseDao<ProductWidget> productWidgetDao = new BaseDao<>(sessionFactoryDef, ProductWidget.class);
+        List<ProductWidget> productWidgets = productWidgetDao.listData("from ProductWidget order by productOrder");
+        productWidgets.forEach(productWidget -> result.getProducts().add(ProductDto.fromProduct(sessionFactoryDef, productWidget.getProductByProductId(), request.getLanguage(), Constants.SUBSCRIBER_TYPE_PREPAID, "ANDROID", true)));
+        result.setStatus(true);
+        return JSONResultFilter.filter(result).all().build();
+    }
+}

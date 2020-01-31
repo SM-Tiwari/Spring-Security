@@ -1,0 +1,8 @@
+package id.gnvsolution.d3.api.service;
+
+/**
+ * Created by Arie
+ * on 05/04/2017.
+ */
+public interface ContactTriService {
+}

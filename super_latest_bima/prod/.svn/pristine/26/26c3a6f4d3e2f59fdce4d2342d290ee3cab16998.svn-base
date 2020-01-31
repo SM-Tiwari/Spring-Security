@@ -1,0 +1,23 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.PromoService
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 24, 2017 12:04:43 PM
+ *
+ */
+public interface PromoService {
+    Map<String, Object> getShakePromo(BaseRequestDto baseRequestDto, boolean isFull);
+
+    Map<String, Object> redeemPromo(PurchaseRequestDto redeemRequestDto);
+
+    Map<String, Object> cancelShakePromo(PurchaseRequestDto purchaseRequestDto);
+}

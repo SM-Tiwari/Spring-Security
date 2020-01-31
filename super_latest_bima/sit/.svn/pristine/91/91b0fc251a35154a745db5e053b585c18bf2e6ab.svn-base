@@ -1,0 +1,40 @@
+package id.gnvsolution.d3.api.controller;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.LoggerFactory;
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping(value = "/")
+public class IndexController {
+
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @RequestMapping(method = RequestMethod.GET)
+    public Map<String, String> getIndex(@RequestHeader HttpHeaders httpHeaders) {
+        Map<String, String> json = new HashMap<>();
+
+        String msisdn = httpHeaders.getFirst("X-MSP-MSISDN");
+        json.put("Your Number", msisdn == null ? "-" : msisdn);
+
+        return json;
+    }
+
+    @RequestMapping(method = RequestMethod.POST)
+    public Map<String, String> postIndex(@RequestHeader HttpHeaders httpHeaders) {
+        Map<String, String> json = new HashMap<>();
+
+        String msisdn = httpHeaders.getFirst("X-MSP-MSISDN");
+        json.put("Your Number", msisdn == null ? "-" : msisdn);
+        
+        return json;
+    }
+
+}

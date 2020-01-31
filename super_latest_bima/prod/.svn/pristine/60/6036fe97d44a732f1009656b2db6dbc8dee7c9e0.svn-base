@@ -1,0 +1,31 @@
+/**
+ * 
+ */
+package id.gnvsolution.d3.api.helper.enums;
+
+/**
+ * @author nandipinto
+ *
+ */
+public enum TibcoResponse {
+
+	SUCCESS("00000", "SUCCESS"),
+	VOUCHER_IS_ALREADY_CONSUMED("1016108", "VOUCHER_ALREADY_USED"),
+	VOUCHER_PIN_NOT_FOUND_IN_DB("1016106", "VOUCHER_CODE_INVALID");
+	
+	private String code;
+	private String message;
+	
+	private TibcoResponse(String code, String message) {
+		this.code = code;
+		this.message = message;
+	}
+	
+	public String code() {
+		return code;
+	}
+	
+	public String message() {
+		return message;
+	}
+}

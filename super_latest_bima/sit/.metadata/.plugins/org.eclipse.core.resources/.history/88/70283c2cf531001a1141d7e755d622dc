@@ -1,0 +1,10 @@
+package id.gnvsolution.d3.api.service;
+
+public interface AppConfigService {
+
+	void getConfiguration();
+
+	String get(String string,String defaultValue);
+    String getCron(String key);
+
+}

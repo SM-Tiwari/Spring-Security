@@ -1,0 +1,151 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.Collection;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "TRX_SUBSCRIBER_RELOAD")
+public class TrxSubscriberReload {
+    private String transactionId;
+    private String subscriberMsisdn;
+    private Timestamp transactionDatetime;
+    private String voucherCode;
+    private boolean transactionStatus;
+    private Collection<Notification> notificationsByTransactionId;
+    private Subscriber subscriberBySubscriberMsisdn;
+    private String  LoginSubscriberMsisdn;
+    private String denomAmount;
+    private String interfaceType;
+    
+    @Basic
+    @Column(name = "INTERFACE_TYPE", nullable = false, length = 15)
+    public String getInterfaceType() {
+		return interfaceType;
+	}
+
+	public void setInterfaceType(String interfaceType) {
+		this.interfaceType = interfaceType;
+	}
+     
+    @Id
+    @Column(name = "TRANSACTION_ID", nullable = false, precision = 0)
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+    
+    
+	@Basic
+    @Column(name = "LOGIN_SUBSCRIBER_MSISDN", length = 15)
+    public String getLoginSubscriberMsisdn() {
+		return LoginSubscriberMsisdn;
+	}
+
+	public void setLoginSubscriberMsisdn(String loginSubscriberMsisdn) {
+		LoginSubscriberMsisdn = loginSubscriberMsisdn;
+	}
+
+    @Basic
+    @Column(name = "SUBSCRIBER_MSISDN", nullable = false, length = 15)
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    @Basic
+    @Column(name = "TRANSACTION_DATETIME", nullable = false)
+    public Timestamp getTransactionDatetime() {
+        return transactionDatetime;
+    }
+
+    public void setTransactionDatetime(Timestamp transactionDatetime) {
+        this.transactionDatetime = transactionDatetime;
+    }
+
+    @Basic
+    @Column(name = "VOUCHER_CODE", nullable = false, length = 50)
+    public String getVoucherCode() {
+        return voucherCode;
+    }
+
+    public void setVoucherCode(String voucherCode) {
+        this.voucherCode = voucherCode;
+    }
+
+    @Basic
+    @Column(name = "TRANSACTION_STATUS", nullable = false, precision = 0)
+    public boolean getTransactionStatus() {
+        return transactionStatus;
+    }
+
+    public void setTransactionStatus(boolean transactionStatus) {
+        this.transactionStatus = transactionStatus;
+    }    
+    
+    @Basic
+    @Column(name = "DENOM_AMOUNT", nullable = false, precision = 0)
+	public String getDenomAmount() {
+		return denomAmount;
+	}
+
+	public void setDenomAmount(String denomAmount) {
+		this.denomAmount = denomAmount;
+	}
+
+	@Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TrxSubscriberReload that = (TrxSubscriberReload) o;
+
+        if (transactionId != that.transactionId) return false;
+        if (transactionStatus != that.transactionStatus) return false;
+        if (subscriberMsisdn != null ? !subscriberMsisdn.equals(that.subscriberMsisdn) : that.subscriberMsisdn != null)
+            return false;
+        if (transactionDatetime != null ? !transactionDatetime.equals(that.transactionDatetime) : that.transactionDatetime != null)
+            return false;
+        if (voucherCode != null ? !voucherCode.equals(that.voucherCode) : that.voucherCode != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = transactionId != null ? transactionId.hashCode() : 0;
+        result = 31 * result + (subscriberMsisdn != null ? subscriberMsisdn.hashCode() : 0);
+        result = 31 * result + (transactionDatetime != null ? transactionDatetime.hashCode() : 0);
+        result = 31 * result + (voucherCode != null ? voucherCode.hashCode() : 0);
+        result = 31 * result + (int) ((transactionStatus ? 1 : 0) ^ ((transactionStatus ? 1 : 0) >>> 32));
+        return result;
+    }
+
+    @OneToMany(mappedBy = "trxSubscriberReloadByTrxTransactionId2")
+    public Collection<Notification> getNotificationsByTransactionId() {
+        return notificationsByTransactionId;
+    }
+
+    public void setNotificationsByTransactionId(Collection<Notification> notificationsByTransactionId) {
+        this.notificationsByTransactionId = notificationsByTransactionId;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "SUBSCRIBER_MSISDN", referencedColumnName = "SUBSCRIBER_MSISDN", nullable = false, updatable = false, insertable = false)
+    public Subscriber getSubscriberBySubscriberMsisdn() {
+        return subscriberBySubscriberMsisdn;
+    }
+
+    public void setSubscriberBySubscriberMsisdn(Subscriber subscriberBySubscriberMsisdn) {
+        this.subscriberBySubscriberMsisdn = subscriberBySubscriberMsisdn;
+    }
+}

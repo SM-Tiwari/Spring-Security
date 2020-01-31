@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://xmlns.example.com/1516787528038/OperationImpl/Business__Process/ODP__Interfaces" xmlns:ns0="http://www.tibco.com/schemas/BIMAPlusCode_24Jan/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="Untitled" targetNamespace="http://xmlns.example.com/1516787528038/OperationImpl/Business__Process/ODP__Interfaces">
+    <wsdl:types>
+        <xs:schema xmlns="http://www.tibco.com/schemas/BIMAPlusCode_24Jan/Shared_Resources/Schema/XML/ODP/Schema1.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/BIMAPlusCode_24Jan/Shared_Resources/Schema/XML/ODP/Schema1.xsd" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="TibcoODPHmPageRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TRANSACTION_ID" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="SUBSCRIBER_TYPE" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="TibcoODPHmPageResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="DukcapilInfo" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="SubscriberName" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="SubsriberInfo" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Total_Balance" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Main_Account_Balance" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="On-Net_Bal" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Off-Net_Bal" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Expiry_Date" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Subscription_Type" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="HYBRID_Type" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Call_Plan" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Payment_type" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Ebill_mail_id" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusCode" type="xs:string"/>
+                                    <xs:element name="StatusText" type="xs:string"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="BONUS_INFO" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="StatusCode" type="xs:string"/>
+                                    <xs:element name="StatusText" type="xs:string"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="TIBODPHomePage">
+        <wsdl:port name="ReceiveHomePage__Req" binding="tns:ReceiveHomePage__ReqBinding">
+            <soap:address location="http://TIBCO_URL_BIMAHOMEPAGE_ENDPOINT"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="BIMAHmPage">
+        <wsdl:operation name="Operation">
+            <wsdl:input message="tns:HmPageRequest"/>
+            <wsdl:output message="tns:HmPageResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="ReceiveHomePage__ReqBinding" type="tns:BIMAHmPage">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="Operation">
+            <soap:operation style="document" soapAction="/Business_Process/ODP_Interfaces/TIBODPHomePage"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="HmPageReq"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="HmPageResp"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="HmPageRequest">
+        <wsdl:part name="HmPageReq" element="ns0:TibcoODPHmPageRequest"/>
+    </wsdl:message>
+    <wsdl:message name="HmPageResponse">
+        <wsdl:part name="HmPageResp" element="ns0:TibcoODPHmPageResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

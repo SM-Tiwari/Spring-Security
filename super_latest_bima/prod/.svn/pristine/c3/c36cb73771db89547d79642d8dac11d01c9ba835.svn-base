@@ -1,0 +1,5 @@
+package id.gnvsolution.d3.api.service;
+
+public interface BackEndRequestProcessor {
+	void loadClassOfServiceMappings();
+}

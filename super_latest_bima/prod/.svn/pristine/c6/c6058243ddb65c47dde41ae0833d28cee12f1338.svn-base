@@ -1,0 +1,38 @@
+package id.gnvsolution.d3.api.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+
+import id.gnvsolution.d3.api.service.FattyService;
+
+@RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequestMapping("/api/v1/fatty")
+public class FattyController extends BaseController {
+
+	/**
+	 * Instance of Logger {@link Logger}
+	 */
+	public static final Logger LOGGER = LoggerFactory.getLogger(FattyController.class);
+	/**
+	 * Instance of {@link FattyMonsterService}
+	 */
+	
+	@Autowired
+	private FattyService fattyMonsterService;
+	
+	@RequestMapping(value = "/monsterdetails", method = RequestMethod.GET)
+	public String  getFattyDetails() {
+		
+		int getMinPoint = fattyMonsterService.getMinfattyPoint();
+		
+		return ""+getMinPoint;
+
+	}
+}

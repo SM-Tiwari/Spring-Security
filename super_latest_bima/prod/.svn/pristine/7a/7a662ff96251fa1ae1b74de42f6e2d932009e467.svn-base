@@ -1,0 +1,148 @@
+package id.gnvsolution.d3.api.utils;
+
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.SetStatement;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.alter.Alter;
+import net.sf.jsqlparser.statement.create.index.CreateIndex;
+import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.view.AlterView;
+import net.sf.jsqlparser.statement.create.view.CreateView;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.drop.Drop;
+import net.sf.jsqlparser.statement.execute.Execute;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.merge.Merge;
+import net.sf.jsqlparser.statement.replace.Replace;
+import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.statement.truncate.Truncate;
+import net.sf.jsqlparser.statement.update.Update;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Created by Arie
+ * on 16/04/2017.
+ *
+ * limited support subselect up to 10 level
+ */
+public class SqlParserHelper {
+    private static final Logger LOGGER_DEF = LoggerFactory.getLogger(SqlParserHelper.class);
+    private static final int SUBSELECT_LIMIT = 10;
+    private int counter = 0;
+
+    SqlParserHelper() {
+    }
+
+    public static StringBuilder parseSQL(String sql) {
+        try {
+            return new SqlParserHelper().parse(sql);
+        } catch (SQLParserException e) {
+            LOGGER_DEF.debug("SqlParserHelper.parseSQL: " + e.getLocalizedMessage());
+        }
+        return new StringBuilder("ERROR PARSE SQL : " + sql);
+    }
+
+    StringBuilder parse(String sql) {
+        LOGGER_DEF.debug("sql: " + sql);
+        StringBuilder message = new StringBuilder();
+        try {
+            Statement expression = CCJSqlParserUtil.parse(sql);
+            message.append("DATABASE ACTION ");
+            message.append(expression.getClass().getSimpleName());
+            message.append(" : ");
+            if (expression instanceof Drop) {
+                Table table = ((Drop) expression).getName();
+                message.append(table.getName());
+            } else if (expression instanceof Truncate) {
+                Table table = ((Truncate) expression).getTable();
+                message.append(table.getName());
+            } else if (expression instanceof CreateTable) {
+                Table table = ((CreateTable) expression).getTable();
+                message.append(table.getName());
+            } else if (expression instanceof Alter) {
+                Table table = ((Alter) expression).getTable();
+                message.append(table.getName());
+            } else if (expression instanceof CreateView) {
+                Table table = ((CreateView) expression).getView();
+                message.append(table.getName());
+            } else if (expression instanceof SetStatement) {
+                String name = ((SetStatement) expression).getName();
+                message.append(name);
+            } else if (expression instanceof Execute) {
+                String name = ((Execute) expression).getName();
+                message.append(name);
+            } else if (expression instanceof Select) {
+                SelectBody selectBody = ((Select) expression).getSelectBody();
+                if (selectBody instanceof PlainSelect) {
+                    FromItem fromItem = ((PlainSelect) selectBody).getFromItem();
+                    if (fromItem instanceof SubSelect) {
+                        fromItem = getTableFromSubSelect(fromItem);
+                    }
+                    fromItemParser(message, fromItem);
+                }
+            } else if (expression instanceof Merge) {
+                Table table = ((Merge) expression).getTable();
+                message.append(table.getName());
+            } else if (expression instanceof AlterView) {
+                Table table = ((AlterView) expression).getView();
+                message.append(table.getName());
+            } else if (expression instanceof Replace) {
+                Table table = ((Replace) expression).getTable();
+                message.append(table.getName());
+            } else if (expression instanceof net.sf.jsqlparser.statement.update.Update) {
+                FromItem fromItem = ((Update) expression).getFromItem();
+                fromItemParser(message, fromItem);
+            } else if (expression instanceof CreateIndex) {
+                Table table = ((CreateIndex) expression).getTable();
+                message.append(table.getName());
+            } else if (expression instanceof Insert) {
+                Table table = ((Insert) expression).getTable();
+                message.append(table.getName());
+            } else if (expression instanceof Delete) {
+                Table table = ((Delete) expression).getTable();
+                message.append(table.getName());
+            }
+
+        } catch (JSQLParserException e) {
+            LOGGER_DEF.warn("SqlParserHelper.parse.error: " + e.getLocalizedMessage());
+        }
+        return message;
+    }
+
+    private FromItem getTableFromSubSelect(FromItem fromItem) {
+        counter++;
+        SelectBody selectBody = ((SubSelect) fromItem).getSelectBody();
+        fromItem = ((PlainSelect) selectBody).getFromItem();
+        if(counter == SUBSELECT_LIMIT){
+            return fromItem;
+        }
+        if (fromItem instanceof SubSelect) {
+            fromItem = getTableFromSubSelect(fromItem);
+        }
+        return fromItem;
+    }
+
+
+    private void fromItemParser(StringBuilder message, FromItem fromItem) {
+        if (fromItem == null) {
+            throw new SQLParserException("UNPARSEABLE QUERY STRING");
+        }
+
+        if (fromItem instanceof SubJoin) {
+            message.append(fromItem.getAlias().getName());
+        } else if (fromItem instanceof Table) {
+            message.append(((Table) fromItem).getName());
+        } else if (fromItem instanceof SubSelect) {
+            message.append(fromItem.getAlias().getName());
+        } else if (fromItem instanceof LateralSubSelect) {
+            message.append(fromItem.getAlias().getName());
+        } else if (fromItem instanceof ValuesList) {
+            message.append(fromItem.getAlias().getName());
+        } else if (fromItem instanceof TableFunction) {
+            message.append(((TableFunction) fromItem).getFunction().getName());
+        }
+    }
+}

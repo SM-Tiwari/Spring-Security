@@ -1,0 +1,15 @@
+package id.gnvsolution.d3.test;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
+/**
+ * Created by GNV Solution on 4/19/2017.
+ */
+public class LocaleTest {
+
+    public static void main(String[] args) {
+        System.out.println("main: " + NumberFormat.getNumberInstance(Locale.GERMAN).format(1000));
+    }
+
+}

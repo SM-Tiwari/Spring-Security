@@ -1,0 +1,145 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.model.TrxPostpaidPayment;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.utils.Helpers;
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.SprintController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 24, 2017 3:50:43 PM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Controller
+@RequestMapping("/api/v1/sprint")
+@ApiIgnore
+public class SprintController {
+
+    private static final String SPRINT_URL = "https://simpg.sprintasia.net";
+    
+    public static final String KLIK_PAY_CODE = "25HUTCH304";
+    
+    private static final String CLEAR_KEY = "ClearKeyDevHutch";
+    
+    private static final String CALLBACK_URL = "http://bimaplus.tri.co.id/api/v1/inbound/sprint/invocation";
+    
+    private final ExternalPayment externalPayment;
+    
+    @Autowired
+    public SprintController(ExternalPayment externalPayment){
+        this.externalPayment = externalPayment;
+    }
+    
+    @RequestMapping(value = "/buy", method = RequestMethod.GET)
+    public String sprintBuy(ModelMap modelMap, 
+                                        @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = true) String PAYMENTMETHOD, 
+                                        @RequestParam(required = false) String POSTPAID, 
+                                        @RequestParam(required = false) String BILLAMOUNT, 
+                                        @RequestParam(required = false) String HYBRID, 
+                                        @RequestParam(required = false) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = true) String EMAIL) {
+        
+        // generate trxid
+        String transactionId = "";
+        
+        // PURCHASE
+        if(POSTPAID == null && HYBRID == null) {
+            transactionId = externalPayment.generateTrxNumber();
+        
+            TrxSubscriberPurchase subscriberPurchase = new TrxSubscriberPurchase();
+            subscriberPurchase.setTransactionId(transactionId);
+            subscriberPurchase.setSubscriberMsisdn(MSISDN);
+            subscriberPurchase.setProductId(PRODUCTID);
+            subscriberPurchase.setPaymentMethodCode(PAYMENTMETHOD);
+            subscriberPurchase.setMenuCategoryName("menu_name");
+            subscriberPurchase.setMenuSubCategoryName("sub_menu_name");
+            subscriberPurchase.setPrice((long)Double.parseDouble(AMOUNT));
+            subscriberPurchase.setIsPromo(false);
+            subscriberPurchase.setVendorId(VENDORID);
+            subscriberPurchase.setServicePlan(SERVICEPLAN);
+
+            // save purchase
+            externalPayment.saveToTrxSubscriberPurchase(subscriberPurchase);
+        } 
+
+        // POSTPAID
+        if(POSTPAID != null) {
+            transactionId = externalPayment.generateTrxNumberPostpaid();
+            
+            // POSTPAID
+            TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+            trxPostpaidPayment.setTransactionId(transactionId);
+            trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+            trxPostpaidPayment.setPaymentMethodCode(PAYMENTMETHOD);
+            trxPostpaidPayment.setAccountNumber(ACCOUNTNUMBER);
+            trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountName(NAME);
+            trxPostpaidPayment.setAccountEmail(EMAIL);
+            
+            // save invoice
+            externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+        }
+        
+        // HYBRID
+        if(HYBRID != null) {
+            transactionId = externalPayment.generateTrxNumberHybrid();
+            
+            TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+            trxPostpaidPayment.setTransactionId(transactionId);
+            trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+            trxPostpaidPayment.setPaymentMethodCode(PAYMENTMETHOD);
+            trxPostpaidPayment.setAccountNumber(ACCOUNTNUMBER);
+            trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+            trxPostpaidPayment.setAccountName(NAME);
+            trxPostpaidPayment.setAccountEmail(EMAIL);
+            
+            // save invoice
+            externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+        } 
+        
+        // make sure AMOUNT ends with .00
+        if(!AMOUNT.endsWith(".00")) {
+            AMOUNT = AMOUNT+".00";
+        }
+        
+        // send to page
+        modelMap.put("URL", SPRINT_URL+"/klikpay/webgw");
+        modelMap.put("klikPayCode", KLIK_PAY_CODE);
+        modelMap.put("transactionNo", transactionId);
+        modelMap.put("totalAmount", AMOUNT);
+        modelMap.put("currency", "IDR");
+        modelMap.put("payType", "01");
+        modelMap.put("callback", CALLBACK_URL);
+        modelMap.put("transactionDate", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
+        modelMap.put("descp", PRODUCTNAME);
+        modelMap.put("miscFee", "0.00");
+        modelMap.put("signature", Helpers.generateSprintSignature(KLIK_PAY_CODE, transactionId, "IDR", CLEAR_KEY, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), AMOUNT));
+        
+        return "sprint";
+    }
+}

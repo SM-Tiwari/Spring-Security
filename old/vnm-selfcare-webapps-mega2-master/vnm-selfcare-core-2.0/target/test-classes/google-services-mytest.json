@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "856910805654",
+    "firebase_url": "https://my-fcm-7fb3c.firebaseio.com",
+    "project_id": "my-fcm-7fb3c",
+    "storage_bucket": "my-fcm-7fb3c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856910805654:android:9455be14bab998b4",
+        "android_client_info": {
+          "package_name": "com.embuh.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "856910805654-mp6p5oqqahftntdp398okrt7r7p3bv9b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAy28W4-6Mvjan64X92NfumgpoK8NS8XeM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,53 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.*;
+
+/**
+ <Monster_details>
+ <Monster_Name>Bray</Monster_Name>
+ <Monster_Count>3</Monster_Count>
+ <Monster_Points>60</Monster_Points>
+ </Monster_details>
+ */
+
+@XmlRootElement(name = "Monster_details")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"Monster_Name","Monster_Count","Monster_Points"})
+public class BonstriTibcoMonsters {
+    @XmlElement(name = "Monster_Name" )
+    private String Monster_Name;
+    @XmlElement(name = "Monster_Count")
+    private String Monster_Count;
+    @XmlElement(name = "Monster_Points")
+    private String Monster_Points;
+
+    public String toString() {
+        return "Monster Detail{" + "Monster_Name=" + Monster_Name + ", Monster_Count=" + Monster_Count + ", Monster_Points=" + Monster_Points +  '}';
+    }
+
+    public String getMonster_Name() {
+        return Monster_Name;
+    }
+
+    public void setMonster_Name(String Monster_Name) {
+        this.Monster_Name = Monster_Name;
+    }
+
+    public String getMonster_Count() {
+        return Monster_Count;
+    }
+
+    public void setMonster_Count(String Monster_Count) {
+        this.Monster_Count = Monster_Count;
+    }
+
+    public String getMonster_Points() {
+        return Monster_Points;
+    }
+
+    public void setMonster_Points(String Monster_Points) {
+        this.Monster_Points = Monster_Points;
+    }
+
+    
+}

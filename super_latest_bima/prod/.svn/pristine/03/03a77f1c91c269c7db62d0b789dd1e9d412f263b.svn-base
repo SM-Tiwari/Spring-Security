@@ -1,0 +1,26 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import java.util.List;
+
+import id.gnvsolution.d3.api.dto.DTO;
+import id.gnvsolution.d3.api.model.PostPaidPaymentHistoryEntity;
+
+public class PostpaidBillingHistoryDto implements DTO {
+
+	
+	private List<PostPaidPaymentHistoryEntity> PostPaidPaymentHistory;
+	
+	public PostpaidBillingHistoryDto(List<PostPaidPaymentHistoryEntity> PostPaidPaymentHistory){
+		this.PostPaidPaymentHistory = PostPaidPaymentHistory;
+	}
+
+	public List<PostPaidPaymentHistoryEntity> getPostPaidPaymentHistory() {
+		return PostPaidPaymentHistory;
+	}
+
+	public void setPostPaidPaymentHistory(List<PostPaidPaymentHistoryEntity> postPaidPaymentHistory) {
+		PostPaidPaymentHistory = postPaidPaymentHistory;
+	}
+	
+	
+}

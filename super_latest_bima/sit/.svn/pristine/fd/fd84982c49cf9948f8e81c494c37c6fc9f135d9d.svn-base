@@ -1,0 +1,102 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by Arie
+ * on 04/04/2017.
+ */
+public class LoginOutDto implements DTO {
+    private String msisdn;
+    private boolean status;
+    private String language;
+    private String subscriberType;
+    private String secretKey;
+    private String balance;
+    private String creditLimit;
+    private String callPlan;
+
+    private String profileColor;
+    private long profileTime;
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public String getCallPlan() {
+        return callPlan;
+    }
+
+    public void setCallPlan(String callPlan) {
+        this.callPlan = callPlan;
+    }
+
+    public String getProfileColor() {
+        return profileColor == null || profileColor.isEmpty() ? Constants.DEFAULT_COLOR_FLASH_PROFILE : profileColor;
+    }
+
+    public void setProfileColor(String profileColor) {
+        this.profileColor = profileColor;
+    }
+
+    public String getBalance() {
+        return balance;
+    }
+
+    public void setBalance(String balance) {
+        this.balance = balance;
+    }
+
+    public String getCreditLimit() {
+        return creditLimit;
+    }
+
+    public void setCreditLimit(String creditLimit) {
+        this.creditLimit = creditLimit;
+    }
+
+    public long getProfileTime() {
+        return profileTime;
+    }
+
+    public void setProfileTime(long profileTime) {
+        this.profileTime = profileTime;
+    }
+}

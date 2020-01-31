@@ -1,0 +1,161 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.util.Date;
+
+@MappedSuperclass
+public class CampaignWhitelist {
+
+    @Id
+    @Column(name = "ID")
+    private Integer id;
+
+    @Column(name = "PROMO_ID")
+    private String promoId;
+
+    @Column(name = "STATUS")
+    private Integer status;
+
+    @Column(name = "PKGCODE")
+    private String packageCode;
+
+    @Column(name = "MSISDN")
+    private Integer msisdn;
+
+    @Column(name = "BANNER")
+    private String banner;
+
+    @Column(name = "CLAIMED")
+    private Integer claimed;
+
+    @Column(name = "PROCESSED")
+    private Integer processed;
+
+    @Column(name = "CLAIMDATE")
+    @Temporal(TemporalType.DATE)
+    private Date claimDate;
+
+    @Column(name = "CREATED")
+    @Temporal(TemporalType.DATE)
+    private Date created;
+
+    @Column(name = "UPDATED")
+    @Temporal(TemporalType.DATE)
+    private Date updated;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+//        CampaignWhitelist that = (CampaignWhitelist) o;
+
+//        if (whitelistId != that.whitelistId) return false;
+//        if (createdBy != that.createdBy) return false;
+//        if (msisdn != null ? !msisdn.equals(that.msisdn) : that.msisdn != null) return false;
+//        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+//        if (updatedBy != null ? !updatedBy.equals(that.updatedBy) : that.updatedBy != null) return false;
+//        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+//        result = 31 * result + (msisdn != null ? msisdn.hashCode() : 0);
+//        result = 31 * result + (int) (createdBy ^ (createdBy >>> 32));
+//        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+//        result = 31 * result + (updatedBy != null ? updatedBy.hashCode() : 0);
+//        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getPromoId() {
+        return promoId;
+    }
+
+    public void setPromoId(String promoId) {
+        this.promoId = promoId;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getPackageCode() {
+        return packageCode;
+    }
+
+    public void setPackageCode(String packageCode) {
+        this.packageCode = packageCode;
+    }
+
+    public Integer getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(Integer msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getBanner() {
+        return banner;
+    }
+
+    public void setBanner(String banner) {
+        this.banner = banner;
+    }
+
+    public Integer getClaimed() {
+        return claimed;
+    }
+
+    public void setClaimed(Integer claimed) {
+        this.claimed = claimed;
+    }
+
+    public Integer getProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(Integer processed) {
+        this.processed = processed;
+    }
+
+    public Date getClaimDate() {
+        return claimDate;
+    }
+
+    public void setClaimDate(Date claimDate) {
+        this.claimDate = claimDate;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public Date getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(Date updated) {
+        this.updated = updated;
+    }
+}

@@ -1,0 +1,184 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Date;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.RptPgUt 
+ * 
+ *  For UT Purpose
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 20, 2017 12:16:35 AM
+ *
+ */
+@Entity
+@Table(name = "RPT_PG_UT")
+public class RptPgUt implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Basic(optional = false)
+    @Column(name = "UUID")
+    private String uuid;
+    @Column(name = "TRX_DATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date trxDate;
+    @Column(name = "INVOICE_NO")
+    private String invoiceNo;
+    @Column(name = "CARD_NO")
+    private String cardNo;
+    @Column(name = "CHANNEL")
+    private String channel;
+    @Column(name = "AMOUNT")
+    private BigDecimal amount;
+    @Column(name = "STATUS")
+    private String status;
+    
+    @Column(name = "APPROVALCODE")
+    private String approvalcode;
+    
+    @Lob
+    @Column(name = "METADATA_01")
+    private String metadata01;
+    @Lob
+    @Column(name = "METADATA_02")
+    private String metadata02;
+    @Lob
+    @Column(name = "METADATA_03")
+    private String metadata03;
+
+    public RptPgUt() {
+    }
+
+    public RptPgUt(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public Date getTrxDate() {
+        return trxDate;
+    }
+
+    public void setTrxDate(Date trxDate) {
+        this.trxDate = trxDate;
+    }
+
+    public String getInvoiceNo() {
+        return invoiceNo;
+    }
+
+    public void setInvoiceNo(String invoiceNo) {
+        this.invoiceNo = invoiceNo;
+    }
+
+    public String getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(String cardNo) {
+        this.cardNo = cardNo;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getMetadata01() {
+        return metadata01;
+    }
+
+    public void setMetadata01(String metadata01) {
+        this.metadata01 = metadata01;
+    }
+
+    public String getMetadata02() {
+        return metadata02;
+    }
+
+    public void setMetadata02(String metadata02) {
+        this.metadata02 = metadata02;
+    }
+
+    public String getMetadata03() {
+        return metadata03;
+    }
+
+    public void setMetadata03(String metadata03) {
+        this.metadata03 = metadata03;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (uuid != null ? uuid.hashCode() : 0);
+        return hash;
+    }
+
+    public String getApprovalcode() {
+        return approvalcode;
+    }
+
+    public void setApprovalcode(String approvalcode) {
+        this.approvalcode = approvalcode;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof RptPgUt)) {
+            return false;
+        }
+        RptPgUt other = (RptPgUt) object;
+        if ((this.uuid == null && other.uuid != null) || (this.uuid != null && !this.uuid.equals(other.uuid))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.RptPgUt[ uuid=" + uuid + " ]";
+    }
+
+}

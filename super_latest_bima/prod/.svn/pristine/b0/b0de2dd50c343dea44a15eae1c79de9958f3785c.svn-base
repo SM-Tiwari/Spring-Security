@@ -1,0 +1,104 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.CampaignBanner 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 7, 2017 6:03:50 PM
+ *
+ */
+@Entity
+@Table(name = "CAMPAIGN_BANNER")
+public class CampaignBanner implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_CAMPAIGN_BANNER", sequenceName = "SEQ_CAMPAIGN_BANNER", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_CAMPAIGN_BANNER", strategy = GenerationType.SEQUENCE)
+    private BigDecimal id;
+    @Column(name = "BANNER_PATH")
+    private String bannerPath;
+    @Basic(optional = false)
+    @Column(name = "BANNER_TYPE")
+    private String bannerType;
+    @JoinColumn(name = "CAMPAIGN_ID", referencedColumnName = "CAMPAIGN_ID")
+    @ManyToOne(optional = false)
+    private Campaign campaignId;
+
+    public CampaignBanner() {
+    }
+
+    public CampaignBanner(BigDecimal id) {
+        this.id = id;
+    }
+
+    public CampaignBanner(BigDecimal id, String bannerType) {
+        this.id = id;
+        this.bannerType = bannerType;
+    }
+
+    public BigDecimal getId() {
+        return id;
+    }
+
+    public void setId(BigDecimal id) {
+        this.id = id;
+    }
+
+    public String getBannerPath() {
+        return bannerPath;
+    }
+
+    public void setBannerPath(String bannerPath) {
+        this.bannerPath = bannerPath;
+    }
+
+    public String getBannerType() {
+        return bannerType;
+    }
+
+    public void setBannerType(String bannerType) {
+        this.bannerType = bannerType;
+    }
+
+    public Campaign getCampaignId() {
+        return campaignId;
+    }
+
+    public void setCampaignId(Campaign campaignId) {
+        this.campaignId = campaignId;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof CampaignBanner)) {
+            return false;
+        }
+        CampaignBanner other = (CampaignBanner) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.CampaignBanner[ id=" + id + " ]";
+    }
+
+}

@@ -1,0 +1,34 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * Created by rips on 4/17/17.
+ */
+
+@XmlRootElement(name = "TibcoODPBonusRegRequest")
+public class TibcoODPBonusRegRequest{
+
+    public TibcoODPBonusRegRequest(){
+        bonusRequest = new BonusRequest();
+    }
+
+    private BonusRequest bonusRequest;
+
+    @XmlElement(name = "BonusRequest", nillable = true)
+    public BonusRequest getBonusRequest() {
+        return bonusRequest;
+    }
+
+    public void setBonusRequest(BonusRequest bonusRequest) {
+        this.bonusRequest = bonusRequest;
+    }
+
+    @Override
+    public String toString() {
+        return "TibcoODPBonusRegRequest{" + "bonusRequest=" + bonusRequest + '}';
+    }
+}

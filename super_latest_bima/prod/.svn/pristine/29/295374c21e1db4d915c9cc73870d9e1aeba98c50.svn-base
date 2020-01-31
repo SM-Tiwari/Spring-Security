@@ -1,0 +1,151 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.NotificationPush 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 28, 2017 1:31:04 PM
+ *
+ */
+@Entity
+@Table(name = "NOTIFICATION_PUSH")
+public class NotificationPush implements Serializable {
+
+    private String uuid;
+    private String pushMessage;
+    private String gcmUrl;
+    private String apnUrl;
+    private String apnPayload;
+    private String gcmPayload;
+    private Boolean isSend;
+    private String link;
+    private String icon;
+    private String topBanner;
+    
+
+    public NotificationPush() {
+    }
+
+    public NotificationPush(String uuid, String pushMessage, String gcmUrl, String apnUrl, String apnPayload, String gcmPayload, Boolean isSend, String link, String icon, String topBanner) {
+        this.uuid = uuid;
+        this.pushMessage = pushMessage;
+        this.gcmUrl = gcmUrl;
+        this.apnUrl = apnUrl;
+        this.apnPayload = apnPayload;
+        this.gcmPayload = gcmPayload;
+        this.isSend = isSend;
+        this.link = link;
+        this.icon = icon;
+        this.topBanner = topBanner;
+    }
+
+
+	@Id
+    @Column(name = "UUID")
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+    
+    @Column(name = "PUSH_MESSAGE")
+    public String getPushMessage() {
+        return pushMessage;
+    }
+
+    public void setPushMessage(String pushMessage) {
+        this.pushMessage = pushMessage;
+    }
+
+    @Basic
+    @Column(name = "GCM_URL")
+    public String getGcmUrl() {
+        return gcmUrl;
+    }
+
+    public void setGcmUrl(String gcmUrl) {
+        this.gcmUrl = gcmUrl;
+    }
+
+    @Basic
+    @Column(name = "APN_URL")
+    public String getApnUrl() {
+        return apnUrl;
+    }
+
+    public void setApnUrl(String apnUrl) {
+        this.apnUrl = apnUrl;
+    }
+
+    @Basic
+    @Column(name = "APN_PAYLOAD")
+    public String getApnPayload() {
+        return apnPayload;
+    }
+
+    public void setApnPayload(String apnPayload) {
+        this.apnPayload = apnPayload;
+    }
+
+    @Basic
+    @Column(name = "GCM_PAYLOAD")
+    public String getGcmPayload() {
+        return gcmPayload;
+    }
+
+    public void setGcmPayload(String gcmPayload) {
+        this.gcmPayload = gcmPayload;
+    }
+
+    @Basic
+    @Column(name = "IS_SEND")
+    public Boolean getIsSend() {
+        return isSend;
+    }
+
+    public void setIsSend(Boolean isSend) {
+        this.isSend = isSend;
+    }
+    
+    @Basic
+    @Column(name = "LINK")
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+    
+    @Basic
+    @Column(name = "ICON")
+    public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+	
+	@Basic
+    @Column(name = "TOP_BANNER")
+	public String getTopBanner() {
+		return topBanner;
+	}
+
+	public void setTopBanner(String topBanner) {
+		this.topBanner = topBanner;
+	}
+    
+}

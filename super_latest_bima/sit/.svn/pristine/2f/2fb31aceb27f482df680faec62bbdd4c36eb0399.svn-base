@@ -1,0 +1,65 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+@Entity
+@Table(name = "NOTIFICATION_MASTER")
+public class NotificationMaster implements Serializable {
+
+	private NotificationMasterId id;
+	private String messageText;
+	private Date createdAt;
+	private Date updatedAt;
+	
+	public NotificationMaster() {
+		
+	}
+
+	@EmbeddedId
+	public NotificationMasterId getId() {
+		return id;
+	}
+
+	public void setId(NotificationMasterId id) {
+		this.id = id;
+	}
+	
+	@Basic
+	@Column(name = "MESSAGE_TEXT", nullable = false, length = 1000)
+	public String getMessageText() {
+		return messageText;
+	}
+
+	public void setMessageText(String messageText) {
+		this.messageText = messageText;
+	}
+	
+	@Column(name = "CREATED_AT", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+	
+	@Column(name = "UPDATED_AT", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+}

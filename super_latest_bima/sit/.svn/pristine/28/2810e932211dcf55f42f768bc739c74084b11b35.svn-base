@@ -1,0 +1,50 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.SubscriberPreviewWhitelist;
+import id.gnvsolution.d3.api.service.SubscriberWhitelistService;
+import java.util.HashMap;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.SubscriberWhitelistServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Aug 1, 2017 5:39:06 PM
+ *
+ */
+@Service
+@Transactional(readOnly = true, propagation = Propagation.NEVER)
+public class SubscriberWhitelistServiceImpl implements SubscriberWhitelistService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(SubscriberWhitelistServiceImpl.class);
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Override
+    public boolean isWhitelist(String msisdn) {
+    	logger.info("#isWhitelist------------msisdn", msisdn);
+        if(msisdn == null || msisdn.isEmpty())
+            return false;
+        
+        BaseDao<SubscriberPreviewWhitelist> baseDao = new BaseDao(sessionFactoryDef, SubscriberPreviewWhitelist.class);
+        long numberOfSubscriberPreviewWhitelist = baseDao.count("msisdn = :msisdn AND status = 1", new HashMap<String, Object>() {
+            {
+                put("msisdn", msisdn);
+            }
+        });
+        return numberOfSubscriberPreviewWhitelist > 0;
+    }
+
+}

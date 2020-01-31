@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.security.securityutil;
+
+public enum StatusCode {
+
+	SUCCESS(200),JWT_TOKEN_EXPIRE(499), INTERNAL_SERVER_ERROR(500), WARNING(501), BAD_REQUEST(400), UNAUTHORIZED(401), TEMP_PIN_SET(
+			402), FORBIDDEN(403), ACCOUNT_NOT_VERIFIED(407);
+
+	private int statusCode;
+
+	private StatusCode(int code) {
+		this.statusCode = code;
+	}
+
+	public int getStatusCode() {
+		return statusCode;
+	}
+}

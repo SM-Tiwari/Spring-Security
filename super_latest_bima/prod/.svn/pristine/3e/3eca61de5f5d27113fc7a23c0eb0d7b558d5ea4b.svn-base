@@ -1,0 +1,4323 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import static id.gnvsolution.d3.api.Constants.PROFILE_PICTURE_MAX_IN_KB;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.rmi.RemoteException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.hibernate.Query;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.enums.SelfPackageCycle;
+import com.gnv.vnm.selfcare.core.enums.SelfPackageType;
+import com.gnv.vnm.selfcare.core.model.Balance;
+import com.gnv.vnm.selfcare.core.model.CurrentBalance;
+import com.gnv.vnm.selfcare.core.model.MyDataBalance;
+import com.gnv.vnm.selfcare.core.model.SVAndRtbsData;
+import com.gnv.vnm.selfcare.core.model.SelfPackageResponce;
+import com.gnv.vnm.selfcare.core.model.SubscriberInfoFromTibco;
+import com.gnv.vnm.selfcare.core.model.TopUpHistory;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import com.tibco.Selfcare_InboundStub;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Balance_Request_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Dynamic_Bonus_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.selfcare.schema_xsd4.VoucherTopUp;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.SubscriberQuery_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.schema_xsd.GetVasDetails_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd.BalanceQuery_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.BalanceQuery_Response;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.file.SftpClient;
+import id.gnvsolution.d3.api.component.mail.Mailer;
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.component.social.FacebookComponent;
+import id.gnvsolution.d3.api.component.social.GoogleComponent;
+import id.gnvsolution.d3.api.component.social.TwitterComponent;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.ChangeEmailRequestDto;
+import id.gnvsolution.d3.api.dto.request.PackageRegistDto;
+import id.gnvsolution.d3.api.dto.request.PostPaidPaymentDto;
+import id.gnvsolution.d3.api.dto.request.ProfileBioDto;
+import id.gnvsolution.d3.api.dto.request.ProfileEmailChangeRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProfileEmailRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProfileEmailVerifyDto;
+import id.gnvsolution.d3.api.dto.request.ProfilePictureRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProfileRequsetDto;
+import id.gnvsolution.d3.api.dto.request.ProfileSetEmailPasswordDto;
+import id.gnvsolution.d3.api.dto.request.ProfileSocialRequestDto;
+import id.gnvsolution.d3.api.dto.request.ReloadRequestDto;
+import id.gnvsolution.d3.api.dto.request.RemoveEmailSocialDto;
+import id.gnvsolution.d3.api.dto.response.BackdateUsageResponseDto;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.PackageDetailDto;
+import id.gnvsolution.d3.api.dto.response.PackageDto;
+import id.gnvsolution.d3.api.dto.response.PackageProductDto;
+import id.gnvsolution.d3.api.dto.response.PackageProfileMappingDto;
+import id.gnvsolution.d3.api.dto.response.PaymentMethodDto;
+import id.gnvsolution.d3.api.dto.response.PostPaidInfoDto;
+import id.gnvsolution.d3.api.dto.response.ProfileDto;
+import id.gnvsolution.d3.api.dto.response.TransferPulsaHistoriesDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.helper.enums.BalanceType;
+import id.gnvsolution.d3.api.helper.enums.TibcoResponse;
+import id.gnvsolution.d3.api.helper.enums.TransactionType;
+import id.gnvsolution.d3.api.model.BalanceNameMappingEntity;
+import id.gnvsolution.d3.api.model.DataUsesEntity;
+import id.gnvsolution.d3.api.model.DwhUserTransactions;
+import id.gnvsolution.d3.api.model.HybridEmail;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.model.PaymentMethod;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.model.ProfileFlashColor;
+import id.gnvsolution.d3.api.model.ProfileMapping;
+import id.gnvsolution.d3.api.model.PromotionBalanceHide;
+import id.gnvsolution.d3.api.model.ScratchBlockHistoryEntity;
+import id.gnvsolution.d3.api.model.ScratchStatusEntity;
+import id.gnvsolution.d3.api.model.ScratchStatusModel;
+import id.gnvsolution.d3.api.model.SelfPackageBalanceName;
+import id.gnvsolution.d3.api.model.SelfPackageBalanceNameEntity;
+import id.gnvsolution.d3.api.model.SelfPackageCommonConfigEntity;
+import id.gnvsolution.d3.api.model.SelfPackagePriceMapping;
+import id.gnvsolution.d3.api.model.SelfPackagePriceMappingEntity;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.model.SubscriberEmailLogin;
+import id.gnvsolution.d3.api.model.SubscriberEmailToken;
+import id.gnvsolution.d3.api.model.SubscriberPictures;
+import id.gnvsolution.d3.api.model.SubscriberUserProfile;
+import id.gnvsolution.d3.api.model.TopUpTypeEntity;
+import id.gnvsolution.d3.api.model.TrxPostpaidPayment;
+import id.gnvsolution.d3.api.model.TrxSubscriberReload;
+import id.gnvsolution.d3.api.model.purchasing.DuePaymentInfo;
+import id.gnvsolution.d3.api.model.purchasing.PaymentHybrid;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.DwhUserTransactionsService;
+import id.gnvsolution.d3.api.service.FlashProfileService;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.ProductChargingService;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.service.QuotaService;
+import id.gnvsolution.d3.api.service.SmppService;
+import id.gnvsolution.d3.api.service.TibcoService;
+import id.gnvsolution.d3.api.utils.Helpers;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import id.gnvsolution.d3.api.utils.XmlHelper;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.Attribute_type14;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.BackDatedUsageReq;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.BackDatedUsageResp;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.QUERY_RESPONSE_type11;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.Attrubute_type0;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.CRMTIbcoNSMessageRequest;
+import id.gnvsolution.d3.api.wsdl.GenericTibcoCRMServicesStub.MsgParam_type1;
+import id.gnvsolution.d3.api.wsdl.TibcoODPSingleQueryProcessStub;
+
+/**
+ * Created by Arie on 05/04/2017. Updated by Edwin, Sigit, Ainul
+ */
+@Service
+@Transactional
+public class ProfileServiceImpl extends BaseService implements ProfileService {
+
+	public static Logger logger = LoggerFactory.getLogger(ProfileServiceImpl.class);
+	private static String SOURCE_ODP_GNV = "ODP_GNV";
+	private static String SOURCE_ODP = "ODP";
+	private static final String REQ_ID_PATTERN = "yyyyMMddHHmmss";
+
+	@Autowired
+	private SftpClient sftpClient;
+
+	private SessionFactory sessionFactoryDef;
+	private ProductChargingService productChargingService;
+	private FlashProfileService flashProfileService;
+	private ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+	private DwhUserTransactionsService dwhUserTransactionsService;
+	private QuotaService quotaService;
+
+	private final int lineBreak = 4;
+
+	@Autowired
+	private NotificationMasterService notificationMasterService;
+
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+
+	/* Social Login */
+	@Autowired
+	private FacebookComponent FB_APP;
+	@Autowired
+	private TwitterComponent TW_APP;
+	@Autowired
+	private GoogleComponent GO_APP;
+	@Autowired
+	private Mailer mailer;
+	@Autowired
+	private TibcoService tibcoService;
+	@Autowired
+	private NotificationWorker notificationWorker;
+
+	@Autowired
+	private InAppNotificationService inAppNotificationService;
+
+	@Autowired
+	private GetRequestService interfaceType;
+
+	@Autowired
+	SmppService smppService;
+
+	@Autowired
+	public ProfileServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef,
+			FlashProfileService flashProfileService, ProductChargingService productChargingService,
+			ModuleTransactionIDGenerator moduleTransactionIDGenerator, QuotaService quotaService,
+			DwhUserTransactionsService dwhUserTransactionsService) {
+		this.sessionFactoryDef = sessionFactoryDef;
+		this.flashProfileService = flashProfileService;
+		this.productChargingService = productChargingService;
+		this.moduleTransactionIDGenerator = moduleTransactionIDGenerator;
+		this.quotaService = quotaService;
+		this.dwhUserTransactionsService = dwhUserTransactionsService;
+	}
+
+	private static Map<String, String> parsePackageInfo(String packageInfo) {
+
+		logger.info("-----Inside parsePackageInfo----", packageInfo);
+
+		Map<String, String> result = new HashMap<>();
+		String[] packageInfos = packageInfo.split(";");
+		for (String item : packageInfos) {
+			if (!item.isEmpty() && item.contains(":")) {
+				result.put(item.substring(0, item.indexOf(':')).trim(), item.substring(item.indexOf(':') + 1).trim());
+			}
+		}
+		return result;
+	}
+
+	public ProfileDto getProfile(String msisdn, String subscriberType, String language, String transactionId,
+			SessionFactory sessionFactory) {
+
+		logger.info("-----Inside getProfile----msisdn", msisdn);
+
+		ProfileDto profileDto = new ProfileDto();
+		profileDto.setMsisdn(msisdn);
+
+		profileDto.setSubscriberType(
+				subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID) ? Constants.SUBSCRIBER_TYPE_POSTPAID
+						: Constants.SUBSCRIBER_TYPE_PREPAID);
+		// later to be remove
+		// ####################
+		/*
+		 * profileDto.setBalance("Rp" + " 10034"); profileDto.setCreditLimit("900000");
+		 * profileDto.setDueDate("05/01/1995"); profileDto.setBalanceOnNetValue(999999);
+		 * profileDto.setBalanceOffNetValue(45000);
+		 * profileDto.setBalanceTotalValue(787878);
+		 * profileDto.setBalanceOnAndOffNetValue(6565656);
+		 * 
+		 * profileDto.setBalanceOnNet("123436 RO");
+		 * profileDto.setBalanceOffNet("565656 RO" );
+		 * profileDto.setBalanceTotal("525822 RO");
+		 * profileDto.setBalanceOnAndOffNet("8787878RO");
+		 * profileDto.setProfileName("Nagpal"); profileDto.setProfileHobby("Hockey");
+		 * profileDto.setProfilePicture(
+		 * "https://images.pexels.com/photos/1708026/pexels-photo-1708026.jpeg?cs=srgb&dl=adult-attractive-beautiful-1708026.jpg&fm=jpg"
+		 * ); profileDto.setStatus(true); if("1".equals("1")){ return profileDto; }
+		 */
+
+		// ####################
+		try {
+			/*
+			 * String subscriberId = AppUtils.prependCountryCodeToMsisdn(msisdn,
+			 * AppDefaultValues.COUNTRY_CODE);
+			 */
+			CurrentBalance currentBalance = tibcoService.getCurrentBalance(msisdn, language);
+			logger.info("# parsePackageInfo----currentBalance", currentBalance);
+			SubscriberInfoFromTibco subscriberInfoFromTibco = tibcoService.getSubscriberInfoFromDownSystem(msisdn,
+					language);
+			// CreditLimitDto
+			// creditLimitResponce=tibcoService.getRemainingCreditLimit(msisdn);
+			/** Vnm Tibco Integration */
+			// SubscriberQuery_Response
+			// responseSubscriber=inboundStub.subscriberQuery(requestPayLoad);
+			// System.out.println("Status cide
+			// "+responseSubscriber.getStatus_Code());
+			if (currentBalance != null) {
+				// constants
+				String CURRENCY = language.equals(Constants.LANG_ID) ? Languages.ID.CURRENCY_VIETNA
+						: Languages.EN.CURRENCY_VND;
+				// Get share quota status for this msisdn number
+				/*
+				 * Comments on share BaseRequestDto brd = new BaseRequestDto();
+				 * brd.setMsisdn(msisdn); Boolean isShareQuotaParent =
+				 * quotaService.isParent(brd).get("status").equals(true);
+				 */
+				// TODO: any effective method for this one?
+				BaseDao<ProfileMapping> profileMappingDao = new BaseDao(sessionFactory, ProfileMapping.class);
+				List<ProfileMapping> profileMappingList = profileMappingDao.find("GROUP_PACKAGE != NULL");
+
+				Map<String, String[]> profileMap = new HashMap<>();
+				profileMappingList.forEach(profileMapping -> profileMap.put(
+						profileMapping.getBillingProductName().toLowerCase(),
+						new String[] { profileMapping.getDisplayPackages(), profileMapping.getBillingRegistrationKey(),
+								(profileMapping.getIsShareQuota() ? "1" : "0"), profileMapping.getGroupPackage() }));
+
+				// Get expiry date and calculate active days
+				double activeDays = 0;
+				String activeToDate = "-";
+				if (currentBalance.getCoreBalance().getExpiryDateAsString() != null) {
+					// Date activeUntill = (new
+					// SimpleDateFormat(currentBalance.getCoreBalance().getExpiryDate()));
+					SimpleDateFormat validDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+					activeToDate = validDateFormat.format(currentBalance.getCoreBalance().getExpiryDate());
+					// activeDays = Math.abs(activeUntill.getTime() -
+					// System.currentTimeMillis()) / (1000 * 60 * 60 * 24);
+				}
+
+				// profileDto.setSubscriberType(Helpers.ifnull(subscriberInfo.getSubscription_Type(),
+				// "-"));
+				profileDto.setStatus(true);
+				logger.info("##getProfile------Total balence is :::" + currentBalance.getCoreBalance().getTotalValue());
+				if (currentBalance.getCoreBalance().getTotalValue() == 0) {
+					profileDto.setBalance("0" + CURRENCY);
+				} else {
+					profileDto.setBalanceValue((currentBalance.getCoreBalance().getTotalValue()));
+					try {
+						profileDto.setBalance(
+								String.format(" %,.0f", (float) (currentBalance.getCoreBalance().getTotalValue())) + " "
+										+ CURRENCY);
+					} catch (Exception e) {
+						// TODO: handle exception
+						logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+					}
+				}
+				logger.info("#getProfile-------profileDto --------" + profileDto.getBalance());
+				profileDto.setCallPlan(subscriberInfoFromTibco.getCALL_PLAN());
+
+				/*
+				 * comments if (tkcinfoType == null || tkcinfoType.getMon_Loyalty_Cur_Month() ==
+				 * null) { if (profileDto.getSubscriberType().equals(Constants.
+				 * SUBSCRIBER_TYPE_PREPAID)) { profileDto.setBalanceTrims(CURRENCY + " 0"); }
+				 * else { profileDto.setBalanceTrims("-"); } } else {
+				 * profileDto.setBalanceTrims(CURRENCY + " " +
+				 * tkcinfoType.getMon_Loyalty_Cur_Month()); }
+				 */
+				profileDto.setBalanceTrims("0 " + CURRENCY);
+
+				if (subscriberInfoFromTibco.getSIM_TYPE().equalsIgnoreCase(Constants.SUBSCRIBER_TYPE_PREPAID)) {
+					// prepaid
+					if ((subscriberInfoFromTibco.getCALL_PLAN().toUpperCase().contains("EXTRA"))) {
+						logger.info("#getProfile------Call Plan is :::" + subscriberInfoFromTibco.getCALL_PLAN());
+						profileDto
+								.setCreditLimit(String.format(" %,.0f",
+										Double.valueOf(currentBalance.getCoreBalance().getAvailableValue()
+												+ currentBalance.getPromotionBalance().getTotalValue()))
+										+ " " + CURRENCY);
+						profileDto
+								.setBalance(String.format(" %,.0f",
+										Double.valueOf(currentBalance.getCoreBalance().getAvailableValue()
+												+ currentBalance.getPromotionBalance().getTotalValue()))
+										+ " " + CURRENCY);
+					} else {
+						profileDto.setCreditLimit(String.format(" %,.0f",
+								Double.valueOf(currentBalance.getCoreBalance().getAvailableValue())) + " " + CURRENCY);
+					}
+
+					profileDto.setDueDate(currentBalance.getCoreBalance().getExpiryDateAsString());
+				} else {
+
+					BalanceQuery_Request balanceQuery_Request = new BalanceQuery_Request();
+					balanceQuery_Request.setAccountNumber(currentBalance.getAccountNumber());
+					String subscriberId = AppUtils.prependCountryCodeToMsisdn(msisdn, AppDefaultValues.COUNTRY_CODE);
+					balanceQuery_Request.setMSISDN(subscriberId);
+					Selfcare_InboundStub stub2 = new Selfcare_InboundStub(applicationConfigurationService
+							.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare")
+							.toString());
+					BalanceQuery_Response billedQuery_Response = stub2.postpaidBalanceEnquiry(balanceQuery_Request);
+					if (billedQuery_Response.getStatus().equalsIgnoreCase(TibcoResponse.SUCCESS.code())) {
+						profileDto.setCreditLimit(String.format(" %,.0f",
+								Double.valueOf(billedQuery_Response.getTotalOutstandingBalance())) + " " + CURRENCY);
+						profileDto.setDueDate(billedQuery_Response.getDueDate());
+						profileDto.setUnbilledAmount(
+								String.format(" %,.0f", Double.valueOf(billedQuery_Response.getTotalUnbilledUsage()))
+										+ " " + CURRENCY);
+						profileDto.setDueDate(billedQuery_Response.getDueDate());
+
+					}
+					/*
+					 * comments // postpaid profileDto.setBalance("-");
+					 * if(creditLimitInfo.getRemaining_credit_limit() == null){
+					 * profileDto.setCreditLimit("-"); } else {
+					 * profileDto.setCreditLimit(String.format(CURRENCY + " %,.0f",
+					 * Double.parseDouble(creditLimitInfo. getRemaining_credit_limit()))); }
+					 * if(!creditLimitInfo.getPayment_due_date().equals(""))
+					 * profileDto.setDueDate(Helpers.formatDateFromTo( "yyyy-MM-dd", "dd/MM/yyyy",
+					 * creditLimitInfo.getPayment_due_date()));
+					 */
+					/*
+					 * System.out.println("cridit limit is :::"
+					 * +creditLimitResponce.getTotalCreditLimit()); if(creditLimitResponce!=null){
+					 * profileDto.setCreditLimit(creditLimitResponce. getTotalCreditLimit());
+					 * profileDto.setDueDate(creditLimitResponce. getPaymentDueDate()); }
+					 */
+				}
+
+				profileDto.setBalanceOnNetValue(Helpers.tryParseLong(subscriberInfoFromTibco.getONNET_BAL()));
+				profileDto.setBalanceOffNetValue(Helpers.tryParseLong(subscriberInfoFromTibco.getOFFNET_BAL()));
+				profileDto.setBalanceTotalValue((long) profileDto.getBalanceOnNetValue()
+						+ profileDto.getBalanceOffNetValue() + profileDto.getBalanceValue());
+				profileDto.setBalanceOnAndOffNetValue(
+						(long) profileDto.getBalanceOnNetValue() + profileDto.getBalanceOffNetValue());
+
+				profileDto.setBalanceOnNet(
+						String.format(" %,.0f", (double) profileDto.getBalanceOnNetValue()) + " " + CURRENCY);
+				profileDto.setBalanceOnAndOffNet(
+						String.format(" %,.0f", (double) currentBalance.getPromotionBalance().getTotalValue()) + " "
+								+ CURRENCY);
+				profileDto.setBalanceOffNet(
+						String.format(" %,.0f", (double) profileDto.getBalanceOffNetValue()) + " " + CURRENCY);
+				profileDto.setBalanceTotal(
+						String.format(" %,.0f", (double) profileDto.getBalanceTotalValue()) + " " + CURRENCY);
+				// profileDto.setBalanceOnAndOffNet(String.format(" %,.0f",
+				// (double) profileDto.getBalanceOnAndOffNetValue())+"
+				// "+CURRENCY );
+
+				/*
+				 * comments ADENDUM ON CE&O PHASE 2 REQUEST TO JUST SHOW WHAT THE CRM RETURN
+				 * String dayUom = Constants.DAY_UOM; if(language.equals(Constants.LANG_ID)){
+				 * dayUom = Constants.DAY_UOM_ID; }
+				 * profileDto.setValidity(profileDto.getSubscriberType().equals(
+				 * Constants.SUBSCRIBER_TYPE_PREPAID) ? String.format("%,.0f "+dayUom,
+				 * activeDays) : Constants.SUBSCRIBER_TYPE_POSTPAID);
+				 */
+
+				profileDto.setValidity(activeToDate);
+				if (subscriberInfoFromTibco.getSIM_TYPE().equalsIgnoreCase(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+					profileDto.setEmail(Helpers.ifNullOrEmpty(subscriberInfoFromTibco.getEBILL_MAIL_ID(), "-"));
+				}
+
+				/* NEWLY ADDED BASED ON BR PHASE 3 */
+
+				/*
+				 * comments profileDto.setPackageProductList(
+				 * getSubscriberPackageProductList(responseSubscriber,
+				 * response.getBonus_Details(), profileMap, isShareQuotaParent, sessionFactory,
+				 * language)); profileDto.setPackageList(getSubscriberPackageList(
+				 * subscriberInfo, response.getBonus_Details(), profileMap, isShareQuotaParent,
+				 * sessionFactory, language));
+				 */
+				profileDto.setPackageList(getSubscriberPackageListFromTibco(currentBalance, language,
+						subscriberInfoFromTibco.getSIM_TYPE()));
+
+				Map accumulationDetail = packageAccumulation(profileDto.getPackageList());
+				/*
+				 * Map map = new HashMap(); map.put("SMS",
+				 * String.format("%.0f",formatData((double)(currentBalance.
+				 * getDataBalance().getTotalValue())))); map.put("sumOfSMS",
+				 * String.valueOf(currentBalance.getSmsBalance().getTotalValue() ));
+				 * map.put("sumOfVoice",
+				 * String.valueOf(currentBalance.getVoiceBalance().getTotalValue ()));
+				 * map.put("sumOfInternet",
+				 * String.valueOf(currentBalance.getDataBalance().getTotalValue( )));
+				 */
+				profileDto.setSumOfBonuses(accumulationDetail);
+
+				// flash profile color
+				ProfileFlashColor profileFlashColor = flashProfileService.getHexColor(profileDto.getBalanceValue(),
+						profileDto.getQuotaValue());
+				profileDto.setProfileColor(profileFlashColor.getColor());
+				profileDto.setProfileTime(
+						profileFlashColor.getTimes() != null ? Long.parseLong(profileFlashColor.getTimes()) : 1L);
+
+				// profile picture
+				BaseDao<SubscriberPictures> profilePictureDao = new BaseDao<>(sessionFactoryDef,
+						SubscriberPictures.class);
+				List<SubscriberPictures> curProfilePicture = profilePictureDao.find("MSISDN = :msisdn AND STATUS = 1",
+						new HashMap<String, Object>() {
+							{
+								put("msisdn", msisdn);
+							}
+						});
+				if (!curProfilePicture.isEmpty()) {
+					String profilePictureSafeUrl = applicationConfigurationService
+							.get("PROFILE.PUBLIC_URL", "http://103.129.188.37:8080/imageserver/").toString()
+							+ curProfilePicture.get(0).getPictureName();
+					profileDto.setProfilePicture(profilePictureSafeUrl);
+				}
+
+				// profile detail
+				BaseDao<SubscriberUserProfile> subsUserProfileDao = new BaseDao<>(sessionFactoryDef,
+						SubscriberUserProfile.class);
+				List<SubscriberUserProfile> curUserProfile = subsUserProfileDao.find("MSISDN = :msisdn",
+						new HashMap<String, Object>() {
+							{
+								put("msisdn", msisdn);
+							}
+						});
+				if (!curUserProfile.isEmpty()) {
+					profileDto.setProfileName(curUserProfile.get(0).getName());
+					profileDto.setProfileHobby(curUserProfile.get(0).getHobby());
+				}
+
+				// hybrid area
+				/*
+				 * Comments if (subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+				 * TibcoODPSingleQueryProcessStub.HybridBalanceInfo_type0 balanceInfo =
+				 * response.getHybridBalanceInfo();
+				 * 
+				 * profileDto.setSubscriberType(subscriberType);
+				 * profileDto.setCreditLimitHybrid(String.format(CURRENCY + " %,.0f",
+				 * Double.parseDouble(balanceInfo.getAvailableCredit())));
+				 * profileDto.setEmailHybrid(balanceInfo.getEmailId());
+				 * profileDto.setStatusSubscription(balanceInfo.getEBill(). equals("Y"));
+				 * profileDto.setDueDateHybrid(Helpers.formatDateFromTo( "dd-MMM-yyyy",
+				 * "dd/MM/yyyy", balanceInfo.getPaymentDueDate())); }
+				 */
+
+				String segmentName = "";
+
+				CRMTIbcoNSMessageRequest reqParam = new CRMTIbcoNSMessageRequest();
+				reqParam.setTransactionId(moduleTransactionIDGenerator.generate(Module.SQTX));
+				reqParam.setRequestType(Constants.TIBCO_CRMNS_REQUEST_TYPE);
+				reqParam.setRequestId("5");
+				reqParam.setMSISDN(msisdn);
+				reqParam.setMsgId("2330");
+				reqParam.setOrigSystem(Constants.TIBCO_SOURCE_ODP);
+
+				/* MsgParam has changed to mandatory field need pass to tibco */
+				MsgParam_type1 param = new MsgParam_type1();
+				Attrubute_type0 att[] = new Attrubute_type0[1];
+				att[0] = new Attrubute_type0();
+				att[0].setName("ALERT_MSGID");
+				att[0].setValue("5200");
+				param.setAttrubute(att);
+				reqParam.setMsgParam(param);
+
+				/* subscriber segmentation */
+				/*
+				 * Comments GenericTibcoCRMServicesStub tibcoCustomerSegment = new
+				 * GenericTibcoCRMServicesStub(Constants. TIBCO_URL_SHAREDQUOTA_ENDPOINT);
+				 * CRMTIbcoNSMessageResponse resCustomerSegment =
+				 * tibcoCustomerSegment.cRMNSSMS(reqParam); if(resCustomerSegment!=null)
+				 * segmentName = resCustomerSegment.getCustomerType(); if(segmentName!=null)
+				 * segmentName = segmentName.toUpperCase();
+				 * 
+				 * Map<String, Object> paramSegmentation = new HashMap<>();
+				 * paramSegmentation.put("segmentationName",segmentName);
+				 * BaseDao<SubcriberSegmentations> subcriberSegmentationsDao = new
+				 * BaseDao(sessionFactory, SubcriberSegmentations.class);
+				 * List<SubcriberSegmentations> obSegmentations = subcriberSegmentationsDao.
+				 * find("upper(segmentationName) = :segmentationName and status=1 " ,
+				 * paramSegmentation); CustomerSegmentation customerSegmentation = new
+				 * CustomerSegmentation();
+				 * 
+				 * if(obSegmentations!=null) { if(obSegmentations.size()>1 ||
+				 * obSegmentations.isEmpty()) { //logger.
+				 * warn("Segmentation Query : got  more than one result or an empty result !!! please check the table SUBSCRIBER_SEGMENTATIONS segment name = "
+				 * +segmentName); }else { SubcriberSegmentations o = obSegmentations.get(0);
+				 * 
+				 * customerSegmentation.setSegmentationName(o. getSegmentationName());
+				 * customerSegmentation.setTitle(language.equals(Constants. LANG_ID) ?
+				 * o.getTitleId() : o.getTitleEn());
+				 * customerSegmentation.setDescription(language.equals(Constants .LANG_ID) ?
+				 * o.getDescriptionId() : o.getDescriptionEn()); } } else { logger.
+				 * error("Segmentation Query : Null Pointer Exception segment name = "
+				 * +segmentName); } profileDto.setCustomerSegmentation(customerSegmentation);
+				 */
+
+				/**
+				 * Name from subscriber response .
+				 */
+				String dukcapilName = null;
+				if (dukcapilName == null)
+					dukcapilName = "";
+				if ("!Name".equals(dukcapilName)) {
+					profileDto.setDukcapilName("");
+					profileDto.setDukcapilUrl(Constants.REGISTRASI_ULANG_URL);
+				} else {
+					profileDto.setDukcapilName(dukcapilName.split(" ", -1)[0]);
+					profileDto.setDukcapilUrl(Constants.REGISTRASI_ULANG_URL_HOMEPAGE);
+				}
+				profileDto.setProfileName(currentBalance.getFullName());
+			} else {
+				profileDto.setStatus(false);
+				profileDto.setMessage("[" + subscriberInfoFromTibco.getStatus_Code() + "] "
+						+ subscriberInfoFromTibco.getStatus_Text());
+			}
+		} catch (RemoteException e) {
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			logger.error("Error was occured in getProfile" + e.getMessage());
+			profileDto = new ProfileDto();
+			profileDto.setStatus(false);
+			profileDto.setMessage(e.getMessage());
+		}
+		BaseDao<SubscriberPictures> profilePictureDao = new BaseDao<>(sessionFactoryDef, SubscriberPictures.class);
+		List<SubscriberPictures> curProfilePicture = profilePictureDao.find("MSISDN = :msisdn AND STATUS = 1",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", msisdn);
+					}
+				});
+		if (!curProfilePicture.isEmpty()) {
+			String profilePictureSafeUrl = applicationConfigurationService
+					.get("PROFILE.PUBLIC_URL", "http://103.129.188.37:8080/imageserver/").toString()
+					+ curProfilePicture.get(0).getPictureName();
+			profileDto.setProfilePicture(profilePictureSafeUrl);
+		}
+
+		return profileDto;
+
+		/*
+		 * TibcoODPSingleQueryProcessStub.TibcoODPRequest reqPayload = new
+		 * TibcoODPSingleQueryProcessStub.TibcoODPRequest();
+		 * reqPayload.setMSISDN(msisdn); reqPayload.setSOURCE(SOURCE_ODP);
+		 * reqPayload.setSUBSCRIBER_TYPE(profileDto.getSubscriberType().equals(
+		 * Constants.SUBSCRIBER_TYPE_PREPAID) ? "1" : "0");
+		 * reqPayload.setTRANSACTION_ID(transactionId);
+		 * 
+		 * TibcoODPSingleQueryProcessStub stub = new
+		 * TibcoODPSingleQueryProcessStub(Constants.TIBCO_URL_PROFILE_ENDPOPINT) ;
+		 * TibcoODPSingleQueryProcessStub.TibcoODPResponse response =
+		 * stub.tIbcoODPOp(reqPayload);
+		 * 
+		 * TibcoODPSingleQueryProcessStub.SubsriberInfo_type0 subscriberInfo =
+		 * response.getSubsriberInfo();
+		 * TibcoODPSingleQueryProcessStub.CreditLimitInfo_type0 creditLimitInfo =
+		 * response.getCreditLimitInfo() == null ? new
+		 * TibcoODPSingleQueryProcessStub.CreditLimitInfo_type0() :
+		 * response.getCreditLimitInfo();
+		 * TibcoODPSingleQueryProcessStub.DuePaymentInfo_type0 duePaymentInfo =
+		 * response.getDuePaymentInfo() == null ? new
+		 * TibcoODPSingleQueryProcessStub.DuePaymentInfo_type0() :
+		 * response.getDuePaymentInfo(); TibcoODPSingleQueryProcessStub.TKCINFO_type0
+		 * tkcinfoType = response.getTKCINFO() == null ? new
+		 * TibcoODPSingleQueryProcessStub.TKCINFO_type0() : response.getTKCINFO();
+		 * 
+		 * if (subscriberInfo.getStatusCode().equals("00000")) { // constants String
+		 * CURRENCY = language.equals(Constants.LANG_ID) ?
+		 * Languages.ID.CURRENCY_INDONESIA + "." : Languages.EN.CURRENCY_INDONESIA;
+		 * 
+		 * // Get share quota status for this msisdn number BaseRequestDto brd = new
+		 * BaseRequestDto(); brd.setMsisdn(msisdn); Boolean isShareQuotaParent =
+		 * quotaService.isParent(brd).get("status").equals(true);
+		 * 
+		 * // TODO: any effective method for this one? BaseDao<ProfileMapping>
+		 * profileMappingDao = new BaseDao(sessionFactory, ProfileMapping.class);
+		 * List<ProfileMapping> profileMappingList =
+		 * profileMappingDao.find("GROUP_PACKAGE != NULL");
+		 * 
+		 * profileMap is map from database Map<String, String[]> profileMap = new
+		 * HashMap<>(); profileMappingList.forEach(profileMapping ->
+		 * profileMap.put(profileMapping.getBillingProductName().toLowerCase(), new
+		 * String[]{profileMapping.getDisplayPackages(),
+		 * profileMapping.getBillingRegistrationKey(), (profileMapping.getIsShareQuota()
+		 * ? "1" : "0"), profileMapping.getGroupPackage()}));
+		 * 
+		 * // Get expiry date and calculate active days double activeDays = 0; String
+		 * activeToDate = "-"; if (subscriberInfo.getExpiry_Date() != null) { Date
+		 * activeUntill = (new
+		 * SimpleDateFormat("dd/MM/yyyy HH:mm:ss")).parse(subscriberInfo.
+		 * getExpiry_Date()); SimpleDateFormat validDateFormat = new
+		 * SimpleDateFormat("dd/MM/yyyy"); activeToDate =
+		 * validDateFormat.format(activeUntill); activeDays =
+		 * Math.abs(activeUntill.getTime() - System.currentTimeMillis()) / (1000 * 60 *
+		 * 60 * 24); }
+		 * 
+		 * //profileDto.setSubscriberType(Helpers.ifnull(subscriberInfo.
+		 * getSubscription_Type(), "-")); profileDto.setStatus(true); if
+		 * (subscriberInfo.getMain_Account_Balance()== null) {
+		 * profileDto.setBalance(CURRENCY + " 0"); } else {
+		 * profileDto.setBalanceValue(Helpers.tryParseLong(subscriberInfo.
+		 * getMain_Account_Balance())); profileDto.setBalance(String.format(CURRENCY +
+		 * " %,.0f", Double.parseDouble(subscriberInfo.getMain_Account_Balance()))); }
+		 * profileDto.setCallPlan(subscriberInfo.getCall_Plan());
+		 * 
+		 * if (tkcinfoType == null || tkcinfoType.getMon_Loyalty_Cur_Month() == null) {
+		 * if (profileDto.getSubscriberType().equals(Constants.
+		 * SUBSCRIBER_TYPE_PREPAID)) { profileDto.setBalanceTrims(CURRENCY + " 0"); }
+		 * else { profileDto.setBalanceTrims("-"); } } else {
+		 * profileDto.setBalanceTrims(CURRENCY + " " +
+		 * tkcinfoType.getMon_Loyalty_Cur_Month()); }
+		 * 
+		 * // prepaid | postpaid if (profileDto.getSubscriberType().equals(Constants.
+		 * SUBSCRIBER_TYPE_PREPAID)) { // prepaid } else { // postpaid
+		 * profileDto.setBalance("-"); if(creditLimitInfo.getRemaining_credit_limit() ==
+		 * null){ profileDto.setCreditLimit("-"); } else {
+		 * profileDto.setCreditLimit(String.format(CURRENCY + " %,.0f",
+		 * Double.parseDouble(creditLimitInfo.getRemaining_credit_limit()))); }
+		 * if(!creditLimitInfo.getPayment_due_date().equals(""))
+		 * profileDto.setDueDate(Helpers.formatDateFromTo("yyyy-MM-dd", "dd/MM/yyyy",
+		 * creditLimitInfo.getPayment_due_date())); }
+		 * 
+		 * profileDto.setBalanceOnNetValue(Helpers.tryParseLong(subscriberInfo.
+		 * getOnNet_Bal()));
+		 * profileDto.setBalanceOffNetValue(Helpers.tryParseLong(subscriberInfo.
+		 * getOffNet_Bal())); profileDto.setBalanceTotalValue((long)
+		 * profileDto.getBalanceOnNetValue()+profileDto.getBalanceOffNetValue()+
+		 * profileDto.getBalanceValue()); profileDto.setBalanceOnAndOffNetValue((long)
+		 * profileDto.getBalanceOnNetValue()+profileDto.getBalanceOffNetValue()) ;
+		 * 
+		 * profileDto.setBalanceOnNet(String.format(CURRENCY + " %,.0f", (double)
+		 * profileDto.getBalanceOnNetValue()) );
+		 * profileDto.setBalanceOffNet(String.format(CURRENCY + " %,.0f", (double)
+		 * profileDto.getBalanceOffNetValue()) );
+		 * profileDto.setBalanceTotal(String.format(CURRENCY + " %,.0f", (double)
+		 * profileDto.getBalanceTotalValue()) );
+		 * profileDto.setBalanceOnAndOffNet(String.format(CURRENCY + " %,.0f", (double)
+		 * profileDto.getBalanceOnAndOffNetValue()) );
+		 * 
+		 * 
+		 * ADENDUM ON CE&O PHASE 2 REQUEST TO JUST SHOW WHAT THE CRM RETURN String
+		 * dayUom = Constants.DAY_UOM; if(language.equals(Constants.LANG_ID)){ dayUom =
+		 * Constants.DAY_UOM_ID; }
+		 * profileDto.setValidity(profileDto.getSubscriberType().equals(
+		 * Constants.SUBSCRIBER_TYPE_PREPAID) ? String.format("%,.0f "+dayUom,
+		 * activeDays) : Constants.SUBSCRIBER_TYPE_POSTPAID);
+		 * 
+		 * profileDto.setValidity(activeToDate);
+		 * profileDto.setEmail(Helpers.ifNullOrEmpty(subscriberInfo. getEbill_mail_id(),
+		 * "-"));
+		 * 
+		 * NEWLY ADDED BASED ON BR PHASE 3
+		 * profileDto.setPackageProductList(getSubscriberPackageProductList(
+		 * subscriberInfo, response.getBonus_Details(), profileMap, isShareQuotaParent,
+		 * sessionFactory, language));
+		 * profileDto.setPackageList(getSubscriberPackageList(subscriberInfo,
+		 * response.getBonus_Details(), profileMap, isShareQuotaParent, sessionFactory,
+		 * language));
+		 * 
+		 * Map accumulationDetail = packageAccumulation(profileDto.getPackageList());
+		 * profileDto.setSumOfBonuses(accumulationDetail);
+		 * 
+		 * // flash profile color ProfileFlashColor profileFlashColor =
+		 * flashProfileService.getHexColor(profileDto.getBalanceValue(),
+		 * profileDto.getQuotaValue());
+		 * profileDto.setProfileColor(profileFlashColor.getColor());
+		 * profileDto.setProfileTime(profileFlashColor.getTimes() !=
+		 * null?Long.parseLong(profileFlashColor.getTimes()):1L);
+		 * 
+		 * //profile picture BaseDao<SubscriberPictures> profilePictureDao = new
+		 * BaseDao<>(sessionFactoryDef, SubscriberPictures.class);
+		 * List<SubscriberPictures> curProfilePicture =
+		 * profilePictureDao.find("MSISDN = :msisdn AND STATUS = 1", new HashMap<String,
+		 * Object>() {{ put("msisdn", msisdn); }}); if(!curProfilePicture.isEmpty()){
+		 * String profilePictureSafeUrl =
+		 * PROFILE_PICTURE_PUBLIC_URL+curProfilePicture.get(0).getPictureName();
+		 * profileDto.setProfilePicture(profilePictureSafeUrl); }
+		 * 
+		 * //profile detail BaseDao<SubscriberUserProfile> subsUserProfileDao = new
+		 * BaseDao<>(sessionFactoryDef, SubscriberUserProfile.class);
+		 * List<SubscriberUserProfile> curUserProfile =
+		 * subsUserProfileDao.find("MSISDN = :msisdn", new HashMap<String, Object>() {{
+		 * put("msisdn", msisdn); }}); if(!curUserProfile.isEmpty()){
+		 * profileDto.setProfileName(curUserProfile.get(0).getName());
+		 * profileDto.setProfileHobby(curUserProfile.get(0).getHobby()); }
+		 * 
+		 * // hybrid area if (subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+		 * TibcoODPSingleQueryProcessStub.HybridBalanceInfo_type0 balanceInfo =
+		 * response.getHybridBalanceInfo();
+		 * 
+		 * profileDto.setSubscriberType(subscriberType);
+		 * profileDto.setCreditLimitHybrid(String.format(CURRENCY + " %,.0f",
+		 * Double.parseDouble(balanceInfo.getAvailableCredit())));
+		 * profileDto.setEmailHybrid(balanceInfo.getEmailId());
+		 * profileDto.setStatusSubscription(balanceInfo.getEBill().equals("Y"));
+		 * profileDto.setDueDateHybrid(Helpers.formatDateFromTo("dd-MMM-yyyy",
+		 * "dd/MM/yyyy", balanceInfo.getPaymentDueDate())); }
+		 * 
+		 * //Customer Segmentation String segmentName = "";
+		 * 
+		 * CRMTIbcoNSMessageRequest reqParam = new CRMTIbcoNSMessageRequest();
+		 * reqParam.setTransactionId(moduleTransactionIDGenerator.generate(
+		 * Module.SQTX)); reqParam.setRequestType(Constants.TIBCO_CRMNS_REQUEST_TYPE);
+		 * reqParam.setRequestId("5"); reqParam.setMSISDN(msisdn);
+		 * reqParam.setMsgId("2330");
+		 * reqParam.setOrigSystem(Constants.TIBCO_SOURCE_ODP);
+		 * 
+		 * MsgParam has changed to mandatory field need pass to tibco MsgParam_type1
+		 * param = new MsgParam_type1(); Attrubute_type0 att[] = new Attrubute_type0[1];
+		 * att[0] = new Attrubute_type0(); att[0].setName("ALERT_MSGID");
+		 * att[0].setValue("5200"); param.setAttrubute(att);
+		 * reqParam.setMsgParam(param);
+		 * 
+		 * subscriber segmentation GenericTibcoCRMServicesStub tibcoCustomerSegment =
+		 * new GenericTibcoCRMServicesStub(Constants.TIBCO_URL_SHAREDQUOTA_ENDPOINT) ;
+		 * CRMTIbcoNSMessageResponse resCustomerSegment =
+		 * tibcoCustomerSegment.cRMNSSMS(reqParam); if(resCustomerSegment!=null)
+		 * segmentName = resCustomerSegment.getCustomerType(); if(segmentName!=null)
+		 * segmentName = segmentName.toUpperCase();
+		 * 
+		 * Map<String, Object> paramSegmentation = new HashMap<>();
+		 * paramSegmentation.put("segmentationName",segmentName);
+		 * BaseDao<SubcriberSegmentations> subcriberSegmentationsDao = new
+		 * BaseDao(sessionFactory, SubcriberSegmentations.class);
+		 * List<SubcriberSegmentations> obSegmentations = subcriberSegmentationsDao.
+		 * find("upper(segmentationName) = :segmentationName and status=1 ",
+		 * paramSegmentation); CustomerSegmentation customerSegmentation = new
+		 * CustomerSegmentation();
+		 * 
+		 * if(obSegmentations!=null) { if(obSegmentations.size()>1 ||
+		 * obSegmentations.isEmpty()) { //logger.
+		 * warn("Segmentation Query : got  more than one result or an empty result !!! please check the table SUBSCRIBER_SEGMENTATIONS segment name = "
+		 * +segmentName); }else { SubcriberSegmentations o = obSegmentations.get(0);
+		 * 
+		 * customerSegmentation.setSegmentationName(o.getSegmentationName());
+		 * customerSegmentation.setTitle(language.equals(Constants.LANG_ID) ?
+		 * o.getTitleId() : o.getTitleEn());
+		 * customerSegmentation.setDescription(language.equals(Constants. LANG_ID) ?
+		 * o.getDescriptionId() : o.getDescriptionEn()); } } else { logger.
+		 * error("Segmentation Query : Null Pointer Exception segment name = "
+		 * +segmentName); } profileDto.setCustomerSegmentation(customerSegmentation);
+		 * 
+		 * String dukcapilName = response.getSubscriberName(); if(dukcapilName == null)
+		 * dukcapilName = ""; if("!Name".equals(dukcapilName)) {
+		 * profileDto.setDukcapilName("");
+		 * profileDto.setDukcapilUrl(Constants.REGISTRASI_ULANG_URL); } else {
+		 * profileDto.setDukcapilName(dukcapilName.split(" ", -1)[0]);
+		 * profileDto.setDukcapilUrl(Constants.REGISTRASI_ULANG_URL_HOMEPAGE); }
+		 * 
+		 * } else { profileDto.setStatus(false); profileDto.setMessage("[" +
+		 * subscriberInfo.getStatusCode() + "] " + subscriberInfo.getStatusText()); } }
+		 * catch (ParseException | RemoteException e ) {
+		 * logger.error("Error was occured in getProfile"+e.getMessage()); profileDto =
+		 * new ProfileDto(); profileDto.setStatus(false);
+		 * profileDto.setMessage(e.getMessage()); }
+		 * 
+		 * return profileDto;
+		 */ }
+
+	public Map getProfile(ProfileRequsetDto request) {
+
+		logger.info("Inside getProfile method--------msisdn==" + request.getMsisdn());
+		/*
+		 * if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+
+		ProfileDto profileDto = getProfile(request.getMsisdn(), request.getSubscriberType(), request.getLanguage(),
+				moduleTransactionIDGenerator.generate(Module.LOGIN), sessionFactoryDef);
+		if (profileDto.getStatus()) {
+			return JSONResultFilter.filter(profileDto)
+					.exclude("type", "scratchCardCode", "message", "balanceValue", "balanceOnNetValue",
+							"balanceOffNetValue", "balanceTotalValue", "balanceOnAndOffNetValue", "quotaValue")
+					.build();
+		}
+		return JSONResultFilter.filter(profileDto).include("status", "message").build();
+	}
+
+	/*
+	 * @Override public Map reload(ReloadRequestDto request) { if
+	 * (isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { Date
+	 * transactionDate = new Date();
+	 * 
+	 * // validate jumlah trx selama 1 jam terakhir BaseDao<TrxSubscriberReload>
+	 * subscriberReloadDao = new BaseDao<>(sessionFactoryDef,
+	 * TrxSubscriberReload.class); long numberOfTrxInLast1Hour =
+	 * subscriberReloadDao.
+	 * count("subscriberMsisdn = :subscriberMsisdn AND SYSDATE - 1/24 < TRANSACTION_DATETIME"
+	 * , new HashMap<String, Object>() {{ put("subscriberMsisdn",
+	 * request.getMsisdn()); }});
+	 * 
+	 * if(numberOfTrxInLast1Hour >= 5) { return JSONResultFilter.filter(new
+	 * ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ?
+	 * Languages.ID.FAILED_RELOAD : Languages.EN.FAILED_RELOAD)).all().build(); }
+	 * 
+	 * VoucherTopUp requestPayload = new VoucherTopUp();
+	 * requestPayload.setTransactionID(moduleTransactionIDGenerator.generate(
+	 * Module.VOUCHER_TOPUP)); requestPayload.setMessageType("0");
+	 * requestPayload.setProcCode("VTOPUP"); requestPayload.setStan("VOUCHERTOPUP");
+	 * requestPayload.setLocalTxnDtTime(new
+	 * SimpleDateFormat("ddMMyyyyHHmmss").format(transactionDate));
+	 * requestPayload.setMobNum(request.getMsisdn());
+	 * requestPayload.setVoucherNum(request.getVoucherNumber());
+	 * requestPayload.setDomainID("6");
+	 * requestPayload.setDeliveryChannelCtrlID("Notification");
+	 * 
+	 * // prepare dwh} user transaction DwhUserTransactions dwhUserTransactions =
+	 * new DwhUserTransactions(requestPayload.getTransactionID(),
+	 * request.getMsisdn(), "SCRATCH CARD", BigInteger.ZERO, "",
+	 * request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID :
+	 * Constants.DEVICE_ID_IOS, request.getDeviceManufacture(),
+	 * request.getDeviceModel(), requestPayload.toString(), "", "", "", "", 0,
+	 * BigInteger.ZERO);
+	 * 
+	 * try { TrxSubscriberReload subscriberReload = new TrxSubscriberReload();
+	 * subscriberReload.setTransactionId(requestPayload.getTransactionID());
+	 * subscriberReload.setSubscriberMsisdn(requestPayload.getMobNum());
+	 * subscriberReload.setTransactionDatetime(new
+	 * Timestamp(transactionDate.getTime()));
+	 * subscriberReload.setVoucherCode(requestPayload.getVoucherNum());
+	 * 
+	 * VoucherTopUp result = (VoucherTopUp)
+	 * XmlHelper.unMarshal(Constants.API_RELOAD_API_URL, new HashMap<String,
+	 * String>() {{ put("XML", XmlHelper.marshal(requestPayload)); }},
+	 * VoucherTopUp.class); if (result.getActCode().equals("00000")) {
+	 * dwhUserTransactions.setTrxStatus(BigInteger.ONE);
+	 * dwhUserTransactions.setTrxPkgName(result.toString());//TODO: fixing package
+	 * name later-on if you see the data first
+	 * 
+	 * subscriberReload.setTransactionStatus(true);
+	 * subscriberReloadDao.save(subscriberReload); return
+	 * JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build(); } else {
+	 * dwhUserTransactions.setTrxErrorcode(result.getActCode());
+	 * dwhUserTransactions.setTrxErrordesc(result.getMessageID());
+	 * dwhUserTransactions.setTrxErrortext(result.toString());
+	 * 
+	 * subscriberReload.setTransactionStatus(false);
+	 * subscriberReloadDao.save(subscriberReload); }
+	 * 
+	 * // save dwh} user transaction
+	 * dwhUserTransactionsService.save(dwhUserTransactions); return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.FAILED_RELOAD
+	 * : Languages.EN.FAILED_RELOAD)).all().build(); } catch (JAXBException |
+	 * MalformedURLException | URISyntaxException e) { e.printStackTrace(); } return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * "Invalid request")).all().build(); } else { return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); } }
+	 */
+
+	@Override
+	public Map reload(ReloadRequestDto request) {
+
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+
+		/// if (isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+		Date transactionDate = new Date();
+		VoucherTopUp v = null;
+		// validate jumlah trx selama 1 jam terakhir
+		BaseDao<TrxSubscriberReload> subscriberReloadDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberReload.class);
+		long numberOfTrxInLast1Hour = subscriberReloadDao.count(
+				"subscriberMsisdn = :subscriberMsisdn AND SYSDATE - 1/24 < TRANSACTION_DATETIME",
+				new HashMap<String, Object>() {
+					{
+						put("subscriberMsisdn", request.getMsisdn());
+					}
+				});
+
+		if (numberOfTrxInLast1Hour >= 5) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false,
+					request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.FAILED_RELOAD
+							: Languages.EN.FAILED_RELOAD))
+					.all().build();
+		}
+
+		// changes by oneclick
+		VoucherTopUp requestPayload = new VoucherTopUp();
+		requestPayload.setTransactionID("BM"+moduleTransactionIDGenerator.generate(Module.VOUCHER_TOPUP));
+		requestPayload.setMessageType("0");
+		requestPayload.setProcCode("VTOPUP");
+		requestPayload.setSTAN("VOUCHERTOPUP");
+		requestPayload.setLocalTxnDtTime(new SimpleDateFormat("ddMMyyyyHHmmss").format(transactionDate));
+		String subscriberId = AppUtils.prependCountryCodeToMsisdn(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+		requestPayload.setMobNum(subscriberId);
+		requestPayload.setVoucherNum(request.getVoucherNumber());
+		requestPayload.setDomainID("6");
+		requestPayload.setDeliveryChannelCtrlID("Notification");
+		String CURRENCY_VND = "VND";
+		requestPayload.setCurr(CURRENCY_VND);
+		String reqId = requestId();
+		requestPayload.setActCode(reqId);
+		requestPayload.setVoucherBal("0");
+		requestPayload.setValidityDate("0");
+		requestPayload.setGracePeriod("0");
+		requestPayload.setVoucherDenom("0");
+		// requestPayload.set
+		Selfcare_InboundStub selfcare_InboundStub;
+		try {
+			selfcare_InboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			v = selfcare_InboundStub.voucherTopUp(requestPayload);
+			logger.info("##reload----responce code of voucher>>>>>>>..........." + v.getCellId() + " ........."
+					+ v.getVlrId());
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e1.getStackTrace()),10)));
+		}
+
+		DwhUserTransactions dwhUserTransactions = new DwhUserTransactions("BM"+requestPayload.getTransactionID(),
+				request.getMsisdn(), "SCRATCH CARD", BigInteger.ZERO, "",
+				request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID : Constants.DEVICE_ID_IOS,
+				request.getDeviceManufacture(), request.getDeviceModel(), requestPayload.toString(), "", "", "", "", 0,
+				BigInteger.ZERO);
+
+		try {
+			TrxSubscriberReload subscriberReload = new TrxSubscriberReload();
+			String l_msisdn = AppUtils.removeCountryCode(requestPayload.getMobNum(), AppDefaultValues.COUNTRY_CODE);
+			subscriberReload.setTransactionId(requestPayload.getTransactionID());
+			subscriberReload.setSubscriberMsisdn(l_msisdn);
+			subscriberReload.setTransactionDatetime(new Timestamp(transactionDate.getTime()));
+			subscriberReload.setVoucherCode(requestPayload.getVoucherNum());
+
+			if (v.getVlrId().equals("00000")) {
+				dwhUserTransactions.setTrxStatus(BigInteger.ONE);
+				dwhUserTransactions.setTrxPkgName(v.toString());
+
+				subscriberReload.setTransactionStatus(true);
+				subscriberReloadDao.save(subscriberReload);
+				String message = "";
+
+				if ("1".equals(request.getLanguage().trim())) {
+
+					message = "Your top-up by scratchcard is successful.";
+				} else {
+
+					message = "Nạp tiền của bạn bằng thẻ cào là thành công.";
+				}
+				try {
+					sendNotification(request.getMsisdn(), message, null);
+				} catch (Exception e) {
+					// TODO: handle exception
+					logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+				}
+				return JSONResultFilter.filter(new BoolStatusOutDto(true, v.getVlrId())).all().build();
+
+			} else {
+				String message = "";
+				dwhUserTransactions.setTrxErrorcode(v.getActCode());
+				// dwhUserTransactions.setTrxErrordesc(result.getMessageID());
+				dwhUserTransactions.setTrxErrortext(v.toString());
+
+				subscriberReload.setTransactionStatus(false);
+				subscriberReloadDao.save(subscriberReload);
+				if (v.getVlrId().equals("1016108")) {
+					if ("1".equals(request.getLanguage().trim())) {
+
+						message = "Scratch card is already used.";
+					} else {
+						message = "Mã thẻ này đã được sử dụng.";
+					}
+				} else if (v.getVlrId().equals("2009")) {
+					if ("1".equals(request.getLanguage().trim())) {
+
+						message = "The Phone number is incorrect. Please try again.";
+					} else {
+						message = "Số điện thoại khôg đúg.";
+					}
+					try {
+						sendNotification(request.getMsisdn(), message, null);
+					} catch (Exception e) {
+						// TODO: handle exception
+						logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+					}
+				} else {
+					if ("1".equals(request.getLanguage().trim())) {
+
+						message = "Your top-up is not successful.";
+					} else {
+						message = "Nạp tiền thất bại. Vui lòng thử lại..";
+					}
+					try {
+						sendNotification(request.getMsisdn(), message, null);
+					} catch (Exception e) {
+						// TODO: handle exception
+						logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+					}
+				}
+				dwhUserTransactionsService.save(dwhUserTransactions);
+				return JSONResultFilter.filter(new BoolStatusOutDto(false, v.getVlrId())).all().build();
+			}
+
+			// save dwh} user transaction
+
+			/*
+			 * return JSONResultFilter.filter(new ErrorMessageDto(false,
+			 * request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.FAILED_RELOAD
+			 * : Languages.EN.FAILED_RELOAD)).all().build();
+			 */
+		} catch (Exception e) {
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+		/*
+		 * } else { return JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+	}
+
+	private void sendNotification(String msisdn, String message, Product product) {
+		sendNotification(msisdn, message, product, "");
+	}
+
+	private void sendNotification(String msisdn, String message, Product product, String additionalMessage) {
+		logger.info("----#sendNotification method call----msisdn==" + msisdn + "-------message==" + message);
+		if (product == null) {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(message);
+			notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+
+			inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+					stringBuilder.toString(), null, null, null);
+		} else if ("api_nsn".equals(product.getChargingMechanism())
+				|| "api_3pb".equals(product.getChargingMechanism())) {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(message);
+			// stringBuilder.append(" ");
+			// stringBuilder.append((product != null ?
+			// product.getProductNameId() : ""));
+			stringBuilder.append(additionalMessage);
+			notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+
+			inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+					stringBuilder.toString(), null, null, null);
+		} else {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(message);
+			notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+
+			inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+					stringBuilder.toString(), null, null, null);
+		}
+	}
+
+	@Override
+	public Map postPaidChangeEmail(ChangeEmailRequestDto request) {
+		logger.info("----#postPaidChangeEmail method call----msisdn==" + request.getMsisdn());
+		return JSONResultFilter.filter(new BoolStatusOutDto(true)).include("status").build();
+	}
+
+	@Override
+	public Map postPaidPayment(PostPaidPaymentDto request) {
+		logger.info("----#postPaidPayment method call----msisdn==" + request.getMsisdn());
+		BaseDao<PaymentMethod> paymentMethodDao = new BaseDao<>(sessionFactoryDef, PaymentMethod.class);
+		List<PaymentMethod> paymentMethodList = paymentMethodDao.find("paymentMethodCode = :paymentMethodCode",
+				new HashMap<String, Object>() {
+					{
+						put("paymentMethodCode", request.getPaymentMethod());
+					}
+				});
+
+		String paymentMethod = "";
+		if (!paymentMethodList.isEmpty()) {
+			paymentMethod = paymentMethodList.get(0).getPaymentMethodNameEn();
+		}
+
+		com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.epos.postpaidpayment_request_xsd16.Postpaid_Payment_Request payload = new com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.epos.postpaidpayment_request_xsd16.Postpaid_Payment_Request();
+		// ProcessPaymentRequest paymentRequest = new ProcessPaymentRequest();
+		payload.setAccountNumber(request.getAccountNumber());
+		// payload.setMsisdn(request.getMsisdn().toString());
+		// payload.set
+		// paymentRequest.getMakePayment().setAccountNum(request.getAccountNumber());
+		// paymentRequest.getMakePayment().setPaymentDate((new
+		// SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(new Date()));
+		// paymentRequest.getMakePayment().setAmount(request.getAmount());
+		// paymentRequest.getMakePayment().setPaymentType("PAYMENT");
+		// paymentRequest.getMakePayment().setPaymentRefence(request.getTrxId());
+		// paymentRequest.getMakePayment().setPaymentMethod(paymentMethod);
+		try {
+
+			/*
+			 * ProcessPaymentRequest res = (ProcessPaymentRequest)
+			 * XmlHelper.unMarshal(Constants.API_POSTPAID_PAID_API_URL, new HashMap<String,
+			 * String>() {{ put("XML", XmlHelper.marshal(paymentRequest)); }},
+			 * ProcessPaymentRequest.class);
+			 */
+			// com.tibco.postpaidpayment.
+
+			payload.setAgencyAccountNumber("");
+			payload.setCustomer_Number("");
+			payload.setInvoiceNumber("");
+			payload.setLocalTxnDtTime(AppUtils.dateToString(new Date(), "dd/MM/yyyy HH:mm:ss"));
+
+			Object trxType = "POSTPAID_BILL_PAYMENT";
+			if (trxType.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+				payload.setPaymentAmount("" + String.format("%.2f", request.getAmount()));
+				payload.setDepositAmount("");
+			} else if (trxType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+				payload.setPaymentAmount("");
+				payload.setDepositAmount("" + String.format("%.2f", request.getAmount()));
+			}
+			payload.setPaymentLevel("");
+			payload.setPaymentReference("SC" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+			payload.setPayment_Txt("SELFCARE");
+			payload.setPaymentType("Online");
+			payload.setSource("SELFCARE");
+			payload.setTransactionId("SC" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss"));
+			Selfcare_InboundStub stub2;
+			com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.epos.schema_xsd16.Postpaid_Payment_Response res = null;
+			try {
+				stub2 = new Selfcare_InboundStub(applicationConfigurationService
+						.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+				res = stub2.postpaidBillPayment(payload);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			}
+
+			logger.info("==================================================================");
+			logger.info("ProcessPaymentRequest [Request] >> " + res);
+			logger.info("==================================================================");
+
+			logger.info("==================================================================");
+			logger.info("ProcessPaymentRequest [Response] >> " + res);
+			logger.info("==================================================================");
+
+			if (res.getStatus().equals("00000")) {
+				return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+			}
+			return JSONResultFilter
+					.filter(new ErrorMessageDto(false, String.format("[%s] %s", res.getStatus(), res.getStatus_Text())))
+					.all().build();
+		} catch (Exception e) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, e.getMessage())).all().build();
+		}
+	}
+
+	/*
+	 * @Override public Map postPaidGetInfo(PostPaidPaymentDto request) { if
+	 * (isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { DuePaymentInfo
+	 * paymentInfo = new DuePaymentInfo();
+	 * paymentInfo.setSubscriberMsisdn(request.getMsisdn());
+	 * paymentInfo.setSourceName(SOURCE_ODP); try { String
+	 * url=Constants.API_POSTPAID_GET_INFO_API_URL; DuePaymentInfo res =
+	 * (DuePaymentInfo) XmlHelper.unMarshal(Constants.API_POSTPAID_GET_INFO_API_URL,
+	 * new HashMap<String, String>() {{ put("XML", XmlHelper.marshal(paymentInfo));
+	 * }}, DuePaymentInfo.class); if (res.getStatusCode().equals("00000")) { return
+	 * JSONResultFilter.filter(new PostPaidInfoDto() {{ setStatus(true);
+	 * setAccountNumber(res.getOutstandingDetails().getAccountNumber());
+	 * setAmountLastInvoice(res.getOutstandingDetails().
+	 * getLastBillCycleOutstandingAmmount());
+	 * setAmountInvoice(res.getOutstandingDetails().getTotalOutstandingAmount()) ;
+	 * setAmountOver(res.getOutstandingDetails().getOverPaymentAmount());
+	 * }}).all().build(); } return JSONResultFilter.filter(new
+	 * ErrorMessageDto(false, String.format("[%s] %s", res.getStatusCode(),
+	 * res.getStatusText()))).all().build(); } catch (JAXBException |
+	 * URISyntaxException | MalformedURLException e) { return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * e.getMessage())).all().build(); } } return JSONResultFilter.filter(new
+	 * ErrorMessageDto(false, "Invalid user data")).all().build(); }
+	 */
+
+	/*
+	 * @Override public Map postPaidGetInfo(PostPaidPaymentDto request) { if
+	 * (isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { DuePaymentInfo
+	 * paymentInfo = new DuePaymentInfo();
+	 * paymentInfo.setSubscriberMsisdn(request.getMsisdn());
+	 * paymentInfo.setSourceName(SOURCE_ODP); try { // String
+	 * url=Constants.API_POSTPAID_GET_INFO_API_URL;
+	 * 
+	 * com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.
+	 * selfcare.schema_xsd.BalanceQuery_Request payload = new
+	 * com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.
+	 * selfcare.schema_xsd.BalanceQuery_Request(); // ProcessPaymentRequest
+	 * paymentRequest = new // ProcessPaymentRequest();
+	 * payload.setAccountNumber(request.getAccountNumber());
+	 * request.setMsisdn(request.getMsisdn().toString()); Selfcare_InboundStub stub2
+	 * = new Selfcare_InboundStub( Constants.TIBCO_URL_ENDPOINT);
+	 * com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.
+	 * selfcare.schema_xsd2.BalanceQuery_Response res = stub2
+	 * .postpaidBalanceEnquiry(payload); if (res.getStatus().equals("00000")) {
+	 * return JSONResultFilter.filter(new PostPaidInfoDto() { { setStatus(true);
+	 * res.getTotalUnbilledUsage(); setAccountNumber(request.getAccountNumber()); //
+	 * setAmountLastInvoice(request.getLastBillCycleOutstandingAmmount());
+	 * setAmountLastInvoice(res.getTotalUnpaid());
+	 * setAmountInvoice(res.getTotalOutstandingBalance()); //
+	 * setAmountOver(res.getOutstandingDetails().getOverPaymentAmount());
+	 * setAmountOver(res.getOffNetBal());
+	 * 
+	 * } }).all().build(); } return JSONResultFilter.filter( new
+	 * ErrorMessageDto(false, String.format("[%s] %s", res.getStatus(),
+	 * res.getStatusText()))) .all().build(); } catch (Exception e) { return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * e.getMessage())).all().build(); } } return JSONResultFilter.filter(new
+	 * ErrorMessageDto(false, "Invalid user data")).all().build(); }
+	 */
+
+	@Override
+	public Map postPaidGetInfo(PostPaidPaymentDto request) {
+		logger.info("----#postPaidGetInfo method call----msisdn==" + request.getMsisdn());
+		if (isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+
+			DuePaymentInfo paymentInfo = new DuePaymentInfo();
+			paymentInfo.setSubscriberMsisdn(request.getMsisdn());
+			paymentInfo.setSourceName(SOURCE_ODP);
+			try {
+				// String url=Constants.API_POSTPAID_GET_INFO_API_URL;
+
+				com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd.BalanceQuery_Request payload = new com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd.BalanceQuery_Request();
+				// ProcessPaymentRequest paymentRequest = new
+				// ProcessPaymentRequest();
+				payload.setAccountNumber("SV-ACC-0006198024759");
+				payload.setMSISDN(request.getMsisdn().toString());
+				Selfcare_InboundStub stub2 = new Selfcare_InboundStub(applicationConfigurationService
+						.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+				com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.BalanceQuery_Response res = stub2
+						.postpaidBalanceEnquiry(payload);
+				if (res.getStatus().equals("00000")) {
+					return JSONResultFilter.filter(new PostPaidInfoDto() {
+						{
+							setStatus(true);
+							res.getTotalUnbilledUsage();
+							setAccountNumber(request.getAccountNumber());
+							// setAmountLastInvoice(request.getLastBillCycleOutstandingAmmount());
+							setAmountLastInvoice(res.getTotalUnpaid());
+							setAmountInvoice(res.getTotalOutstandingBalance());
+							setAmountOver(res.getTotalOutstandingBalance());
+							// setAmountOver(res.getOffNetBal());
+
+						}
+					}).all().build();
+				}
+				return JSONResultFilter.filter(
+						new ErrorMessageDto(false, String.format("[%s] %s", res.getStatus(), res.getStatusText())))
+						.all().build();
+			} catch (Exception e) {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, e.getMessage())).all().build();
+			}
+		}
+		return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid user data")).all().build();
+	}
+
+	@Override
+	public List<PaymentMethodDto> postPaidGetPaymentMethod() {
+		logger.info("----#postPaidGetPaymentMethod method call----");
+		BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+		List<Parameter> results = parameterDao.find("key = :key", new HashMap<String, Object>() {
+			{
+				put("key", "POSTPAID_PAYMENT");
+			}
+		});
+		List<PaymentMethodDto> paymentMethods = new ArrayList<>();
+		if (results.size() > 0) {
+			List<String> paymenCodes = new ArrayList<>();
+			results.forEach(parameter -> {
+				String[] paymentsCodes = parameter.getValue().split(",");
+				for (String paymentCode : paymentsCodes) {
+					if (paymentCode != null && !paymentCode.isEmpty()) {
+						paymenCodes.add(paymentCode.trim());
+					}
+				}
+			});
+			if (paymenCodes.size() > 0) {
+				BaseDao<PaymentMethod> paymentMethodDao = new BaseDao<>(sessionFactoryDef, PaymentMethod.class);
+				List<PaymentMethod> paymentMethodList = paymentMethodDao
+						.find("paymentMethodCode in :paymentMethodCodes", new HashMap<String, Object>() {
+							{
+								put("paymentMethodCodes", paymenCodes);
+							}
+						});
+				paymentMethodList.forEach(
+						paymentMethod -> paymentMethods.add(new PaymentMethodDto(paymentMethod.getPaymentMethodCode(),
+								paymentMethod.getPaymentMethodNameId())));
+			}
+		}
+		return paymentMethods;
+	}
+
+	@Override
+	public Map hybridEmail(BaseRequestDto request) {
+		logger.info("----#hybridEmail method call----msisdn==" + request.getMsisdn());
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		HybridEmail hybridEmail = new HybridEmail();
+		hybridEmail.setMsisdn(request.getMsisdn());
+		hybridEmail.setRequestType("DISPLAY_INVOICE");
+		hybridEmail.setSource(SOURCE_ODP_GNV);
+		hybridEmail.setTransactionId(moduleTransactionIDGenerator.generate(Module.EMAIL));
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+	}
+
+	public Map hybridPayment(PostPaidPaymentDto request, TrxPostpaidPayment transaction) {
+		logger.info("----#hybridPayment method call----msisdn==" + request.getMsisdn() + "---------transaction=="
+				+ transaction);
+		// if (isMsisdnSubscriberTypeValid(request.getMsisdn(),
+		// request.getSecretKey(), "Hybrid")) {
+		PaymentHybrid payload = new PaymentHybrid();
+		payload.setTransactionId(transaction.getTransactionId());
+		payload.setMsisdn(transaction.getSubscriberMsisdn());
+		payload.setPaymentAmount(transaction.getAccountAmountPaid().intValue());
+		payload.setSource(Constants.TIBCO_SOURCE);
+		logger.warn("ProfileServiceImpl.hybridPayment.payload: "
+				+ StringUtils.arrayToCommaDelimitedString(new Object[] { payload.getTransactionId(),
+						payload.getMsisdn(), payload.getPaymentAmount(), payload.getSource() }));
+		try {
+			PaymentHybrid response = (PaymentHybrid) XmlHelper.unMarshal(Constants.API_HYBRID_PAID_API_URL,
+					new HashMap<String, String>() {
+						{
+							put("XML", XmlHelper.marshal(payload));
+						}
+					}, PaymentHybrid.class);
+
+			logger.warn("==================================================================");
+			logger.warn("hybridPayment [Request] >> " + payload);
+			logger.warn("==================================================================");
+
+			logger.warn("==================================================================");
+			logger.warn("hybridPayment [Response] >> " + response);
+			logger.warn("==================================================================");
+
+			if (response.getStatus().equals("00000")) {
+				return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+			}
+			return JSONResultFilter.filter(new ErrorMessageDto(false,
+					String.format("[%s] %s", response.getStatus(), response.getStatusText()))).all().build();
+		} catch (Exception e) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, e.getMessage())).all().build();
+		}
+	}
+
+	/**
+	 * transaksi mundur 2bulan,
+	 * 
+	 * @param request
+	 * @return
+	 */
+	@Override
+	public List<PackageRegistDto> getRegPackage(BaseRequestDto request) {
+
+		logger.info("----#getRegPackage method call----msisdn==" + request.getMsisdn());
+		/*
+		 * if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * Collections.EMPTY_LIST; }
+		 */
+
+		try {
+
+			List<PackageRegistDto> list = new ArrayList<>();
+			List<TopUpHistory> topupHistory = tibcoService.getTwoMonthTopUpHistory(request.getMsisdn());
+			logger.info("#getRegPackage----------top up history" + topupHistory.size());
+			if (topupHistory != null) {
+				String CURRENCY = request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.CURRENCY_VIETNA + "."
+						: Languages.EN.CURRENCY_VND;
+				for (int index = 0; index < topupHistory.size(); index++) {
+					PackageRegistDto pr = new PackageRegistDto();
+					pr.setDateReg(topupHistory.get(index).getTimeStampAsString());
+					pr.setProductPrice(CURRENCY + " " + Double.toString(topupHistory.get(index).getAmount()));
+					pr.setProductName(topupHistory.get(index).getTypeNameEN());
+					list.add(pr);
+				}
+			}
+			/*
+			 * if(res.getQUERY_RESPONSE() != null) { for
+			 * (GenericTIBCOQueryServicesStub.QUERY_RESPONSE_type11 queryresponse :
+			 * res.getQUERY_RESPONSE()) { String dateReg = ""; String productName = "";
+			 * String productPrice = ""; String productId = null; for
+			 * (GenericTIBCOQueryServicesStub.Attribute_type14 attribute :
+			 * queryresponse.getAttribute()) { if(attribute.getAttribDtl() == null)
+			 * continue;
+			 * 
+			 * if("EVENT_DTM".equals(attribute.getAttribDtl().getName())) { dateReg =
+			 * Helpers.formatDateFromTo("yyyy-MM-dd", "dd/MM/yyyy",
+			 * attribute.getAttribDtl().getString().substring(0, 10)); }
+			 * if("AMOUNT".equals(attribute.getAttribDtl().getName())) { productPrice =
+			 * attribute.getAttribDtl().getString(); }
+			 * if("REGISTRATION_KEY".equals(attribute.getAttribDtl().getName())) { String
+			 * tempProductName = attribute.getAttribDtl().getString();
+			 * BaseDao<ProductCharging> productChargingDao = new BaseDao(sessionFactoryDef,
+			 * ProductCharging.class); List<ProductCharging> productChargings =
+			 * productChargingDao.
+			 * listData("from ProductCharging pc where registrationKey = :registrationKey and pc.productByProductId.isActive = :isActive"
+			 * , new HashMap<String, Object>() {{ put("registrationKey", tempProductName);
+			 * put("isActive", true); }});
+			 * 
+			 * if(!productChargings.isEmpty()) { Product product =
+			 * productChargings.get(0).getProductByProductId(); productId =
+			 * product.getProductId(); if(Constants.LANG_ID.equals(request.getLanguage())){
+			 * productName = product.getProductNameId(); } else { productName =
+			 * product.getProductNameEn(); } } else { productName = tempProductName; } } }
+			 * 
+			 * PackageRegistDto pr = new PackageRegistDto(); pr.setDateReg(dateReg);
+			 * pr.setProductName(productName); pr.setProductPrice(productPrice);
+			 * pr.setProductId(productId);
+			 * 
+			 * if("0".equals(productPrice)) continue;
+			 * 
+			 * list.add(pr); } }
+			 */
+
+			if (list.size() >= 5)
+				return list.subList(0, 5);
+			return list;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			return Collections.EMPTY_LIST;
+		}
+	}
+
+	@Override
+	public List<PackageRegistDto> getRegPackageToday(BaseRequestDto request) {
+		logger.info("----#getRegPackageToday method call----msisdn==" + request.getMsisdn());
+		/*
+		 * if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * Collections.EMPTY_LIST; }
+		 */
+		List<PackageRegistDto> list = new ArrayList<>();
+		try {
+			List<TopUpHistory> topupHistory = tibcoService.getDailyTopUpHistory(request.getMsisdn());
+			logger.info("#getRegPackageToday----------top up history" + topupHistory.size());
+			if (topupHistory != null) {
+				for (int index = 0; index < topupHistory.size(); index++) {
+					PackageRegistDto pr = new PackageRegistDto();
+					pr.setDateReg(topupHistory.get(index).getTimeStampAsString());
+					pr.setProductPrice(Double.toString(topupHistory.get(index).getAmount()));
+					pr.setProductName(topupHistory.get(index).getTypeNameEN());
+					list.add(pr);
+				}
+			}
+
+			/**
+			 * Bima Code comment 14-02-2019
+			 * 
+			 */
+			/*
+			 * GenericTIBCOQueryServices2Stub.UsageDetailsQueryReq usageDetailsQueryReq =
+			 * new GenericTIBCOQueryServices2Stub.UsageDetailsQueryReq();
+			 * usageDetailsQueryReq.setDATE(new SimpleDateFormat("dd/MM/yyyy").format(new
+			 * Date())); usageDetailsQueryReq.setMSISDN(request.getMsisdn());
+			 * usageDetailsQueryReq.setSOURCE(SOURCE_ODP_GNV);
+			 * usageDetailsQueryReq.setEVENT_TYPE("One Off");
+			 * 
+			 * GenericTIBCOQueryServices2Stub stub = new
+			 * GenericTIBCOQueryServices2Stub(Constants. TIBCO_URL_PURCHASE_HISTORY_URL);
+			 * GenericTIBCOQueryServices2Stub.UsageDetailsQueryRes res =
+			 * stub.usageDetailsOperation(usageDetailsQueryReq);
+			 */
+
+			/*
+			 * if(res.getQUERY_RESPONSE() != null) { for
+			 * (GenericTIBCOQueryServices2Stub.QUERY_RESPONSE_type8 qUERY_RESPONSE_type8 :
+			 * res.getQUERY_RESPONSE()) { String dateReg = ""; String productName = "";
+			 * String productPrice = ""; String productId = null;
+			 * 
+			 * boolean isContentDownload = false;
+			 * 
+			 * for (GenericTIBCOQueryServices2Stub.Attribute_type10 attribute :
+			 * qUERY_RESPONSE_type8.getAttribute()) { if(attribute.getAttribDtl() == null)
+			 * continue;
+			 * 
+			 * if("EVENT_TYPE".equals(attribute.getAttribDtl().getName())) {
+			 * if("Content Download".equals(attribute.getAttribDtl().getString() ))
+			 * isContentDownload = true; }
+			 * if("EVENT_DATE".equals(attribute.getAttribDtl().getName())) { dateReg =
+			 * Helpers.formatDateFromTo("yyyy/MM/dd", "dd/MM/yyyy",
+			 * attribute.getAttribDtl().getString().substring(0, 10)); }
+			 * if("PRE_DISCOUNT_COST".equals(attribute.getAttribDtl().getName()) ) {
+			 * productPrice = attribute.getAttribDtl().getString(); }
+			 * if("REGISTRATION_KEY".equals(attribute.getAttribDtl().getName())) { String
+			 * registrationKey = attribute.getAttribDtl().getString();
+			 * 
+			 * BaseDao<ProductCharging> productChargingDao = new BaseDao(sessionFactoryDef,
+			 * ProductCharging.class); List<ProductCharging> productChargings =
+			 * productChargingDao.
+			 * listData("from ProductCharging pc where registrationKey = :registrationKey and pc.productByProductId.isActive = :isActive"
+			 * , new HashMap<String, Object>() {{ put("registrationKey", registrationKey);
+			 * put("isActive", true); }});
+			 * 
+			 * if(!productChargings.isEmpty()) { Product product =
+			 * productChargings.get(0).getProductByProductId(); productId =
+			 * product.getProductId(); if(Constants.LANG_ID.equals(request.getLanguage())){
+			 * productName = product.getProductNameId(); } else { productName =
+			 * product.getProductNameEn(); } } else productName = registrationKey; } }
+			 * 
+			 * PackageRegistDto pr = new PackageRegistDto(); pr.setDateReg(dateReg);
+			 * if(isContentDownload) pr.setProductName("CONTENT DOWNLOAD"); else
+			 * pr.setProductName(productName); pr.setProductId(productId);
+			 * pr.setProductPrice(productPrice);
+			 * 
+			 * if("0".equals(productPrice)) continue;
+			 * 
+			 * list.add(pr); } }
+			 */
+
+			if (list.size() >= 5)
+				return list.subList(0, 5);
+			return list;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			return Collections.EMPTY_LIST;
+		}
+	}
+
+	@Override
+	public List<PackageRegistDto> getRefillPackage(BaseRequestDto request) {
+		logger.info("----#getRefillPackage method call----msisdn==" + request.getMsisdn());
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return Collections.EMPTY_LIST;
+		}
+
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+
+		try {
+
+			List<PackageRegistDto> list = new ArrayList<>();
+			List<TopUpHistory> topupHistory = tibcoService.getTwoMonthTopUpHistory(request.getMsisdn());
+			logger.info("----------top up history" + topupHistory.size());
+			if (topupHistory != null) {
+				for (int index = 0; index < topupHistory.size(); index++) {
+					PackageRegistDto pr = new PackageRegistDto();
+					pr.setDateReg(topupHistory.get(index).getTimeStampAsString());
+					pr.setProductPrice(Double.toString(topupHistory.get(index).getAmount()));
+					pr.setProductName(topupHistory.get(index).getTypeNameEN());
+					list.add(pr);
+				}
+			}
+			/*
+			 * GenericTIBCOQueryServices2Stub.VoucherHistoryQueryReq voucherHistoryQueryReq
+			 * = new GenericTIBCOQueryServices2Stub.VoucherHistoryQueryReq();
+			 * voucherHistoryQueryReq.setMSISDN(request.getMsisdn());
+			 * voucherHistoryQueryReq.setSOURCE("BIMAFUSION");
+			 * 
+			 * Calendar calendar = Calendar.getInstance(); calendar.add(Calendar.DATE, -60);
+			 * // 2 months voucherHistoryQueryReq.setFROM_DATE(new
+			 * SimpleDateFormat("dd/MM/yyyy").format(calendar.getTime()));
+			 * 
+			 * GenericTIBCOQueryServices2Stub stub = new
+			 * GenericTIBCOQueryServices2Stub(Constants. TIBCO_URL_PURCHASE_HISTORY_URL);
+			 * GenericTIBCOQueryServices2Stub.VocuherHistoryQueryRes response =
+			 * stub.voucherHistoryOperation(voucherHistoryQueryReq);
+			 * 
+			 * List<PackageRegistDto> list = new ArrayList<>();
+			 * if(response.getQUERY_RESPONSE() != null) { for
+			 * (GenericTIBCOQueryServices2Stub.QUERY_RESPONSE_type9 qUERY_RESPONSE_type9 :
+			 * response.getQUERY_RESPONSE()) { String dateReg = ""; String productName = "";
+			 * String productPrice = ""; for
+			 * (GenericTIBCOQueryServices2Stub.Attribute_type11 attribute_type11 :
+			 * qUERY_RESPONSE_type9.getAttribute()) { if(attribute_type11.getAttribDtl() ==
+			 * null) continue;
+			 * 
+			 * if("TOP_UP_DATE".equals(attribute_type11.getAttribDtl().getName() )) {
+			 * dateReg = attribute_type11.getAttribDtl().getString(); }
+			 * if("VOUCHER_MONEY".equals(attribute_type11.getAttribDtl().getName ())) {
+			 * productPrice = attribute_type11.getAttribDtl().getString(); }
+			 * if("TOP_UP_TYPE".equals(attribute_type11.getAttribDtl().getName() )) {
+			 * productName = attribute_type11.getAttribDtl().getString(); } }
+			 * 
+			 * PackageRegistDto pr = new PackageRegistDto();
+			 * pr.setProductId(getProductBasedOnVoucherMoney(productPrice));
+			 * pr.setDateReg(dateReg); pr.setProductName(productName);
+			 * pr.setProductPrice(productPrice);
+			 * 
+			 * list.add(pr); } }
+			 */
+
+			if (list.size() >= 5)
+				return list.subList(0, 5);
+			return list;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			return Collections.EMPTY_LIST;
+		}
+	}
+
+	private String getProductBasedOnVoucherMoney(String money) {
+		logger.info("----#getProductBasedOnVoucherMoney method call----money==" + money);
+		if ("500000".equals(money))
+			return "63033";
+		if ("300000".equals(money))
+			return "63031";
+		if ("150000".equals(money))
+			return "63029";
+		if ("100000".equals(money))
+			return "63027";
+		if ("75000".equals(money))
+			return "63025";
+		if ("50000".equals(money))
+			return "63023";
+		if ("25000".equals(money))
+			return "63021";
+		return null;
+	}
+
+	@Override
+	public Map removeProfilePicture(BaseRequestDto request) {
+		logger.info("----#removeProfilePicture method call----msisdn==" + request.getMsisdn());
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		Map res = new HashMap<Object, Object>();
+
+		BaseDao<SubscriberPictures> profilePictureDao = new BaseDao<>(sessionFactoryDef, SubscriberPictures.class);
+		List<SubscriberPictures> curProfilePicture = profilePictureDao
+				.find("MSISDN = :msisdn AND STATUS = 1 ORDER BY CREATED_DATE DESC", new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+					}
+				});
+
+		if (!curProfilePicture.isEmpty()) {
+			try {
+
+				sftpClient.openSession();
+				sftpClient.removeFile(curProfilePicture.get(0).getPictureName());
+
+			} catch (Exception e) {
+				logger.warn("Unable to delete old file (SFTP), ex: " + Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			}
+
+			/* change current picture status */
+			for (SubscriberPictures curentData : curProfilePicture) {
+				curentData.setStatus(0);
+				profilePictureDao.save(curentData);
+			}
+		}
+
+		res.put("status", true);
+		return res;
+	}
+
+	@Override
+	public Map postProfilePicture(ProfilePictureRequestDto request) {
+
+		logger.info("----#postProfilePicture method call----msisdn==" + request.getMsisdn());
+
+		/*
+		 * if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+
+		Map res = new HashMap<Object, Object>();
+
+		if (request.getPhoto().isEmpty()) {
+			res.put("message", "Photo content is missing");
+			res.put("status", false);
+			return res;
+		}
+
+		String uuidPass = UUID.randomUUID().toString();
+		byte[] decodedImg = Base64.getDecoder().decode(request.getPhoto().getBytes(StandardCharsets.UTF_8));
+		String fileName = "profile-" + uuidPass + ".png";
+
+		if ((decodedImg.length / 1024) <= PROFILE_PICTURE_MAX_IN_KB) {
+
+			try {
+				sftpClient.openSession();
+				sftpClient.sendFile(new ByteArrayInputStream(decodedImg), fileName);
+
+				BaseDao<SubscriberPictures> profilePictureDao = new BaseDao<>(sessionFactoryDef,
+						SubscriberPictures.class);
+				List<SubscriberPictures> curProfilePicture = profilePictureDao.find(
+						"MSISDN = :msisdn AND STATUS = 1 ORDER BY CREATED_DATE DESC", new HashMap<String, Object>() {
+							{
+								put("msisdn", request.getMsisdn());
+							}
+						});
+				if (!curProfilePicture.isEmpty()) {
+					/* delete old picture */
+					try {
+						sftpClient.removeFile(curProfilePicture.get(0).getPictureName());
+					} catch (Exception e) {
+						logger.warn("Unable to delete old file (SFTP), ex: " + Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+					}
+
+					/* change old picture status */
+					for (SubscriberPictures curentData : curProfilePicture) {
+						curentData.setStatus(0);
+						profilePictureDao.save(curentData);
+					}
+				}
+
+				SubscriberPictures newSubsPict = new SubscriberPictures();
+				newSubsPict.setUuid(uuidPass);
+				newSubsPict.setMsisdn(request.getMsisdn());
+				newSubsPict.setPictureName(fileName);
+				/* ENABLED = 1, DISABLED = 0 */
+				newSubsPict.setStatus(1);
+				newSubsPict.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+				profilePictureDao.save(newSubsPict);
+				String profilePictureSafeUrl = applicationConfigurationService
+						.get("PROFILE.PUBLIC_URL", "http://103.129.188.37:8080/imageserver/").toString() + fileName;
+
+				sftpClient.closeSession();
+
+				res.put("profilePicture", profilePictureSafeUrl);
+				res.put("status", true);
+				return res;
+			} catch (IOException ex) {
+				logger.warn("Unable to write or remove file (IO), ex: " + Joiner.on("\n").join(Iterables.limit(Arrays.asList(ex.getStackTrace()),10)));
+			} catch (Exception ex) {
+				logger.warn("Unable to write or remove file, ex: " + Joiner.on("\n").join(Iterables.limit(Arrays.asList(ex.getStackTrace()),10)));
+			}
+		} else {
+			res.put("message", "Picture is limited to " + PROFILE_PICTURE_MAX_IN_KB + " KB");
+			res.put("status", false);
+			return res;
+		}
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(false)).include("status").build();
+	}
+
+	@Override
+	public List<TransferPulsaHistoriesDto> getTransferPulsaHistory(BaseRequestDto request) {
+		logger.info("----#getTransferPulsaHistory method call----msisdn==" + request.getMsisdn());
+
+		List<TransferPulsaHistoriesDto> result = new ArrayList<>();
+
+		try {
+			BackDatedUsageReq transferHistReq = new BackDatedUsageReq();
+			transferHistReq.setMSISDN(request.getMsisdn());
+			transferHistReq.setSOURCE(SOURCE_ODP_GNV);
+			transferHistReq.setTRANSACTIONID(moduleTransactionIDGenerator.generate(Module.PROFILE));
+			transferHistReq.setREQ_TYPE(Constants.TIBCO_BCKDATE_USG_REQ_TYPE);
+
+			GenericTIBCOQueryServicesStub tibcoHistoryTransferPulsa = new GenericTIBCOQueryServicesStub(
+					Constants.TIBCO_URL_USAGE_DETAIL_ENDPOINT);
+
+			BackDatedUsageResp transferHistRes = tibcoHistoryTransferPulsa.backDatedUsageHistory(transferHistReq);
+
+			QUERY_RESPONSE_type11[] qryResponse = transferHistRes.getQUERY_RESPONSE();
+
+			int line = 0;
+
+			List<BackdateUsageResponseDto> backdateUsageResponseDtos = new ArrayList<>();
+			BackdateUsageResponseDto att = null;
+
+			/*
+			 * Loop to assign attribute xml response to BackdateUsageResponseDto object
+			 */
+			for (QUERY_RESPONSE_type11 r : qryResponse) {
+
+				for (Attribute_type14 a : r.getAttribute()) {
+
+					if (line == 0)
+						att = new BackdateUsageResponseDto();
+
+					if (line <= lineBreak) {
+
+						if (a.getAttribDtl().getName().contentEquals(Constants.TIBCO_BCKDATE_USG_ATTR_ADJ_NUMBER)) {
+							att.setAdjustmentNumber(a.getAttribDtl().getString());
+						}
+						if (a.getAttribDtl().getName().contentEquals(Constants.TIBCO_BCKDATE_USG_ATTR_ADJ_TYPENAME)) {
+							att.setAdjustmentTypeName(a.getAttribDtl().getString());
+						}
+						if (a.getAttribDtl().getName().contentEquals(Constants.TIBCO_BCKDATE_USG_ATTR_ADJ_NETMOUNT)) {
+							att.setAdjustmentNetMount(a.getAttribDtl().getString());
+						}
+						if (a.getAttribDtl().getName().contentEquals(Constants.TIBCO_BCKDATE_USG_ATTR_ADJ_TEXT)) {
+							att.setAdjustmentText(a.getAttribDtl().getString());
+						}
+						if (a.getAttribDtl().getName().contentEquals(Constants.TIBCO_BCKDATE_USG_ATTR_ADJ_DATE)) {
+							att.setAdjustmentDate(a.getAttribDtl().getString());
+						}
+
+						if (line == lineBreak) {
+							backdateUsageResponseDtos.add(att);
+							line = 0;
+						} else {
+							line++;
+						}
+
+					}
+
+				}
+			}
+
+			/*
+			 * filter and looping BackdateUsageResponseDto list to only get value from list
+			 * with Adjustment Type is BalanceTransfer_To
+			 */
+			backdateUsageResponseDtos.stream()
+					.filter(o -> o.getAdjustmentTypeName().equalsIgnoreCase("BalanceTransfer_To")).forEach(o -> {
+						TransferPulsaHistoriesDto transferPulsaDto = new TransferPulsaHistoriesDto();
+						transferPulsaDto.setAmount(o.getAdjustmentNetMount());
+						transferPulsaDto.setMsisdnTarget(o.getAdjustmentText());
+						transferPulsaDto.setDateReg(o.getAdjustmentDate());
+						result.add(transferPulsaDto);
+					});
+
+			result.sort((o1, o2) -> o2.getDateReg(0).compareTo(o1.getDateReg(0)));
+
+		} catch (Exception e) {
+			// logger.error("Error getting from getTransferPulsaHistory :
+			// "+e.getMessage());
+		}
+
+		return result;
+	}
+
+	@Override
+	public Map addProfileEmail(ProfileEmailRequestDto request) {
+		logger.info("----#addProfileEmail method call----msisdn==" + request.getMsisdn() + "-------email=="
+				+ request.getEmail());
+		/*
+		 * if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+
+		if (request.getEmail().equals("")) {
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+		BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+		BaseDao<SubscriberEmailToken> subsEmailToken = new BaseDao<>(sessionFactoryDef, SubscriberEmailToken.class);
+
+		List<SubscriberEmailLogin> existingProfileEmail = subsEmailDao
+				.find("EMAIL = :emailId AND MSISDN != :msisdn AND STATUS = 1", new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+						put("emailId", request.getEmail());
+					}
+				});
+
+		if (!existingProfileEmail.isEmpty())
+			return JSONResultFilter.filter(new ErrorMessageDto(false,
+					notificationMasterService.getMessageText(Languages.MSG_IDS.EMAIL_IN_USE, request.getLanguage())))
+					.all().build();
+
+		List<SubscriberEmailLogin> curProfileEmail = subsEmailDao.find("MSISDN = :msisdn AND type = 'email'",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+					}
+				});
+
+		if (!curProfileEmail.isEmpty()) {
+
+			if (curProfileEmail.get(0).getStatus() == 0) {
+				return JSONResultFilter
+						.filter(new ErrorMessageDto(false, notificationMasterService
+								.getMessageText(Languages.MSG_IDS.EMAIL_IN_VERIFICATION, request.getLanguage())))
+						.all().build();
+			}
+
+			curProfileEmail.get(0).setEmail(request.getEmail());
+			curProfileEmail.get(0).setStatus(0);
+			curProfileEmail.get(0).setPassword("");
+			curProfileEmail.get(0).setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+			subsEmailDao.update(curProfileEmail.get(0));
+		} else {
+			String uuidPass = UUID.randomUUID().toString();
+			SubscriberEmailLogin newSubsEmail = new SubscriberEmailLogin();
+			newSubsEmail.setUUID(uuidPass);
+			newSubsEmail.setMsisdn(request.getMsisdn());
+			newSubsEmail.setEmail(request.getEmail());
+			newSubsEmail.setType("email");
+			newSubsEmail.setPassword("");
+			newSubsEmail.setToken("");
+			newSubsEmail.setStatus(0);
+			newSubsEmail.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+			newSubsEmail.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+			subsEmailDao.save(newSubsEmail);
+		}
+
+		String uuidPassEmailToken = UUID.randomUUID().toString();
+		SubscriberEmailToken newSubsEmailToken = new SubscriberEmailToken();
+		newSubsEmailToken.setUUID(uuidPassEmailToken);
+		newSubsEmailToken.setType(1);
+		String token = Helpers.generate24Random();
+		newSubsEmailToken.setToken(token);
+		newSubsEmailToken.setEmailId(request.getEmail());
+		newSubsEmailToken.setStatus(1);
+		newSubsEmailToken.setTrxDate(new Timestamp(System.currentTimeMillis()));
+		subsEmailToken.save(newSubsEmailToken);
+
+		Map<String, String> data = new HashMap<>();
+		data.put("name", request.getMsisdn());
+		data.put("token", token);
+
+		logger.info("----#addProfileEmail method call--------sending mail----msisdn==" + request.getMsisdn()
+				+ "-------email==" + request.getEmail());
+		mailer.sendEmail(null, request.getEmail(), data, "addEmail", Constants.EMAIL_SENDER,
+				Constants.EMAIL_SENDER_NAME, request.getLanguage());
+		String addEmailMsg = notificationMasterService.getMessageText(Languages.MSG_IDS.LOGIN_VERIFICATION_EMAIL,
+				request.getLanguage());
+		addEmailMsg = addEmailMsg.replaceFirst("#EMAIL", request.getEmail());
+		return JSONResultFilter.filter(new ErrorMessageDto(true, addEmailMsg)).all().build();
+	}
+
+	@Override
+	public Map resendVerificationEmail(ProfileEmailRequestDto request) {
+		logger.info("----resendVerificationEmail method call----msisdn==" + request.getMsisdn() + "-------email=="
+				+ request.getEmail());
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		if (request.getEmail().equals("")) {
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+		BaseDao<SubscriberEmailToken> subsEmailToken = new BaseDao<>(sessionFactoryDef, SubscriberEmailToken.class);
+
+		List<SubscriberEmailLogin> existingProfileEmail = subsEmailDao
+				.find("EMAIL = :emailId AND MSISDN = :msisdn AND STATUS = 0", new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+						put("emailId", request.getEmail());
+					}
+				});
+
+		if (!existingProfileEmail.isEmpty()) {
+
+			List<SubscriberEmailToken> existingToken = subsEmailToken.find("EMAIL_ID = :emailId AND STATUS = 1",
+					new HashMap<String, Object>() {
+						{
+							put("emailId", request.getEmail());
+						}
+					});
+
+			String token = Helpers.generate24Random();
+			if (existingToken.isEmpty()) {
+				String uuidPassEmailToken = UUID.randomUUID().toString();
+				SubscriberEmailToken newSubsEmailToken = new SubscriberEmailToken();
+				newSubsEmailToken.setUUID(uuidPassEmailToken);
+				newSubsEmailToken.setType(1);
+				newSubsEmailToken.setToken(token);
+				newSubsEmailToken.setEmailId(request.getEmail());
+				newSubsEmailToken.setStatus(1);
+				newSubsEmailToken.setTrxDate(new Timestamp(System.currentTimeMillis()));
+				subsEmailToken.save(newSubsEmailToken);
+			} else {
+				existingToken.get(0).setStatus(1);
+				existingToken.get(0).setTrxDate(new Timestamp(System.currentTimeMillis()));
+				subsEmailToken.update(existingToken.get(0));
+				token = existingToken.get(0).getToken();
+			}
+
+			Map<String, String> data = new HashMap<>();
+			data.put("name", request.getMsisdn());
+			data.put("token", token);
+			mailer.sendEmail(null, request.getEmail(), data, "addEmail", Constants.EMAIL_SENDER,
+					Constants.EMAIL_SENDER_NAME, request.getLanguage());
+			String resendVerificationMsg = notificationMasterService
+					.getMessageText(Languages.MSG_IDS.LOGIN_VERIFICATION_EMAIL, request.getLanguage());
+			resendVerificationMsg = resendVerificationMsg.replaceFirst("#EMAIL", request.getEmail());
+			return JSONResultFilter.filter(new ErrorMessageDto(true, resendVerificationMsg)).all().build();
+		}
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+	}
+
+	@Override
+	public Map addProfileSocial(ProfileSocialRequestDto request) {
+		/*
+		 * if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		 */
+		logger.info("----addProfileSocial method call----msisdn==" + request.getMsisdn() + "-------type=="
+				+ request.getType());
+		if (request.getType().equals("") || request.getToken().equals(""))
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+
+		boolean status = false;
+
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+
+		BaseDao<SubscriberEmailLogin> subsSocialDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+		List<SubscriberEmailLogin> curProfileSocial = subsSocialDao
+				.find("MSISDN = :msisdn AND type = :type AND STATUS = 1", new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+						put("type", request.getType());
+					}
+				});
+		logger.info("#addProfileSocial-------size is ----------" + curProfileSocial.size());
+		if (curProfileSocial.size() != 0)
+			return JSONResultFilter.filter(new BoolStatusOutDto(status)).all().build();
+
+		String socialProfileId = "";
+		String socialProfileName = "";
+		switch (request.getType()) {
+		case "google":
+			/*
+			 * Map goData = GO_APP.loadUserDetails(request.getToken()); socialProfileId =
+			 * goData.get("id").toString();
+			 * System.out.println("socialProfileId ::::"+socialProfileId); socialProfileName
+			 * = goData.get("name").toString(); status = (boolean) goData.get("status");
+			 */
+			if (request.getUserId() != null) {
+				socialProfileId = request.getUserId();
+				socialProfileName = request.getFamilyName();
+				status = true;
+			} else {
+				status = false;
+			}
+
+			break;
+		case "twitter":
+			Map twData = TW_APP.loadUserDetails(request.getToken(), request.getTokenSecret());
+			socialProfileId = twData.get("id").toString();
+			socialProfileName = twData.get("name").toString();
+			status = (boolean) twData.get("status");
+			break;
+		case "facebook":
+			logger.info("switch case fb");
+			Map fbData = FB_APP.loadUserDetails(request.getToken());
+			socialProfileId = fbData.get("id").toString();
+			logger.info("socialProfileId :::" + socialProfileId);
+			socialProfileName = fbData.get("name").toString();
+			status = (boolean) fbData.get("status");
+			logger.info("#addProfileSocial-----socialProfileId :::" + socialProfileId + " socialProfileName:::"
+					+ socialProfileName + " status :::" + status);
+			break;
+		default:
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		if (status) {
+			String socId = socialProfileId;
+			List<SubscriberEmailLogin> existingProfileSocial = subsSocialDao
+					.find("TYPE = :type AND SOCIAL_PROFILE_ID = :socialProfileId", new HashMap<String, Object>() {
+						{
+							put("type", request.getType());
+							put("socialProfileId", socId);
+						}
+					});
+
+			if (!existingProfileSocial.isEmpty())
+				return JSONResultFilter.filter(new ErrorMessageDto(false, notificationMasterService
+						.getMessageText(Languages.MSG_IDS.SOCIAL_IN_USE, request.getLanguage()))).all().build();
+
+			/*
+			 * try { GenricTIBODPservicesStub tibco = new
+			 * GenricTIBODPservicesStub(Constants. TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+			 * GenricTIBODPservicesStub.LinkSocialIDRequest socReq = new
+			 * GenricTIBODPservicesStub.LinkSocialIDRequest();
+			 * 
+			 * socReq.setSource(SOURCE_ODP_GNV);
+			 * socReq.setTrxID(moduleTransactionIDGenerator.generate(Module. SOCIAL));
+			 * socReq.setMSISDN(request.getMsisdn()); socReq.setVALUE(socialProfileName);
+			 * switch (request.getType()) { case "google": case "twitter": case "facebook":
+			 * String reqType = request.getType(); reqType = reqType.toUpperCase();
+			 * socReq.setTYPE(reqType); break; default: } tibco.linkSocialID(socReq); }
+			 * catch (AxisFault ex) {
+			 * logger.warn("addProfileSocial to Tibco failed "+ex.getMessage()); } catch
+			 * (RemoteException ex) {
+			 * logger.warn("addProfileSocial to Tibco failed "+ex.getMessage()); }
+			 */
+
+			String uuidPass = UUID.randomUUID().toString();
+			SubscriberEmailLogin newSubsSocial = new SubscriberEmailLogin();
+			newSubsSocial.setUUID(uuidPass);
+			newSubsSocial.setMsisdn(request.getMsisdn());
+			newSubsSocial.setType(request.getType());
+			newSubsSocial.setToken(request.getToken());
+			newSubsSocial.setSocialProfileId(socialProfileId);
+			newSubsSocial.setSocialProfileName(socialProfileName);
+			newSubsSocial.setEmail("");
+			newSubsSocial.setPassword("");
+			/* ENABLED = 1, DISABLED = 0 */
+			newSubsSocial.setStatus(1);
+			newSubsSocial.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+			newSubsSocial.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+			subsSocialDao.save(newSubsSocial);
+		}
+		return JSONResultFilter.filter(new BoolStatusOutDto(status)).all().build();
+	}
+
+	@Override
+	public Map updatePassword(ProfileEmailChangeRequestDto request) {
+		String msgSuccess = "Password reset successfully!";
+		String msgFail = "Password updation failed! Please try again!!";
+		String msgTokenInvalid = "Token is invalid!!";
+		if (request.getLanguage().equals("0")) {
+			msgSuccess = "Đặt lại mật khẩu thành công!";
+			msgFail = "Cập nhật mật khẩu không thành công! Vui lòng thử lại!!";
+			msgTokenInvalid = "Mã thông báo không hợp lệ !!";
+		}
+		String email = this.getEmailidByToken(request.getToken());
+		if (request.getPasswordOld().equals("")) {
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+		if (email != null) {
+			String password = request.getPasswordOld();
+			BaseDao<SubscriberEmailLogin> subEmailLogin = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+			int status = sessionFactoryDef.getCurrentSession()
+					.createSQLQuery("UPDATE SUBSCRIBER_EMAIL_LOGIN SET PASSWORD=" + "'"
+							+ BCrypt.hashpw(request.getPasswordOld(), Constants.BCRYPT_SALT) + "'" + " WHERE EMAIL="
+							+ "'" + email + "'")
+					.executeUpdate();
+			if (status == 1)
+				return JSONResultFilter.filter(new ErrorMessageDto(true, msgSuccess)).all().build();
+			else
+				return JSONResultFilter.filter(new ErrorMessageDto(false, msgFail)).all().build();
+
+		}
+		return JSONResultFilter.filter(new ErrorMessageDto(false, msgTokenInvalid)).all().build();
+
+	}
+
+	@Override
+	public Map changeProfileEmailPassword(ProfileEmailChangeRequestDto request) {
+
+		logger.info("##changeProfileEmailPassword-----msisdn==" + request.getMsisdn() + "----------type=="
+				+ request.getType());
+
+		/*
+		 * 1 = changing from BIMA+ app 2 = changing from forgot password external page
+		 */
+		if (request.getType().equals("1")) {
+			if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+			}
+
+			if (request.getPasswordOld().equals("") || request.getPasswordNew().equals("")) {
+				return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+			}
+
+			BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+			List<SubscriberEmailLogin> curProfileEmail = subsEmailDao
+					.find("MSISDN = :msisdn AND type = 'email' AND STATUS = 1", new HashMap<String, Object>() {
+						{
+							put("msisdn", request.getMsisdn());
+						}
+					});
+
+			if (!curProfileEmail.isEmpty()) {
+				if (BCrypt.hashpw(request.getPasswordOld(), Constants.BCRYPT_SALT)
+						.equals(curProfileEmail.get(0).getPassword())) {
+					/* PASSWORD WITH BCRYPT */
+					curProfileEmail.get(0).setPassword(BCrypt.hashpw(request.getPasswordNew(), Constants.BCRYPT_SALT));
+					curProfileEmail.get(0).setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+					subsEmailDao.update(curProfileEmail.get(0));
+
+					Map<String, String> data = new HashMap<>();
+					data.put("name", request.getMsisdn());
+					mailer.sendEmail(null, curProfileEmail.get(0).getEmail(), data, "passwordChanged",
+							Constants.EMAIL_SENDER, Constants.EMAIL_SENDER_NAME, request.getLanguage());
+
+				} else {
+					return JSONResultFilter.filter(new ErrorMessageDto(false, "Wrong old password")).all().build();
+				}
+			}
+		} else {
+			BaseDao<SubscriberEmailToken> subsEmailTokenDao = new BaseDao<>(sessionFactoryDef,
+					SubscriberEmailToken.class);
+			BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+
+			if (request.getPasswordNew().equals("")) {
+				return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+			}
+
+			List<SubscriberEmailToken> emailTokenData = subsEmailTokenDao
+					.find("token = :token AND type = '2' AND status = 1", new HashMap<String, Object>() {
+						{
+							put("token", request.getToken());
+						}
+					});
+
+			if (!emailTokenData.isEmpty()) {
+
+				List<SubscriberEmailLogin> curProfileEmail = subsEmailDao.find("email = :email AND type = 'email'",
+						new HashMap<String, Object>() {
+							{
+								put("email", emailTokenData.get(0).getEmailId());
+							}
+						});
+
+				/* CHECK IF EXPIRED 60 MINUTES */
+				long thirtyMinutesAgo = System.currentTimeMillis() - (60 * 60 * 1000);
+				if (emailTokenData.get(0).getTrxDate().getTime() < thirtyMinutesAgo) {
+					return JSONResultFilter.filter(new ErrorMessageDto(false, "Expired token")).all().build();
+				}
+				emailTokenData.get(0).setStatus(0);
+				subsEmailTokenDao.update(emailTokenData.get(0));
+
+				if (!curProfileEmail.isEmpty()) {
+					/* PASSWORD PAKE BCRYPT */
+					curProfileEmail.get(0).setPassword(BCrypt.hashpw(request.getPasswordNew(), Constants.BCRYPT_SALT));
+					curProfileEmail.get(0).setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+					curProfileEmail.get(0).setStatus(1);
+					subsEmailDao.update(curProfileEmail.get(0));
+
+					Map<String, String> data = new HashMap<>();
+					data.put("name", request.getMsisdn());
+					mailer.sendEmail(null, curProfileEmail.get(0).getEmail(), data, "passwordChanged",
+							Constants.EMAIL_SENDER, Constants.EMAIL_SENDER_NAME, request.getLanguage());
+
+				}
+			} else {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "Wrong token")).all().build();
+			}
+		}
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+	}
+
+	@Override
+	public Map forgotEmailPassword(BaseRequestDto request, String token) {
+		logger.info("##forgotEmailPassword-----msisdn==" + request.getMsisdn());
+
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+		BaseDao<SubscriberEmailToken> subsEmailToken = new BaseDao<>(sessionFactoryDef, SubscriberEmailToken.class);
+
+		List<SubscriberEmailLogin> curProfileEmail = subsEmailDao
+				.find("MSISDN = :msisdn AND type = 'email' AND STATUS = 1", new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+					}
+				});
+
+		if (!curProfileEmail.isEmpty()) {
+
+			String uuidPass = UUID.randomUUID().toString();
+			SubscriberEmailToken newSubsSocial = new SubscriberEmailToken();
+			newSubsSocial.setUUID(uuidPass);
+			newSubsSocial.setType(2);
+
+			// String token = Helpers.generate24Random();
+			newSubsSocial.setToken(token);
+			newSubsSocial.setEmailId(curProfileEmail.get(0).getEmail());
+			/* ENABLED = 1, DISABLED = 0 */
+			newSubsSocial.setStatus(1);
+			newSubsSocial.setTrxDate(new Timestamp(System.currentTimeMillis()));
+			subsEmailToken.save(newSubsSocial);
+
+			Map<String, String> data = new HashMap<>();
+			data.put("name", request.getMsisdn());
+			data.put("token", token);
+			mailer.sendEmail(null, curProfileEmail.get(0).getEmail(), data, "forgotPasswordEmail",
+					Constants.EMAIL_SENDER, Constants.EMAIL_SENDER_NAME, request.getLanguage());
+
+			String forgotMsg = notificationMasterService.getMessageText(Languages.MSG_IDS.LOGIN_VERIFICATION_EMAIL,
+					request.getLanguage());
+			forgotMsg = forgotMsg.replaceFirst("#EMAIL", curProfileEmail.get(0).getEmail());
+
+			return JSONResultFilter.filter(new ErrorMessageDto(true, forgotMsg)).all().build();
+		} else {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "No email account attached")).all().build();
+		}
+	}
+
+	@Override
+	public Map getEmailSocialConnStatus(BaseRequestDto request) {
+		logger.info("##getEmailSocialConnStatus-----msisdn==" + request.getMsisdn());
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+		BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+		List<SubscriberEmailLogin> curProfileEmail = subsEmailDao.find("MSISDN = :msisdn",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+					}
+				});
+
+		Map<String, Object> data = new HashMap<>();
+		data.put("facebook", null);
+		data.put("twitter", null);
+		data.put("google", null);
+		data.put("email", null);
+
+		if (!curProfileEmail.isEmpty()) {
+			for (SubscriberEmailLogin subscriberEmailLogin : curProfileEmail) {
+
+				if ("email".equals(subscriberEmailLogin.getType())) {
+					if (subscriberEmailLogin.getPassword() == null)
+						subscriberEmailLogin.setPassword("");
+
+					data.put(subscriberEmailLogin.getType(), new HashMap<String, Object>() {
+						{
+							put("id", subscriberEmailLogin.getEmail());
+							put("name", "");
+							put("status", (subscriberEmailLogin.getStatus() == 1));
+							put("isSecured", (!subscriberEmailLogin.getPassword().equals("")));
+							put("PassStatus", (subscriberEmailLogin.getPassword() != null) ? true : false);
+						}
+					});
+				} else {
+					if (subscriberEmailLogin.getStatus() == 1) {
+						data.put(subscriberEmailLogin.getType(), new HashMap<String, Object>() {
+							{
+								put("id", subscriberEmailLogin.getSocialProfileId());
+								put("name", subscriberEmailLogin.getSocialProfileName());
+								put("status", true);
+								put("PassStatus", (subscriberEmailLogin.getPassword() != null) ? true : false);
+							}
+						});
+					}
+				}
+			}
+		}
+
+		return data;
+	}
+
+	@Override
+	public Map verifyProfileEmail(ProfileEmailVerifyDto request) {
+		logger.info("##verifyProfileEmail-----msisdn==" + request.getMsisdn());
+
+		BaseDao<SubscriberEmailToken> subsEmailTokenDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailToken.class);
+		BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+
+		List<SubscriberEmailToken> emailTokenData = subsEmailTokenDao
+				.find("token = :token AND type = '1' AND status = 1", new HashMap<String, Object>() {
+					{
+						put("token", request.getToken());
+					}
+				});
+		List<SubscriberEmailLogin> curProfileEmail = subsEmailDao
+				.find("msisdn = :msisdn AND type = 'email' AND status = 0", new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+					}
+				});
+
+		if (!emailTokenData.isEmpty()) {
+
+			/* CHECK IF EXPIRED 60 MINUTES */
+			long thirtyMinutesAgo = System.currentTimeMillis() - (60 * 60 * 1000);
+			if (emailTokenData.get(0).getTrxDate().getTime() < thirtyMinutesAgo) {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "Expired token")).all().build();
+			}
+
+			if (!curProfileEmail.isEmpty()) {
+
+				sessionFactoryDef.getCurrentSession().createSQLQuery(
+						"DELETE FROM SUBSCRIBER_EMAIL_LOGIN where EMAIL = :email AND STATUS = 0 AND TYPE = 'email' AND MSISDN != :msisdn")
+						.setString("msisdn", request.getMsisdn()).setString("email", curProfileEmail.get(0).getEmail())
+						.executeUpdate();
+
+				curProfileEmail.get(0).setStatus(1);
+				subsEmailDao.update(curProfileEmail.get(0));
+
+				/*
+				 * try { GenricTIBODPservicesStub tibco = new
+				 * GenricTIBODPservicesStub(Constants. TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+				 * GenricTIBODPservicesStub.LinkSocialIDRequest socReq = new
+				 * GenricTIBODPservicesStub.LinkSocialIDRequest();
+				 * socReq.setSource(SOURCE_ODP_GNV); socReq.setTYPE("EMAIL");
+				 * socReq.setTrxID(moduleTransactionIDGenerator.generate(Module. SOCIAL));
+				 * socReq.setMSISDN(request.getMsisdn());
+				 * socReq.setVALUE(curProfileEmail.get(0).getEmail());
+				 * tibco.linkSocialID(socReq); } catch (AxisFault ex) {
+				 * logger.warn("verifyProfileEmail to Tibco failed "+ex. getMessage()); } catch
+				 * (RemoteException ex) { logger.warn("verifyProfileEmail to Tibco failed "+ex.
+				 * getMessage()); }
+				 */
+
+				emailTokenData.get(0).setStatus(0);
+				subsEmailTokenDao.update(emailTokenData.get(0));
+
+				mailer.sendEmail(null, curProfileEmail.get(0).getEmail(), new HashMap<>(), "addEmailComplete",
+						Constants.EMAIL_SENDER, Constants.EMAIL_SENDER_NAME, request.getLanguage());
+
+				return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+			}
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Subscriber not found")).all().build();
+		}
+
+		return JSONResultFilter.filter(new ErrorMessageDto(false, "Wrong token")).all().build();
+	}
+
+	@Override
+	public Map removeEmailAndSocial(RemoveEmailSocialDto request) {
+		logger.info("##updateProfileBio-----msisdn==" + request.getMsisdn());
+
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+		/*
+		 * try { GenricTIBODPservicesStub tibco = new
+		 * GenricTIBODPservicesStub(Constants.TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+		 * GenricTIBODPservicesStub.LinkSocialIDRequest socReq = new
+		 * GenricTIBODPservicesStub.LinkSocialIDRequest();
+		 * socReq.setSource(SOURCE_ODP_GNV);
+		 * socReq.setTrxID(moduleTransactionIDGenerator.generate(Module.SOCIAL)) ;
+		 * socReq.setMSISDN(request.getMsisdn()); switch (request.getType()) { case
+		 * "google": case "twitter": case "facebook": case "email": String reqType =
+		 * request.getType(); reqType = reqType.toUpperCase(); socReq.setTYPE(reqType);
+		 * break; default: } socReq.setVALUE(""); tibco.linkSocialID(socReq); } catch
+		 * (AxisFault ex) {
+		 * logger.warn("removeEmailAndSocial to Tibco failed "+ex.getMessage()); } catch
+		 * (RemoteException ex) {
+		 * logger.warn("removeEmailAndSocial to Tibco failed "+ex.getMessage()); }
+		 */
+		sessionFactoryDef.getCurrentSession()
+				.createSQLQuery("DELETE FROM SUBSCRIBER_EMAIL_LOGIN where MSISDN = :msisdn AND TYPE = :type")
+				.setString("msisdn", request.getMsisdn()).setString("type", request.getType()).executeUpdate();
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+	}
+
+	@Override
+	public Map updateProfileBio(ProfileBioDto request) {
+		logger.info("##updateProfileBio-----msisdn==" + request.getMsisdn());
+
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+		if (request.getHobby().length() > 100 || request.getName().length() > 100) {
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+		}
+
+		BaseDao<SubscriberUserProfile> subsUserProfileDao = new BaseDao<>(sessionFactoryDef,
+				SubscriberUserProfile.class);
+		List<SubscriberUserProfile> subsUserProfileData = subsUserProfileDao.find("msisdn = :msisdn",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+					}
+				});
+
+		SubscriberUserProfile subsData = null;
+		if (subsUserProfileData.isEmpty()) {
+			subsData = new SubscriberUserProfile();
+			subsData.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+		} else {
+			subsData = subsUserProfileData.get(0);
+		}
+
+		subsData.setMsisdn(request.getMsisdn());
+		subsData.setName(request.getName());
+		subsData.setHobby(request.getHobby());
+		subsData.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+
+		if (subsUserProfileDao.saveOrUpdate(subsData))
+			return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+	}
+
+	@Override
+	public Map setProfileEmailPassword(ProfileSetEmailPasswordDto request) {
+
+		logger.info("##setProfileEmailPassword-----msisdn==" + request.getMsisdn());
+
+		/*
+		 * if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+
+		if (request.getPassword() == null)
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+
+		if (request.getPassword().equals(""))
+			return JSONResultFilter.filter(new BoolStatusOutDto(false)).all().build();
+
+		BaseDao<SubscriberEmailLogin> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailLogin.class);
+		List<SubscriberEmailLogin> curProfileEmail = subsEmailDao.find("MSISDN = :msisdn AND type = 'email'",
+				new HashMap<String, Object>() {
+					{
+						put("msisdn", request.getMsisdn());
+					}
+				});
+
+		if (!curProfileEmail.isEmpty()) {
+			if (curProfileEmail.get(0).getStatus() == 0)
+				return JSONResultFilter
+						.filter(new ErrorMessageDto(false, "Please verify your email before setting the password"))
+						.all().build();
+
+			if (curProfileEmail.get(0).getPassword() != null)
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "You have already set password ")).all()
+						.build();
+
+			/* PASSWORD WITH BCRYPT */
+			curProfileEmail.get(0).setPassword(BCrypt.hashpw(request.getPassword(), Constants.BCRYPT_SALT));
+			curProfileEmail.get(0).setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+			subsEmailDao.update(curProfileEmail.get(0));
+
+			Map<String, String> data = new HashMap<>();
+			data.put("name", request.getMsisdn());
+			mailer.sendEmail(null, curProfileEmail.get(0).getEmail(), data, "passwordSet", Constants.EMAIL_SENDER,
+					Constants.EMAIL_SENDER_NAME, request.getLanguage());
+
+		}
+
+		return JSONResultFilter.filter(new BoolStatusOutDto(true)).all().build();
+	}
+
+	public List<PackageProfileMappingDto> getFormattedBonusDetails(
+			TibcoODPSingleQueryProcessStub.SubsriberInfo_type0 subscriberInfo,
+			TibcoODPSingleQueryProcessStub.Bonus_Details_type0 bonusDetailsList, Map<String, String[]> profileMap,
+			Boolean isShareQuotaParent, SessionFactory sessionFactory, String language, String type) {
+
+		logger.info("##getFormattedBonusDetails-----");
+
+		BaseDao<ProductCharging> productChargingDao = new BaseDao(sessionFactory, ProductCharging.class);
+		List<PackageProfileMappingDto> bonusDetData = new ArrayList<>();
+
+		// Get expiry date and calculate active days
+		double activeDays = 0;
+		if (subscriberInfo.getExpiry_Date() != null) {
+			try {
+				Date activeUntill = (new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"))
+						.parse(subscriberInfo.getExpiry_Date());
+				activeDays = Math.abs(activeUntill.getTime() - System.currentTimeMillis()) / (1000 * 60 * 60 * 24);
+			} catch (ParseException ex) {
+				logger.warn(ex.getMessage());
+			}
+		}
+
+		if (bonusDetailsList.getBONUS_ITEM() != null) {
+			TibcoODPSingleQueryProcessStub.BONUS_ITEM_type0[] bonusDetailsItem = bonusDetailsList.getBONUS_ITEM();
+
+			for (TibcoODPSingleQueryProcessStub.BONUS_ITEM_type0 bonusItem : bonusDetailsItem) {
+
+				if (!bonusItem.getBONUS_SUB_TYPE().isEmpty()) {
+					PackageProfileMappingDto ppm = new PackageProfileMappingDto();
+					if (bonusItem.getBONUS_SUB_TYPE().equals("DONGLE")) {
+						if (bonusItem.getPCRF_REMAINING_AMOUNT() == null) {
+							continue;
+						}
+						ppm.setBillingProductName(bonusItem.getNETWORK_PACKAGE());
+						ppm.setDetailValidity(
+								(bonusItem.getPCRF_END_DATE() == null) ? String.format("%,.0f Days", activeDays)
+										: Helpers.profileGetValidity(activeDays, bonusItem.getPCRF_END_DATE(),
+												Helpers.CALENDAR.DAY, null, language));
+						ppm.setDetailValue(
+								Helpers.profileGetValue(bonusItem.getPCRF_REMAINING_AMOUNT(), bonusItem.getBONUS_TYPE(),
+										bonusItem.getBONUS_UOM(), language, bonusItem.getBONUS_SUB_TYPE()));
+						ppm.setDetailValueRaw(bonusItem.getPCRF_REMAINING_AMOUNT());
+					} else if (bonusItem.getBONUS_SUB_TYPE().equals("VOICE")
+							|| bonusItem.getBONUS_SUB_TYPE().equals("SMS")) {
+						ppm.setBillingProductName(bonusItem.getBONUS_NAME());
+						ppm.setDetailValidity(Helpers.profileGetValidity(activeDays, bonusItem.getEND_DATE(),
+								Helpers.CALENDAR.DAY, null, language));
+						ppm.setDetailValue(
+								Helpers.profileGetValue(bonusItem.getREMAINING_AMOUNT(), bonusItem.getBONUS_TYPE(),
+										bonusItem.getBONUS_UOM(), language, bonusItem.getBONUS_SUB_TYPE()));
+						ppm.setDetailValueRaw(bonusItem.getREMAINING_AMOUNT());
+					} else {
+						continue;
+					}
+
+					ppm.setEmailId(bonusItem.getEMAIL_ID());
+					ppm.setPcrfEndDate(bonusItem.getPCRF_END_DATE());
+					ppm.setPcrfRemainingAmount(bonusItem.getPCRF_REMAINING_AMOUNT());
+					ppm.setRemainingAmount(bonusItem.getREMAINING_AMOUNT());
+					ppm.setStartDate(bonusItem.getSTART_DATE());
+					ppm.setEndDate(bonusItem.getEND_DATE());
+					ppm.setRegistrationKey(bonusItem.getREGISTRATION_KEY());
+					ppm.setIsRenewable(bonusItem.getAUTORENEWAL_FLAG());
+					ppm.setIsMore(!ppm.getDetailValidity().equals("-"));
+
+					ppm.setTibBonusSubType(bonusItem.getBONUS_SUB_TYPE());
+					ppm.setTibBonusType(bonusItem.getBONUS_TYPE());
+					ppm.setTibBonusUom(bonusItem.getBONUS_UOM());
+					bonusDetData.add(ppm);
+				}
+			}
+		}
+
+		/* REMOVE DATA FROM TIBCO IF MAP IS NOT FOUND FOR TYPE PRODUCT LIST */
+		if (profileMap != null) {
+			bonusDetData.removeIf(entryBonusDetail -> (!profileMap
+					.containsKey(entryBonusDetail.getBillingProductName().toLowerCase())));
+		}
+
+		if (type.equals("PRODUCT")) {
+			/*
+			 * IF TIBCO REGISTRATION KEY IS MISSING DONT ADD IT FOR PRODUCT LIST ONLY
+			 */
+			bonusDetData.removeIf(entryBonusDetail -> (entryBonusDetail.getRegistrationKey().equals("")));
+		}
+
+		List<String> registrationKeys = new ArrayList<>();
+		for (PackageProfileMappingDto entryBonusDetail : bonusDetData) {
+			String[] profileMapValue = profileMap.get(entryBonusDetail.getBillingProductName().toLowerCase());
+			entryBonusDetail.setDisplayPackages(profileMapValue[0]);
+			entryBonusDetail.setGroupPackage(profileMapValue[3]);
+			entryBonusDetail.setIsShareQuota(profileMapValue[2].equals("1") && isShareQuotaParent);
+			registrationKeys.add(entryBonusDetail.getRegistrationKey());
+		}
+
+		if (type.equals("PRODUCT") && !registrationKeys.isEmpty()) {
+			/* MAP USING REGISTRATION KEY ON PRODUCT CHARGING */
+			List<Object[]> listProducts = productChargingDao.getSessionFactory().getCurrentSession()
+					.createSQLQuery("SELECT MAX (a.product_id), " + " b.registration_key," + " MAX (a.product_name_en),"
+							+ " MAX (a.product_name_id)," + " MAX (a.is_transfer)," + " MAX (a.is_shareable),"
+							+ " MAX (a.is_stoppable)," + " MAX (b.unregistration_key)"
+							+ " FROM product a LEFT JOIN product_charging b ON a.product_id = b.product_id "
+							+ " where a.is_active = 1 AND b.registration_key IN :registrationKeys "
+							+ " group by b.registration_key")
+					.setParameterList("registrationKeys", registrationKeys).list();
+
+			/* MAP AGAIN TO THE ORIGINAL BONUS DETAIL WRAPPER */
+			for (Object[] dataProduct : listProducts) {
+				for (PackageProfileMappingDto entryBonusDetail : bonusDetData) {
+					if (dataProduct[1] != null) {
+						if (dataProduct[1].toString().equals(entryBonusDetail.getRegistrationKey())) {
+							entryBonusDetail.setProductId(dataProduct[0].toString());
+							entryBonusDetail.setProductNameEn(dataProduct[2].toString());
+							entryBonusDetail.setProductNameIn(dataProduct[3].toString());
+							entryBonusDetail.setIsTransferable(dataProduct[4].toString());
+							entryBonusDetail.setIsShareable(dataProduct[5].toString());
+							entryBonusDetail.setIsStoppable(dataProduct[6].toString());
+							entryBonusDetail.setUnregistrationKey("");
+							if (dataProduct[7] != null)
+								entryBonusDetail.setUnregistrationKey(dataProduct[7].toString());
+						}
+					}
+				}
+			}
+		}
+		return bonusDetData;
+	}
+
+	public List<PackageDto> getSubscriberPackageList(TibcoODPSingleQueryProcessStub.SubsriberInfo_type0 subscriberInfo,
+			TibcoODPSingleQueryProcessStub.Bonus_Details_type0 bonusDetailsList, Map<String, String[]> profileMap,
+			Boolean isShareQuotaParent, SessionFactory sessionFactory, String language) {
+
+		logger.info("##getSubscriberPackageList-----");
+
+		List<PackageProfileMappingDto> bonusDetData = getFormattedBonusDetails(subscriberInfo, bonusDetailsList,
+				profileMap, isShareQuotaParent, sessionFactory, language, "PACKAGE");
+
+		/* ACCUMULATION PROCESS */
+		Map<String, Double> dataAccu = new HashMap<>();
+		for (PackageProfileMappingDto packageProfileMappingDto : bonusDetData) {
+			String dispPgk = packageProfileMappingDto.getBillingProductName().toLowerCase();
+			if (dataAccu.get(dispPgk) == null)
+				dataAccu.put(dispPgk, new Double(0));
+			if (packageProfileMappingDto.getDetailValueRaw() == null
+					|| packageProfileMappingDto.getDetailValueRaw().equals(""))
+				packageProfileMappingDto.setDetailValueRaw("0");
+
+			double detailValueRaw = 0;
+			if (packageProfileMappingDto.getDetailValueRaw().isEmpty()
+					|| packageProfileMappingDto.getDetailValueRaw() == null) {
+			} else {
+				detailValueRaw = Double.parseDouble(packageProfileMappingDto.getDetailValueRaw());
+			}
+			dataAccu.put(dispPgk, dataAccu.get(dispPgk) + detailValueRaw);
+		}
+
+		List<PackageDto> packages = new ArrayList<>();
+		List<String> dataCheck = new ArrayList<>();
+
+		Iterator<PackageProfileMappingDto> itPgk = bonusDetData.iterator();
+		while (itPgk.hasNext()) {
+			PackageProfileMappingDto packageProfileMappingDto = itPgk.next();
+
+			if (!dataCheck.contains(packageProfileMappingDto.getBillingProductName().toLowerCase())) {
+				dataCheck.add(packageProfileMappingDto.getBillingProductName().toLowerCase());
+
+				PackageDto packageDto = new PackageDto();
+				packageDto.setName(packageProfileMappingDto.getDisplayPackages());
+				packageDto.setIsMore(packageProfileMappingDto.getIsMore());
+				packageDto.setIsShareQuota(packageProfileMappingDto.getIsShareQuota());
+				packageDto.setProductId(packageProfileMappingDto.getProductId());
+				packageDto.setGroupId(packageProfileMappingDto.getGroupPackage());
+
+				PackageDetailDto packageDetailDto = new PackageDetailDto();
+				packageDetailDto.setValidity(packageProfileMappingDto.getDetailValidity());
+				packageDetailDto.setValue(Helpers.profileGetValue(
+						dataAccu.get(packageProfileMappingDto.getBillingProductName().toLowerCase()).toString(),
+						packageProfileMappingDto.getTibBonusType(), packageProfileMappingDto.getTibBonusUom(), language,
+						packageProfileMappingDto.getTibBonusSubType()));
+				packageDetailDto.setRawValue(
+						dataAccu.get(packageProfileMappingDto.getBillingProductName().toLowerCase()).toString());
+				packageDetailDto.setUomAffix(packageDetailDto.getValue().replaceAll("[0-9.,\\s]", ""));
+
+				packageDto.addPackageDetail(packageDetailDto);
+				packages.add(packageDto);
+			}
+			itPgk.remove();
+		}
+		return packages;
+	}
+
+	public List<PackageDto> getSubscriberPackageListFromTibco(CurrentBalance currentBalance, String lang,
+			String simtype) {
+		logger.info("##getSubscriberPackageListFromTibco------currentBalance===" + currentBalance + "-------language=="
+				+ lang + "-----simtype==" + simtype);
+
+		List<PackageDto> packages = new ArrayList<>();
+		try {
+			if (currentBalance != null) {
+				/*
+				 * List<DataBalance> dataList=currentBalance.getDataBalance().getBalanceList();
+				 * if(dataList!=null){ PackageDto packageDto=new PackageDto();
+				 * packageDto.setGroupId("DATA"); List<PackageDetailDto> detail=new ArrayList();
+				 * for (DataBalance packageData : dataList) { PackageDetailDto
+				 * packageDetailDto=new PackageDetailDto();
+				 * packageDetailDto.setValue(packageData.getName());
+				 * packageDetailDto.setValidity(packageData.va); } }
+				 */
+
+				List<Balance> balanceList = currentBalance.getBalanceList();
+				if (balanceList != null) {
+
+					for (int index = 0; index < balanceList.size(); index++) {
+						Balance balance = balanceList.get(index);
+
+						if (balance.getType().equals(BalanceType.VOICE)) {
+							logger.info("##getSubscriberPackageListFromTibco---------voice ------------",
+									balance.getAvailableValue());
+							List<PackageDetailDto> voiceDetails = new ArrayList<>();
+							PackageDetailDto packageDetailDto = new PackageDetailDto();
+							int minutes = balance.getTotalValue() / 60;
+							packageDetailDto.setValue(minutes + " Minutes");
+							packageDetailDto.setValidity(balance.getValidityPeriod() + " Days");
+							packageDetailDto.setExpOn(balance.getExpiryDateAsString());
+							voiceDetails.add(packageDetailDto);
+							PackageDto voicePakage = new PackageDto();
+							voicePakage.setGroupId(BalanceType.VOICE.toString());
+							voicePakage.setDetail(voiceDetails);
+							if (lang.equals("1")) {
+								voicePakage.setName(balance.getDisplayNameEN());
+							} else {
+								voicePakage.setName(balance.getDisplayNameVI());
+							}
+							// voicePakage.setName(balance.getName());
+							packages.add(voicePakage);
+						}
+
+						if (balance.getType().equals(BalanceType.DATA)
+								&& (simtype.equalsIgnoreCase(Constants.SUBSCRIBER_TYPE_POSTPAID))) {
+							List<PackageDetailDto> dataDetails = new ArrayList<>();
+							PackageDetailDto packageDetailDto = new PackageDetailDto();
+							PackageDto dataPakage = new PackageDto();
+
+							dataPakage.setGroupId(BalanceType.DATA.toString());
+							if ((balance.getName().contains("UnlimitM")) || (balance.getName().contains("UnlimitR20"))
+									|| (balance.getName().contains("UnlimitSM"))
+									|| (balance.getName().contains("UnlimitFPT"))
+									|| (balance.getName().contains("UnlimitEXTRA"))) {
+								if (lang.equals("1")) {
+									dataPakage.setName("Unlimited Data");
+									packageDetailDto.setValue("Unlimited");
+								} else {
+									dataPakage.setName("Dữ liệu không giới hạn");
+									packageDetailDto.setValue("không giới hạn");
+								}
+							} else {
+								if (lang.equals("1")) {
+									dataPakage.setName(balance.getDisplayNameEN());
+								} else {
+									dataPakage.setName(balance.getDisplayNameVI());
+								}
+								// dataPakage.setName(balance.getName());
+								packageDetailDto.setValue(formatData((double) (balance.getTotalValue())));
+							}
+							dataPakage.setDetail(dataDetails);
+							packageDetailDto.setValidity(balance.getValidityPeriod() + " Days");
+							packageDetailDto.setExpOn(balance.getExpiryDateAsString());
+							dataDetails.add(packageDetailDto);
+							packages.add(dataPakage);
+						}
+
+						if (balance.getType().equals(BalanceType.SMS)) {
+							List<PackageDetailDto> smsDetails = new ArrayList<>();
+							PackageDetailDto packageDetailDto = new PackageDetailDto();
+							packageDetailDto.setValue(balance.getTotalValue() + "SMS");
+							packageDetailDto.setValidity(balance.getValidityPeriod() + " Days");
+							packageDetailDto.setExpOn(balance.getExpiryDateAsString());
+							smsDetails.add(packageDetailDto);
+							PackageDto smsPakage = new PackageDto();
+							smsPakage.setDetail(smsDetails);
+							smsPakage.setGroupId(BalanceType.SMS.toString());
+							if (lang.equals("1")) {
+								smsPakage.setName(balance.getDisplayNameEN());
+							} else {
+								smsPakage.setName(balance.getDisplayNameVI());
+							}
+							// smsPakage.setName(balance.getName());
+							packages.add(smsPakage);
+						}
+
+					}
+					/*
+					 * if(voiceDetails.size()!=0) { PackageDto voicePakage=new PackageDto();
+					 * voicePakage.setGroupId(BalanceType.VOICE.toString());
+					 * voicePakage.setDetail(voiceDetails); packages.add(voicePakage); }
+					 * if(dataDetails.size()!=0) { PackageDto dataPakage=new PackageDto();
+					 * dataPakage.setDetail(dataDetails);
+					 * dataPakage.setGroupId(BalanceType.DATA.toString()); packages.add(dataPakage);
+					 * } if(smsDetails.size()!=0) { PackageDto smsPakage=new PackageDto();
+					 * smsPakage.setDetail(smsDetails);
+					 * smsPakage.setGroupId(BalanceType.SMS.toString()); packages.add(smsPakage); }
+					 */
+				}
+
+			}
+			MyDataBalance myDataBalance = currentBalance.getDataBalance();
+			if (myDataBalance != null & simtype.equalsIgnoreCase(Constants.SUBSCRIBER_TYPE_PREPAID)) {
+
+				for (int index = 0; index < myDataBalance.getBalanceList().size(); index++) {
+					logger.info("---------getSubscriberPackageListFromTibco------",
+							myDataBalance.getBalanceList().get(index).getConsumedValue());
+					List<PackageDetailDto> dataDetails = new ArrayList<>();
+					PackageDetailDto packageDetailDto = new PackageDetailDto();
+
+					/*
+					 * packageDetailDto.setValidity(balance.getValidityPeriod() + " Days");
+					 * packageDetailDto.setExpOn(balance.getExpiryDateAsString() );
+					 */
+					packageDetailDto.setExpOn(myDataBalance.getBalanceList().get(index).getEndDateAsString());
+
+					PackageDto dataPakage = new PackageDto();
+					dataPakage.setDetail(dataDetails);
+					dataPakage.setGroupId(BalanceType.DATA.toString());
+					if ((myDataBalance.getBalanceList().get(index).getName().equalsIgnoreCase("Unlimited"))
+							|| (myDataBalance.getBalanceList().get(index).getName()
+									.equalsIgnoreCase("không giới hạn"))) {
+						if (lang.equals("1")) {
+							dataPakage.setName("Unlimited Data");
+							packageDetailDto.setValue("Unlimited ");
+						} else {
+							dataPakage.setName("Dữ liệu không giới hạn");
+							packageDetailDto.setValue("không giới hạn");
+						}
+
+					} else {
+						BalanceNameMappingEntity balenceEntity = getBalenceMappingEntity(
+								myDataBalance.getBalanceList().get(index).getName());
+						if (balenceEntity != null) {
+							logger.info("##createBalanceList---if Name is ::::::" + balenceEntity.getDisplayNameEN());
+							if (lang.equals("1")) {
+								dataPakage.setName(balenceEntity.getDisplayNameEN());
+							} else {
+								dataPakage.setName(balenceEntity.getDisplayNameVI());
+							}
+
+						} else {
+							dataPakage.setName(myDataBalance.getBalanceList().get(index).getName());
+						}
+
+						packageDetailDto.setValue(
+								formatData((double) (myDataBalance.getBalanceList().get(index).getTotalValue())));
+					}
+					if (!myDataBalance.getBalanceList().get(index).getName().equalsIgnoreCase("Q_Default_FUP")) {
+						dataDetails.add(packageDetailDto);
+						packages.add(dataPakage);
+					}
+
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error(e.getMessage(), Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return packages;
+	}
+
+	public List<PackageProductDto> getSubscriberPackageProductList(
+			TibcoODPSingleQueryProcessStub.SubsriberInfo_type0 subscriberInfo,
+			TibcoODPSingleQueryProcessStub.Bonus_Details_type0 bonusDetailsList, Map<String, String[]> profileMap,
+			Boolean isShareQuotaParent, SessionFactory sessionFactory, String language) {
+		logger.info("##getSubscriberPackageProductList------subscriberInfo===" + subscriberInfo + "-------language=="
+				+ language);
+
+		List<PackageProfileMappingDto> bonusDetData = getFormattedBonusDetails(subscriberInfo, bonusDetailsList,
+				profileMap, isShareQuotaParent, sessionFactory, language, "PRODUCT");
+
+		Map<String, List<String>> formatData = new HashMap<>();
+		for (PackageProfileMappingDto entryBonusDetail : bonusDetData) {
+
+			if (!formatData.containsKey(entryBonusDetail.getProductId()) && entryBonusDetail.getProductId() != null)
+				formatData.put(entryBonusDetail.getProductId(), new ArrayList<>());
+			if (entryBonusDetail.getProductId() != null)
+				formatData.get(entryBonusDetail.getProductId()).add(entryBonusDetail.getGroupPackage());
+		}
+
+		List<PackageProductDto> packageProducts = new ArrayList<>();
+		Iterator it = formatData.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry) it.next();
+			for (PackageProfileMappingDto entryBonusDetail : bonusDetData) {
+				if (entryBonusDetail.getProductId() == pair.getKey()) {
+
+					List<String> currentPackages = ((List<String>) pair.getValue()).stream().distinct()
+							.collect(Collectors.toList());
+
+					PackageProductDto packageProductDto = new PackageProductDto();
+					String productName = language.equals(Constants.LANG_ID) ? entryBonusDetail.getProductNameIn() + "."
+							: entryBonusDetail.getProductNameEn();
+
+					packageProductDto.setName(productName);
+					packageProductDto.setProductId(entryBonusDetail.getProductId());
+
+					packageProductDto.setGroupIds(currentPackages);
+					if (entryBonusDetail.getIsShareable() != null)
+						packageProductDto.setIsShareable((entryBonusDetail.getIsShareable().equals("1")));
+
+					if (entryBonusDetail.getIsRenewable() != null) {
+						if (entryBonusDetail.getIsRenewable().equals("Y")) {
+							if (!entryBonusDetail.getUnregistrationKey().equals("")) {
+								if (entryBonusDetail.getIsStoppable() != null)
+									packageProductDto.setIsStoppable((entryBonusDetail.getIsStoppable().equals("1")));
+							}
+						}
+					}
+
+					if (entryBonusDetail.getIsTransferable() != null)
+						packageProductDto.setIsTransferable((entryBonusDetail.getIsTransferable().equals("1")));
+
+					packageProducts.add(packageProductDto);
+					break;
+				}
+			}
+			it.remove();
+		}
+		return packageProducts;
+	}
+
+	private Map packageAccumulation(List<PackageDto> packageDto) {
+		double sumOfSMS = 0;
+		double sumOfVoice = 0;
+		double sumOfInternet = 0;
+		String affixUomSMS = "";
+		String affixUomVoice = "";
+		String affixUomInternet = "";
+
+		/*
+		 * for (PackageDto packageData : packageDto) { String rawValue =
+		 * packageData.getDetail().get(0).getRawValue(); String affixUom =
+		 * packageData.getDetail().get(0).getUomAffix(); if(rawValue.isEmpty()) rawValue
+		 * = "0"; switch(packageData.getGroupId()){ case "DATA": sumOfInternet =
+		 * sumOfInternet + Double.parseDouble(rawValue); affixUomInternet = affixUom;
+		 * break; case "VOICE": sumOfVoice = sumOfVoice + Double.parseDouble(rawValue);
+		 * affixUomVoice = affixUom; break; case "SMS": sumOfSMS = sumOfSMS +
+		 * Double.parseDouble(rawValue); affixUomSMS = affixUom; break; } }
+		 */
+
+		Map<String, String> data = new HashMap<>();
+		if (affixUomSMS.equalsIgnoreCase("Unlimited"))
+			data.put("SMS", affixUomSMS);
+		else
+			data.put("SMS", String.format("%.0f", sumOfSMS));
+
+		if (affixUomVoice.equalsIgnoreCase("Unlimited"))
+			data.put("Voice", affixUomVoice);
+		else
+			data.put("Voice", String.format("%.0f", sumOfVoice) + " " + affixUomVoice);
+
+		String internetCalc;
+		if (sumOfInternet >= 1024)
+			internetCalc = Helpers.formatTo3Digits(Helpers.formatNumber((sumOfInternet / (double) 1024))) + " GB";
+		else
+			internetCalc = Helpers.formatTo3Digits(Helpers.formatNumber(sumOfInternet)) + " MB";
+
+		if (affixUomInternet.equalsIgnoreCase("Unlimited"))
+			data.put("Data", affixUomInternet);
+		else
+			data.put("Data", internetCalc);
+
+		return data;
+	}
+
+	private String requestId() {
+		return AppUtils.dateToString(new Date(), REQ_ID_PATTERN);
+	}
+
+	private String formatData(Double bytes) {
+
+		String[] dictionary = { "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+		int index = 0;
+		for (index = 0; index < dictionary.length; index++) {
+			if (bytes < 1024) {
+				break;
+			}
+			bytes = bytes / 1024;
+		}
+		String str = String.format("%." + 2 + "f", bytes) + " " + dictionary[index];
+		if (str.contains("bytes") || str.contains("KB")) {
+			str = "0 MB";
+		}
+		return str;
+	}
+
+	@Override
+	public boolean updateEmailStatusBasedOnToken(String token) {
+		logger.info("##updateEmailStatusBasedOnToken------token=======" + token);
+		boolean falg = false;
+		try {
+			BaseDao<SubscriberEmailToken> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailToken.class);
+			BaseDao<SubscriberEmailLogin> subsEmailLoginDao = new BaseDao<>(sessionFactoryDef,
+					SubscriberEmailLogin.class);
+			List<SubscriberEmailToken> subscriberEmailToken = subsEmailDao.find(" token =:TOKEN ",
+					new HashMap<String, Object>() {
+						{
+							put("TOKEN", token);
+						}
+					});
+
+			if (!subscriberEmailToken.isEmpty()) {
+				String emailId = subscriberEmailToken.get(0).getEmailId();
+				logger.info("#updateEmailStatusBasedOnToken----email Id Is " + emailId);
+				List<SubscriberEmailLogin> subscriberEmail = subsEmailLoginDao.find("EMAIL = :EMAIL AND type = 'email'",
+						new HashMap<String, Object>() {
+							{
+								put("EMAIL", emailId);
+							}
+						});
+				if (!subscriberEmail.isEmpty()) {
+					falg = true;
+					SubscriberEmailLogin subscriberEmailLogin = subscriberEmail.get(0);
+					subscriberEmailLogin.setStatus(1);
+					subsEmailLoginDao.saveOrUpdate(subscriberEmailLogin);
+
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return falg;
+	}
+
+	@Override
+	public Map postPaidGetdetails(PostPaidPaymentDto request) {
+		logger.info("##postPaidGetdetails------msisdn=======" + request.getMsisdn());
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<PackageRegistDto> getRegPackageimp(BaseRequestDto request) {
+		logger.info("##getRegPackageimp------msisdn=======" + request.getMsisdn());
+		/*
+		 * if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * Collections.EMPTY_LIST; }
+		 */
+
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+
+		try {
+
+			List<PackageRegistDto> list = new ArrayList<>();
+			GetVasDetails_Response Response = tibcoService.getVasDetails(request.getMsisdn());
+			logger.info("#getRegPackageimp----------top up history" + Response.getResponsCode());
+			if ((Response != null) && Response.getResponsCode().equalsIgnoreCase("1")) {
+
+				if (Response.getVasPro().getVasProductDetail() != null) {
+					for (int index = 0; index < Response.getVasPro().getVasProductDetail().length; index++)
+
+					{
+
+						String titale = Response.getVasPro().getVasProductDetail()[index].getTitle();
+						Calendar cal = Response.getVasPro().getVasProductDetail()[index].getRegisterDate();
+						Date date = cal.getTime();
+						String fulldate = new SimpleDateFormat("yyyy-MM-dd").format(date);
+
+						Date currentdate = new Date();
+						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+						Date currentD = sdf.parse(sdf.format(currentdate));
+						Date respDate = sdf.parse(fulldate);
+						if (currentD.compareTo(respDate) == 0) {
+							PackageRegistDto pr = new PackageRegistDto();
+							pr.setDateReg(fulldate);
+							pr.setProductPrice("");
+							pr.setProductName(Response.getVasPro().getVasProductDetail()[index].getAlias_());
+							pr.setProductId(Response.getVasPro().getVasProductDetail()[index].getAlias_());
+							list.add(pr);
+						}
+
+					}
+				}
+			}
+
+			return list;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			return Collections.EMPTY_LIST;
+		}
+
+	}
+
+	@Override
+	public List<PackageRegistDto> getRegPackageFullHistory(BaseRequestDto request) {
+		logger.info("##getRegPackageFullHistory------msisdn=======" + request.getMsisdn());
+		/*
+		 * if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+		 * Collections.EMPTY_LIST; }
+		 */
+
+		/* change msisdn by Vimal */
+		if (request.getMsisdn() != null) {
+			String msisdn = AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+		}
+
+		try {
+
+			List<PackageRegistDto> list = new ArrayList<>();
+			GetVasDetails_Response Response = tibcoService.getVasDetails(request.getMsisdn());
+			logger.info("#getRegPackageFullHistory----------top up history" + Response.getResponsCode());
+			if ((Response != null) && Response.getResponsCode().equalsIgnoreCase("1")) {
+
+				if (Response.getVasPro().getVasProductDetail() != null) {
+					for (int index = 0; index < Response.getVasPro().getVasProductDetail().length; index++)
+
+					{
+
+						String titale = Response.getVasPro().getVasProductDetail()[index].getTitle();
+						Calendar cal = Response.getVasPro().getVasProductDetail()[index].getRegisterDate();
+						Date date = cal.getTime();
+						String fulldate = new SimpleDateFormat("yyyy-MM-dd").format(date);
+
+						Date currentdate = new Date();
+						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+						Date currentD = sdf.parse(sdf.format(currentdate));
+						Date respDate = sdf.parse(fulldate);
+						if (currentD.compareTo(respDate) > 0) {
+							PackageRegistDto pr = new PackageRegistDto();
+							pr.setDateReg(fulldate);
+							pr.setProductPrice("");
+							pr.setProductName(Response.getVasPro().getVasProductDetail()[index].getAlias_());
+							pr.setProductId(Response.getVasPro().getVasProductDetail()[index].getAlias_());
+							list.add(pr);
+						}
+
+					}
+				}
+			}
+			if (list.size() >= 5)
+				return list.subList(0, 5);
+			return list;
+
+		} catch (Exception e) {
+			logger.error(e.getMessage(), Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			return Collections.EMPTY_LIST;
+		}
+
+	}
+
+	@Override
+	public ArrayList<String> getPromotionBalanceHideList() {
+		BaseDao<PromotionBalanceHide> promotionBalanceHide = new BaseDao<>(sessionFactoryDef,
+				PromotionBalanceHide.class);
+		List<PromotionBalanceHide> promotionBalanceHideList = promotionBalanceHide.listData();
+		ArrayList<String> nameList = new ArrayList<>();
+		for (int index = 0; index < promotionBalanceHideList.size(); index++) {
+			nameList.add(promotionBalanceHideList.get(index).getName());
+			logger.info("#getPromotionBalanceHideList----------" + promotionBalanceHideList.get(index).getName());
+		}
+		return nameList;
+	}
+
+	@Override
+	public BalanceNameMappingEntity getBalenceMappingEntity(String nameOnRTBS) {
+		logger.info("##getBalenceMappingEntity------nameOnRTBS=======" + nameOnRTBS);
+		BaseDao<BalanceNameMappingEntity> balanceNameMappingEntityDAO = new BaseDao<>(sessionFactoryDef,
+				BalanceNameMappingEntity.class);
+		List<BalanceNameMappingEntity> balanceNameMappingEntity = balanceNameMappingEntityDAO
+				.find(" nameOnRTBS =:nameOnRTBS ", new HashMap<String, Object>() {
+					{
+						put("nameOnRTBS", nameOnRTBS);
+					}
+				});
+		if (balanceNameMappingEntity.size() > 0)
+			return balanceNameMappingEntity.get(0);
+		return null;
+	}
+
+	@Override
+	public SubscriberQuery_Response getSubscriber(ProfileRequsetDto request) {
+		logger.info("##getSubscriber------msisdn=======" + request.getMsisdn());
+		// TODO Auto-generated method stub
+		return tibcoService.subscriberResponce(request.getMsisdn());
+	}
+
+	@Override
+	public BalanceQuery_Response getPostPaidBilledQuery(ProfileRequsetDto request) {
+		logger.info("##getPostPaidBilledQuery------msisdn=======" + request.getMsisdn());
+		// TODO Auto-generated method stub
+		return tibcoService.billedQueryResponce(request.getMsisdn());
+
+	}
+
+	// selfpackages
+
+	@Override
+	public ArrayList<SelfPackageResponce> getSelfPackageCommonConfigs() {
+
+		logger.info("#getSelfPackageCommonConfigs----");
+		ArrayList<SelfPackageResponce> listSelf = new ArrayList<SelfPackageResponce>();
+		Map<String, String> result = new Hashtable<>();
+		try {
+			BaseDao<SelfPackageCommonConfigEntity> productCharginDao = new BaseDao<>(sessionFactoryDef,
+					SelfPackageCommonConfigEntity.class);
+			Iterable<SelfPackageCommonConfigEntity> list = productCharginDao
+					.listData("from SelfPackageCommonConfigEntity");
+
+			if (list != null) {
+				for (SelfPackageCommonConfigEntity config : list) {
+					SelfPackageResponce self = new SelfPackageResponce();
+					self.setKey(config.getName());
+					self.setValue(config.getValue());
+					listSelf.add(self);
+					String s1 = "\"key\":" + config.getName();
+					String s2 = "\"value\":" + config.getValue();
+					// result.put(config.getName(), config.getValue());
+					result.put(s1, s2);
+
+				}
+			}
+		} catch (Exception e) {
+			logger.error("#getSelfPackageCommonConfigs --- error retrieving self_package common configs", Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return listSelf;
+	}
+
+	@Override
+	public List<SelfPackageBalanceName> getSelfPackageBalanceList() {
+
+		logger.info("#getSelfPackageBalanceList----");
+
+		List<SelfPackageBalanceName> result = new ArrayList<>();
+		try {
+			BaseDao<SelfPackageBalanceNameEntity> PackageBalanceName = new BaseDao<>(sessionFactoryDef,
+					SelfPackageBalanceNameEntity.class);
+			List<SelfPackageBalanceNameEntity> list = PackageBalanceName.listData("from SelfPackageBalanceNameEntity");
+			// Iterable<SelfPackageBalanceNameEntity> list =
+			// selfPackageBalanceNameRepository.findAll(QSelfPackageBalanceNameEntity.selfPackageBalanceNameEntity.name.asc());
+			if (list != null) {
+				for (SelfPackageBalanceNameEntity entity : list) {
+					result.add(new SelfPackageBalanceName(entity.getName(), entity.getDescriptionEN(),
+							entity.getDescriptionVI()));
+				}
+			}
+		} catch (Exception e) {
+			logger.error("#getSelfPackageBalanceList --- error retrieving balance names for self_package!", Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return result;
+	}
+
+	@Override
+	public List<SelfPackagePriceMapping> getSelfPackagePriceMappings() {
+
+		logger.info("#getSelfPackagePriceMappings------ ");
+
+		List<SelfPackagePriceMapping> result = new ArrayList<>();
+		try {
+			// Iterable<SelfPackagePriceMappingEntity> list =
+			// selfPackagePriceMappingRepository.findAll(QSelfPackagePriceMappingEntity.selfPackagePriceMappingEntity.type.asc());
+
+			BaseDao<SelfPackagePriceMappingEntity> PackagePriceMapping = new BaseDao<>(sessionFactoryDef,
+					SelfPackagePriceMapping.class);
+			List<SelfPackagePriceMappingEntity> list = PackagePriceMapping
+					.listData("from SelfPackagePriceMappingEntity");
+			if (list != null) {
+				for (SelfPackagePriceMappingEntity spup : list) {
+					result.add(new SelfPackagePriceMapping(spup.getType(), spup.getMinAmount(), spup.getMaxAmount(),
+							spup.getPrice() != null ? spup.getPrice() : new BigDecimal(0.0),
+							spup.getNormalPrice() != null ? spup.getNormalPrice() : new BigDecimal(0.0),
+							spup.getCycle() != null ? spup.getCycle() : 0));
+				}
+			}
+		} catch (Exception e) {
+			// logger.error("#getSelfPackageUnitPriceList --- error retrieving
+			// self pkg unit price list", e);
+		}
+		return result;
+	}
+
+	@Override
+	public List<SelfPackagePriceMapping> getSelfPackagePriceMappings(String type) {
+		logger.info("#getSelfPackagePriceMappings------ type:::" + type);
+
+		List<SelfPackagePriceMapping> result = new ArrayList<>();
+		try {
+			BaseDao<SelfPackagePriceMappingEntity> PackagePriceMapping = new BaseDao<>(sessionFactoryDef,
+					SelfPackagePriceMapping.class);
+			List<SelfPackagePriceMappingEntity> list = PackagePriceMapping
+					.listData("from SelfPackagePriceMappingEntity where type = :type", new HashMap<String, Object>() {
+						{
+							put("type", type);
+						}
+					});
+			if (list != null) {
+				for (SelfPackagePriceMappingEntity spup : list) {
+					result.add(new SelfPackagePriceMapping(spup.getType(), spup.getMinAmount(), spup.getMaxAmount(),
+							spup.getPrice() != null ? spup.getPrice() : new BigDecimal(0.0),
+							spup.getNormalPrice() != null ? spup.getNormalPrice(): new BigDecimal(0.0),
+							spup.getCycle() != null ? spup.getCycle() : 0));
+				}
+			}
+		} catch (Exception e) {
+			logger.error("#getSelfPackageUnitPriceList (string) --- error retrieving self pkg unit price list", e);
+		}
+		return result;
+	}
+
+	@Override
+	public List<SelfPackagePriceMapping> getSelfPackagePriceMappings(String type, int cycle) {
+
+		logger.info("#getSelfPackagePriceMappings------ type:::" + type + "      cycle::::" + cycle);
+
+		List<SelfPackagePriceMapping> result = new ArrayList<>();
+		try {
+			BaseDao<SelfPackagePriceMappingEntity> PackagePriceMapping = new BaseDao<>(sessionFactoryDef,
+					SelfPackagePriceMapping.class);
+			List<SelfPackagePriceMappingEntity> list = PackagePriceMapping.listData(
+					"from SelfPackagePriceMappingEntity where type = :type AND cycle = :cycle",
+					new HashMap<String, Object>() {
+						{
+							put("type", type);
+							put("cycle", cycle);
+						}
+					});
+
+			if (list != null) {
+				for (SelfPackagePriceMappingEntity spup : list) {
+					result.add(new SelfPackagePriceMapping(spup.getType(), spup.getMinAmount(), spup.getMaxAmount(),
+							spup.getPrice() != null ? spup.getPrice() : new BigDecimal(0.0),
+							spup.getNormalPrice() != null ? spup.getNormalPrice() : new BigDecimal(0.0),
+							spup.getCycle() != null ? spup.getCycle() : 0));
+				}
+			}
+		} catch (Exception e) {
+			logger.error("#getSelfPackageUnitPriceList (string) --- error retrieving self pkg unit price list", e);
+		}
+		return result;
+
+	}
+
+	@Override
+	public List<SelfPackagePriceMapping> getSelfPackagePriceMappings(String type, int cycle, BigDecimal amount) {
+		logger.info("#getSelfPackagePriceMappings------ type:::" + type + "      cycle::::" + cycle + "    amount:::::"
+				+ amount.longValue());
+
+		List<SelfPackagePriceMapping> result = new ArrayList<>();
+		List<SelfPackagePriceMapping> resultTemp = new ArrayList<>();
+		try {
+			BaseDao<SelfPackagePriceMappingEntity> PackagePriceMapping = new BaseDao<>(sessionFactoryDef,
+					SelfPackagePriceMappingEntity.class);
+			/*
+			 * List<SelfPackagePriceMappingEntity> list = PackagePriceMapping.
+			 * listData("from SelfPackagePriceMappingEntity where type = :type AND cycle = :cycle AND amount = :amount"
+			 * , new HashMap<String, Object>() { { put("type", type); put("cycle", cycle);
+			 * put("amount", 10000); } });
+			 */
+
+			/*
+			 * List<SelfPackagePriceMappingEntity> list1 = PackagePriceMapping
+			 * .find("type = :type AND cycle = :cycle And maxAmount<=:amount and minAmount>=1  order by maxAmount desc"
+			 * , new HashMap<String, Object>() { { put("type", type); put("cycle", cycle);
+			 * put("amount", (int)amount); } });
+			 */
+			List<SelfPackagePriceMappingEntity> list1 = PackagePriceMapping.find(
+					"type = :type AND cycle = :cycle And maxAmount>=:amount order by maxAmount asc",
+					new HashMap<String, Object>() {
+						{
+							put("type", type);
+							put("cycle", cycle);
+							put("amount", amount);
+						}
+					});
+			/*
+			 * Query Packagequery = sessionFactoryDef.getCurrentSession() .createSQLQuery(
+			 * "from self_pkg_price_map where type = :type AND cycle = :cycle And maxAmount >=:amount "
+			 * ) .setString("type", type).setInteger("cycle", cycle).setInteger("amount",
+			 * (int)amount);
+			 * 
+			 * List<SelfPackagePriceMappingEntity> list1 = Packagequery.list();
+			 */
+
+			// Iterable<SelfPackagePriceMappingEntity> list =
+			// selfPackagePriceMappingRepository.
+			// findAll(QSelfPackagePriceMappingEntity.selfPackagePriceMappingEntity.type.equalsIgnoreCase(type).
+			// and(QSelfPackagePriceMappingEntity.selfPackagePriceMappingEntity.cycle.eq(cycle))
+			// .and(Expressions.asNumber(amount).goe(QSelfPackagePriceMappingEntity.selfPackagePriceMappingEntity.minAmount)).and(Expressions.asNumber(amount).loe(QSelfPackagePriceMappingEntity.selfPackagePriceMappingEntity.maxAmount)),QSelfPackagePriceMappingEntity.selfPackagePriceMappingEntity.type.asc());
+			if (list1 != null) {
+				for (SelfPackagePriceMappingEntity spup : list1) {
+					BigDecimal normalPrice = new BigDecimal(0.0);
+
+					if (type.equalsIgnoreCase(SelfPackageType.DATA.name())
+							&& cycle == SelfPackageCycle.MONTHLY.ordinal()) {
+
+						try {
+							// Map<String, String> configs =
+							// getSelfPackageCommonConfigs();
+							// normal_price = amount/500 * field_normal_price
+							// int divider =
+							// Integer.parseInt(configs.get(SelfPackageConfigKey.DATA_MONTHLY_INCR_VALUE.name()));
+							// normalPrice = amount/divider *
+							// (spup.getNormalPrice() != null ?
+							// spup.getNormalPrice().doubleValue() : 0);
+
+							// changed to normal_price = data_size *
+							// field_normal_price --> using flat price (512) as
+							// of Feb 01, 2018
+							BigDecimal dbNormalPrice = (spup.getNormalPrice() != null ? spup.getNormalPrice(): new BigDecimal(0.0));
+							normalPrice = amount.multiply(dbNormalPrice);
+
+							// LoggingUtil.info(logger,"#getSelfPackagePriceMappings
+							// --- amount= " + amount + ", normal_price_db= "+
+							// dbNormalPrice + ", resulting normal_price= " +
+							// normalPrice);
+
+						} catch (Exception e) {
+							logger.error(
+									"#getSelfPackagePriceMappings --- error calculating price mappings for monthly DATA package!",
+									Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+						}
+					} else {
+						if (spup.getNormalPrice() != null) {
+							normalPrice = spup.getNormalPrice();
+						}
+					}
+
+					result.add(new SelfPackagePriceMapping(spup.getType(), spup.getMinAmount(), spup.getMaxAmount(),
+							spup.getPrice() != null ? spup.getPrice() : new BigDecimal(0.0), normalPrice,
+							spup.getCycle() != null ? spup.getCycle() : 0));
+
+				}
+
+			}
+			if (result.size() > 0) {
+				resultTemp.add(result.get(0));
+			}
+		} catch (Exception e) {
+			logger.error("#getSelfPackageUnitPriceList (string) --- error retrieving self pkg unit price list", e);
+		}
+		return resultTemp;
+	}
+
+	@Override
+	public String getSubscriberLangCode(String msisdn) {
+		logger.info("#Inside getSubscriberLangCode method--getting data from Subscriber-------msisdn::::::: ", msisdn);
+		String langCode = "0";
+		try {
+			BaseDao<Subscriber> subscriberDAO = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+			List<Subscriber> list = subscriberDAO.find("subscriberMsisdn = :msisdn ", new HashMap<String, Object>() {
+				{
+					put("msisdn", msisdn);
+				}
+			});
+			if (!list.isEmpty())
+				langCode = list.get(0).getSubscriberLangCode();
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error("# error when get subscriber code  " + msisdn, Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		logger.info("#getSubscriberLangCode----response as langcode is:::", langCode);
+		return langCode;
+	}
+
+	@Override
+	public TopUpHistory getTopUpHistoryTypeName(TopUpHistory tuh, String originator) {
+		try {
+			logger.info(
+					"#getTopUpHistoryTypeName----------getting data from TopUpTypeEntity based on --originator-----",
+					originator);
+			BaseDao<TopUpTypeEntity> topUpTypeDAO = new BaseDao<>(sessionFactoryDef, TopUpTypeEntity.class);
+			List<TopUpTypeEntity> list = topUpTypeDAO.find("name = :originator ", new HashMap<String, Object>() {
+				{
+					put("originator", originator);
+				}
+			});
+			if (list != null && list.size() != 0) {
+				TopUpTypeEntity type = list.get(0);
+				tuh.setTypeNameEN(type.getDisplayNameEN());
+				tuh.setTypeNameVN(type.getDisplayNameVI());
+				return tuh;
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error("#getTopUpHistory -- error looking up top_up_type to DB for originator= " + originator + ": "
+					+ e.getMessage());
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		logger.info("#getTopUpHistoryTypeName----- response is:::::", tuh.toString());
+		return tuh;
+	}
+
+	@Override
+	public String getEmailidByToken(String token) {
+		String emailId = null;
+		try {
+			BaseDao<SubscriberEmailToken> subsEmailDao = new BaseDao<>(sessionFactoryDef, SubscriberEmailToken.class);
+			List<SubscriberEmailToken> subscriberEmailToken = subsEmailDao.find(" token =:TOKEN ",
+					new HashMap<String, Object>() {
+						{
+							put("TOKEN", token);
+						}
+					});
+
+			if (!subscriberEmailToken.isEmpty()) {
+				emailId = subscriberEmailToken.get(0).getEmailId();
+			}
+		} catch (Exception e) {
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return emailId;
+	}
+
+	@Override
+	public Dynamic_Bonus_Response registerSelfPackage(Dynamic_Bonus_Request request) {
+		// TODO Auto-generated method stub
+		logger.info("#registerSelfPackage --- receiving request= " + request +" charging amount is:::"+request.getCharging_Amount());
+
+		request.setMSISDN(AppUtils.removeCountryCode(request.getMSISDN(), AppDefaultValues.COUNTRY_CODE));
+		BaseDao<SelfPackageCommonConfigEntity> selfPackageCommonConfigEntity = new BaseDao<>(sessionFactoryDef,
+				SelfPackageCommonConfigEntity.class);
+
+		int daily = 2, weekly = 7, monthly = 30;
+		try {
+
+			String hql = "from SelfPackageCommonConfigEntity where name like '%DAYS_%'";
+			System.out.println(">>>>>>>>>>>>>>>>>" + hql);
+			List<SelfPackageCommonConfigEntity> list = selfPackageCommonConfigEntity
+					.find("name like concat('%',:days,'%')", new HashMap<String, Object>() {
+						{
+							put("days", "DAYS_");
+						}
+					});
+			// Iterable<SelfPackageCommonConfigEntity> list =
+			// selfPackageCommonConfigRepository.findAll(QSelfPackageCommonConfigEntity.selfPackageCommonConfigEntity.name.startsWithIgnoreCase("DAYS_"));
+
+			if (list != null) {
+				for (SelfPackageCommonConfigEntity config : list) {
+					if (config.getName().equalsIgnoreCase("DAYS_DAILY")) {
+						if (config.getValue() != null)
+							daily = Integer.parseInt(config.getValue().trim());
+					} else if (config.getName().equalsIgnoreCase("DAYS_WEEKLY")) {
+						if (config.getValue() != null)
+							weekly = Integer.parseInt(config.getValue().trim());
+					} else if (config.getName().equalsIgnoreCase("DAYS_MONTHLY")) {
+						if (config.getValue() != null)
+							monthly = Integer.parseInt(config.getValue().trim());
+					}
+				}
+			}
+		} catch (Exception e) {
+		}
+
+		if (request.getCmdID().equals(SelfPackageCycle.DAILY)) {
+			request.setExtendDate("" + daily);
+		} else if (request.getCmdID().equals(SelfPackageCycle.WEEKLY)) {
+			request.setExtendDate("" + weekly);
+			// request.setNumOfDays(weekly);
+		} else {
+			request.setExtendDate("" + monthly);
+			// request.setNumOfDays(monthly);
+		}
+
+		Hashtable<String, Double> valueMultiplierMaps = new Hashtable<>();
+		BaseDao<SelfPackageBalanceNameEntity> selfPackageBalanceNameEntity = new BaseDao<>(sessionFactoryDef,
+				SelfPackageBalanceNameEntity.class);
+		// Iterable<SelfPackageBalanceNameEntity> balanceNames =
+		// selfPackageBalanceNameRepository.findAll(QSelfPackageBalanceNameEntity.selfPackageBalanceNameEntity.name.asc());
+		List<SelfPackageBalanceNameEntity> balanceNames = selfPackageBalanceNameEntity
+				.listData("from SelfPackageBalanceNameEntity");
+		if (balanceNames != null) {
+			for (SelfPackageBalanceNameEntity bn : balanceNames) {
+				if (bn.getMultiplierValue() != null) {
+					valueMultiplierMaps.put(bn.getName().toUpperCase(), bn.getMultiplierValue());
+				}
+			}
+		}
+		Balance_Request_type0[] balanceList = null;
+		if (request.getListBalance() != null) {
+			balanceList = request.getListBalance().getBalance_Request();
+			// recalculate amount with multiplier value if exists, e.g: if
+			// VOICE_XXX
+			// then it should be multiplied with 60 (seconds)
+			for (Balance_Request_type0 bal : balanceList) {
+				Double mv = valueMultiplierMaps.get(bal.getBonus_Name().toUpperCase());
+				if (mv != null && mv > 0) {
+					bal.setBonus_Amount("" + Double.parseDouble(bal.getBonus_Amount()) * mv);
+				}
+			}
+		}
+		BigDecimal chargingAmount =new BigDecimal(0.0);
+		// double check if mobile app did not send the chargingAmount param
+		if (Double.parseDouble(request.getCharging_Amount()) <= 0) {
+			for (Balance_Request_type0 bal : balanceList) {
+				/*
+				 * List<SelfPackagePriceMapping> priceMap =
+				 * getSelfPackagePriceMappings(bal.getName(), request.getCycle().ordinal(),
+				 * (int) bal.getAmount());
+				 */
+
+				List<SelfPackagePriceMapping> priceMap = getSelfPackagePriceMappings(bal.getBonus_Name(),
+						request.getCmdID().length(), new BigDecimal(bal.getBonus_Amount()));
+				if (priceMap != null && !priceMap.isEmpty()) {
+					chargingAmount = chargingAmount.add(priceMap.get(0).getPrice());
+				}
+			}
+
+			logger.info("#registerSelfPackage --- request from MSISDN " + request.getMSISDN()
+					+ " does not come with chargingAmount, calculated amount is= " + chargingAmount);
+			request.setCharging_Amount("" + chargingAmount);
+		}
+
+		/*
+		 * VASManAdapter adapter = getVASManAdapter(); BackEndAdapterResponse response =
+		 * adapter.sendRequest(request);
+		 * 
+		 * if (adapterPoolEnabled && adapter != null) {
+		 * vasManAdapterPool.returnObject(adapter); }
+		 */
+		Dynamic_Bonus_Response response = tibcoService.getSelfPackageresponce(request);
+		logger.info("#registerSelfPackage --- MSISDN " + request.getMSISDN() + ", result= " + response.getErrorCode()+":::::"+response.getErrorDetail()+"+++++"+response.toString());
+		return response;
+	}
+
+	public Map getProfilePic(String msisdn) {
+
+		Map<String, Object> responce = new HashMap<String, Object>();
+		String chatURL = "https://webviewchatbot.vietnamobile.com.vn/chat?cid=3&uid=";
+		try {
+			responce.put("chatURL", chatURL);
+
+			// profile picture
+			BaseDao<SubscriberPictures> profilePictureDao = new BaseDao<>(sessionFactoryDef, SubscriberPictures.class);
+			List<SubscriberPictures> curProfilePicture = profilePictureDao.find("MSISDN = :msisdn AND STATUS = 1",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+			if (!curProfilePicture.isEmpty()) {
+				String profilePictureSafeUrl = applicationConfigurationService
+						.get("PROFILE.PUBLIC_URL", "http://103.129.188.37:8080/imageserver/").toString()
+						+ curProfilePicture.get(0).getPictureName();
+
+				responce.put("profilePictureUrl", profilePictureSafeUrl);
+				responce.put("imgStatus", true);
+
+				return responce;
+
+			}
+		} catch (Exception e) {
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			logger.debug("#Did not able to fatch Profile picture " + msisdn);
+		}
+		responce.put("imgStatus", false);
+		responce.put("profilePictureUrl", "");
+
+		return responce;
+
+	}
+
+	@Override
+	public List<String> getPostPaidUsers() {
+
+		List<String> subscriber = new ArrayList<>();
+		BaseDao<Subscriber> subscribermEntity = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+		try {
+			List<Subscriber> subscriberEntity = subscribermEntity.find(" subscriber_type =:Subscriber_type )",
+					new HashMap<String, Object>() {
+						{
+							put("Subscriber_type", "Postpaid");
+						}
+					});
+			for (int i = 0; i < subscriberEntity.size(); i++) {
+				Subscriber subscriber2 = subscriberEntity.get(i);
+				if (subscriber2.getSubscriberMsisdn() != null) {
+					String subscriberId = AppUtils.prependCountryCodeToMsisdn(subscriber2.getSubscriberMsisdn(),
+							AppDefaultValues.COUNTRY_CODE);
+					subscriber.add(subscriberId);
+				}
+			}
+		} catch (Exception e) {
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return subscriber;
+	}
+
+	@Transactional
+	@Override
+	public boolean updatePostPaidUserData(SVAndRtbsData svdata, String msisdn) {
+		try {
+			logger.debug("Inside ProfileServiceImple method name updatePostPaidUserData based on msisdn :" + msisdn);
+			BaseDao<DataUsesEntity> dataUsesEntity = new BaseDao<>(sessionFactoryDef, DataUsesEntity.class);
+			System.out.println(
+					"sms::" + svdata.getSms() + ":::voice :::" + svdata.getVoice() + ":::data:::::" + svdata.getData());
+			msisdn = AppUtils.removeCountryCode(msisdn, AppDefaultValues.COUNTRY_CODE);
+			DataUsesEntity datauses = getDataSmsvoice(msisdn);
+			if (datauses != null) {
+				System.out.println("update details ");
+				// DataUsesEntity data = new DataUsesEntity();
+				datauses.setData(datauses.getId());
+				datauses.setData(svdata.getData());
+				datauses.setSms(svdata.getSms());
+				datauses.setVoice(svdata.getVoice());
+				datauses.setLast_updated(new Date());
+				datauses.setMsisdn(msisdn);
+				boolean status = dataUsesEntity.saveOrUpdate(datauses);
+				System.out.println("Status is :::" + status + " msisdn" + msisdn);
+			} else {
+				System.out.println("save details ");
+				DataUsesEntity data = new DataUsesEntity();
+				data.setData(svdata.getData());
+				data.setSms(svdata.getSms());
+				data.setVoice(svdata.getVoice());
+				data.setMsisdn(msisdn);
+				data.setCreatedby(msisdn);
+				data.setStart_date(new Date());
+				data.setLast_updated(new Date());
+				dataUsesEntity.saveOrUpdate(data);
+			}
+
+			System.out.println("After save ----");
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return false;
+	}
+
+	@Override
+	public DataUsesEntity getDataSmsvoice(String msisdn) {
+		try {
+			logger.debug("Inside ProfileServiceImple method name getdatasmsvoice based on msisdn :" + msisdn);
+			BaseDao<DataUsesEntity> dataUsesEntity = new BaseDao<>(sessionFactoryDef, DataUsesEntity.class);
+			List<DataUsesEntity> dataUsesList = dataUsesEntity.find(" msisdn =:msisdn )",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+			if (dataUsesList.size() != 0)
+				return dataUsesList.get(0);
+		} catch (Exception e) {
+			logger.error("Inside ProfileServiceImple method name getdatasmsvoice ", Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			// TODO: handle exception
+		}
+		return null;
+	}
+
+	@Override
+	public Map reloadother(ReloadRequestDto request) {
+		logger.info("##reloadother------msisdn=======" + request.getMsisdn());
+		String transactionId = null;
+		Date transactionDate = new Date();
+		VoucherTopUp v = null;
+		// validate jumlah trx selama 1 jam terakhir
+		BaseDao<TrxSubscriberReload> subscriberReloadDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberReload.class);
+		long numberOfTrxInLast1Hour = subscriberReloadDao.count(
+				"subscriberMsisdn = :subscriberMsisdn AND SYSDATE - 1/24 < TRANSACTION_DATETIME",
+				new HashMap<String, Object>() {
+					{
+						put("subscriberMsisdn", request.getMsisdn());
+					}
+				});
+
+		if (numberOfTrxInLast1Hour >= 5) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false,
+					request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.FAILED_RELOAD
+							: Languages.EN.FAILED_RELOAD))
+					.all().build();
+		}
+
+		ScratchStatusModel scratchStatusModel = checkBlockUnblockTopUp(request.getMsisdn());
+		String blocktime = null;
+		String blockstatus = null;
+		long time = 0;
+		String currenttime = getCurrentDateTime();
+
+		blocktime = scratchStatusModel.getTimeStamp();
+		blockstatus = scratchStatusModel.getStatus();
+
+		if (blocktime != null) {
+			time = TimeDiff(blocktime, currenttime);
+		}
+
+		if (blockstatus.equalsIgnoreCase("1") && (time >= 24)) {
+			saveScratchStatus(request.getMsisdn(), 0, "0", getCurrentDateTime());
+			scratchStatusModel = checkBlockUnblockTopUp(request.getMsisdn());
+
+		}
+		String subscriberId = AppUtils.prependCountryCodeToMsisdn(request.getMsisdn(),
+				AppDefaultValues.COUNTRY_CODE);
+		if (scratchStatusModel.getStatus().equalsIgnoreCase("0")) {
+
+			// changes by oneclick
+			VoucherTopUp requestPayload = new VoucherTopUp();
+			
+			transactionId = "BM"+moduleTransactionIDGenerator.generate(Module.PURCHASE);//getTractionType(subscriberId, TransactionType.POSTPAID_BILL_PAYMENT.name());
+			//requestPayload.setTransactionID("BM"+moduleTransactionIDGenerator.generate(Module.VOUCHER_TOPUP));
+			requestPayload.setTransactionID(transactionId);
+			requestPayload.setMessageType("0");
+			requestPayload.setProcCode("VTOPUP");
+			requestPayload.setSTAN("VOUCHERTOPUP");
+			requestPayload.setLocalTxnDtTime(new SimpleDateFormat("ddMMyyyyHHmmss").format(transactionDate));
+			
+			requestPayload.setMobNum(subscriberId);
+			requestPayload.setVoucherNum(request.getVoucherNumber());
+			requestPayload.setDomainID("6");
+			requestPayload.setDeliveryChannelCtrlID("Notification");
+			String CURRENCY_VND = "VND";
+			requestPayload.setCurr(CURRENCY_VND);
+			String reqId = requestId();
+			requestPayload.setActCode(reqId);
+			requestPayload.setVoucherBal("0");
+			requestPayload.setValidityDate("0");
+			requestPayload.setGracePeriod("0");
+			requestPayload.setVoucherDenom("0");
+			// requestPayload.set
+			Selfcare_InboundStub selfcare_InboundStub;
+			try {
+				selfcare_InboundStub = new Selfcare_InboundStub(applicationConfigurationService
+						.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+				v = selfcare_InboundStub.voucherTopUp(requestPayload);
+				logger.info("##reloadother------responce  of voucher>>>>>>>...........VlrId.." + v.getVlrId()
+						+ "..VoucherDenom..." + v.getVoucherDenom() + "................Mobile Number..." + v.getMobNum()
+						+ "............Voucher Number..." + v.getVoucherNum());
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e1.getStackTrace()),10)));
+			}
+
+			DwhUserTransactions dwhUserTransactions = new DwhUserTransactions(requestPayload.getTransactionID(),
+					request.getMsisdn(), "SCRATCH CARD", BigInteger.ZERO, "",
+					request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID : Constants.DEVICE_ID_IOS,
+					request.getDeviceManufacture(), request.getDeviceModel(), requestPayload.toString(), "", "", "", "",
+					0, BigInteger.ZERO);
+
+			try {
+				TrxSubscriberReload subscriberReload = new TrxSubscriberReload();
+				subscriberReload.setTransactionId(requestPayload.getTransactionID());
+				subscriberReload.setSubscriberMsisdn(requestPayload.getMobNum());
+				subscriberReload.setLoginSubscriberMsisdn(request.getLoginmsisdn());
+				subscriberReload.setTransactionDatetime(new Timestamp(transactionDate.getTime()));
+				subscriberReload.setVoucherCode(requestPayload.getVoucherNum());
+				
+				subscriberReload.setInterfaceType(interfaceType.getRequestMode());
+
+				if (v.getVlrId().equals("00000")) {
+					request.setStatuscode(v.getVlrId());
+					request.setStatus("true");
+					dwhUserTransactions.setTrxStatus(BigInteger.valueOf(Long.parseLong(v.getVlrId())));
+					dwhUserTransactions.setTrxPkgName(v.toString());
+					subscriberReload.setDenomAmount(v.getVoucherDenom());
+					subscriberReload.setTransactionStatus(true);
+					subscriberReloadDao.save(subscriberReload);
+					String message = "";
+					
+					message =notificationMasterService.getMessageText(Languages.MSG_IDS.NAPAS_SUCCESS, request.getLanguage());
+					System.out.println("message1 " + message + "requestPayload.getVoucherDenom() ----"+ requestPayload.getVoucherDenom());
+					 if(!message.isEmpty())
+					 {
+						 if((v.getVoucherDenom()==null) || (v.getVoucherDenom().equals("0")))
+						 {
+						 message =notificationMasterService.getMessageText(Languages.MSG_IDS.RECHARGE_SUCCESS, request.getLanguage());	 //Your top-up of #amount VND is successful.
+						 System.out.println("message2 " + message + "requestPayload.getVoucherDenom() ----"+ v.getVoucherDenom());
+						 }
+						 else
+						 {
+							 message=message.replaceAll("#amount",v.getVoucherDenom());
+						 }
+						 
+					 }
+					 smppService.sendSms(request.getMsisdn(), message);
+					try {
+						//sendNotification(request.getMsisdn(), message, null);
+						sendNotification(request.getLoginmsisdn(), message, null);
+					} catch (Exception e) {
+						// TODO: handle exception
+						logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+					}
+				//	return JSONResultFilter.filter(new BoolStatusOutDto(true, v.getVlrId())).all().build();
+
+					ScratchBlockHistoryEntity scratchBlockHistoryEntity = new ScratchBlockHistoryEntity();
+					scratchBlockHistoryEntity.setCreatedBy("ADMIN");
+					scratchBlockHistoryEntity.setCreateTimestamp(new Date());
+					scratchBlockHistoryEntity.setLastModifiedBy("ADMIN");
+					scratchBlockHistoryEntity.setLastModifiedTime(new Date());
+					scratchBlockHistoryEntity.setCount(0);
+					scratchBlockHistoryEntity.setId(0);
+					scratchBlockHistoryEntity.setMsisdn(request.getMsisdn());
+					scratchBlockHistoryEntity.setStatusMessage(message);
+					scratchBlockHistoryEntity.setTimeStamp(getCurrentDateTime());
+					saveScratchCardInHistory(scratchBlockHistoryEntity);
+
+					saveScratchStatus(request.getMsisdn(), 0, "0", getCurrentDateTime());
+					return JSONResultFilter.filter(new BoolStatusOutDto(true, v.getVlrId())).all().build();
+				} else {
+					dwhUserTransactions.setTrxErrorcode(v.getActCode());
+					// dwhUserTransactions.setTrxErrordesc(result.getMessageID());
+					dwhUserTransactions.setTrxErrortext(v.toString());
+					
+					try {
+						dwhUserTransactions.setTrxStatus(BigInteger.valueOf(Long.parseLong(v.getVlrId())));
+					} catch (Exception e) {
+						// TODO: handle exception
+					}
+					subscriberReload.setTransactionStatus(false);
+					subscriberReload.setDenomAmount(v.getVoucherDenom());
+					subscriberReloadDao.save(subscriberReload);
+					request.setStatuscode(v.getVlrId());
+					request.setStatus("false");
+					String message = "";
+					if (v.getVlrId().equals("1016108")) {
+						message =notificationMasterService.getMessageText(Languages.MSG_IDS.SCRATCH_CARD_ALREADY_USED, request.getLanguage());
+						 if(!message.isEmpty())
+						 {
+							 message = "Scratch card is already used."; 
+						 }
+						 
+						
+					} else if (v.getVlrId().equals("2009")) {
+						message =notificationMasterService.getMessageText(Languages.MSG_IDS.NUMBER_INCORRECT, request.getLanguage());
+						 if(!message.isEmpty())
+						 {
+							 message = "The Phone number is incorrect. Please try again."; 
+						 }
+						try {
+							sendNotification(request.getMsisdn(), message, null);
+						} catch (Exception e) {
+							// TODO: handle exception
+							logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+						}
+					} else {
+						
+						message =notificationMasterService.getMessageText(Languages.MSG_IDS.TOPUP_NOT_SUCCESSFUL, request.getLanguage());
+						 if(!message.isEmpty())
+						 {
+							 message = "Your top-up is not successful."; 
+						 }
+						try {
+							sendNotification(request.getMsisdn(), message, null);
+						} catch (Exception e) {
+							// TODO: handle exception
+							logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+						}
+					}
+
+
+					long blockHours = 0;
+					String firstFailTransactionTime = getFirstTimestampScratchStatus(request.getMsisdn());
+
+					if (firstFailTransactionTime != null) {
+
+						blockHours = TimeDiff(firstFailTransactionTime, getCurrentDateTime());
+					}
+					if (blockHours >= 24) {
+						saveScratchStatus(request.getMsisdn(), 1, "0", getCurrentDateTime());
+						dwhUserTransactionsService.save(dwhUserTransactions);
+						return JSONResultFilter.filter(new BoolStatusOutDto(false, v.getVlrId())).all().build();
+					} else {
+
+						ScratchBlockHistoryEntity scratchBlockHistoryEntity = new ScratchBlockHistoryEntity();
+						int count = getCountFromScratchBlock(request.getMsisdn());
+
+						if (count == 0) {
+							count = 1;
+						} else if (count != 0) {
+							count = count + 1;
+
+						}
+						scratchBlockHistoryEntity.setCreatedBy("ADMIN");
+						scratchBlockHistoryEntity.setCreateTimestamp(new Date());
+						scratchBlockHistoryEntity.setLastModifiedBy("ADMIN");
+						scratchBlockHistoryEntity.setLastModifiedTime(new Date());
+						scratchBlockHistoryEntity.setCount(count);
+						scratchBlockHistoryEntity.setId(0);
+						scratchBlockHistoryEntity.setMsisdn(request.getMsisdn());
+						scratchBlockHistoryEntity.setStatusMessage(message);
+						scratchBlockHistoryEntity.setTimeStamp(getCurrentDateTime());
+						saveScratchCardInHistory(scratchBlockHistoryEntity);
+
+						if (count != 5) {
+
+							saveScratchStatus(request.getMsisdn(), count, "0", getCurrentDateTime());
+						}
+
+						else if (count == 5) {
+
+							saveScratchStatus(request.getMsisdn(), count, "1", getCurrentDateTime());
+							/*
+							 * return JSONResultFilter .filter(new ErrorMessageDto(false,
+							 * "ERROR:scratch_card_security_issue")).all()
+							 * 
+							 * .build();
+							 */
+							return JSONResultFilter.filter(new BoolStatusOutDto(false, "4000")).all().build();
+						}
+						dwhUserTransactionsService.save(dwhUserTransactions);
+						return JSONResultFilter.filter(new BoolStatusOutDto(false, v.getVlrId())).all().build();
+
+					}
+				}
+				// save dwh} user transaction
+
+			} catch (Exception e) {
+				logger.error(e.getMessage(), Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+			}
+
+		} else {
+			// return JSONResultFilter.filter(new ErrorMessageDto(false,
+			// "ERROR:scratch_card_security_issue")).all().build();
+			return JSONResultFilter.filter(new BoolStatusOutDto(false, "4000")).all().build();
+		}
+		return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+
+	}
+
+	public long TimeDiff(String blockTime,String currentTime){
+		DateFormat dateFormat1 = new SimpleDateFormat("dd-MM-yyyy HH:mm"); 
+		Date d1 = null;
+		Date d2 = null;
+		long diffHours=0;
+		try {
+		d1 = dateFormat1.parse(blockTime);
+		d2 = dateFormat1.parse(currentTime);
+
+		//in milliseconds
+		long diff = (long) (d2.getTime() - d1.getTime());
+
+
+		diffHours = diff / (60*60*1000);
+
+		// System.out.print(diffHours + " hours, ");
+
+		} catch (Exception e) {
+			logger.error(Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+
+
+		return diffHours;
+
+		}
+
+	public String getCurrentDateTime() {
+
+		Date dt = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+		String strDate = dateFormat.format(dt);
+		// System.out.println(strDate);
+		return strDate;
+	}
+
+	public ScratchStatusModel checkBlockUnblockTopUp(String msisdn) {
+
+		ScratchStatusModel scratchStatusModel = new ScratchStatusModel();
+		try {
+			BaseDao<ScratchStatusEntity> scrachstatus = new BaseDao<>(sessionFactoryDef, ScratchStatusEntity.class);
+			List<ScratchStatusEntity> scratchStatusEntitylist = scrachstatus.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+
+			// ScratchStatusEntity scratchStatusEntity =
+			// scratchstatusRepository.findOne(QScratchStatusEntity.scratchStatusEntity.msisdn.eq(msisdn));
+
+			// if (scratchStatusEntity == null) {
+			if ((scratchStatusEntitylist == null) || (scratchStatusEntitylist.size() == 0)) {
+
+				scratchStatusModel.setStatus("0");
+				scratchStatusModel.setTimeStamp("00-00-0000 00:00");
+			} else {
+				scratchStatusModel.setStatus(scratchStatusEntitylist.get(0).getStatus());
+				scratchStatusModel.setTimeStamp(scratchStatusEntitylist.get(0).getTimeStamp());
+			}
+
+		} catch (Exception e) {
+
+			LOGGER.error("#checkBlockUnblockTopUp --- No status in ScratchStatusEntity", Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return scratchStatusModel;
+	}
+
+	public int getCountFromScratchBlock(String msisdn) {
+		int count = 0;
+		try {
+			/*
+			 * ScratchStatusEntity scratchStatusEntity = scratchstatusRepository
+			 * .findOne(QScratchStatusEntity.scratchStatusEntity.msisdn.eq(msisdn));
+			 */
+			BaseDao<ScratchStatusEntity> scrachstatus = new BaseDao<>(sessionFactoryDef, ScratchStatusEntity.class);
+			List<ScratchStatusEntity> scratchStatusEntitylist = scrachstatus.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+
+			if ((scratchStatusEntitylist != null) && (scratchStatusEntitylist.size() > 0)) {
+				count = scratchStatusEntitylist.get(0).getCount();
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#getCountFromScratchBlock --- No Count in ScratchStatusEntity", Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return count;
+	}
+
+	public void saveScratchStatus(String msisdn, int count, String status, String timeStamp) {
+		// create failure scratch card status
+		try {
+
+			ScratchStatusEntity scratchStatusEntity = new ScratchStatusEntity();// =
+			// this.scratchstatusRepository.findOne(QScratchStatusEntity.scratchStatusEntity.msisdn.equalsIgnoreCase(msisdn));
+
+			BaseDao<ScratchStatusEntity> scrachstatusdao = new BaseDao<>(sessionFactoryDef, ScratchStatusEntity.class);
+			List<ScratchStatusEntity> scratchStatusEntitylist = scrachstatusdao.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+
+			if ((scratchStatusEntitylist != null) && (scratchStatusEntitylist.size() > 0)) {
+				scratchStatusEntity = scratchStatusEntitylist.get(0);
+				scratchStatusEntity.setCount(count);
+				scratchStatusEntity.setMsisdn(msisdn);
+				scratchStatusEntity.setStatus(status);
+				if (count == 1 || count == 5) {
+					scratchStatusEntity.setTimeStamp(timeStamp); // after 24hrs,
+					// count
+					// value
+					// will be
+					// zero.
+				}
+
+				// scratchStatusEntity.setId(0);
+
+				scrachstatusdao.save(scratchStatusEntity);
+			} else {
+				ScratchStatusEntity scratchStatus = new ScratchStatusEntity();
+				scratchStatus.setCount(count);
+				scratchStatus.setMsisdn(msisdn);
+				scratchStatus.setStatus(status);
+				scratchStatus.setTimeStamp(timeStamp);
+				scratchStatus.setCreatedBy("ADMIN");
+				scratchStatus.setCreateTimestamp(new Date());
+				scratchStatus.setLastModifiedBy("ADMIN");
+				scratchStatus.setLastModifiedTime(new Date());
+				scratchStatus.setId(0);
+
+				scrachstatusdao.save(scratchStatus);
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#saveScratchStatus -- error creating failure scratch card status : msisdn::" + msisdn
+					+ "::count::" + count + "status::" + status + "timeStamp::" + timeStamp, Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+
+	}
+
+	public String getFirstTimestampScratchStatus(String msisdn) {
+
+		String firstTimestamp = null;
+		try {
+			BaseDao<ScratchStatusEntity> scrachstatus = new BaseDao<>(sessionFactoryDef, ScratchStatusEntity.class);
+			List<ScratchStatusEntity> scratchStatusEntitylist = scrachstatus.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+			if ((scratchStatusEntitylist != null) && (scratchStatusEntitylist.size() > 0)) {
+				firstTimestamp = scratchStatusEntitylist.get(0).getTimeStamp();
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#getFirstTimestampScratchStatus --- No Timestamp in ScratchStatusEntity", Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+		return firstTimestamp;
+	}
+
+	public void saveScratchCardInHistory(ScratchBlockHistoryEntity scratchBlockEntities) {
+		BaseDao<ScratchBlockHistoryEntity> scratchBlockHistoryEntity = new BaseDao<>(sessionFactoryDef,
+				ScratchBlockHistoryEntity.class);
+		// create failure scratch card history
+		try {
+
+			scratchBlockEntities.setCreatedBy("ADMIN");
+			scratchBlockEntities.setCreateTimestamp(new Date());
+			scratchBlockEntities.setLastModifiedBy("ADMIN");
+			scratchBlockEntities.setLastModifiedTime(new Date());
+			scratchBlockHistoryEntity.save(scratchBlockEntities);
+
+		} catch (Exception e) {
+			LOGGER.error(
+					"#saveScratchCardFailLimit -- error creating failure scratch card history " + scratchBlockEntities,
+					Joiner.on("\n").join(Iterables.limit(Arrays.asList(e.getStackTrace()),10)));
+		}
+
+	}
+	
+	public String getTractionType(String msisdn, String trxType) {
+		LOGGER.info("#getTractionType--------------msisdn=="+msisdn+"------transaction type=="+trxType);
+		TransactionType transactionType = TransactionType.E_TOPUP;
+		String itemCode = "";
+		try {
+			transactionType = TransactionType.valueOf(trxType.toUpperCase());
+		} catch (Exception e) {
+		}
+
+		if (transactionType.equals(TransactionType.E_TOPUP)) {
+			itemCode = "BM" + msisdn + "_" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss");
+
+		} else if (transactionType.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+			itemCode = "BM" + msisdn + "_" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss");
+
+		} else if (transactionType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+			itemCode = "BM" + msisdn + "_" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss");
+		}
+		return itemCode;
+	}
+}

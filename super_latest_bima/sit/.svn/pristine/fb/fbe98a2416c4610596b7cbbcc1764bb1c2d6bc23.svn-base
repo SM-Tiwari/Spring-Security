@@ -1,0 +1,79 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+
+/**
+ * Created by aswzen on 6/11/2018
+ */
+@Entity
+@Table(name = "PRODUCT_DETAIL")
+public class ProductDetail {
+    private String productDetailId;
+    private String productId;
+    private String value;
+    private String valueEn;
+    private int displaySeq;
+    private int isActive;
+
+    @Basic
+    @Id
+    @Column(name = "PROD_DET_ID", nullable = false, length = 50)
+    public String getProductDetailId() {
+        return productDetailId;
+    }
+
+    public void setProductDetailId(String productDetailId) {
+        this.productDetailId = productDetailId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_ID", unique = true, nullable = false, length = 100)
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    @Basic
+    @Column(name = "VALUE")
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    @Basic
+    @Column(name = "VALUE_EN")
+    public String getValueEn() {
+        return valueEn;
+    }
+
+    public void setValueEn(String valueEn) {
+        this.valueEn = valueEn;
+    }
+
+    @Basic
+    @Column(name = "DISPLAY_SEQ")
+    public int getDisplaySeq() {
+        return displaySeq;
+    }
+
+    public void setDisplaySeq(int displaySeq) {
+        this.displaySeq = displaySeq;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE")
+    public int getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(int isActive) {
+        this.isActive = isActive;
+    }
+    
+}

@@ -1,0 +1,19 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+import com.gnv.vnm.selfcare.core.model.Packege092Responce;
+
+import id.gnvsolution.d3.api.dto.request.CmsOfferRequest;
+import id.gnvsolution.d3.api.model.TrxCmsOffer;
+
+public interface Packages092Service {
+	
+	Packege092Responce getPackages(String msisdn,String lang, String subscriberType,String imei) ;
+	
+	Map getCmsOfferList(CmsOfferRequest request);
+
+	Map activateCmsOffer(CmsOfferRequest request);
+
+	//void save(TrxCmsOffer trxCmsOffer);
+}

@@ -1,0 +1,59 @@
+package id.gnvsolution.d3.controller;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.controller.IndexControllerTest 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 26, 2018 4:00:28 PM
+ *
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@WebAppConfiguration
+@TestPropertySource(locations="classpath:app-test.properties")
+@ContextConfiguration(locations={"classpath:mvc-dispatcher-servlet-test.xml", "classpath:applicationContext-test.xml"})
+public class IndexControllerTest {
+
+    @Autowired
+    private WebApplicationContext wac;
+
+    private MockMvc mockMvc;
+
+    @Before
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+    }
+
+    @Test
+    public void testIndex() throws Exception {
+        MvcResult response = mockMvc.perform(get("/"))
+                            .andExpect(status().isOk())
+                            .andReturn();
+        Assert.assertEquals((Boolean)response.getResponse().getContentAsString().contains("Your Number"), Boolean.TRUE);
+    }
+
+    @Test
+    public void testIndexWithHeaderEnrichment() throws Exception {
+        MvcResult response = mockMvc.perform(get("/").header("X-MSP-MSISDN", "6289606000666"))
+                            .andExpect(status().isOk())
+                            .andReturn();
+        Assert.assertEquals((Boolean)response.getResponse().getContentAsString().contains("6289606000666"), Boolean.TRUE);
+    }
+}

@@ -1,0 +1,49 @@
+package id.gnvsolution.d3.test;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.security.Key;
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.test.EncryptionTest 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 19, 2017 12:14:34 PM
+ *
+ */
+public class EncryptionTest {
+
+    public static void main(String[] args) throws Exception {
+        
+        // secret key from server
+//        String securityKey = "YlIS2PCudRVhzWr3FDyca2ewauAoQAbLHgOODet4Clwj7iTiEsS1Sml6qRqzDQ2P2QKJ";
+//        
+//        // get 16 digits, start from digit number 10 ---> VhzWr3FDyca2ewau
+//        securityKey = securityKey.substring(10, 26);
+//        System.out.println(securityKey);
+//        
+//        // encrypt
+//        Cipher cipher = Cipher.getInstance("AES");
+//        Key aesKey = new SecretKeySpec(securityKey.getBytes(), "AES");
+//        cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+//        byte[] encrypted = cipher.doFinal("6289676679666".getBytes());
+//        System.out.println(Base64.getEncoder().encodeToString(encrypted));
+//        
+//        // ZEecHlSwRhgsMTGhS6TNew== decrypt --> ZEecHlSwRhgsMTGhS6TNew==
+//        // 8Vvs6njbr1qBYODXvc4yOA==
+//        cipher.init(Cipher.DECRYPT_MODE, aesKey);
+//        byte[] decordedValue = Base64.getDecoder().decode("ZEecHlSwRhgsMTGhS6TNew==");
+//        byte[] decValue = cipher.doFinal(decordedValue);
+//        String decryptedValue = new String(decValue);
+//        System.out.println(decryptedValue);
+
+        System.out.println(new BigDecimal("15000.00"));
+
+    }
+    
+}

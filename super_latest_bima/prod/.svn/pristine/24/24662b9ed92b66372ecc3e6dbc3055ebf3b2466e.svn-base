@@ -1,0 +1,70 @@
+package id.gnvsolution.d3.api;
+
+import id.gnvsolution.d3.api.dto.request.CallbackRequestDto;
+import id.gnvsolution.d3.api.dto.request.ReloadRequestDto;
+import id.gnvsolution.d3.api.service.ProfileService;
+import java.util.Map;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.ProfileServiceTest
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 27, 2018 3:48:04 PM
+ *
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"classpath:applicationContext-test.xml"})
+@TestPropertySource(locations = "classpath:app-test.properties")
+@Transactional
+@Rollback(true)
+public class ProfileServiceTest {
+
+    @Autowired
+    private ProfileService profileService;
+
+    public ProfileServiceTest() {
+    }
+
+    @BeforeClass
+    public static void setUpClass() {
+    }
+
+    @AfterClass
+    public static void tearDownClass() {
+    }
+
+    @Before
+    public void setUp() {
+    }
+
+    @After
+    public void tearDown() {
+    }
+
+    @Test
+    public void testFailedStatusWhenReload() {
+        Map map = profileService.reload(new ReloadRequestDto());
+        Assert.assertEquals(Boolean.FALSE, (Boolean)map.get("status"));
+    }
+
+    @Test
+    public void testFailedMessageWhenReload() {
+        Map map = profileService.reload(new ReloadRequestDto());
+        Assert.assertEquals(true, ((String)map.get("message")).contains("Oops"));
+    }
+}

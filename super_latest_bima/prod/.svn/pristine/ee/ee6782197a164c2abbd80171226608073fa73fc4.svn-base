@@ -1,0 +1,26 @@
+package id.gnvsolution.d3.api.dto.request;
+
+public class ResendInvoiceEmailDto extends BaseRequestDto {
+
+    private String email;
+    private long invoiceDate;
+
+    public ResendInvoiceEmailDto() {
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public long getInvoiceDate() {
+        return invoiceDate;
+    }
+
+    public void setInvoiceDate(long invoiceDate) {
+        this.invoiceDate = invoiceDate;
+    }
+}

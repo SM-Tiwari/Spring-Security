@@ -1,0 +1,96 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.PostSuccessfulDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.PostSuccessfulService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+/**
+ * <pre>
+ * id.gnvsolution.d3.api.controller.PostSuccessfulController
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com > Nov 21, 2017 10:09:29 PM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/post-purchase")
+public class PostSuccessfulController extends BaseController {
+
+	@Autowired
+	private PostSuccessfulService postSuccessfulService;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(PostSuccessfulController.class);
+
+	@Autowired
+	private TokenExtractor tokenExtractor;
+
+	@RequestMapping(value = "/get", method = RequestMethod.POST)
+	public Object getPostPurchase(@RequestBody PostSuccessfulDto request,
+			@RequestHeader(value = JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+
+		LOGGER.info("Inside PostSuccessfulController in getPostPurchase method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+			if (tokenDetails != null && request.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				/* Map profiledata = profileService.getProfile(requestDto); */
+				return new ServiceResult(StatusCode.SUCCESS,
+						postSuccessfulService.getProducts(request, isIPhone(request.getImei())), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside PostSuccessfulController in getPostPurchase method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside PostSuccessfulController in getPostPurchase method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside PostSuccessfulController in getPostPurchase method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		// return postSuccessfulService.getProducts(request,
+		// isIPhone(request.getImei()));
+
+	}
+
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
+	public Object addPostPurchase(@RequestBody PostSuccessfulDto request) {
+		return new ServiceResult(StatusCode.SUCCESS, new SuccessMessageDto(), "Success");
+		// return JSONResultFilter.filter(new
+		// SuccessMessageDto()).all().build();
+	}
+
+	private boolean isIPhone(String imei) {
+		if (imei == null)
+			return false;
+		return imei.contains("-");
+	}
+}

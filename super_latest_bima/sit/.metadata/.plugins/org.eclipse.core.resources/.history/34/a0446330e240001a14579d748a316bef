@@ -1,0 +1,1992 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.rmi.RemoteException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.ParentBonusResponse;
+import com.google.common.base.Charsets;
+import com.tibco.Selfcare_InboundStub;
+import com.tibco.www.schemas._28_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.HotBilling_Request;
+import com.tibco.www.schemas._28_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.HotBilling_Response;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Dynamic_Bonus_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.ListBalance_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.abstract_wsdl.selfcare.schema_xsd.NonVasRegResponse;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.crbt.purchasesong_xsd.PurchaseSong_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.crbt.purchasesong_xsd.PurchaseSong_Response;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.SubscribeProductRequestDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.dto.response.PurchaseDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.Campaign;
+import id.gnvsolution.d3.api.model.CampaignReward;
+import id.gnvsolution.d3.api.model.DwhUserTransactions;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCategory;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.model.ProductMetadata;
+import id.gnvsolution.d3.api.model.ProductUnsubscribe;
+import id.gnvsolution.d3.api.model.TrxSelfPackage;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.model.purchasing.BuyPulsaHybrid;
+import id.gnvsolution.d3.api.model.purchasing.TibcoODPBonusRegRequest;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.CampaignService;
+import id.gnvsolution.d3.api.service.DwhUserTransactionsService;
+import id.gnvsolution.d3.api.service.EmailService;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.ProductBillingService;
+import id.gnvsolution.d3.api.service.PurchasingService;
+import id.gnvsolution.d3.api.service.TibcoService;
+import id.gnvsolution.d3.api.utils.ApiHelpers;
+import id.gnvsolution.d3.api.utils.ApiResponse;
+import id.gnvsolution.d3.api.utils.H;
+import id.gnvsolution.d3.api.utils.Helpers;
+import id.gnvsolution.d3.api.utils.HttpClientHelper;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import id.gnvsolution.d3.api.utils.XmlHelper;
+import id.gnvsolution.d3.api.wsdl.GenricTIBODPservicesStub;
+import id.gnvsolution.d3.api.wsdl.Service__Registration__APISecurityStub;
+
+@Service
+@Transactional
+public class PurchasingServiceImpl extends BaseService implements PurchasingService {
+
+	public static final Logger logger = LoggerFactory.getLogger(PurchasingServiceImpl.class);
+
+	@Autowired
+	ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+	@Autowired
+	CampaignService campaignService;
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+	@Autowired
+	private NotificationWorker notificationWorker;
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+
+	@Autowired
+	private InAppNotificationService inAppNotificationService;
+
+	@Autowired
+	private ProductCacheService productCacheService;
+
+	@Autowired
+	private NotificationMasterService notificationMasterService;
+
+	@Autowired
+	private TibcoService tibcoService;
+
+	@Autowired
+	private ProductBillingService p_service;
+	
+	@Autowired
+    private GetRequestService interfaceType;
+
+	private EmailService emailService;
+	private DwhUserTransactionsService dwhUserTransactionsService;
+	static final int CONNECTION_TIMEOUT_IN_SECS = 30;
+	private int connectTimeout = CONNECTION_TIMEOUT_IN_SECS;
+	private HttpComponentsClientHttpRequestFactory httpRequestFactory = null;
+
+
+	@Autowired
+	public PurchasingServiceImpl(EmailService emailService, DwhUserTransactionsService dwhUserTransactionsService) {
+		this.emailService = emailService;
+		this.dwhUserTransactionsService = dwhUserTransactionsService;
+	}
+
+	@Override
+	public boolean subscribeProduct(String transactionId, String msisdn, String productId, String vendorId,
+			String servicePlan, String paymentMethod) {
+		return subscribeProduct(transactionId, new PurchaseRequestDto() {
+			{
+				setMsisdn(msisdn);
+				setProductId(productId);
+				setVendorId(vendorId);
+				setServicePlan(servicePlan);
+				setPaymentMethod(paymentMethod);
+			}
+		});
+	}
+
+	@Override
+	public boolean subscribeProduct(String transactionId, PurchaseRequestDto request) {
+		
+		logger.info("----Inside subscribeProduct-----transactionId:::"+transactionId+"   ---msisdn"+request.getMsisdn());
+		
+		BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {
+			{
+				put("productId", request.getProductId());
+			}
+		});
+		/*
+		 * List<Product> productpucahse =
+		 * productDao.find("productId = :productId", new HashMap<String,
+		 * Object>() {{ put("productId", request.getProductId()); }});
+		 */
+		Product product = null;
+		if (products.size() > 0) {
+			product = products.get(0);
+			boolean success = false;
+			switch (product.getChargingMechanism()) {
+			case "api_3pb": {
+				logger.info("----Inside subscribeProduct-----charging mechanism is api_3pb");
+				success = subscribeProductBilling(transactionId, request.getMsisdn(), request.getProductId(),
+						request.getVendorId(), request.getServicePlan(), request.getPaymentMethod());
+				break;
+			}
+			case "api":
+			case "api_3pd": {
+				logger.info("----Inside subscribeProduct-----charging mechanism is api_3pd");
+				success = subscribeProductData(transactionId, request.getMsisdn(), request.getProductId(),
+						request.getVendorId(), request.getServicePlan(), request.getPaymentMethod());
+				break;
+			}
+			case "api_3pul": {
+				logger.info("----Inside subscribeProduct-----charging mechanism is api_3pul");
+				success = subscribeProductPulsa(transactionId, request.getMsisdn(), request.getProductId(),
+						request.getVendorId(), request.getServicePlan(), request.getPaymentMethod());
+				break;
+			}
+			}
+            logger.info("#subscribeProduct--------sending notification---msisdn::::::", request.getMsisdn());
+			if (success) {
+				sendNotification(request.getMsisdn(),
+						notificationMasterService.getMessageText(6, request.getLanguage()), product);
+			} else {
+				sendNotification(request.getMsisdn(),
+						notificationMasterService.getMessageText(7, request.getLanguage()), product);
+			}
+
+			return success;
+		} else {
+			return false;
+		}
+	}
+
+	private boolean subscribeProductBilling(String transactionId, String msisdn, String productId, String vendorId,
+			String servicePlan, String paymentMethod) {
+		logger.info("inside subscribeProductBilling=========transactionId:::"+transactionId+"   ---msisdn=="+msisdn);
+		try {
+			final ProductCharging[] productCharging = { null };
+			JAXBContext jc = JAXBContext.newInstance(TibcoODPBonusRegRequest.class);
+			TibcoODPBonusRegRequest odpBonusRegRequest = new TibcoODPBonusRegRequest() {
+				{
+					getBonusRequest().setTransactionId(transactionId);
+					getBonusRequest().setMsisdn(msisdn);
+					getBonusRequest().setActionType("ADD");
+					productCharging[0] = getProductCharging(productId, vendorId, servicePlan, paymentMethod);
+					if (productCharging[0] != null) {
+						getBonusRequest().setRegistrationKey(productCharging[0].getRegistrationKey());
+					}
+					getBonusRequest().setCharge(paymentMethod.equals("00") ? "Y" : "N");
+					getBonusRequest().setHibridFlag("N");
+					getBonusRequest().setSource("ODP_GNV");
+				}
+			};
+
+			StringWriter requestPayload = new StringWriter();
+
+			Marshaller marshaller = jc.createMarshaller();
+			Unmarshaller unmarshaller = jc.createUnmarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			marshaller.marshal(odpBonusRegRequest, requestPayload);
+
+			DefaultHttpClient httpClient = new DefaultHttpClient();
+			HttpPost postRequest = new HttpPost(Constants.API_PURCHASE_BILLING_URL);
+			postRequest.addHeader("Content-Type", "text/xml; charset=utf-8");
+			try {
+				LOGGER.info("PurchasingServiceImpl.subscribeProductBilling.requestPayload: " + requestPayload.toString());
+				postRequest.setEntity(new StringEntity(requestPayload.toString()));
+				HttpResponse response = httpClient.execute(postRequest);
+				if (response.getStatusLine().getStatusCode() == 200) {
+					TibcoODPBonusRegRequest tibcoResult = (TibcoODPBonusRegRequest) unmarshaller
+							.unmarshal(response.getEntity().getContent());
+					LOGGER.info("PurchasingServiceImpl.subscribeProductBilling.tibcoResult: "
+							+ tibcoResult.getBonusRequest().getResponseCode() + ","
+							+ tibcoResult.getBonusRequest().getResponseDescription());
+					if (tibcoResult.getBonusRequest().getResponseCode().equals("00000")) {
+						return true;
+					} else {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+		} catch (JAXBException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private boolean subscribeProductData(String transactionId, String msisdn, String productId, String vendorId,
+			String servicePlan, String paymentMethod) {
+		ProductCharging productCharging = getProductCharging(productId, vendorId, servicePlan, paymentMethod);
+		return ApiHelpers.apiProductData(transactionId, msisdn, paymentMethod.equals("00"),
+				productCharging == null ? null : productCharging.getRegistrationKey());
+	}
+
+	private boolean subscribeProductPulsa(String transactionId, String msisdn, String productId, String vendorId,
+			String servicePlan, String paymentMethod) {
+		try {
+			ProductCharging productCharging = getProductCharging(productId, vendorId, servicePlan, paymentMethod);
+			if (productCharging != null
+					&& productCharging.getPaymentMethodByPaymentGatewayId().getPaymentGatewayName() != null) {
+				GenricTIBODPservicesStub stub = new GenricTIBODPservicesStub(
+						Constants.TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+
+				GenricTIBODPservicesStub.BuyPulsaEVCrequest evCrequest = new GenricTIBODPservicesStub.BuyPulsaEVCrequest();
+				evCrequest.setTRANSACTION_ID(transactionId);
+				evCrequest.setMSISDN(msisdn);
+				evCrequest.setDENOMINATION(productCharging.getRegistrationKey());
+				LOGGER.info("PurchasingServiceImpl.subscribeProductPulsa.evCrequest: "
+						+ StringUtils.arrayToCommaDelimitedString(new Object[] { evCrequest.getTRANSACTION_ID(),
+								evCrequest.getMSISDN(), evCrequest.getDENOMINATION() }));
+
+				GenricTIBODPservicesStub.BuyPulsaEVCResponse evcResponse = stub.buyPulsaEVC(evCrequest);
+				if (evcResponse != null && evcResponse.getResponseCode().equals("00000")) {
+					return true;
+				} else {
+					LOGGER.error("[" + evcResponse.getResponseCode() + "] " + evcResponse.getResponseDescription());
+					return false;
+				}
+			} else {
+				LOGGER.error("No Product Charging, " + transactionId + ", " + msisdn + ", " + productId + ", "
+						+ vendorId + ", " + servicePlan + ", " + paymentMethod);
+				return false;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private PurchaseDto subscribeProductFreeUrl(PurchaseRequestDto request) {
+		ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+				request.getServicePlan(), request.getPaymentMethod());
+		if (productCharging == null) {
+			return null;
+		}
+
+		LOGGER.info("PurchasingServiceImpl.subscribeProductFreeUrl.productCharging: " + productCharging.getFreeUrl());
+		return new PurchaseDto() {
+			{
+				setStatus(true);
+				setIsRedirectToLink(true);
+				setRedirectToLink(productCharging.getFreeUrl());
+				setSucessts(request.isStatus());
+			}
+		};
+	}
+
+	private PurchaseDto subscribeProductSmst(PurchaseRequestDto request) {
+		ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+				request.getServicePlan(), request.getPaymentMethod());
+		if (productCharging == null) {
+			return null;
+		}
+
+		LOGGER.info("PurchasingServiceImpl.subscribeProductFreeUrl.productCharging: "
+				+ StringUtils.arrayToCommaDelimitedString(
+						new Object[] { productCharging.getSmsmtKeyword(), productCharging.getSmsmtTo() }));
+		return new PurchaseDto() {
+			{
+				setStatus(true);
+				setIsSms(true);
+				setSmsKeyword(productCharging.getSmsmtKeyword());
+				setSmsTo(productCharging.getSmsmtTo());
+
+				if (productCharging.getDdcUrl() != null) {
+					setIsDdcUrl(true);
+					setDdcUrl(productCharging.getDdcUrl());
+				}
+			}
+		};
+	}
+
+	private PurchaseDto subscribePoductNsApi(PurchaseRequestDto request) {
+		ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+				request.getServicePlan(), request.getPaymentMethod());
+		if (productCharging == null) {
+			return null;
+		}
+		GenricTIBODPservicesStub.PurchaseMusicNSNRequest purchaseNSN = new GenricTIBODPservicesStub.PurchaseMusicNSNRequest();
+		purchaseNSN.setMSISDN(request.getMsisdn());
+		purchaseNSN.setContentSourceID(productCharging.getNsnSourceId());
+		purchaseNSN.setContentItemID(productCharging.getNsnContentId());
+		LOGGER.info("PurchasingServiceImpl.subscribePoductNsApi.purchaseNSN: "
+				+ StringUtils.arrayToCommaDelimitedString(new Object[] { purchaseNSN.getMSISDN(),
+						purchaseNSN.getContentSourceID(), purchaseNSN.getContentItemID() }));
+
+		GenricTIBODPservicesStub tibco = null;
+		try {
+			tibco = new GenricTIBODPservicesStub(Constants.TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+			GenricTIBODPservicesStub.PurchaseMusicNSNResponse response = tibco.purchaseMusicNSN(purchaseNSN);
+			if (response.getStatusCode().equals("00000")) {
+				LOGGER.info("PurchasingServiceImpl.subscribePoductNsApi.response: " + response.getDownloadURL());
+				return new PurchaseDto() {
+					{
+						setStatus(true);
+						setIsDownload(true);
+						setDownloadUrl(response.getDownloadURL());
+					}
+				};
+			} else {
+				LOGGER.info("PurchasingServiceImpl.subscribePoductNsApi.response: " + response.getStatusCode() + ","
+						+ response.getStatusText());
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * @apiNote only handle api_3pb / product billing
+	 */
+	/*
+	 * @Override public Map<String, Object> purchaseProduct(PurchaseRequestDto
+	 * request) { if(!isMsisdnValid(request.getMsisdn(),
+	 * request.getSecretKey())) { return JSONResultFilter.filter(new
+	 * ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+	 * 
+	 * BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef,
+	 * Product.class); List<Product> products =
+	 * productDao.find("productId = :productId", new HashMap<String, Object>()
+	 * {{ put("productId", request.getProductId()); }});
+	 * 
+	 * Product product; if (products.size() > 0) { product = products.get(0);
+	 * String errorMessage;
+	 * 
+	 * // validate only for eligible payment method if
+	 * (!(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_CASH) ||
+	 * request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID))) {
+	 * errorMessage = "Invalid payment method"; } else { // only CASH and
+	 * HYBRID_CREDIT allowed here switch (product.getChargingMechanism()) { case
+	 * "api_3pb": return purchaseProductFreeUrl(product, request); case "api":
+	 * case "api_3pd": return purchaseProductData(product, request); case
+	 * "api_3pul": { // HINT:// should only accept HYBRID_CREDIT if
+	 * (request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID)) {
+	 * errorMessage = purchaseProductPulsa(product, request); } else {
+	 * errorMessage = "Invalid payment method"; } break; } case "free_url":
+	 * return purchaseProductFreeUrl(product, request); case "smsmt": return
+	 * purchaseProductSmsmt(product, request); case "api_nsn": return
+	 * purchaseProductNsnApi(product, request); default: errorMessage =
+	 * "Invalid payment method"; break; } }
+	 * 
+	 * if (errorMessage != null) { return JSONResultFilter.filter(new
+	 * ErrorMessageDto(false, errorMessage)).all().build(); } } else { return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * "Invalid request")).all().build(); }
+	 * 
+	 * 
+	 * return JSONResultFilter.filter(new PurchaseDto(){{ setStatus(true);
+	 * }}).exclude("isRedirectToLink", "redirectToLink").build(); }
+	 */
+	/*
+	 * @Override public Map<String, Object>
+	 * purchaseunsubscribe(PurchaseRequestDto request) {
+	 * if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) { return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); } Product product=null;
+	 * BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef,
+	 * Product.class); List<Product> products =
+	 * productDao.find("productId = :productId", new HashMap<String, Object>()
+	 * {{ put("productId", request.getProductId()); }});
+	 * 
+	 * Product product; if (products.size() > 0) { product = products.get(0);
+	 * String errorMessage;
+	 * 
+	 * // validate only for eligible payment method if
+	 * (!(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_CASH) ||
+	 * request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID))) {
+	 * errorMessage = "Invalid payment method"; } else { // only CASH and
+	 * HYBRID_CREDIT allowed here return purchaseProductunscubscibe(product,
+	 * request);
+	 * 
+	 * 
+	 * // }
+	 * 
+	 * if (errorMessage != null) { return JSONResultFilter.filter(new
+	 * ErrorMessageDto(false, errorMessage)).all().build(); } } else { return
+	 * JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * "Invalid request")).all().build(); }
+	 * 
+	 * // success with redirect link // sendNotification(request.getMsisdn(),
+	 * "Sukses Pembelian Product", product);
+	 * 
+	 * return JSONResultFilter.filter(new PurchaseDto(){{ setStatus(true);
+	 * }}).exclude("isRedirectToLink", "redirectToLink").build(); }
+	 */
+
+	@Override
+	public Map<String, Object> unsubscribeProduct(SubscribeProductRequestDto request) {
+		logger.info("------unsubscribeProduct---");
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+		}
+
+		if (request.getProductId() == null) {
+			return JSONResultFilter.filter(new ErrorMessageDto()).all().build();
+		}
+
+		BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {
+			{
+				put("productId", request.getProductId());
+			}
+		});
+
+		Product product;
+		if (products.size() > 0) {
+			product = products.get(0);
+
+			switch (product.getChargingMechanism()) {
+			case "api_3pb":
+				return unsubscribeProductBilling(product, request);
+			case "api":
+			case "api_3pd":
+				return unsubscribeProductData(product, request);
+			case "api_3pul":
+			case "free_url":
+			case "smsmt":
+			case "api_nsn":
+			default:
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid unsubscribe method")).all().build();
+			}
+		} else {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+		}
+	}
+
+	public Map<String, Object> redeemCampaign(PurchaseRequestDto request) {
+		
+		logger.info("-------redeemCampaign----------");
+		
+		if (isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			try {
+				// initialize parameter
+				Boolean isSuccess = true;
+				String msg = request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED;
+
+				PurchaseDto purchaseDto = new PurchaseDto();
+				purchaseDto.setStatus(true);
+
+				// process CAMPAIGN redeem, now checked whether active or not -
+				// edw 20171013
+				Campaign campaign = campaignService.getCampaign(request.getProductId());
+
+				// inactive campaign
+				if (campaign == null) {
+					return JSONResultFilter
+							.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID)
+									? Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED))
+							.all().build();
+				}
+
+				// check is the campaign still eligible or not
+				if (!campaignService.isCampaignStillEligible(request.getProductId(), request.getMsisdn(), true)) {
+					return JSONResultFilter
+							.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID)
+									? Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED))
+							.all().build();
+				}
+
+				// validate target type
+				/*
+				 * if (campaign.getTargetType().equals(Constants.TARGET_TYPE_CMS_WHITELIST) &&
+				 * !campaignService.isMsisdnWhitelisted(campaign.getCampaignId(),
+				 * request.getMsisdn())) { return JSONResultFilter .filter(new
+				 * ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ?
+				 * Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED)) .all().build();
+				 * } else if
+				 * (campaign.getTargetType().equals(Constants.TARGET_TYPE_SPECIFIC_CALLPLAN) &&
+				 * !campaign.getCallplan().equals(request.getCallPlan())) { return
+				 * JSONResultFilter .filter(new ErrorMessageDto(false,
+				 * request.getLanguage().equals(Constants.LANG_ID) ?
+				 * Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED)) .all().build();
+				 * }
+				 */
+
+				if ((campaign.getIsReward() == 0 && (campaign.getRfy() == 1 || campaign.getShake() == 1))
+						|| (campaign.getIsReward() == 1 && !campaignService
+								.isAlreadyRedeemWelcomeReward(request.getMsisdn(), request.getImei()))) {
+					// validate it's redeem cancelled promo or fresh one
+					CampaignReward campaignReward = campaignService.getCampaignReward(campaign.getCampaignId(),
+							request.getMsisdn(), (short) 9);
+					if (campaignReward == null) {
+						// record CAMPAIGN_REWARD history
+						campaignReward = new CampaignReward();
+						campaignReward.setCampaignId(campaign);
+						campaignReward.setMsisdn(request.getMsisdn());
+						campaignReward.setImei(request.getImei());
+						campaignReward.setClaimDate(new Date());
+						campaignReward.setClaimStatus((short) 1);
+					} else {
+						campaignReward.setClaimStatus((short) 1);
+					}
+
+					Date date = new Date();
+					if (campaignReward.getClaimDate() != null)
+						date = campaignReward.getClaimDate();
+
+					String transactionId = campaign.getCampaignId() + Helpers.toString(date);
+					switch (campaign.getClaimMethod()) {
+					case "clmapi": {
+						// getServicePlan is equals to offerId based on CLM
+						isSuccess = ApiHelpers.apiClm(transactionId, request.getMsisdn(), campaign.getCampaignId());
+						break;
+					}
+					case "api_3pd": {
+						isSuccess = ApiHelpers.apiProductData(transactionId, request.getMsisdn(),
+								campaign.getClaimCharge().intValue() == 1, campaign.getPackageCode());
+						break;
+					}
+					case "api_3pb": {
+						isSuccess = p_service.apiProductBilling(request.getMsisdn(), request.getLanguage(),
+								request.getProductId(), request.getProductId(), campaign.getPackageCode());
+						break;
+					}
+					case "api_nsn": {
+						isSuccess = false;
+						break;
+					}
+					case "smsmt": {
+						purchaseDto.setIsSms(true);
+						purchaseDto.setSmsTo(campaign.getSdc());
+						purchaseDto.setSmsKeyword(campaign.getKeyword());
+						break;
+					}
+					case "free_url": {
+						purchaseDto.setIsRedirectToLink(true);
+						purchaseDto.setRedirectToLink(campaign.getFreeUrl());
+
+						if (purchaseDto.getRedirectToLink() == null) {
+							purchaseDto.setIsRedirectToLink(false);
+							isSuccess = false;
+						}
+						break;
+					}
+						
+					case "bonus_redeem": {
+						String url="http://10.6.10.51:8009/bima/addbonus";
+						HttpHeaders headers = new HttpHeaders();
+						LinkedMultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+						params.add("msisdn", request.getMsisdn());
+						params.add("bonusName", campaign.getPackageCode());
+						params.add("bonusType", campaign.getCampaignId().substring(0, campaign.getCampaignId().indexOf("_")));
+						//params.add("bonusType", request.getMenuSubCategoryName().substring(0, request.getMenuSubCategoryName().indexOf("_")));
+						params.add("amount", campaign.getPrice());
+						params.add("expiry", campaign.getEnddate().toString().substring(0, 19));
+						logger.info("expiry date is::::"+campaign.getEnddate().toString().substring(0, 19));
+						params.add("description", request.getLanguage().equals("1")?campaign.getDescEn():campaign.getDescId());
+						logger.info("msisdn, bonusName, bonusType, amount, expiry, description:::"+request.getMsisdn()+"::: "+campaign.getPackageCode()+":: "+campaign.getCampaignId().substring(0, campaign.getCampaignId().indexOf("_"))+":: " +campaign.getPrice()+":: " + (request.getLanguage().equals("1")?campaign.getDescEn():campaign.getDescId()));
+						RestTemplate template = new RestTemplate();
+						template.setRequestFactory(getSimpleClientHttpRequestFactory(connectTimeout));
+				        HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(params,
+				        		createHeaders("bima", "Vnm@2019"));
+						try {
+						ParentBonusResponse response = template.postForObject(url, entity, ParentBonusResponse.class);
+						logger.info("response after hitting bima/addbonus::"+response.getMessage().getResultCode()+":::::::::::"+response.getMessage().getErrorDescription());
+				        
+						msg = response.getMessage().getErrorDescription();
+						if(response.getMessage().getResultCode().equals("0")) {
+							isSuccess=true;
+						}
+						else {
+							isSuccess=false;
+						}
+						} catch(Exception e) {
+							isSuccess=false;
+							e.printStackTrace();
+						}
+						break;   
+					}
+					default: {
+						return JSONResultFilter
+								.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID)
+										? Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED))
+								.all().build();
+					}
+					}
+
+					if (isSuccess) {
+						BaseDao<CampaignReward> campaignRewardDao = new BaseDao<>(sessionFactoryDef,
+								CampaignReward.class);
+						campaignRewardDao.saveOrUpdate(campaignReward);
+						return JSONResultFilter.filter(purchaseDto).all().build();
+					} else {
+						return JSONResultFilter
+								.filter(new ErrorMessageDto(false, msg))
+								.all().build(); 
+					}
+
+					//return JSONResultFilter.filter(purchaseDto).all().build();
+				} else {
+					return JSONResultFilter
+							.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID)
+									? Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED))
+							.all().build();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return JSONResultFilter.filter(new ErrorMessageDto(false, e.getLocalizedMessage())).all().build();
+			}
+		}
+
+		return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+	}
+
+	private Map<String, Object> purchaseProductData(Product product, PurchaseRequestDto request) {
+		String errorMessage = null;
+
+		ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+				request.getServicePlan(), request.getPaymentMethod());
+		if (productCharging != null) {
+			Service__Registration__APISecurityStub.ServiceRegRequest regRequest = new Service__Registration__APISecurityStub.ServiceRegRequest();
+			regRequest.setTransactionID(moduleTransactionIDGenerator.generate(Module.PURCHASE));
+			regRequest.setCurrent_Date((new SimpleDateFormat("yyyyMMdd")).format(new Date()));
+			regRequest.setSource(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID)
+					? Constants.TIBCO_SOURCE_HYBRID : Constants.TIBCO_SOURCE);
+			regRequest.setCharge(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_CASH) ? "Y" : "N");
+			regRequest.setHYBRID_FLAG(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID) ? "Y" : "N");
+			regRequest.setMSISDN(request.getMsisdn());
+			regRequest.setActionType("ACTIVATE");
+			if (productCharging != null) {
+				regRequest.setServiceType(productCharging.getRegistrationKey());
+			}
+			regRequest.setCPName("NULL");
+			regRequest.setSignature(Helpers.generateSignature(regRequest.getCurrent_Date(), regRequest.getServiceType(),
+					regRequest.getTransactionID(), regRequest.getMSISDN()));
+			LOGGER.info("PurchasingServiceImpl.purchaseProductData.regRequest: " + regRequest.getTransactionID() + ","
+					+ regRequest.getMSISDN() + "," + regRequest.getServiceType() + "," + regRequest.getCharge() + ","
+					+ regRequest.getSignature());
+
+			try {
+				// prepare dwh} user transaction
+				DwhUserTransactions dwhUserTransactions = new DwhUserTransactions(regRequest.getTransactionID(),
+						request.getMsisdn(), regRequest.getServiceType(), BigInteger.ZERO, "",
+						request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID : Constants.DEVICE_ID_IOS,
+						request.getDeviceManufacture(), request.getDeviceModel(), regRequest.toString(), "", "", "",
+						product.getProductNameId(), 0, BigInteger.ZERO);
+
+				Service__Registration__APISecurityStub apiSecurityStub = new Service__Registration__APISecurityStub(
+						Constants.TIBCO_URL_DATA_PACKAGE_ENDPOINT);
+				Service__Registration__APISecurityStub.ServiceRegResponse response = new Service__Registration__APISecurityStub.ServiceRegResponse();
+				response.setResponseCode("400");
+				response.setResponseDescription("Fail");
+				;
+				// Service__Registration__APISecurityStub.ServiceRegResponse
+				// response = apiSecurityStub.service_Registration(regRequest);
+				if (response.getResponseCode().equals("200")) {
+					BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+							TrxSubscriberPurchase.class);
+					TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+					trxSubscriberPurchase.setTransactionId(regRequest.getTransactionID());
+					trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+					trxSubscriberPurchase.setSubscriberMsisdn(regRequest.getMSISDN());
+					trxSubscriberPurchase.setProductId(productCharging.getProductId());
+					trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+					trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+					trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuSubCategoryName());
+					trxSubscriberPurchase.setPrice(productCharging.getPrice());
+					trxSubscriberPurchase.setTransactionStatus(1);
+					trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+					trxSubscriber.save(trxSubscriberPurchase);
+
+					dwhUserTransactions.setTrxStatus(BigInteger.ONE);
+
+					// return success payment
+					return JSONResultFilter.filter(new PurchaseDto() {
+						{
+							setStatus(true);
+
+							if (productCharging.getDdcUrl() != null) {
+								setIsDdcUrl(true);
+								setDdcUrl(productCharging.getDdcUrl());
+							}
+						}
+					}).all().build();
+				} else {
+					dwhUserTransactions.setTrxErrorcode(response.getResponseCode());
+					dwhUserTransactions.setTrxErrordesc(response.getResponseDescription());
+					dwhUserTransactions.setTrxErrortext("-1"); // TODO: what is
+																// this
+																// trxErrorText
+
+					errorMessage = "[" + response.getResponseCode() + "]" + response.getResponseDescription();
+				}
+				inAppNotificationService.saveToInAppNotifications(request.getMsisdn(), null, null, null, "-",
+						response.getResponseDescription(), "", "", "");
+				// save dwh} user transaction
+				dwhUserTransactionsService.save(dwhUserTransactions);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+				errorMessage = e.getMessage();
+			}
+		} else {
+			errorMessage = "No Product Charging";
+		}
+
+		return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+	}
+
+	private Map<String, Object> purchaseProductBilling(Product product, PurchaseRequestDto request) {
+		String result = null;
+		try {
+			ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+					request.getServicePlan(), request.getPaymentMethod());
+			if (productCharging != null) {
+				TibcoODPBonusRegRequest odpBonusRegRequest = new TibcoODPBonusRegRequest();
+				odpBonusRegRequest.getBonusRequest()
+						.setTransactionId(moduleTransactionIDGenerator.generate(Module.PURCHASE));
+				odpBonusRegRequest.getBonusRequest().setMsisdn(request.getMsisdn());
+				odpBonusRegRequest.getBonusRequest().setActionType("ADD");
+				if (productCharging != null) {
+					odpBonusRegRequest.getBonusRequest().setRegistrationKey(productCharging.getRegistrationKey());
+				}
+				odpBonusRegRequest.getBonusRequest()
+						.setCharge(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_CASH) ? "Y" : "N");
+				odpBonusRegRequest.getBonusRequest()
+						.setHibridFlag(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID) ? "Y" : "N");
+				odpBonusRegRequest.getBonusRequest()
+						.setSource(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID)
+								? Constants.TIBCO_SOURCE_HYBRID : Constants.TIBCO_SOURCE);
+
+				// prepare dwh} user transaction
+				DwhUserTransactions dwhUserTransactions = new DwhUserTransactions(
+						odpBonusRegRequest.getBonusRequest().getTransactionId(), request.getMsisdn(),
+						odpBonusRegRequest.getBonusRequest().getRegistrationKey(), BigInteger.ZERO, "",
+						request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID : Constants.DEVICE_ID_IOS,
+						request.getDeviceManufacture(), request.getDeviceModel(), odpBonusRegRequest.toString(), "", "",
+						"", product.getProductNameId(), 0, BigInteger.ZERO);
+
+				String xmlRequest = XmlHelper.marshal(odpBonusRegRequest);
+				LOGGER.info("PurchasingServiceImpl.purchaseProductBilling.xmlRequest: " + xmlRequest);
+				HttpResponse response = HttpClientHelper.postData(Constants.API_PURCHASE_BILLING_URL, xmlRequest,
+						new HashMap<String, String>() {
+							{
+								put("Content-Type", "text/xml; charset=utf-8");
+							}
+						});
+
+				if (response.getStatusLine().getStatusCode() == 200) {
+					TibcoODPBonusRegRequest tibcoResult = (TibcoODPBonusRegRequest) XmlHelper
+							.unMarshal(response.getEntity().getContent(), TibcoODPBonusRegRequest.class);
+					if (tibcoResult.getBonusRequest().getResponseCode().equals("00000")) {
+						BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+								TrxSubscriberPurchase.class);
+						TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+						trxSubscriberPurchase.setTransactionId(tibcoResult.getBonusRequest().getTransactionId());
+						trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+						trxSubscriberPurchase.setSubscriberMsisdn(tibcoResult.getBonusRequest().getMsisdn());
+						trxSubscriberPurchase.setProductId(productCharging.getProductId());
+						trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+						trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+						trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuSubCategoryName());
+						trxSubscriberPurchase.setPrice(productCharging.getPrice());
+						trxSubscriberPurchase.setTransactionStatus(1);
+						trxSubscriberPurchase.setIsPromo(false);
+                        trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+						trxSubscriber.save(trxSubscriberPurchase);
+
+						dwhUserTransactions.setTrxStatus(BigInteger.ONE);
+
+						result = notificationMasterService.getMessageText(8, request.getLanguage());
+						// remark success scenario not required to log
+						/*
+						 * LOGGER.
+						 * info("PurchasingServiceImpl.purchaseProductBilling.tibcoResult: "
+						 * + tibcoResult); result = H.L(request.getLanguage(),
+						 * notificationMasterService.getMessageText(8, 0),
+						 * notificationMasterService.getMessageText(8, 1));
+						 * >>>>>>> branch '1809-notif-message-master' of
+						 * https://gitlab.com/hamdimobile/d3-api.git // save
+						 * failure purchase notification
+						 * inAppNotificationService.saveToInAppNotifications(
+						 * request.getMsisdn(), null, null, null, "-", result,
+						 * "", "", "");
+						 */
+						// return success payment
+						return JSONResultFilter.filter(new PurchaseDto() {
+							{
+								setStatus(true);
+
+								if (productCharging.getDdcUrl() != null) {
+									setIsDdcUrl(true);
+									setDdcUrl(productCharging.getDdcUrl());
+								}
+							}
+						}).all().build();
+					} else {
+						dwhUserTransactions.setTrxErrorcode(tibcoResult.getBonusRequest().getResponseCode());
+						dwhUserTransactions.setTrxErrordesc(tibcoResult.getBonusRequest().getResponseDescription());
+						dwhUserTransactions.setTrxErrortext("-1"); // TODO: what
+																	// is this
+																	// trxErrorText
+
+						LOGGER.info("PurchasingServiceImpl.purchaseProductBilling.tibcoResult: " + tibcoResult);
+						result = notificationMasterService.getMessageText(5, request.getLanguage());
+
+						if (Constants.LANG_EN.equals(request.getLanguage()))
+							result = result.replace("{getProductName}", product.getProductNameEn());
+						else
+							result = result.replace("{getProductName}", product.getProductNameId());
+
+						// save failure purchase notification
+						inAppNotificationService.saveToInAppNotifications(request.getMsisdn(), null, null, null, "-",
+								result, "", "", "");
+					}
+
+					// save dwh} user transaction
+					dwhUserTransactionsService.save(dwhUserTransactions);
+				} else {
+					result = "Payment failed, " + response.getStatusLine().getStatusCode();
+				}
+			} else {
+				result = "No Product Charging";
+			}
+		} catch (JAXBException | IOException e) {
+			LOGGER.error("ERROR purchaseProductData", e);
+			result = e.getMessage();
+		}
+
+		return JSONResultFilter.filter(new ErrorMessageDto(false, result)).all().build();
+	}
+
+	private String purchaseProductPulsa(Product product, PurchaseRequestDto request) {
+		String result = null;
+		try {
+			ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+					request.getServicePlan(), request.getPaymentMethod());
+
+			if (productCharging != null
+					&& productCharging.getPaymentMethodByPaymentGatewayId().getPaymentGatewayName() != null) {
+				// fulfillment when payment using credit_card, debit_card
+				GenricTIBODPservicesStub stub = new GenricTIBODPservicesStub(
+						Constants.TIBCO_URL_GENERIC_TIBCO_ENDPOINT);
+				String transactionId = moduleTransactionIDGenerator.generate(Module.PURCHASE);
+				GenricTIBODPservicesStub.BuyPulsaEVCrequest evCrequest = new GenricTIBODPservicesStub.BuyPulsaEVCrequest();
+				evCrequest.setTRANSACTION_ID(transactionId);
+				evCrequest.setMSISDN(request.getMsisdn());
+				evCrequest.setDENOMINATION(productCharging.getRegistrationKey());
+				LOGGER.info("PurchasingServiceImpl.purchaseProductPulsa.evCrequest: " + evCrequest.getTRANSACTION_ID()
+						+ "," + evCrequest.getMSISDN() + "," + evCrequest.getDENOMINATION());
+
+				// prepare dwh} user transaction
+				DwhUserTransactions dwhUserTransactions = new DwhUserTransactions(evCrequest.getTRANSACTION_ID(),
+						request.getMsisdn(), "TOP-UP", BigInteger.ZERO, "",
+						request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID : Constants.DEVICE_ID_IOS,
+						request.getDeviceManufacture(), request.getDeviceModel(),
+						(evCrequest.getTRANSACTION_ID() + "," + evCrequest.getMSISDN() + ","
+								+ evCrequest.getDENOMINATION()),
+						"", "", "", product.getProductNameId(), 0, BigInteger.ZERO);
+
+				GenricTIBODPservicesStub.BuyPulsaEVCResponse evcResponse = stub.buyPulsaEVC(evCrequest);
+				if (evcResponse != null && evcResponse.getResponseCode().equals("00000")) {
+					BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+							TrxSubscriberPurchase.class);
+					TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+					trxSubscriberPurchase.setTransactionId(transactionId);
+					trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+					trxSubscriberPurchase.setSubscriberMsisdn(request.getMsisdn());
+					trxSubscriberPurchase.setProductId(request.getProductId());
+					trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+					trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+					trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuSubCategoryName());
+					trxSubscriberPurchase.setPrice(productCharging.getPrice());
+					trxSubscriberPurchase.setTransactionStatus(1);
+					trxSubscriberPurchase.setIsPromo(false);
+					trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+					trxSubscriber.save(trxSubscriberPurchase);
+					result = null;
+
+					dwhUserTransactions.setTrxStatus(BigInteger.ONE);
+				} else {
+					dwhUserTransactions.setTrxErrorcode(evcResponse.getResponseCode());
+					dwhUserTransactions.setTrxErrordesc(evcResponse.getResponseDescription());
+					dwhUserTransactions.setTrxErrortext("-1"); // TODO: what is
+																// this
+																// trxErrorText
+
+					result = String.format("[%s] %s", evcResponse.getResponseCode(),
+							evcResponse.getResponseDescription());
+					LOGGER.error(result);
+				}
+
+				// save dwh} user transaction
+				dwhUserTransactionsService.save(dwhUserTransactions);
+			} else if (productCharging != null
+					&& productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_HYBRID)) {
+				// fulfillment using Hybrid Credit
+				BuyPulsaHybrid payload = new BuyPulsaHybrid();
+				payload.setTransactionId(moduleTransactionIDGenerator.generate(Module.PURCHASE));
+				payload.setMsisdn(request.getMsisdn());
+				payload.setSource(Constants.TIBCO_SOURCE_ODP);
+				payload.setAmount(productCharging.getRegistrationKey());
+
+				String stringRequest = XmlHelper.marshal(payload);
+				LOGGER.info("PurchasingServiceImpl.purchaseProductPulsa.payload: " + stringRequest);
+				HttpResponse httpCall = HttpClientHelper.getData(Constants.API_HYBRID_TOPUP_URL,
+						new HashMap<String, String>() {
+							{
+								put("XML", stringRequest);
+							}
+						}, new HashMap<String, String>() {
+							{
+								put("Content-Type", "text/xml; charset=utf-8");
+							}
+						});
+				if (httpCall.getStatusLine().getStatusCode() == 200) {
+					BuyPulsaHybrid response = (BuyPulsaHybrid) XmlHelper.unMarshal(httpCall.getEntity().getContent(),
+							BuyPulsaHybrid.class);
+					LOGGER.info("PurchasingServiceImpl.purchaseProductPulsa.response: " + response);
+
+					if (response.getStatus().equals(Constants.TIBCO_RESPONSE_CODE_SUCCESS_0)) {
+						BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+								TrxSubscriberPurchase.class);
+						TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+						trxSubscriberPurchase.setTransactionId(payload.getTransactionId());
+						trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+						trxSubscriberPurchase.setSubscriberMsisdn(request.getMsisdn());
+						trxSubscriberPurchase.setProductId(request.getProductId());
+						trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+						trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+						trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuSubCategoryName());
+						trxSubscriberPurchase.setPrice(productCharging.getPrice());
+						trxSubscriberPurchase.setTransactionStatus(1);
+						trxSubscriberPurchase.setIsPromo(false);
+						trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+						trxSubscriber.save(trxSubscriberPurchase);
+						result = null;
+					} else {
+						result = String.format("[%s] %s", response.getStatus(), response.getStatusText());
+					}
+				}
+			} else {
+				LOGGER.error(String.format("No Product Charging, %s, %s, %s, %s, %s", request.getMsisdn(),
+						request.getProductId(), request.getVendorId(), request.getServicePlan(),
+						request.getPaymentMethod()));
+				result = "No product charging";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			result = e.getMessage();
+		}
+		return result;
+	}
+
+	private Map<String, Object> purchaseProductFreeUrl(Product product, PurchaseRequestDto request) {
+		ProductCharging productCharging = getProductChargingData(request.getProductId());
+		NonVasRegResponse responce = null;
+		if (productCharging == null) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Product charging not found")).all().build();
+		} else {
+
+			try {
+				responce = tibcoService.Subscribpackage(request.getMsisdn(), request.getLanguage(),
+						request.getProductId(), request.getProductId(), productCharging.getRegistrationKey());
+				LOGGER.info("response code is::::::"+ responce.getResponseCode());
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if ((responce.getResponseCode() != null) && (responce.getResponseCode().equals("00000"))) {
+				BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+						TrxSubscriberPurchase.class);
+				TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+				trxSubscriberPurchase.setTransactionId("BM"+moduleTransactionIDGenerator.generate(Module.PURCHASE));
+				trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+				trxSubscriberPurchase.setSubscriberMsisdn(request.getMsisdn());
+				trxSubscriberPurchase.setProductId(request.getProductId());
+				trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+				trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+				trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuCategoryName());
+				trxSubscriberPurchase.setPrice(productCharging.getPrice());
+				trxSubscriberPurchase.setTransactionStatus(0);
+				trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+				trxSubscriberPurchase.setIsPromo(false);
+				trxSubscriber.save(trxSubscriberPurchase);
+				request.setStatus(true);
+				request.setStatuscode(responce.getResponseCode());
+				// success purchase free product
+				
+				String message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_00000, request.getLanguage());
+				if("1".equals(request.getLanguage().trim())) {
+					
+					message = message.replace("#PRODUCTNAME#", product.getProductNameEn());
+				}else {
+					message = message.replace("#PRODUCTNAME#", product.getProductNameId());
+				}
+				
+				sendNotification(request.getMsisdn(),message, product);
+			/*	if (request.getLanguage().equals("1")) {
+					
+					
+					sendNotification(request.getMsisdn(),
+							"You have registered the " + product.getProductNameEn() + " package successfully", product);
+				} else {
+					sendNotification(request.getMsisdn(),
+							"Bạn đã đăng ký thành công gói cước  " + product.getProductNameId(), product);
+				}*/
+			} else {
+				BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+						TrxSubscriberPurchase.class);
+				TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+				trxSubscriberPurchase.setTransactionId("BM"+moduleTransactionIDGenerator.generate(Module.PURCHASE));
+				trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+				trxSubscriberPurchase.setSubscriberMsisdn(request.getMsisdn());
+				trxSubscriberPurchase.setProductId(request.getProductId());
+				trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+				trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+				trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuCategoryName());
+				trxSubscriberPurchase.setPrice(productCharging.getPrice());
+				trxSubscriberPurchase.setTransactionStatus(1);
+				trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+				trxSubscriberPurchase.setIsPromo(false);
+				trxSubscriber.save(trxSubscriberPurchase);
+				request.setStatus(false);
+				if (responce.getResponseCode() != null) {
+					request.setStatuscode(responce.getResponseCode());
+				} else {
+					request.setStatuscode("666");
+				}
+				// success purchase free product
+				String message="";
+				switch (responce.getResponseCode()) {
+				case "21":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_21, request.getLanguage());
+					sendNotification(request.getMsisdn(),message, product);
+					break;
+				case "31":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_31, request.getLanguage());
+					 sendNotification(request.getMsisdn(),message, product);
+					 break;
+				case "32":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_32, request.getLanguage());
+					 sendNotification(request.getMsisdn(),message, product);
+					 break;
+				case "39":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_39, request.getLanguage());
+					 sendNotification(request.getMsisdn(),message, product);
+					 break;
+				
+				default:
+					message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_7, request.getLanguage());
+					 sendNotification(request.getMsisdn(),message, product);
+					break;
+				}
+			}
+			return JSONResultFilter.filter(request).all().build();
+		}
+	}
+	/*
+	 * private Map<String, Object> purchaseProductunscubscibe(Product product,
+	 * PurchaseRequestDto request) { // ProductCharging productCharging =
+	 * getProductCharging(request.getProductId(), request.getVendorId(),
+	 * request.getServicePlan(), request.getPaymentMethod()); NonVasRegResponse
+	 * responce=null;
+	 * 
+	 * 
+	 * try {
+	 * responce=tibcoService.unSubscribpackage(request.getMsisdn(),request.
+	 * getLanguage(),request.getProductId(),request.getProductId(),request.
+	 * getProductId()); } catch (Exception e) { // TODO Auto-generated catch
+	 * block e.printStackTrace(); } if(responce.getResponseCode().equals("1")) {
+	 * 
+	 * request.setStatus(true); // success purchase free product
+	 * sendNotification(request.getMsisdn(), "Product UnSubscribe Success",
+	 * product); } else{
+	 * 
+	 * request.setStatus(false); // success purchase free product
+	 * sendNotification(request.getMsisdn(), "Product UnSubscribe FAIL",
+	 * product); } return JSONResultFilter.filter(request).all().build(); }
+	 */
+
+	private Map<String, Object> purchaseProductSmsmt(Product product, PurchaseRequestDto request) {
+		ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+				request.getServicePlan(), request.getPaymentMethod());
+		if (productCharging == null) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Product charging not found")).all().build();
+		} else {
+			BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+					TrxSubscriberPurchase.class);
+			TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+			trxSubscriberPurchase.setTransactionId(moduleTransactionIDGenerator.generate(Module.PURCHASE));
+			trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+			trxSubscriberPurchase.setSubscriberMsisdn(request.getMsisdn());
+			trxSubscriberPurchase.setProductId(request.getProductId());
+			trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+			trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+			trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuSubCategoryName());
+			trxSubscriberPurchase.setPrice(productCharging.getPrice());
+			trxSubscriberPurchase.setTransactionStatus(1);
+			trxSubscriberPurchase.setIsPromo(false);
+			trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+			trxSubscriber.save(trxSubscriberPurchase);
+
+			// success with redirect link
+			sendNotification(request.getMsisdn(), "Product Purchase Success", product);
+
+			return JSONResultFilter.filter(subscribeProductSmst(request)).exclude("isRedirectToLink", "redirectToLink")
+					.build();
+		}
+	}
+
+	private Map<String, Object> purchaseProductNsnApi(Product product, PurchaseRequestDto request) {
+		ProductCharging productCharging = getProductCharging(request.getProductId(), request.getVendorId(),
+				request.getServicePlan(), request.getPaymentMethod());
+		if (productCharging == null) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Product charging not found")).all().build();
+		} else {
+			BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+					TrxSubscriberPurchase.class);
+			TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+			trxSubscriberPurchase.setTransactionId(moduleTransactionIDGenerator.generate(Module.PURCHASE));
+			trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+			trxSubscriberPurchase.setSubscriberMsisdn(request.getMsisdn());
+			trxSubscriberPurchase.setProductId(request.getProductId());
+			trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+			trxSubscriberPurchase.setMenuCategoryName(request.getMenuCategoryName());
+			trxSubscriberPurchase.setMenuSubCategoryName(request.getMenuSubCategoryName());
+			trxSubscriberPurchase.setPrice(productCharging.getPrice());
+			trxSubscriberPurchase.setTransactionStatus(1);
+			trxSubscriberPurchase.setIsPromo(false);
+			trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+			PurchaseDto purchaseDto = subscribePoductNsApi(request);
+			if (purchaseDto != null) {
+				// success with redirect link
+				sendNotificationNSN(request.getMsisdn(), "Sukses Pembelian Product", product,
+						". Dapatkan lagu Anda dibawah ini.", purchaseDto.getDownloadUrl());
+				trxSubscriber.save(trxSubscriberPurchase);
+				return JSONResultFilter.filter(purchaseDto)
+						.exclude("isSms", "smsKeyword", "smsTo", "isRedirectToLink", "redirectToLink").build();
+			} else {
+				return JSONResultFilter.filter(new ErrorMessageDto(false,
+						request.getLanguage().equals(0) ? Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED))
+						.all().build();
+			}
+		}
+	}
+
+	/*
+	 * private ProductCharging getProductCharging(String productId, String
+	 * vendorId, String servicePlan, String paymentMethodCode) {
+	 * BaseDao<ProductCharging> productCharginDao = new
+	 * BaseDao<>(sessionFactoryDef, ProductCharging.class);
+	 * List<ProductCharging> productChargings = productCharginDao.
+	 * listData("from ProductCharging where productId = :productId and vendorId = :vendorId and servicePlan = :servicePlan and paymentMethodCode = :paymentMethodCode"
+	 * , new HashMap<String, Object>() {{ put("productId", productId);
+	 * put("vendorId", vendorId); put("servicePlan", servicePlan);
+	 * put("paymentMethodCode", paymentMethodCode); }}); if
+	 * (productChargings.size() > 0) { return productChargings.get(0); } return
+	 * null; }
+	 */
+
+	private ProductCharging getProductCharging(String productId) {
+		BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+		List<ProductCharging> productChargings = productCharginDao
+				.listData("from ProductCharging where productId = :productId", new HashMap<String, Object>() {
+					{
+						put("productId", productId);
+					}
+				});
+		if (productChargings.size() > 0) {
+			return productChargings.get(0);
+		}
+		return null;
+	}
+
+	/**
+	 * 
+	 * @param msisdn
+	 * @param message
+	 */
+	private void sendNotification(String msisdn, String message, Product product) {
+		sendNotification(msisdn, message, product, "");
+	}
+
+	private void sendNotification(String msisdn, String message, Product product, String additionalMessage) {
+		String link="";
+		String img_link = null;
+		try {
+			if (product != null) {
+		 link = "https://"+applicationConfigurationService.get("DEEPLINK_URL_SHORTENED", "103.129.188.37:8080")+"/"+"product?id="+product.getProductId();
+			BaseDao<ProductMetadata> productMetadataDao = new BaseDao<>(sessionFactoryDef, ProductMetadata.class);
+			List<String> img = sessionFactoryDef.getCurrentSession()
+					.createSQLQuery("SELECT VALUE FROM PRODUCT_METADATA WHERE PRODUCT_ID="+product.getProductId()+" AND KEY='IMG_BANNER'").list();
+			img_link = img.get(0);
+		}
+		}
+		catch(Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+		if (product == null) {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(message);
+			notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+
+			inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+					stringBuilder.toString(), null, null, null);
+		} else if ("api_nsn".equals(product.getChargingMechanism())
+				|| "api_3pb".equals(product.getChargingMechanism())) {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(message);
+		//	stringBuilder.append(" ");
+	//		stringBuilder.append((product != null ? product.getProductNameId() : ""));
+			stringBuilder.append(additionalMessage);
+			//notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+			notificationWorker.sendNotificationWithURL(msisdn, stringBuilder.toString(), link, img_link);
+
+			inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+					stringBuilder.toString(), img_link, link, product.getProductId());
+		} else {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(message);
+			//notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+			notificationWorker.sendNotificationWithURL(msisdn, stringBuilder.toString(), link, img_link);
+
+			inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+					stringBuilder.toString(), img_link, link, product.getProductId());
+		}
+	}
+
+	private void sendNotificationNSN(String msisdn, String message, Product product, String additionalMessage,
+			String url) {
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append(message);
+		stringBuilder.append(" ");
+		stringBuilder.append((product != null ? product.getProductNameId() : ""));
+		stringBuilder.append(additionalMessage);
+		notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+
+		ProductDto productDto = productCacheService.getProductDto(sessionFactoryDef, product, "0",
+				Constants.SUBSCRIBER_TYPE_PREPAID, "ANDROID", true);
+		String imageUrl = productDto.getMetadata().get("IMG_BANNER");
+		if (imageUrl == null)
+			imageUrl = "";
+
+		inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+				stringBuilder.toString(), imageUrl, url, product.getProductId());
+	}
+
+	private Map<String, Object> unsubscribeProductBilling(Product product, SubscribeProductRequestDto request) {
+		
+		logger.info("-----inside unsubscribeProductBilling-------");
+		
+		String result = null;
+		String actionType = "REMOVE";
+		try {
+			BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+			List<ProductCharging> productChargings = productCharginDao
+					.listData("from ProductCharging where productId = :productId", new HashMap<String, Object>() {
+						{
+							put("productId", product.getProductId());
+						}
+					});
+			if (productChargings.size() < 1) {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "Product charging not found")).all().build();
+			}
+
+			ProductCharging productCharging = productChargings.get(0);
+			if (productCharging != null) {
+				TibcoODPBonusRegRequest odpBonusRegRequest = new TibcoODPBonusRegRequest();
+				odpBonusRegRequest.getBonusRequest()
+						.setTransactionId(moduleTransactionIDGenerator.generate(Module.UNSUBSCRIBE));
+				odpBonusRegRequest.getBonusRequest().setMsisdn(request.getMsisdn());
+				odpBonusRegRequest.getBonusRequest().setActionType(actionType);
+				odpBonusRegRequest.getBonusRequest().setRegistrationKey(productCharging.getUnregistrationKey());
+
+				odpBonusRegRequest.getBonusRequest().setCharge(
+						productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_CASH) ? "Y" : "N");
+				odpBonusRegRequest.getBonusRequest().setHibridFlag(
+						productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_HYBRID) ? "Y" : "N");
+				odpBonusRegRequest.getBonusRequest()
+						.setSource(productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_HYBRID)
+								? Constants.TIBCO_SOURCE_HYBRID : Constants.TIBCO_SOURCE);
+
+				DwhUserTransactions dwhUserTransactions = new DwhUserTransactions(
+						odpBonusRegRequest.getBonusRequest().getTransactionId(), request.getMsisdn(),
+						odpBonusRegRequest.getBonusRequest().getRegistrationKey(), BigInteger.ZERO, "",
+						request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID : Constants.DEVICE_ID_IOS,
+						request.getDeviceManufacture(), request.getDeviceModel(), odpBonusRegRequest.toString(), "", "",
+						"", product.getProductNameId(), 0, BigInteger.ZERO, actionType);
+
+				String xmlRequest = XmlHelper.marshal(odpBonusRegRequest);
+				LOGGER.info("PurchasingServiceImpl.unsubscribeProductBilling.xmlRequest: " + xmlRequest);
+
+				HttpResponse response = HttpClientHelper.postData(Constants.API_PURCHASE_BILLING_URL, xmlRequest,
+						new HashMap<String, String>() {
+							{
+								put("Content-Type", "text/xml; charset=utf-8");
+							}
+						});
+
+				if (response.getStatusLine().getStatusCode() == 200) {
+					TibcoODPBonusRegRequest tibcoResult = (TibcoODPBonusRegRequest) XmlHelper
+							.unMarshal(response.getEntity().getContent(), TibcoODPBonusRegRequest.class);
+					if (tibcoResult.getBonusRequest().getResponseCode().equals("00000")) {
+						BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+								TrxSubscriberPurchase.class);
+						TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+						trxSubscriberPurchase.setTransactionId(tibcoResult.getBonusRequest().getTransactionId());
+						trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+						trxSubscriberPurchase.setSubscriberMsisdn(tibcoResult.getBonusRequest().getMsisdn());
+						trxSubscriberPurchase.setProductId(productCharging.getProductId());
+						trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+						trxSubscriberPurchase.setMenuCategoryName("");
+						trxSubscriberPurchase.setMenuSubCategoryName("");
+						trxSubscriberPurchase.setPrice(productCharging.getPrice());
+						trxSubscriberPurchase.setTransactionStatus(1);
+						trxSubscriberPurchase.setIsPromo(false);
+						trxSubscriberPurchase.setActionType(actionType);
+						trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+						trxSubscriber.save(trxSubscriberPurchase);
+
+						dwhUserTransactions.setTrxStatus(BigInteger.ONE);
+
+						// return success payment
+						return JSONResultFilter.filter(new PurchaseDto() {
+							{
+								setStatus(true);
+
+								if (productCharging.getDdcUrl() != null) {
+									setIsDdcUrl(true);
+									setDdcUrl(productCharging.getDdcUrl());
+								}
+							}
+						}).all().build();
+					} else {
+						dwhUserTransactions.setTrxErrorcode(tibcoResult.getBonusRequest().getResponseCode());
+						dwhUserTransactions.setTrxErrordesc(tibcoResult.getBonusRequest().getResponseDescription());
+						dwhUserTransactions.setTrxErrortext(
+								"-1"); /*
+										 * tidak tahu kegunaannya apa, dari
+										 * programmer sebelumnya juga tidak tahu
+										 */
+
+						LOGGER.info("PurchasingServiceImpl.unsubscribeProductBilling.tibcoResult: " + tibcoResult);
+						result = H.L(request.getLanguage(), Languages.ID.GENERAL_UNSUBSCRIPTION_FAILED,
+								Languages.EN.GENERAL_UNSUBSCRIPTION_FAILED);
+
+						// save failure purchase notification
+						inAppNotificationService.saveToInAppNotifications(request.getMsisdn(), null, null, null, "-",
+								result, "", "", "");
+					}
+					// save dwh user transaction
+					dwhUserTransactionsService.save(dwhUserTransactions);
+				} else {
+					result = "Unsubscription failed, " + response.getStatusLine().getStatusCode();
+				}
+			} else {
+				result = "No Product Charging";
+			}
+		} catch (JAXBException | IOException e) {
+			LOGGER.error("ERROR Unsubscription", e);
+			result = e.getMessage();
+		}
+
+		return JSONResultFilter.filter(new ErrorMessageDto(false, result)).all().build();
+	}
+
+	private Map<String, Object> unsubscribeProductData(Product product, SubscribeProductRequestDto request) {
+		String errorMessage = null;
+		String actionType = "CANCEL";
+
+		BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+		List<ProductCharging> productChargings = productCharginDao
+				.listData("from ProductCharging where productId = :productId", new HashMap<String, Object>() {
+					{
+						put("productId", product.getProductId());
+					}
+				});
+		if (productChargings.size() < 1) {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Product charging not found")).all().build();
+		}
+
+		ProductCharging productCharging = productChargings.get(0);
+
+		if (productCharging != null) {
+			Service__Registration__APISecurityStub.ServiceRegRequest regRequest = new Service__Registration__APISecurityStub.ServiceRegRequest();
+			regRequest.setTransactionID(moduleTransactionIDGenerator.generate(Module.UNSUBSCRIBE));
+			regRequest.setCurrent_Date((new SimpleDateFormat("yyyyMMdd")).format(new Date()));
+			regRequest.setSource(productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_HYBRID)
+					? Constants.TIBCO_SOURCE_HYBRID : Constants.TIBCO_SOURCE);
+			regRequest.setCharge(
+					productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_CASH) ? "Y" : "N");
+			regRequest.setHYBRID_FLAG(
+					productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_HYBRID) ? "Y" : "N");
+			regRequest.setMSISDN(request.getMsisdn());
+			regRequest.setActionType(actionType);
+			regRequest.setServiceType(productCharging.getUnregistrationKey());
+			regRequest.setCPName("NULL");
+			regRequest.setSignature(Helpers.generateSignature(regRequest.getCurrent_Date(), regRequest.getServiceType(),
+					regRequest.getTransactionID(), regRequest.getMSISDN()));
+
+			LOGGER.info("PurchasingServiceImpl.unsubscribeProductData.regRequest: " + regRequest.getTransactionID()
+					+ "," + regRequest.getMSISDN() + "," + regRequest.getServiceType() + "," + regRequest.getCharge()
+					+ "," + regRequest.getSignature());
+
+			try {
+				// prepare dwh user transaction
+				DwhUserTransactions dwhUserTransactions = new DwhUserTransactions(regRequest.getTransactionID(),
+						request.getMsisdn(), regRequest.getServiceType(), BigInteger.ZERO, "",
+						request.getImei().contains("-") ? Constants.DEVICE_ID_ANDROID : Constants.DEVICE_ID_IOS,
+						request.getDeviceManufacture(), request.getDeviceModel(), regRequest.toString(), "", "", "",
+						product.getProductNameId(), 0, BigInteger.ZERO, actionType);
+
+				Service__Registration__APISecurityStub apiSecurityStub = new Service__Registration__APISecurityStub(
+						Constants.TIBCO_URL_DATA_PACKAGE_ENDPOINT);
+				Service__Registration__APISecurityStub.ServiceRegResponse response = apiSecurityStub
+						.service_Registration(regRequest);
+				if (response.getResponseCode().equals("200")) {
+					BaseDao<TrxSubscriberPurchase> trxSubscriber = new BaseDao<>(sessionFactoryDef,
+							TrxSubscriberPurchase.class);
+					TrxSubscriberPurchase trxSubscriberPurchase = new TrxSubscriberPurchase();
+					trxSubscriberPurchase.setTransactionId(regRequest.getTransactionID());
+					trxSubscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+					trxSubscriberPurchase.setSubscriberMsisdn(regRequest.getMSISDN());
+					trxSubscriberPurchase.setProductId(productCharging.getProductId());
+					trxSubscriberPurchase.setPaymentMethodCode(productCharging.getPaymentMethodCode());
+					trxSubscriberPurchase.setMenuCategoryName("");
+					trxSubscriberPurchase.setMenuSubCategoryName("");
+					trxSubscriberPurchase.setPrice(productCharging.getPrice());
+					trxSubscriberPurchase.setTransactionStatus(1);
+					trxSubscriberPurchase.setActionType(actionType);
+					trxSubscriberPurchase.setActionType(interfaceType.getRequestMode());
+					trxSubscriber.save(trxSubscriberPurchase);
+
+					dwhUserTransactions.setTrxStatus(BigInteger.ONE);
+
+					// return success payment
+					return JSONResultFilter.filter(new PurchaseDto() {
+						{
+							setStatus(true);
+
+							if (productCharging.getDdcUrl() != null) {
+								setIsDdcUrl(true);
+								setDdcUrl(productCharging.getDdcUrl());
+							}
+						}
+					}).all().build();
+				} else {
+					dwhUserTransactions.setTrxErrorcode(response.getResponseCode());
+					dwhUserTransactions.setTrxErrordesc(response.getResponseDescription());
+					dwhUserTransactions.setTrxErrortext(
+							"-1"); /*
+									 * tidak tahu kegunaannya apa, dari
+									 * programmer sebelumnya juga tidak tahu
+									 */
+
+					LOGGER.info("PurchasingServiceImpl.unsubscribeProductData.tibcoResult: "
+							+ response.getResponseDescription());
+					errorMessage = "[" + response.getResponseCode() + "]" + response.getResponseDescription();
+				}
+
+				// save dwh user transaction
+				dwhUserTransactionsService.save(dwhUserTransactions);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+				errorMessage = e.getMessage();
+			}
+		} else {
+			errorMessage = "No Product Charging";
+		}
+
+		return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+	}
+
+	@Override
+	public Map billhistory(PurchaseRequestDto purchaseDto) {
+		// TODO Auto-generated method stub
+		HotBilling_Response responseSubscriber = null;
+		String subscriberId = AppUtils.prependCountryCodeToMsisdn(purchaseDto.getMsisdn(),
+				AppDefaultValues.COUNTRY_CODE);
+
+		com.tibco.www.schemas._28_nov_sit.shared_resources.schema.xml.selfcare.schema_xsd.HotBilling_Request request = new HotBilling_Request();
+		request.setMsisdn(subscriberId);
+		request.setLocalTxnDtTime("" + new Timestamp(System.currentTimeMillis()));
+		request.setTransactionId("ET" + new Timestamp(System.currentTimeMillis()));
+		try {
+			Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			responseSubscriber = inboundStub.hotBilling(request);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		System.out.println(">>>>>>>>>>>>>>>>>>>" + responseSubscriber.getStatus());
+		return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+	}
+
+	@Override
+	public Map<String, Object> purchaseunsubscribe(PurchaseRequestDto request) {
+		/*
+		 * if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+		 * return JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+		/*change msisdn by Vimal*/
+    	if(request.getMsisdn()!= null){
+    	String msisdn = AppUtils.removeCountryCode(request.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+    	request.setMsisdn(msisdn);
+    	}
+		Product product = null;
+		if(request.getProductId().equalsIgnoreCase("DYNAMIC")) {
+			return selfPackageUnscubscibe(request);
+		} else {
+			return purchaseProductunscubscibe(product, request);
+		}
+
+		
+
+	}
+
+	private Map<String, Object> purchaseProductunscubscibe(Product product, PurchaseRequestDto request) {
+		// ProductCharging productCharging =
+		// getProductCharging(request.getProductId(), request.getVendorId(),
+		// request.getServicePlan(), request.getPaymentMethod());
+		NonVasRegResponse responce = null;
+
+		try {
+			BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+			List<ProductCharging> productChargings = productCharginDao.listData(
+					"from ProductCharging where registrationKey = :registrationKey ", new HashMap<String, Object>() {
+						{
+							put("registrationKey", request.getProductId());
+						}
+					});
+
+			BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+			if (productChargings.size() > 0) {
+				List<Product> products = productDao.listData("from Product where productId = :productId",
+						new HashMap<String, Object>() {
+							{
+								put("productId", productChargings.get(0).getProductId());
+							}
+						});
+
+				System.out.println("products size ------" + products.size());
+				if (products.size() > 0) {
+					product = products.get(0);
+
+				} else {
+					return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+				}
+
+			} else {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+			}
+
+			responce = tibcoService.unSubscribpackage(request.getMsisdn(), request.getLanguage(),
+					request.getProductId(), request.getProductId(), request.getProductId());
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		BaseDao<ProductUnsubscribe> productUnsubscribeDao = new BaseDao<>(sessionFactoryDef, ProductUnsubscribe.class);
+
+		ProductUnsubscribe productUnsubscribe = new ProductUnsubscribe();
+		productUnsubscribe.setMsisdn(request.getMsisdn());
+		productUnsubscribe.setProductId(request.getProductId());
+		productUnsubscribe.setResponseCode(responce.getResponseCode());
+		productUnsubscribe.setResponseDescription(responce.getResponseDescription());
+		productUnsubscribe.setUnsubscribeDate(new Date());
+
+		if (responce.getResponseCode() != null
+				&& (responce.getResponseCode().equals("00000") || responce.getResponseCode().equals("100"))) {
+
+			request.setStatus(true);
+			request.setStatuscode(responce.getResponseCode());
+			// responce.getResponseCode();
+			// success purchase free product
+			// sendNotification(request.getMsisdn(), "Product UnSubscribe Success",
+			// product);
+			String message = notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_00000_UNSUBSCRIBE,
+					request.getLanguage());
+			if ("1".equals(request.getLanguage())) {
+
+				message = message.replace("#PRODUCTNAME#", product.getProductNameEn());
+			} else {
+				message = message.replace("#PRODUCTNAME#", product.getProductNameId());
+			}
+			sendNotification(request.getMsisdn(), message, product);
+			productUnsubscribeDao.save(productUnsubscribe);
+		} else {
+
+			request.setStatus(false);
+			request.setStatuscode(responce.getResponseCode());
+			// success purchase free product
+			// sendNotification(request.getMsisdn(), "Product UnSubscribe FAIL", product);
+			String message = "";
+			switch (responce.getResponseCode()) {
+
+			case "39":
+				message = notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_39_UNSUBSCRIBE,
+						request.getLanguage());
+				sendNotification(request.getMsisdn(), message, product);
+				break;
+			default:
+				message = notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_DEFAULT_UNSUBSCRIBE,
+						request.getLanguage());
+				sendNotification(request.getMsisdn(), message, product);
+				break;
+			}
+		}
+		productUnsubscribeDao.save(productUnsubscribe);
+		return JSONResultFilter.filter(request).all().build();
+	}
+	
+	
+	//added by siddhesh on 22-01-2020 
+	Map<String, Object> selfPackageUnscubscibe(PurchaseRequestDto request) {
+		Dynamic_Bonus_Response dynamic_bonus_response=null;
+		Dynamic_Bonus_Request dynamic_bonus_request=new Dynamic_Bonus_Request();
+		ApiResponse response = null;
+			
+				ListBalance_type0 listBalance_type0 = new ListBalance_type0();
+				dynamic_bonus_request.setMSISDN(request.getMsisdn());
+				dynamic_bonus_request.setAction_Type("UNREG");
+				dynamic_bonus_request.setCharging_Amount("0");
+				dynamic_bonus_request.setProduct_Code("DYNAMIC_BONUS_1");
+				dynamic_bonus_request.setCmdID("1");
+				dynamic_bonus_request.setData_Amount("0");
+				dynamic_bonus_request.setListBalance(listBalance_type0);
+				dynamic_bonus_request.setExtendDate("0");
+				
+				BaseDao<TrxSelfPackage> baseDao = new BaseDao<>(sessionFactoryDef, TrxSelfPackage.class);
+				dynamic_bonus_response = tibcoService.getUnRegSelfPackageresponce(dynamic_bonus_request);
+				
+		
+		  TrxSelfPackage trxSelfPackage = new TrxSelfPackage();
+		  trxSelfPackage.setMsisdn(dynamic_bonus_request.getMSISDN());
+		  trxSelfPackage.setPackageId(dynamic_bonus_request.getProduct_Code());
+		  trxSelfPackage.setPackageType("SelfPackage");
+		  trxSelfPackage.setAction_type("UNREG");
+		 
+				logger.debug("#unregisterSelfPackage --- responce code  " +dynamic_bonus_response.getErrorCode()
+				+ " and responce msg = " + dynamic_bonus_response.getErrorDetail());
+			    String message="";
+			    
+			    if (dynamic_bonus_response.getErrorCode().equalsIgnoreCase("00000")) {
+			    	request.setStatus(true);
+			    	request.setStatuscode(dynamic_bonus_response.getErrorCode());
+		
+			/*
+			 * trxSelfPackage.setResponseCode(dynamic_bonus_response.getErrorCode());
+			 * trxSelfPackage.setErrorDetail(dynamic_bonus_response.getErrorDetail());
+			 * trxSelfPackage.setChargingAmount("0"); baseDao.save(trxSelfPackage);
+			 */
+					message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_00000_UNSUBSCRIBE, request.getLanguage());
+					try {
+						sendNotification(dynamic_bonus_request.getMSISDN(), message, null);
+					} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+					} 
+				} else {
+					
+					request.setStatus(false);
+			    	request.setStatuscode(dynamic_bonus_response.getErrorCode());
+					
+			/*
+			 * trxSelfPackage.setResponseCode(dynamic_bonus_response.getErrorCode());
+			 * trxSelfPackage.setErrorDetail(dynamic_bonus_response.getErrorDetail());
+			 * trxSelfPackage.setChargingAmount("0"); baseDao.save(trxSelfPackage);
+			 */
+					message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_DEFAULT_UNSUBSCRIBE, request.getLanguage());
+					try {
+						sendNotification(request.getMsisdn(), message, null);
+					} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+					}
+				}
+				logger.debug("#registerSelfPackage --- MSISDN " + request.getMsisdn() + ", result= " + dynamic_bonus_response);
+
+		      
+		return JSONResultFilter.filter(request).all().build();
+		
+	}
+
+
+	@Override
+	public Map<String, Object> purchaseProduct(PurchaseRequestDto request) {
+		/*
+		 * if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+		 * return JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * ErrorMessageDto.TOKEN_EXPIRED)).all().build(); }
+		 */
+
+		/*change msisdn by Vimal*/
+    	if(request.getMsisdn()!= null){
+    	String msisdn = AppUtils.removeCountryCode(request.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+    	request.setMsisdn(msisdn);
+    	}
+		
+		BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {
+			{
+				put("productId", request.getProductId());
+			}
+		});
+		BaseDao<ProductCategory> productCategoryDAO = new BaseDao<>(sessionFactoryDef, ProductCategory.class);
+		List<ProductCategory> productCat = productCategoryDAO.find("productId = :productId",
+				new HashMap<String, Object>() {
+					{
+						put("productId", request.getProductId());
+					}
+				});
+
+		if (productCat.size() != 0)
+			LOGGER.info("++++++++Catgory +++++++" + productCat.get(0).getMenuCategoryId());
+		String menu_cat = "" + productCat.get(0).getMenuCategoryId();
+		if (menu_cat.equals("2")) {
+			return crbtpurchase(request);
+
+		} else {
+			Product product;
+			if (products.size() > 0) {
+				product = products.get(0);
+				String errorMessage;
+
+				// validate only for eligible payment method
+				if (!(request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_CASH)
+						|| request.getPaymentMethod().equals(Constants.PAYMENT_METHOD_HYBRID))) {
+					errorMessage = "Invalid payment method";
+				} else {
+					// only CASH and HYBRID_CREDIT allowed here
+					switch (product.getChargingMechanism()) {
+					case "api_3pb":
+						return purchaseProductFreeUrl(product, request);
+
+					case "free_url":
+						return purchaseProductFreeUrl(product, request);
+
+					default:
+						errorMessage = "Invalid payment method";
+						break;
+					}
+				}
+
+				if (errorMessage != null) {
+					return JSONResultFilter.filter(new ErrorMessageDto(false, errorMessage)).all().build();
+				}
+			} else {
+				return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+			}
+		}
+
+		return JSONResultFilter.filter(new PurchaseDto() {
+			{
+				setStatus(true);
+			}
+		}).exclude("isRedirectToLink", "redirectToLink").build();
+	}
+
+	@Override
+	public Map crbtpurchase(PurchaseRequestDto purchaseDto) {
+		logger.info("inside crbtpurchase method-----------");
+		// TODO Auto-generated method stub
+		ProductCharging productCharging = getProductChargingData(purchaseDto.getProductId());
+		BaseDao<Product> productDao = new BaseDao<>(sessionFactoryDef, Product.class);
+		List<Product> products = productDao.find("productId = :productId", new HashMap<String, Object>() {
+			{
+				put("productId", purchaseDto.getProductId());
+			}
+		});
+
+		Product product = new Product();
+		if (products.size() > 0) {
+			product = products.get(0);
+
+		} else {
+			return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+		}
+		
+		PurchaseSong_Response responseSubscriber = null;
+		String subscriberId = AppUtils.prependCountryCodeToMsisdn(purchaseDto.getMsisdn(),
+				AppDefaultValues.COUNTRY_CODE);
+
+		PurchaseSong_Request request = new PurchaseSong_Request();
+		request.setMSISDN(subscriberId);
+		request.setSongId("" + productCharging.getRegistrationKey());
+		String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+		StringBuilder salt = new StringBuilder();
+		Random rnd = new Random();
+		while (salt.length() < 12) { // length of the random string.
+			int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+			salt.append(SALTCHARS.charAt(index));
+		}
+		String saltStr = salt.toString();
+		request.setTransactionId("BMET" + saltStr);
+		try {
+			Selfcare_InboundStub inboundStub = new Selfcare_InboundStub(applicationConfigurationService
+					.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare").toString());
+			responseSubscriber = inboundStub.cRBT_PurchaseSong(request);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		Map map = new HashMap<String, Object>();
+		logger.info("#crbtpurchase>>>>>>>>>>>>>>>>>>>" + responseSubscriber.getResponseCode());
+		if (responseSubscriber.getResponseCode() != null
+				&& responseSubscriber.getResponseCode().equalsIgnoreCase("100")) {
+			map.put("status", true);
+			map.put("statuscode", responseSubscriber.getResponseCode());
+			//----
+			String message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_00000, purchaseDto.getLanguage());
+			message = message.replace("#PRODUCTNAME#", product.getProductNameEn());
+			
+			sendNotification(purchaseDto.getMsisdn(),message, product);
+			return map;
+		} else {
+			map.put("status", false);
+			if (responseSubscriber.getResponseCode() != null) {
+				//----
+				
+				String message="";
+				switch (responseSubscriber.getResponseCode()) {
+				case "21":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_21, purchaseDto.getLanguage());
+					sendNotification(purchaseDto.getMsisdn(),message, product);
+				case "31":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_31, purchaseDto.getLanguage());
+					 sendNotification(purchaseDto.getMsisdn(),message, product);
+				case "32":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_32, purchaseDto.getLanguage());
+					 sendNotification(purchaseDto.getMsisdn(),message, product);
+				case "39":
+					 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_39, purchaseDto.getLanguage());
+					 sendNotification(purchaseDto.getMsisdn(),message, product);
+				
+				default:
+					
+					break;
+				}
+				map.put("statuscode",responseSubscriber.getResponseCode());
+			}
+
+			else {
+				map.put("statuscode", 666);
+			}
+			return map;
+		}
+		// return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid
+		// request")).all().build();
+	}
+
+	private ProductCharging getProductCharging(String productId, String vendorId, String servicePlan,
+			String paymentMethodCode) {
+		logger.info("Product Id #getProductCharging :::" + productId);
+		BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+		List<ProductCharging> productChargings = productCharginDao.listData(" productId =:productIds",
+				new HashMap<String, Object>() {
+					{
+						put("productIds", productId);
+
+					}
+				});
+		logger.info("getProductCharging----Size iS :::" + productChargings.size());
+		if (productChargings.size() > 0) {
+			return productChargings.get(0);
+		}
+		return null;
+	}
+
+	@Override
+	public ProductCharging getProductChargingData(String productId) {
+		logger.info("#getProductChargingData--------Product Id IS ++++++++++++++++++++++++++++++" + productId);
+		BaseDao<ProductCharging> productCharginDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+		List<ProductCharging> productChargings = productCharginDao
+				.listData("from ProductCharging where productId = :productId ", new HashMap<String, Object>() {
+					{
+						put("productId", productId);
+
+					}
+				});
+		if (productChargings.size() > 0) {
+			return productChargings.get(0);
+		}
+		return null;
+	}
+	
+	private HttpHeaders createHeaders(String userName, String credential) {
+		String auth = userName + ":" + credential;
+		final byte[] authHeaderBytes = Base64.encodeBase64(auth.getBytes(Charsets.UTF_8));
+		String authHeader = new String(authHeaderBytes, Charsets.UTF_8);
+
+		final HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set(HttpHeaders.AUTHORIZATION, "Basic " + authHeader);
+		headers.setContentLength(42);
+
+		return headers;
+	}
+	
+	private ClientHttpRequestFactory getSimpleClientHttpRequestFactory(int timeout) {
+		if (httpRequestFactory == null) {
+			httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+			httpRequestFactory.setConnectTimeout(timeout * 1000);
+		}
+		return httpRequestFactory;
+	}	
+	
+}

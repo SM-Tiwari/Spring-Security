@@ -1,0 +1,37 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+import id.gnvsolution.d3.api.model.ProductMainCategory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by aswzen on 1/11/2018.
+ */
+public class TriProductDetailDto implements DTO {
+
+    private List<ProductDetailListDto> detailList;
+    private Map<String, String> tabDetail;
+
+    public TriProductDetailDto(){
+        detailList = new ArrayList<>();
+    }
+
+    public List<ProductDetailListDto> getDetailList() {
+        return detailList;
+    }
+
+    public void setDetailList(List<ProductDetailListDto> detailList) {
+        this.detailList = detailList;
+    }
+
+    public Map<String, String> getTabDetail() {
+        return tabDetail;
+    }
+
+    public void setTabDetail(Map<String, String> tabDetail) {
+        this.tabDetail = tabDetail;
+    }
+}

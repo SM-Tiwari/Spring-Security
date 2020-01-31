@@ -1,0 +1,709 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.DTO;
+import id.gnvsolution.d3.api.model.*;
+import id.gnvsolution.d3.api.utils.Helpers;
+import id.gnvsolution.d3.api.utils.Languages;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigInteger;
+import java.text.NumberFormat;
+import java.util.*;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+public class ProductDto implements DTO {
+
+    public static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance(Locale.GERMAN);
+    public static final Logger LOGGER = LoggerFactory.getLogger(ProductDto.class);
+
+    private String productId;
+    private String productName;
+    private String productPrice;
+    private String productOriginalPrice;
+    private String productDescription;
+    private String productOtherInfo;
+    private String productHowTo;
+    private String productPricing;
+    private String productDetailsType;
+    private Object productDetails;
+    private String labelDescription;
+    private String labelHowTo;
+    private String labelPricing;
+    private String labelDetails;
+    private String labelOtherInfo;
+    private String buttonBuy;
+    
+    private Double productRating;
+    private Integer categoryId;
+	private String categoryName;
+    private Integer[] paymentMatrix = {};
+
+    private boolean isRedirectToLink;
+    private String redirectLink;
+    private boolean isDownloadLink = false;
+    private String downloadLink = "";
+    private Map<String, String> metadata;
+    private List<VendorDto> vendorList;
+    private List<PaymentDto> paymentList;
+    private Integer isInappBrowser;
+    private Integer isTransferable;
+    private Integer isAutoRenewable;
+    private String deeplink;
+    private Integer campaign = 0;
+
+    public ProductDto() {
+        this.setVendorList(new ArrayList<>());
+        this.setMetadata(new HashMap<>());
+        this.setPaymentList(new ArrayList<>());
+        this.setProductDetails(new HashMap<>());
+    }
+    
+    @SuppressWarnings({"unchecked"})
+    public static ProductDto fromProduct(SessionFactory sessionFactoryDef, Product product, String langId, String subscriberType, String accessRight, boolean isFull) {
+        
+        Map<String, String> mapMeta = new HashMap<>();
+        List<Object[]> mapList = new ArrayList<>();
+        
+        List<Object[]> mapDBDetails = new ArrayList<>();
+        System.out.println("product id is ::::"+product.getProductId() +" is full"+isFull  );
+        if(isFull) {
+            BaseDao<ProductMetadata> productMetaDao = new BaseDao<>(sessionFactoryDef, ProductMetadata.class);
+            mapList = productMetaDao.getSessionFactory().getCurrentSession().createSQLQuery("SELECT KEY, VALUE FROM PRODUCT_METADATA WHERE PRODUCT_ID = :productId")
+            .setInteger("productId", Integer.parseInt(product.getProductId()))
+            .list();
+            
+            mapDBDetails = getProductDetails(sessionFactoryDef, product);
+        }
+
+        mapList.forEach(os -> mapMeta.put(os[0].toString(), os[1].toString()));
+        
+        Map<String, Object> mapDetails = new HashMap<>();
+        Map<String, Object> defaultList = new HashMap<>();
+        String finalType = "";
+        
+        Map<String, Map<String, String> > childContainer = new HashMap<>();
+        for (Object[] det : mapDBDetails) {
+            if (!det[7].toString().equals("0")){
+                if(childContainer.get(det[7].toString()) == null){
+                    childContainer.put(det[7].toString(), new HashMap<String, String>());
+                }
+                if (Helpers.ifNullOrEmpty(langId, Constants.LANG_ID).equals(Constants.LANG_ID)) {
+                    childContainer.get(det[7].toString()).put(det[1].toString(), det[3].toString());
+                } else {
+                    childContainer.get(det[7].toString()).put(det[2].toString(), det[4].toString());
+                }
+            }
+        }
+        
+        for (Object[] det : mapDBDetails) {
+
+            String keyData = det[2].toString();
+            String valueData = det[4].toString();
+            if (Helpers.ifNullOrEmpty(langId, Constants.LANG_ID).equals(Constants.LANG_ID)){
+                keyData = det[1].toString();
+                valueData = det[3].toString();
+            }
+            Map<String, Object> childrenData = new HashMap<>();
+            if(det[5] == null)
+                det[5] = "TABLE";
+            switch (det[5].toString()){
+                case "NESTED":
+                    if(!det[7].toString().equals("0"))
+                        break;
+                    childrenData.put("value", valueData);
+                    childrenData.put("child", childContainer.get(det[6].toString()));
+                    defaultList.put(keyData, childrenData);
+                    break;
+                case "BULLET":
+                default:
+                    childrenData.put("value", valueData);
+                    childrenData.put("child", null);
+                    defaultList.put(keyData, childrenData);
+            }
+            
+            finalType = det[5].toString();
+        }
+        mapDetails.put("type", finalType);
+        mapDetails.put("content", defaultList);
+
+        // make sure subscriberType is not null
+        if (subscriberType == null) {
+            subscriberType = Constants.SUBSCRIBER_TYPE_PREPAID;
+        }
+       System.out.println("----------"+product.getProductDescriptionEn());
+        return fromProduct(sessionFactoryDef, product, langId, mapMeta, subscriberType, accessRight, mapDetails);
+    }
+    
+    public static List<Object[]> getProductDetails(SessionFactory sessionFactory, Product product){
+        BaseDao<ProductDetail> productDetailDao = new BaseDao<>(sessionFactory, ProductDetail.class);
+        List<Object[]> mapList = new ArrayList<>();
+        mapList = productDetailDao.getSessionFactory().getCurrentSession().createSQLQuery("SELECT PD.PRODUCT_ID," +
+            "PDM.PROD_DET_KEY, PDM.PROD_DET_KEY_EN, PD.VALUE, PD.VALUE_EN, " +
+            "PD.LIST_TYPE, PD.PROD_DET_ID, PD.PARENT_ID FROM PRODUCT_DETAIL PD\n" +
+            "JOIN PRODUCT_DETAIL_MASTER PDM ON PDM.PROD_DET_ID = PD.PROD_DET_ID\n" +
+            "WHERE PD.IS_ACTIVE = 1 AND PD.PRODUCT_ID = :productId\n" +
+            "ORDER BY PD.DISPLAY_SEQ ASC ")
+        .setInteger("productId", Integer.parseInt(product.getProductId()))
+        .list();
+        System.out.println("map list size is "+mapList.size());
+        return mapList;
+    }
+
+    public static ProductDto fromProduct(SessionFactory sessionFactory, Product product, String langId, Map<String, String> metaData, String subscriberType, String accessRight, Map<String, Object> prodDetails) {
+        return new ProductDto() {{
+            setProductId(product.getProductId());
+            setIsInappBrowser(product.getIsInappBrowser()?1:0);
+            setIsTransferable(product.getIsTransfer()?1:0);
+            if(product.getIsAutoRenewable() == null)
+                product.setIsAutoRenewable(false);
+            setIsAutoRenewable(product.getIsAutoRenewable()?1:0);
+            
+            if (Helpers.ifNullOrEmpty(langId, Constants.LANG_ID).equals(Constants.LANG_ID)) {
+                setProductName(product.getProductNameId());
+                setProductDescription(product.getProductDescriptionId() == null ? "" : product.getProductDescriptionId());
+                setProductHowTo(product.getProductHowToId() == null ? "" : product.getProductHowToId());
+                setProductPricing(product.getPriceDescriptionId() == null ? "" : product.getPriceDescriptionId());
+                setLabelDescription(Helpers.ifnull(product.getLabelDescriptionId(), Languages.ID.PRODUCT_LABEL_DESCRIPTION));
+                setLabelHowTo(Helpers.ifnull(product.getLabelHowToId(), Languages.ID.PRODUCT_LABEL_HOW_TO));
+                setLabelPricing(product.getChargingMechanism().equals(Constants.CHARGING_FREE_URL) ? "" : Helpers.ifnull(product.getLabelPriceId(), Languages.ID.PRODUCT_LABEL_PRICING));
+                setLabelDetails(Helpers.ifnull(product.getLabelDetailsId(), Languages.ID.PRODUCT_LABEL_DETAILS));
+                setButtonBuy(product.getProductButtonBuyId() == null ? "" : product.getProductButtonBuyId());
+                
+                setProductOtherInfo(product.getProductOtherInfoId());
+                setLabelOtherInfo(product.getLabelOtherInfoId());
+            } else {
+                setProductName(product.getProductNameEn());
+                setProductDescription(product.getProductDescriptionEn() == null ? "" : product.getProductDescriptionEn());
+                setProductHowTo(product.getProductHowToEn() == null ? "" : product.getProductHowToEn());
+                setProductPricing(product.getPriceDescriptionEn() == null ? "" : product.getPriceDescriptionEn());
+                setLabelDescription(Helpers.ifnull(product.getLabelDescriptionEn(), Languages.EN.PRODUCT_LABEL_DESCRIPTION));
+                setLabelHowTo(Helpers.ifnull(product.getLabelHowToEn(), Languages.EN.PRODUCT_LABEL_HOW_TO));
+                setLabelPricing(product.getChargingMechanism().equals(Constants.CHARGING_FREE_URL) ? "" : Helpers.ifnull(product.getLabelPriceEn(), Languages.EN.PRODUCT_LABEL_PRICING));
+                setLabelDetails(Helpers.ifnull(product.getLabelDetailsEn(), Languages.EN.PRODUCT_LABEL_DETAILS));
+                setButtonBuy(product.getProductButtonBuyEn() == null ? "" : product.getProductButtonBuyEn());
+                
+                setProductOtherInfo(product.getProductOtherInfoEn());
+                setLabelOtherInfo(product.getLabelOtherInfoEn());
+            }
+            setProductPrice("999999999");
+            setProductOriginalPrice("999999999");
+            if(product.getRatingNumber() != null && product.getRatingNumber() != 0 && product.getRatingTotal() != null && product.getRatingTotal() != 0)
+                setProductRating(round(product.getRatingTotal().doubleValue() / product.getRatingNumber().doubleValue(), 2));
+            else
+                setProductRating(((Integer)product.getProductRating()).doubleValue());
+
+            if (product.getChargingMechanism() != null && product.getChargingMechanism().equals("free_url")) {
+                List<ProductCharging> productChargings = (List<ProductCharging>) product.getProductChargingsByProductId();
+                if (productChargings.size() > 0 && productChargings.get(0).getFreeUrl() != null) {
+                    setRedirectLink(productChargings.get(0).getFreeUrl());
+                    setIsRedirectToLink(true);
+                } else {
+                    setRedirectLink("-");
+                    setIsRedirectToLink(false);
+                }
+            } else {
+                setRedirectLink("-");
+                setIsRedirectToLink(false);
+            }
+            
+            /* product details */
+            setProductDetailsType(prodDetails.get("type").toString());
+            setProductDetails(prodDetails.get("content"));
+            
+            // deeplinking
+            if("featurepage".equals(product.getChargingMechanism())) {
+                List<ProductCharging> productChargings = (List<ProductCharging>) product.getProductChargingsByProductId();
+                if (productChargings.size() > 0 && productChargings.get(0).getFreeUrl() != null) {
+                    setDeeplink(productChargings.get(0).getFreeUrl());
+                }
+            }
+
+            setMetadata(metaData);
+            setCategoryId(product.getProductCategoriesByProductId().size() == 0 ? 3 : ((ProductCategory) product.getProductCategoriesByProductId().toArray()[0]).getMenuCategoryId());
+            //added by Siddhesh
+           if(product.getProductCategoriesByProductId().size()!=0) setCategoryName(((ProductCategory) product.getProductCategoriesByProductId().toArray()[0]).getMenuCategoryByMenuCategoryId().getName());
+            
+
+            if (!product.getProductChargingsByProductId().isEmpty()) {
+                String symbolCurrency = Helpers.ifNullOrEmpty(langId, Constants.LANG_ID).equals(Constants.LANG_ID) ? Languages.ID.CURRENCY_VIETNA : Languages.EN.CURRENCY_VND;
+                Map<String, String> paymentList = new HashMap<>();
+
+                getVendorList().add(new VendorDto() {{
+                    Map<String, String> priceList = new LinkedHashMap<>();
+
+                    product.getProductChargingsByProductId().forEach(productCharging -> {
+                        setVendorId(Integer.valueOf(productCharging.getVendor().getVendorId()));
+                        setVendorName(productCharging.getVendor().getVendorName());
+
+                        if (productCharging.getPaymentMethodCode() != null && !paymentList.containsKey(productCharging.getPaymentMethodCode())) {
+                            // validate credit_limit only for hybrid subscriber type
+                            if (productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_HYBRID) && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+                                if (Helpers.ifNullOrEmpty(langId, Constants.LANG_ID).equals(Constants.LANG_ID)) {
+                                    paymentList.put(productCharging.getPaymentMethodCode(), productCharging.getPaymentMethodByPaymentGatewayId().getPaymentMethodNameId());
+                                } else {
+                                    paymentList.put(productCharging.getPaymentMethodCode(), productCharging.getPaymentMethodByPaymentGatewayId().getPaymentMethodNameEn());
+                                }
+                            } else if (productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_HYBRID) && !subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+                                // do nothing
+                            }
+                            // validate postpaid only allow main_balance
+                            else if (productCharging.getPaymentMethodCode().equals(Constants.PAYMENT_METHOD_CASH) || (subscriberType.equals(Constants.SUBSCRIBER_TYPE_PREPAID) || subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID))) {
+                                if (Helpers.ifNullOrEmpty(langId, Constants.LANG_ID).equals(Constants.LANG_ID)) {
+                                    paymentList.put(productCharging.getPaymentMethodCode(), productCharging.getPaymentMethodByPaymentGatewayId().getPaymentMethodNameId());
+                                } else {
+                                    paymentList.put(productCharging.getPaymentMethodCode(), productCharging.getPaymentMethodByPaymentGatewayId().getPaymentMethodNameEn());
+                                }
+                            }
+                        }
+
+                        if (!priceList.containsKey(productCharging.getServicePlan())) {
+                            priceList.put(productCharging.getServicePlan(), symbolCurrency + " " + NUMBER_FORMAT.format(productCharging.getPrice()));
+
+                            if (Long.parseLong(getProductPrice()) > productCharging.getPrice()) {
+                                setProductPrice(String.valueOf(productCharging.getPrice()));
+                                setProductOriginalPrice(String.valueOf(productCharging.getOriginalPrice()));
+
+                                if (productCharging.getDdcUrl() != null || productCharging.getDdcUrlIphone() != null || productCharging.getDdcUrlSelfcare()!= null) {
+                                    if("IPHONE".equals(accessRight) && productCharging.getDdcUrlIphone() != null) { // berarti iphone
+                                        setIsDownloadLink(true);
+                                        setDownloadLink(productCharging.getDdcUrlIphone());
+                                    }
+                                    else if("SELFCARE".equals(accessRight) && productCharging.getDdcUrlSelfcare() != null) { // webselfcare
+                                        setIsDownloadLink(true);
+                                        setDownloadLink(productCharging.getDdcUrlSelfcare() );
+                                    }
+                                    else if("ANDROID".equals(accessRight) && productCharging.getDdcUrl() != null) { // ANDROID
+                                        setIsDownloadLink(true);
+                                        setDownloadLink(productCharging.getDdcUrl());
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // price list
+                    priceList.forEach((key, value) -> getPriceList().add(new PriceDto(key, value)));
+                }});
+
+                // paymentList
+                paymentList.forEach((s, s2) -> getPaymentList().add(new PaymentDto(s, s2)));
+            }
+
+            // validate if there is no payment list or 999999999
+            if (getProductPrice().equals("999999999")) {
+                setProductPrice("0");
+            } else {
+                setProductPrice(NUMBER_FORMAT.format(Long.parseLong(getProductPrice())));
+            }
+            
+            // validate for original price
+            if (getProductOriginalPrice().equals("999999999") || getProductOriginalPrice().isEmpty() || getProductOriginalPrice().equals("null") ) {
+                setProductOriginalPrice("0");
+            } else {
+                setProductOriginalPrice(NUMBER_FORMAT.format(Long.parseLong(getProductOriginalPrice())));
+            }
+
+            // set payment matrix
+            switch (product.getChargingMechanism()) {
+                case "api_3pb":
+                case "api_3pd":
+                case "api_3pul": {
+                    setPaymentMatrix(Constants.MATRIX_PAYMENT_1011);
+                    break;
+                }
+                case "api_nsn": {
+                    setPaymentMatrix(Constants.MATRIX_PAYMENT_0011);
+                    break;
+                }
+                case "smsmt": {
+                    setPaymentMatrix(Constants.MATRIX_PAYMENT_0111);
+                    getPaymentList().forEach(paymentDto -> paymentDto.setMethodName("SMS"));
+                    break;
+                }
+                case "free_url": {
+                    setPaymentMatrix(Constants.MATRIX_PAYMENT_0001);
+                    break;
+                }
+            }
+        }
+
+		};
+    }
+
+    public static ProductDto fromCampaign(Campaign campaign, String language, String offerId, boolean isFull) {
+        return new ProductDto() {{
+            setProductId(campaign.getCampaignId());
+            if (Helpers.ifNullOrEmpty(language, Constants.LANG_ID).equals(Constants.LANG_ID)) {
+                setProductName(campaign.getPromoNameId());
+                setProductDescription(campaign.getDescId() == null ? "" : campaign.getDescId());
+                setLabelDescription(Languages.ID.PRODUCT_LABEL_DESCRIPTION);
+                setLabelHowTo(Languages.ID.PRODUCT_LABEL_HOW_TO);
+                setLabelPricing(Languages.ID.PRODUCT_LABEL_PRICING);
+                setLabelDetails(Languages.ID.PRODUCT_LABEL_DETAILS);
+                setLabelOtherInfo(Languages.ID.PRODUCT_LABEL_OTHER_INFO);
+                setButtonBuy(campaign.getWordingButtonId() == null ? "" : campaign.getWordingButtonId());
+            } else {
+                setProductName(campaign.getPromoNameEn());
+                setProductDescription(campaign.getDescEn() == null ? "" : campaign.getDescEn());
+                setLabelDescription(Languages.EN.PRODUCT_LABEL_DESCRIPTION);
+                setLabelHowTo(Languages.EN.PRODUCT_LABEL_HOW_TO);
+                setLabelPricing(Languages.EN.PRODUCT_LABEL_PRICING);
+                setLabelDetails(Languages.EN.PRODUCT_LABEL_DETAILS);
+                setButtonBuy(campaign.getWordingButtonEn() == null ? "" : campaign.getWordingButtonEn());
+                setLabelOtherInfo(Languages.EN.PRODUCT_LABEL_OTHER_INFO);
+            }
+
+            setProductRating(0d);
+
+            // set product price and check button buy
+            if (campaign.getPrice() == null) {
+                campaign.setPrice(BigInteger.ZERO);
+            }
+
+            setProductPrice(campaign.getPrice() == null ? null : Helpers.formatNumber(campaign.getPrice().longValue()));
+            setProductOriginalPrice(Helpers.formatNumber(campaign.getOrigPrice().doubleValue()));
+            
+            if(campaign.getShake()==1||campaign.getRfy()==1||campaign.getIsReward()==1){
+	            	if((campaign.getPrice().intValue()==0&&campaign.getWordingButtonEn() == null)||
+	            			(campaign.getPrice().intValue()>0&&campaign.getWordingButtonEn()==null)){
+	            		setButtonBuy(getProductPrice());
+	            	}else{
+	            		if (language.equals(Constants.LANG_ID)) {
+		                    setButtonBuy(campaign.getWordingButtonId() == null ? Languages.ID.BUTTON_FREE : campaign.getWordingButtonId());
+		                } else {
+		                    setButtonBuy(campaign.getWordingButtonEn() == null ? Languages.ID.BUTTON_FREE : campaign.getWordingButtonEn());
+		                }
+	            	}
+            	
+            }else{
+	            	if(campaign.getPrice().intValue()==0&&campaign.getWordingButtonEn() != null){
+	            		if (language.equals(Constants.LANG_ID)) {
+		                    setButtonBuy(campaign.getWordingButtonId() == null ? Languages.ID.BUTTON_FREE : campaign.getWordingButtonId());
+		                } else {
+		                    setButtonBuy(campaign.getWordingButtonEn() == null ? Languages.ID.BUTTON_FREE : campaign.getWordingButtonEn());
+		                }
+	            	}else{
+	            		setButtonBuy(getProductPrice());
+	            	}
+	            	
+            	
+            }
+            
+	           
+
+            // charging mechanism
+            if (campaign.getClaimMethod() != null && campaign.getClaimMethod().equals("free_url") && campaign.getFreeUrl() != null) {
+                setRedirectLink(campaign.getFreeUrl());
+                setIsRedirectToLink(true);
+            }
+            else if ("featurepage".equals(campaign.getClaimMethod())) {
+                setDeeplink(campaign.getFreeUrl());
+            } else {
+                setRedirectLink("-");
+                setIsRedirectToLink(false);
+            }
+
+            // banner for this promo/product
+            Map<String, String> metadata = new HashMap<>();
+            campaign.getCampaignBannerCollection().forEach(o -> metadata.put(o.getBannerType(), o.getBannerPath()));
+            setMetadata(metadata);
+            setPaymentMatrix(Constants.MATRIX_PAYMENT_1011);
+            
+            /* getting product details (campaign) */
+            
+            
+            // set transferable
+            setIsTransferable(0);
+            setIsAutoRenewable(0);
+
+            // set default value
+            setPaymentList(new ArrayList<PaymentDto>() {{
+                if (campaign.getClaimMethod().equals(Constants.CHARGING_SMSMT)) {
+                    add(new PaymentDto("00", "SMS"));
+                } else {
+                    add(new PaymentDto("00", language.equals(Constants.LANG_ID) ? "Pulsa Tri" : "Main Balance"));
+                }
+            }});
+            setVendorList(new ArrayList<VendorDto>() {{
+                if (offerId == null) {
+                    add(new VendorDto(11, "-", new PriceDto("-", getProductPrice())));
+                } else {
+                    add(new VendorDto(11, "-", new PriceDto(offerId, getProductPrice())));
+                }
+            }});
+        }};
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductPrice() {
+        return productPrice == null ? "" : productPrice;
+    }
+
+    public void setProductPrice(String productPrice) {
+        this.productPrice = productPrice;
+    }
+
+    public Double getProductRating() {
+        return productRating;
+    }
+
+    public void setProductRating(Double productRating) {
+        this.productRating = productRating;
+    }
+
+    public String getProductDescription() {
+        return productDescription;
+    }
+
+    public void setProductDescription(String productDescription) {
+        this.productDescription = productDescription;
+    }
+
+    public String getProductOtherInfo() {
+        return productOtherInfo;
+    }
+
+    public void setProductOtherInfo(String productOtherInfo) {
+        this.productOtherInfo = productOtherInfo;
+    }
+
+    public String getLabelOtherInfo() {
+        return labelOtherInfo;
+    }
+
+    public void setLabelOtherInfo(String labelOtherInfo) {
+        this.labelOtherInfo = labelOtherInfo;
+    }
+    
+    public String getButtonBuy() {
+        return buttonBuy;
+    }
+
+    public void setButtonBuy(String buttonBuy) {
+        this.buttonBuy = buttonBuy;
+    }
+
+    public String getRedirectLink() {
+        return redirectLink;
+    }
+
+    public void setRedirectLink(String redirectLink) {
+        this.redirectLink = redirectLink;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public List<VendorDto> getVendorList() {
+        return vendorList;
+    }
+
+    public void setVendorList(List<VendorDto> vendorList) {
+        this.vendorList = vendorList;
+    }
+
+    public boolean getIsRedirectToLink() {
+        return isRedirectToLink;
+    }
+
+    public void setIsRedirectToLink(boolean redirectToLink) {
+        isRedirectToLink = redirectToLink;
+    }
+
+    public List<PaymentDto> getPaymentList() {
+        return paymentList;
+    }
+
+    public void setPaymentList(List<PaymentDto> paymentList) {
+        this.paymentList = paymentList;
+    }
+
+    public String getProductHowTo() {
+        return productHowTo == null ? "" : productHowTo;
+    }
+
+    public void setProductHowTo(String productHowTo) {
+        this.productHowTo = productHowTo;
+    }
+
+    public String getDownloadLink() {
+        return downloadLink;
+    }
+
+    public void setDownloadLink(String downloadLink) {
+        this.downloadLink = downloadLink;
+    }
+
+    public boolean getIsDownloadLink() {
+        return isDownloadLink;
+    }
+
+    public void setIsDownloadLink(boolean downloadLink) {
+        isDownloadLink = downloadLink;
+    }
+
+    public String getProductPricing() {
+        return productPricing == null ? "" : productPricing;
+    }
+
+    public void setProductPricing(String productPricing) {
+        this.productPricing = productPricing;
+    }
+
+    public String getProductDetailsType() {
+        return productDetailsType == null ? "" : productDetailsType;
+    }
+
+    public void setProductDetailsType(String productDetailsType) {
+        this.productDetailsType = productDetailsType;
+    }
+
+    public String getLabelDescription() {
+        return labelDescription;
+    }
+
+    public void setLabelDescription(String labelDescription) {
+        this.labelDescription = labelDescription;
+    }
+
+    public String getLabelHowTo() {
+        return labelHowTo;
+    }
+
+    public void setLabelHowTo(String labelHowTo) {
+        this.labelHowTo = labelHowTo;
+    }
+
+    public String getLabelDetails() {
+        return labelDetails;
+    }
+
+    public void setLabelDetails(String labelDetails){
+        this.labelDetails = labelDetails;
+    }
+
+    public String getLabelPricing() {
+        return labelPricing;
+    }
+
+    public void setLabelPricing(String labelPricing) {
+        this.labelPricing = labelPricing;
+    }
+
+    public Integer[] getPaymentMatrix() {
+        return paymentMatrix;
+    }
+
+    public void setPaymentMatrix(Integer[] paymentMatrix) {
+        this.paymentMatrix = paymentMatrix;
+    }
+
+    public Integer getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
+    }
+    
+    public String getCategoryName() {
+		return categoryName;
+	}
+
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
+	}
+
+    
+    public Integer getIsInappBrowser() {
+        return isInappBrowser;
+    }
+    
+    public void setIsInappBrowser(Integer isInappBrowser) {
+        this.isInappBrowser = isInappBrowser;
+    }
+    
+    public double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
+    }
+
+    public String getDeeplink() {
+        return deeplink;
+    }
+
+    public void setDeeplink(String deeplink) {
+        this.deeplink = deeplink;
+    }
+
+    public Integer getIsTransferable() {
+        return isTransferable;
+    }
+
+    public void setIsTransferable(Integer isTransferable) {
+        this.isTransferable = isTransferable;
+    }
+    
+    public Integer getCampaign() {
+        return campaign;
+    }
+
+    public void setCampaign(Integer campaign) {
+        this.campaign = campaign;
+    }
+
+    public String getProductOriginalPrice() {
+        return productOriginalPrice == null ? "" : productOriginalPrice;
+    }
+
+    public void setProductOriginalPrice(String productOriginalPrice) {
+        this.productOriginalPrice = productOriginalPrice;
+    }
+
+    public Object getProductDetails() {
+        return productDetails;
+    }
+
+    public void setProductDetails(Object productDetails) {
+        this.productDetails = productDetails;
+    }
+    
+    public Integer getIsAutoRenewable() {
+        return isAutoRenewable;
+    }
+    
+    public void setIsAutoRenewable(Integer isAutoRenewable) {
+        this.isAutoRenewable = isAutoRenewable;
+    }
+}

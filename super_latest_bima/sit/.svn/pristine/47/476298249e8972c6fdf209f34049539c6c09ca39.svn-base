@@ -1,0 +1,35 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+import java.io.Serializable;
+
+/**
+ *
+ * @author RA0C68364
+ */
+public class CustomerUiTypeResponseDto implements DTO, Serializable {
+    
+    private boolean status;
+    private String uiType;
+    
+    public CustomerUiTypeResponseDto(boolean status, String uiType) {
+        this.status = status;
+        this.uiType = uiType;
+    }
+    
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getUIType() {
+        return uiType;
+    }
+
+    public void setUIType(String uiType) {
+        this.uiType = uiType;
+    }
+}

@@ -1,0 +1,86 @@
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+@Entity
+@Table(name = "PRODUCT_UNSUBSCRIBE")
+@SequenceGenerator(name = "unsubscribe_seq", sequenceName = "unsubscribe_seq", allocationSize = 1)
+public class ProductUnsubscribe {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "unsubscribe_seq")
+	@Column(name = "ID")
+	private Long id;
+	
+	@Column(name = "MSISDN", nullable = false, length = 15)
+	private String msisdn;
+	
+	@Column(name = "PRODUCT_ID", nullable = false, length = 50)
+	private String productId;
+	
+	@Column(name = "RESPONSE_CODE", nullable = false)
+	private String responseCode;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "UNSUBSCRIBE_DATE", updatable = false, nullable = false)
+	protected Date unsubscribeDate;
+	
+	@Column(name = "RESPONSE_DESCRIPTION", nullable = true)
+	private String responseDescription;
+	
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getMsisdn() {
+		return msisdn;
+	}
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+	public String getProductId() {
+		return productId;
+	}
+	public void setProductId(String productId) {
+		this.productId = productId;
+	}
+	public String getResponseCode() {
+		return responseCode;
+	}
+	public void setResponseCode(String responseCode) {
+		this.responseCode = responseCode;
+	}
+	public Date getUnsubscribeDate() {
+		return unsubscribeDate;
+	}
+	public void setUnsubscribeDate(Date unsubscribeDate) {
+		this.unsubscribeDate = unsubscribeDate;
+	}
+	public String getResponseDescription() {
+		return responseDescription;
+	}
+	public void setResponseDescription(String responseDescription) {
+		this.responseDescription = responseDescription;
+	}
+	@Override
+	public String toString() {
+		return "ProductUnsubscribe [id=" + id + ", msisdn=" + msisdn + ", productId=" + productId + ", responseCode="
+				+ responseCode + ", unsubscribeDate=" + unsubscribeDate + ", responseDescription=" + responseDescription
+				+ "]";
+	}
+	
+	
+
+}

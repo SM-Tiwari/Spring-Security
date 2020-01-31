@@ -1,0 +1,114 @@
+package id.gnvsolution.d3.api.dto.response;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+public class PurchaseDto extends BoolStatusOutDto {
+
+    private boolean isSms;
+    private String smsKeyword;
+    private String smsTo;
+
+    private boolean isRedirectToLink;
+    private String redirectToLink;
+
+    private boolean isDownload;
+    private String downloadUrl;
+
+    private boolean isDdcUrl = false;
+    private String ddcUrl = "";
+    private boolean sucessts = false;
+    public PurchaseDto(){
+        isSms = false;
+        smsKeyword = "";
+        smsTo = "";
+        isRedirectToLink = false;
+        redirectToLink = "";
+        isDownload = false;
+        downloadUrl = "";
+        sucessts=false;
+    }
+
+    public boolean isSucessts() {
+		return sucessts;
+	}
+
+	public void setSucessts(boolean sucessts) {
+		this.sucessts = sucessts;
+	}
+
+	public boolean getIsSms() {
+        return isSms;
+    }
+
+    public void setIsSms(boolean sms) {
+        isSms = sms;
+    }
+
+    public String getSmsKeyword() {
+        return smsKeyword;
+    }
+
+    public void setSmsKeyword(String smsKeyword) {
+        this.smsKeyword = smsKeyword;
+    }
+
+    public String getSmsTo() {
+        return smsTo;
+    }
+
+    public void setSmsTo(String smsTo) {
+        this.smsTo = smsTo;
+    }
+
+    public boolean getIsRedirectToLink() {
+        return isRedirectToLink;
+    }
+
+    public void setIsRedirectToLink(boolean redirectToLink) {
+        isRedirectToLink = redirectToLink;
+    }
+
+    public String getRedirectToLink() {
+        return redirectToLink;
+    }
+
+    public void setRedirectToLink(String redirectToLink) {
+        this.redirectToLink = redirectToLink;
+    }
+
+    public boolean getIsDownload() {
+        return isDownload;
+    }
+
+    public void setIsDownload(boolean download) {
+        isDownload = download;
+    }
+
+    public String getDownloadUrl() {
+        if(downloadUrl != null)
+            downloadUrl = downloadUrl.replace("&amp;", "&");
+        return downloadUrl;
+    }
+
+    public void setDownloadUrl(String downloadUrl) {
+        this.downloadUrl = downloadUrl;
+    }
+
+    public boolean getIsDdcUrl() {
+        return isDdcUrl;
+    }
+
+    public void setIsDdcUrl(boolean ddcUrl) {
+        isDdcUrl = ddcUrl;
+    }
+
+    public String getDdcUrl() {
+        return ddcUrl;
+    }
+
+    public void setDdcUrl(String ddcUrl) {
+        this.ddcUrl = ddcUrl;
+    }
+}

@@ -1,0 +1,161 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "TRX_SHARE_QUOTA")
+public class TrxShareQuota {
+    private long transactionId;
+    private String subscriberMsisdn;
+    private Timestamp transactionDatetime;
+    private String msisdnChild1;
+    private String msisdnChild2;
+    private String msisdnChild3;
+    private Long transactionQuota1;
+    private Long transactionQuota2;
+    private Long transactionQuota3;
+    private Subscriber subscriberBySubscriberMsisdn;
+
+    @Id
+    @Column(name = "TRANSACTION_ID", nullable = false, precision = 0)
+    public long getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(long transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_MSISDN", nullable = true, length = 15)
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    @Basic
+    @Column(name = "TRANSACTION_DATETIME", nullable = false)
+    public Timestamp getTransactionDatetime() {
+        return transactionDatetime;
+    }
+
+    public void setTransactionDatetime(Timestamp transactionDatetime) {
+        this.transactionDatetime = transactionDatetime;
+    }
+
+    @Basic
+    @Column(name = "MSISDN_CHILD_1", nullable = true, length = 15)
+    public String getMsisdnChild1() {
+        return msisdnChild1;
+    }
+
+    public void setMsisdnChild1(String msisdnChild1) {
+        this.msisdnChild1 = msisdnChild1;
+    }
+
+    @Basic
+    @Column(name = "MSISDN_CHILD_2", nullable = true, length = 15)
+    public String getMsisdnChild2() {
+        return msisdnChild2;
+    }
+
+    public void setMsisdnChild2(String msisdnChild2) {
+        this.msisdnChild2 = msisdnChild2;
+    }
+
+    @Basic
+    @Column(name = "MSISDN_CHILD_3", nullable = true, length = 15)
+    public String getMsisdnChild3() {
+        return msisdnChild3;
+    }
+
+    public void setMsisdnChild3(String msisdnChild3) {
+        this.msisdnChild3 = msisdnChild3;
+    }
+
+    @Basic
+    @Column(name = "TRANSACTION_QUOTA_1", nullable = true, precision = 0)
+    public Long getTransactionQuota1() {
+        return transactionQuota1;
+    }
+
+    public void setTransactionQuota1(Long transactionQuota1) {
+        this.transactionQuota1 = transactionQuota1;
+    }
+
+    @Basic
+    @Column(name = "TRANSACTION_QUOTA_2", nullable = true, precision = 0)
+    public Long getTransactionQuota2() {
+        return transactionQuota2;
+    }
+
+    public void setTransactionQuota2(Long transactionQuota2) {
+        this.transactionQuota2 = transactionQuota2;
+    }
+
+    @Basic
+    @Column(name = "TRANSACTION_QUOTA_3", nullable = true, precision = 0)
+    public Long getTransactionQuota3() {
+        return transactionQuota3;
+    }
+
+    public void setTransactionQuota3(Long transactionQuota3) {
+        this.transactionQuota3 = transactionQuota3;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TrxShareQuota that = (TrxShareQuota) o;
+
+        if (transactionId != that.transactionId) return false;
+        if (subscriberMsisdn != null ? !subscriberMsisdn.equals(that.subscriberMsisdn) : that.subscriberMsisdn != null)
+            return false;
+        if (transactionDatetime != null ? !transactionDatetime.equals(that.transactionDatetime) : that.transactionDatetime != null)
+            return false;
+        if (msisdnChild1 != null ? !msisdnChild1.equals(that.msisdnChild1) : that.msisdnChild1 != null) return false;
+        if (msisdnChild2 != null ? !msisdnChild2.equals(that.msisdnChild2) : that.msisdnChild2 != null) return false;
+        if (msisdnChild3 != null ? !msisdnChild3.equals(that.msisdnChild3) : that.msisdnChild3 != null) return false;
+        if (transactionQuota1 != null ? !transactionQuota1.equals(that.transactionQuota1) : that.transactionQuota1 != null)
+            return false;
+        if (transactionQuota2 != null ? !transactionQuota2.equals(that.transactionQuota2) : that.transactionQuota2 != null)
+            return false;
+        if (transactionQuota3 != null ? !transactionQuota3.equals(that.transactionQuota3) : that.transactionQuota3 != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (transactionId ^ (transactionId >>> 32));
+        result = 31 * result + (subscriberMsisdn != null ? subscriberMsisdn.hashCode() : 0);
+        result = 31 * result + (transactionDatetime != null ? transactionDatetime.hashCode() : 0);
+        result = 31 * result + (msisdnChild1 != null ? msisdnChild1.hashCode() : 0);
+        result = 31 * result + (msisdnChild2 != null ? msisdnChild2.hashCode() : 0);
+        result = 31 * result + (msisdnChild3 != null ? msisdnChild3.hashCode() : 0);
+        result = 31 * result + (transactionQuota1 != null ? transactionQuota1.hashCode() : 0);
+        result = 31 * result + (transactionQuota2 != null ? transactionQuota2.hashCode() : 0);
+        result = 31 * result + (transactionQuota3 != null ? transactionQuota3.hashCode() : 0);
+        return result;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "SUBSCRIBER_MSISDN", referencedColumnName = "SUBSCRIBER_MSISDN", updatable = false, insertable = false)
+    public Subscriber getSubscriberBySubscriberMsisdn() {
+        return subscriberBySubscriberMsisdn;
+    }
+
+    public void setSubscriberBySubscriberMsisdn(Subscriber subscriberBySubscriberMsisdn) {
+        this.subscriberBySubscriberMsisdn = subscriberBySubscriberMsisdn;
+    }
+}

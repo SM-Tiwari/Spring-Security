@@ -1,0 +1,40 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.service.SettingService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 06/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/setting")
+public class SettingController {
+
+	 private final SettingService settingService;
+
+	    @Autowired
+	    public SettingController(SettingService settingService) {
+	        this.settingService = settingService;
+	    }
+
+	    @RequestMapping(value = "/change-language", method = RequestMethod.POST)
+	    public Object changeLanguage(@RequestBody BaseRequestDto request) {
+	    	return new ServiceResult(StatusCode.SUCCESS,settingService.changeLanguage(request), "Success");
+	      //  return settingService.changeLanguage(request);
+	    }
+
+}

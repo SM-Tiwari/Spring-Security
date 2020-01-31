@@ -1,0 +1,106 @@
+package id.gnvsolution.d3.api.controller.inbound;
+
+import id.gnvsolution.d3.api.controller.SprintController;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.inbound.SprintInboundController
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 24, 2017 4:24:16 PM
+ *
+ */
+@Controller
+@RequestMapping("/api/v1/inbound/sprint")
+@ApiIgnore
+public class SprintInboundController extends PaymentGatewayInboundController {
+
+    @Autowired
+    private ExternalPayment externalPayment;
+    
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger(SprintInboundController.class);
+    
+    @RequestMapping(value = "/inquiry", produces = MediaType.APPLICATION_XML_VALUE, method = RequestMethod.POST)
+    public @ResponseBody String inquiry(@RequestParam(required = true) String transactionNo) {
+        TrxSubscriberPurchase trxSubscriberPurchase = externalPayment.checkPurchase(transactionNo);
+        if(trxSubscriberPurchase == null) {
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                    + "<OutputPaymentIPAY>\n"
+                    + "    <klikPayCode>"+SprintController.KLIK_PAY_CODE+"</klikPayCode>\n"
+                    + "    <transactionNo>"+transactionNo+"</transactionNo>\n"
+                    + "    <currency>IDR</currency>\n"
+                    + "    <fullTransaction>\n"
+                    + "        <amount></amount>\n"
+                    + "        <description></description>\n"
+                    + "    </fullTransaction>\n"
+                    + "    <installmentTransaction></installmentTransaction>\n"
+                    + "    <miscFee></miscFee>\n"
+                    + "</OutputPaymentIPAY>";
+        }
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<OutputPaymentIPAY>\n"
+                + "    <klikPayCode>"+SprintController.KLIK_PAY_CODE+"</klikPayCode>\n"
+                + "    <transactionNo>"+transactionNo+"</transactionNo>\n"
+                + "    <currency>IDR</currency>\n"
+                + "    <fullTransaction>\n"
+                + "        <amount>"+trxSubscriberPurchase.getPrice()+".00</amount>\n"
+                + "        <description>"+trxSubscriberPurchase.getServicePlan()+"</description>\n"
+                + "    </fullTransaction>\n"
+                + "    <installmentTransaction></installmentTransaction>\n"
+                + "    <miscFee></miscFee>\n"
+                + "</OutputPaymentIPAY>";
+    }
+
+    @RequestMapping(value = "/invocation", produces = MediaType.APPLICATION_XML_VALUE, method = RequestMethod.POST)
+    public @ResponseBody String invocation(@RequestParam(required = true) String transactionNo, @RequestParam(required = true) String totalAmount) {
+        logger.debug("Sprint,Status=00,transactionNo="+transactionNo+",AMOUNT="+totalAmount);
+        try {
+            externalPayment.purchaseProduct(transactionNo);
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<OutputPaymentIPAY>\n"
+                + "    <status>00</status>\n"
+                + "    <reason>\n"
+                + "        <indonesian>Sukses</indonesian>\n"
+                + "        <english>Success</english>\n"
+                + "    </reason>\n"
+                + "</OutputPaymentIPAY>";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<OutputPaymentIPAY>\n"
+                + "    <status>01</status>\n"
+                + "    <reason>\n"
+                + "        <indonesian>Transaksi anda tidak dapat diproses</indonesian>\n"
+                + "        <english>Your transaction cannot be processed</english>\n"
+                + "    </reason>\n"
+                + "</OutputPaymentIPAY>";
+        }
+    }
+
+    @RequestMapping(value = "/invocation", method = RequestMethod.GET)
+    public String redirect() {
+        return "redirect:/api/v1/inbound/sprint/thankyou";
+    }
+
+    /**
+     *
+     * @return
+     */
+    @RequestMapping(value = "/thankyou")
+    public String thankYou() {
+        return "thankyou";
+    }
+
+}

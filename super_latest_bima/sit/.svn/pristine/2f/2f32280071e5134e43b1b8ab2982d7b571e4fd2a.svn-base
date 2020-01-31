@@ -1,0 +1,235 @@
+/**
+ * GenericTIBCOQueryServicesCallbackHandler.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis2 version: 1.7.8  Built on : May 19, 2018 (07:06:11 BST)
+ */
+package id.gnvsolution.d3.api.wsdl;
+
+
+/**
+ *  GenericTIBCOQueryServicesCallbackHandler Callback class, Users can extend this class and implement
+ *  their own receiveResult and receiveError methods.
+ */
+public abstract class GenericTIBCOQueryServicesCallbackHandler {
+    protected Object clientData;
+
+    /**
+     * User can pass in any object that needs to be accessed once the NonBlocking
+     * Web service call is finished and appropriate method of this CallBack is called.
+     * @param clientData Object mechanism by which the user can pass in user data
+     * that will be avilable at the time this callback is called.
+     */
+    public GenericTIBCOQueryServicesCallbackHandler(Object clientData) {
+        this.clientData = clientData;
+    }
+
+    /**
+     * Please use this constructor if you don't want to set any clientData
+     */
+    public GenericTIBCOQueryServicesCallbackHandler() {
+        this.clientData = null;
+    }
+
+    /**
+     * Get the client data
+     */
+    public Object getClientData() {
+        return clientData;
+    }
+
+    /**
+     * auto generated Axis2 call back method for billingBonusDetailsOperation method
+     * override this method for handling normal response from billingBonusDetailsOperation operation
+     */
+    public void receiveResultbillingBonusDetailsOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.BillingBonusDetailsQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from billingBonusDetailsOperation operation
+     */
+    public void receiveErrorbillingBonusDetailsOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for hotBillingInfoOperation method
+     * override this method for handling normal response from hotBillingInfoOperation operation
+     */
+    public void receiveResulthotBillingInfoOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.HotBillingInfoResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from hotBillingInfoOperation operation
+     */
+    public void receiveErrorhotBillingInfoOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for chkOutStandingBalOp method
+     * override this method for handling normal response from chkOutStandingBalOp operation
+     */
+    public void receiveResultchkOutStandingBalOp(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.ChkOutStandingBalResp result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from chkOutStandingBalOp operation
+     */
+    public void receiveErrorchkOutStandingBalOp(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for voucherHistoryOperation method
+     * override this method for handling normal response from voucherHistoryOperation operation
+     */
+    public void receiveResultvoucherHistoryOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.VocuherHistoryQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from voucherHistoryOperation operation
+     */
+    public void receiveErrorvoucherHistoryOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for usageDetailsOperation method
+     * override this method for handling normal response from usageDetailsOperation operation
+     */
+    public void receiveResultusageDetailsOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.UsageDetailsQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from usageDetailsOperation operation
+     */
+    public void receiveErrorusageDetailsOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for backDatedUsageHistory method
+     * override this method for handling normal response from backDatedUsageHistory operation
+     */
+    public void receiveResultbackDatedUsageHistory(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.BackDatedUsageResp result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from backDatedUsageHistory operation
+     */
+    public void receiveErrorbackDatedUsageHistory(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for vASBonusDetailsOperation method
+     * override this method for handling normal response from vASBonusDetailsOperation operation
+     */
+    public void receiveResultvASBonusDetailsOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.VASBonusDetailsQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from vASBonusDetailsOperation operation
+     */
+    public void receiveErrorvASBonusDetailsOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for paymentQueryOperation method
+     * override this method for handling normal response from paymentQueryOperation operation
+     */
+    public void receiveResultpaymentQueryOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.PaymentHistoryQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from paymentQueryOperation operation
+     */
+    public void receiveErrorpaymentQueryOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for balanceDetailsOperation method
+     * override this method for handling normal response from balanceDetailsOperation operation
+     */
+    public void receiveResultbalanceDetailsOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.BalanceDetailsQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from balanceDetailsOperation operation
+     */
+    public void receiveErrorbalanceDetailsOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for billingHistoryQueryOperation method
+     * override this method for handling normal response from billingHistoryQueryOperation operation
+     */
+    public void receiveResultbillingHistoryQueryOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.BillingHistoryQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from billingHistoryQueryOperation operation
+     */
+    public void receiveErrorbillingHistoryQueryOperation(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for hybridBalanceQueryOp method
+     * override this method for handling normal response from hybridBalanceQueryOp operation
+     */
+    public void receiveResulthybridBalanceQueryOp(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.BalanceCheckResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from hybridBalanceQueryOp operation
+     */
+    public void receiveErrorhybridBalanceQueryOp(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for voucherQueryDetailsOp method
+     * override this method for handling normal response from voucherQueryDetailsOp operation
+     */
+    public void receiveResultvoucherQueryDetailsOp(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.VoucherQueryResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from voucherQueryDetailsOp operation
+     */
+    public void receiveErrorvoucherQueryDetailsOp(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for adjustmentDetailsOperation method
+     * override this method for handling normal response from adjustmentDetailsOperation operation
+     */
+    public void receiveResultadjustmentDetailsOperation(
+        id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.AdjustMentDetailsQueryRes result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from adjustmentDetailsOperation operation
+     */
+    public void receiveErroradjustmentDetailsOperation(java.lang.Exception e) {
+    }
+}

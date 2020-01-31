@@ -1,0 +1,30 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.SubscribeProductRequestDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductCharging;
+
+import java.util.Map;
+
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+
+/**
+ * Created by rips on 4/18/17.
+ */
+public interface PurchasingService {
+
+    boolean subscribeProduct(String transactionId, String msisdn, String productId, String vendorId, String servicePlan, String paymentMethod);
+    boolean subscribeProduct(String transactionId, PurchaseRequestDto request);
+
+    Map<String, Object> purchaseProduct(PurchaseRequestDto request);
+    Map<String, Object> unsubscribeProduct(SubscribeProductRequestDto request);
+
+    Map<String, Object> redeemCampaign(PurchaseRequestDto request);
+	Map purchaseunsubscribe(PurchaseRequestDto purchaseDto);
+	Map billhistory(PurchaseRequestDto purchaseDto);
+	Map crbtpurchase(PurchaseRequestDto purchaseDto);
+	
+	ProductCharging getProductChargingData(String productId);
+
+}

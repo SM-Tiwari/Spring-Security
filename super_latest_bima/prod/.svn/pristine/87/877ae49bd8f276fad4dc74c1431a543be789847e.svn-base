@@ -1,0 +1,384 @@
+package id.gnvsolution.d3.api.controller;
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.LastViewedDto;
+import id.gnvsolution.d3.api.dto.request.PackageRegistDto;
+import id.gnvsolution.d3.api.dto.request.ProductDetailDto;
+import id.gnvsolution.d3.api.dto.request.ProductRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProductVouchersDto;
+import id.gnvsolution.d3.api.dto.request.SearchAutoCompleteRequestDto;
+import id.gnvsolution.d3.api.dto.request.SearchRequestDto;
+import id.gnvsolution.d3.api.dto.request.StarRatingDto;
+import id.gnvsolution.d3.api.dto.request.WishlistDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.dto.response.TriProductDetailDto;
+import id.gnvsolution.d3.api.dto.response.TriProductModDto;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.service.CustomerUiTypeService;
+import id.gnvsolution.d3.api.service.ProductService;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.service.SubscriberWhitelistService;
+import java.util.ArrayList;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/product")
+public class ProductController extends BaseController{
+
+    private final ProductService productService;
+    private final ProfileService profileService;
+    
+    private final SubscriberWhitelistService subscriberWhitelistService;
+    private final CustomerUiTypeService customerUiTypeService;
+    public static final Logger LOGGER = LoggerFactory.getLogger(ProductController.class);
+    
+    @Autowired
+    public ProductController(ProductService productService, 
+                            SubscriberWhitelistService subscriberWhitelistService,
+                            CustomerUiTypeService customerUiTypeService,
+                            ProfileService profileService){
+        this.productService = productService;
+        this.subscriberWhitelistService = subscriberWhitelistService;
+        this.customerUiTypeService = customerUiTypeService;
+        this.profileService = profileService;
+    }
+
+    /*@RequestMapping(value="/product-per-category", method = RequestMethod.GET)
+    public Object productPerCategory(@ModelAttribute ProductRequestDto request){
+    	LOGGER.info("Inside ProductController in productPerCategory method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getProductPerCategory(request.getCategoryId(), 
+                request.getPage(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                accessRight(request.getImei()),
+                Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+                customerUiTypeService.isFull(request.getIsFull()),
+                request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn()), "Success");
+        return productService.getProductPerCategory(request.getCategoryId(), 
+                                                        request.getPage(), 
+                                                        request.getLanguage(), 
+                                                        request.getSubscriberType(), 
+                                                        request.getCallPlan(), 
+                                                        subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                                                        accessRight(request.getImei()),
+                                                        Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+                                                        customerUiTypeService.isFull(request.getIsFull()),
+                                                        request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn());
+    }*/
+    
+    @RequestMapping(value="/product-per-category", method = RequestMethod.POST)
+    public Object productPerCategoryPost(@RequestBody ProductRequestDto request){
+    	LOGGER.info("Inside ProductController in productPerCategory method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getProductPerCategory(request.getCategoryId(), 
+                request.getPage(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                accessRight(request.getImei()),
+                Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+                customerUiTypeService.isFull(request.getIsFull()),
+                request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn()), "Success");
+      /*  return productService.getProductPerCategory(request.getCategoryId(), 
+                                                        request.getPage(), 
+                                                        request.getLanguage(), 
+                                                        request.getSubscriberType(), 
+                                                        request.getCallPlan(), 
+                                                        subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                                                        accessRight(request.getImei()),
+                                                        Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+                                                        customerUiTypeService.isFull(request.getIsFull()),
+                                                        request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn());*/
+    }
+    
+    // new request for right scrolling pagination
+    @RequestMapping(value="/product-per-subcategory-paginated", method = RequestMethod.GET)
+    public Object productPerSubCategoryPaginated(@ModelAttribute ProductRequestDto request){
+    	LOGGER.info("Inside ProductController in productPerSubCategoryPaginated method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getProductPerCategoryPaginated(   request.getSubCategoryId(), 
+                request.getPage(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                accessRight(request.getImei()),
+                customerUiTypeService.isFull(request.getIsFull()), 
+                request.getIsHome()), "Success");
+     /*   return productService.getProductPerCategoryPaginated(   request.getSubCategoryId(), 
+                                                                request.getPage(), 
+                                                                request.getLanguage(), 
+                                                                request.getSubscriberType(), 
+                                                                request.getCallPlan(), 
+                                                                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                                                                accessRight(request.getImei()),
+                                                                customerUiTypeService.isFull(request.getIsFull()), 
+                                                                request.getIsHome());*/
+    }
+    
+    @RequestMapping(value="/3product-per-subcategory-paginated", method = RequestMethod.GET)
+    public Object get4ProductPerSubCategoryPaginated(@ModelAttribute ProductRequestDto request){
+    	LOGGER.info("Inside ProductController in get4ProductPerSubCategoryPaginated method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getProductPerCategoryPaginated(   request.getSubCategoryId(), 
+                request.getPage(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                accessRight(request.getImei()),
+                customerUiTypeService.isFull(request.getIsFull()), 
+                request.getIsHome(),
+                request.getMainCategoryId()), "Success");
+       /* return productService.getProductPerCategoryPaginated(   request.getSubCategoryId(), 
+                                                                request.getPage(), 
+                                                                request.getLanguage(), 
+                                                                request.getSubscriberType(), 
+                                                                request.getCallPlan(), 
+                                                                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                                                                accessRight(request.getImei()),
+                                                                customerUiTypeService.isFull(request.getIsFull()), 
+                                                                request.getIsHome(),
+                                                                request.getMainCategoryId());*/
+    }
+
+    @RequestMapping(value="/product-per-sub-category", method = RequestMethod.GET)
+    public Object productPerSubCategory(@ModelAttribute ProductRequestDto request) {
+    	LOGGER.info("Inside ProductController in productPerSubCategory method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getProductBySubCategory(request.getSubCategoryId(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getPage(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                request.getIsHome(), 
+                accessRight(request.getImei()),
+                customerUiTypeService.isFull(request.getIsFull()),
+                request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn()), "Success");
+       /* return productService.getProductBySubCategory(request.getSubCategoryId(), 
+                                                        request.getLanguage(), 
+                                                        request.getSubscriberType(), 
+                                                        request.getPage(), 
+                                                        request.getCallPlan(), 
+                                                        subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                                                        request.getIsHome(), 
+                                                        accessRight(request.getImei()),
+                                                        customerUiTypeService.isFull(request.getIsFull()),
+                                                        request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn());*/
+    }
+
+    @RequestMapping(value="/3product-per-sub-category", method = RequestMethod.GET)
+    public Object get3ProductPerSubCategory(@ModelAttribute ProductRequestDto request) {
+    	LOGGER.info("Inside ProductController in get3ProductPerSubCategory method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getProductBySubCategory(request.getSubCategoryId(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getPage(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                request.getIsHome(), 
+                accessRight(request.getImei()),
+                customerUiTypeService.isFull(request.getIsFull()),
+                request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn(), request.getMainCategoryId()), "Success");
+        /*return productService.getProductBySubCategory(request.getSubCategoryId(), 
+                                                        request.getLanguage(), 
+                                                        request.getSubscriberType(), 
+                                                        request.getPage(), 
+                                                        request.getCallPlan(), 
+                                                        subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                                                        request.getIsHome(), 
+                                                        accessRight(request.getImei()),
+                                                        customerUiTypeService.isFull(request.getIsFull()),
+                                                        request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn(), request.getMainCategoryId());*/
+    }
+    
+    @RequestMapping(value="/banner-all-per-category", method = RequestMethod.GET)
+    public Object productBannerPerCategory(@ModelAttribute ProductRequestDto request) {
+    	LOGGER.info("Inside ProductController in productBannerPerCategory method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getBannerPerCategory(request.getCategoryId(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getPage(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                accessRight(request.getImei()),
+                true), "Success");
+       /* return productService.getBannerPerCategory(request.getCategoryId(), 
+                                                    request.getLanguage(), 
+                                                    request.getSubscriberType(), 
+                                                    request.getPage(), 
+                                                    request.getCallPlan(), 
+                                                    subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                                                    accessRight(request.getImei()),
+                                                    true);*/
+    }
+
+    @RequestMapping(value="/product-detail", method = RequestMethod.POST)
+    public Object productDetail(@RequestBody ProductDetailDto request) {
+    	LOGGER.info("Inside ProductController in productDetail method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.productDetail(request, true, accessRight(request.getImei())), "Success");
+        //return productService.productDetail(request, true, accessRight(request.getImei()));
+    }
+
+    @RequestMapping(value="/search", method = RequestMethod.POST)
+    public Object search(@RequestBody SearchRequestDto request) {
+    	LOGGER.info("Inside ProductController in search method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.searchProduct(request, request.getLanguage(), request.getCallPlan(), accessRight(request.getImei()), true), "Success");
+      //  return productService.searchProduct(request, request.getLanguage(), request.getCallPlan(), accessRight(request.getImei()), true);
+    }
+    
+    @RequestMapping(value="/search-autocomplete", method = RequestMethod.POST)
+    public Object searchAutocomplete(@RequestBody SearchAutoCompleteRequestDto request) {
+    	LOGGER.info("Inside ProductController in searchAutocomplete method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.searchProductAutoComplete(request, request.getLanguage(), request.getCallPlan(), accessRight(request.getImei()), true), "Success");
+      //  return productService.searchProductAutoComplete(request, request.getLanguage(), request.getCallPlan(), accessRight(request.getImei()), true);
+    }
+    
+    @RequestMapping(value="/give-rating", method = RequestMethod.POST)
+    public Object giveRating(@RequestBody StarRatingDto starRatingDto) {
+    	LOGGER.info("Inside ProductController in giveRating method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.giveRating(starRatingDto), "Success");
+       // return productService.giveRating(starRatingDto);
+    }
+    
+    @RequestMapping(value="/vouchers", method = RequestMethod.POST)
+    public Object getProductVouchers(@RequestBody ProductVouchersDto productVouchersDto) {
+    	LOGGER.info("Inside ProductController in getProductVouchers method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getProductVouchers(productVouchersDto, accessRight(productVouchersDto.getImei())), "Success");
+      //  return productService.getProductVouchers(productVouchersDto, accessRight(productVouchersDto.getImei()));
+    }
+    
+    @RequestMapping(value="/is-wishlist", method = RequestMethod.POST)
+    public Object isWishlist(@RequestBody WishlistDto wishlistDto) {
+    	LOGGER.info("Inside ProductController in isWishlist method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.isWishlist(wishlistDto), "Success");
+      //  return productService.isWishlist(wishlistDto);
+    }
+    
+    @RequestMapping(value="/set-wishlist", method = RequestMethod.POST)
+    public Object setWishlist(@RequestBody WishlistDto wishlistDto) {
+    	LOGGER.info("Inside ProductController in setWishlist method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.setWishlist(wishlistDto), "Success");
+      //  return productService.setWishlist(wishlistDto);
+    }
+    
+    @RequestMapping(value="/remove-wishlist", method = RequestMethod.POST)
+    public Object removeWishlist(@RequestBody WishlistDto wishlistDto) {
+    	LOGGER.info("Inside ProductController in removeWishlist method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.removeWishlist(wishlistDto), "Success");
+       // return productService.removeWishlist(wishlistDto);
+    }
+    
+    @RequestMapping(value="/last-viewed", method = RequestMethod.POST)
+    public Object setLastViewed(@RequestBody LastViewedDto lastViewedDto) {
+    	LOGGER.info("Inside ProductController in setLastViewed method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.setLastViewed(lastViewedDto), "Success");
+      //  return productService.setLastViewed(lastViewedDto);
+    }
+    
+    @RequestMapping(value="/last-purchased", method = RequestMethod.POST)
+    public Object getLastPurchased(BaseRequestDto request) {
+    	LOGGER.info("Inside ProductController in getLastPurchased method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getLastPurchased(request), "Success");
+      //  return productService.getLastPurchased(request);
+    }
+    
+    /**
+     * Getting 3 product informations tabs and banner header
+     * @param request
+     * @return 
+     */
+    @RequestMapping(value="/3product-info", method = RequestMethod.GET)
+    public Object getTriProductModuleInfo(@ModelAttribute ProductRequestDto request){
+    	LOGGER.info("Inside ProductController in getTriProductModuleInfo method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getTriProductModuleInfo(request.getCategoryId(), 
+    	        request.getPage(), 
+    	        request.getLanguage(), 
+    	        request.getSubscriberType(), 
+    	        request.getCallPlan(), 
+    	        subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+    	        accessRight(request.getImei()),
+    	        Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+    	        customerUiTypeService.isFull(request.getIsFull()),
+    	        request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn()
+    	        ), "Success");
+        /*return productService.getTriProductModuleInfo(request.getCategoryId(), 
+        request.getPage(), 
+        request.getLanguage(), 
+        request.getSubscriberType(), 
+        request.getCallPlan(), 
+        subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+        accessRight(request.getImei()),
+        Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+        customerUiTypeService.isFull(request.getIsFull()),
+        request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn()
+        );*/
+    }
+    
+    /**
+     * Getting 3 product informations detail
+     * @param request
+     * @return 
+     */
+    @RequestMapping(value="/3product-info-detail", method = RequestMethod.GET)
+    public Object getTriProductModuleProductDetail(@ModelAttribute ProductRequestDto request){
+    	LOGGER.info("Inside ProductController in getTriProductModuleProductDetail method::::::::::::");
+    	return new ServiceResult(StatusCode.SUCCESS, productService.getTriProductModuleProductDetail(request.getMainCategoryId(),
+                request.getCategoryId(),
+                request.getPage(), 
+                request.getLanguage(), 
+                request.getSubscriberType(), 
+                request.getCallPlan(), 
+                subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+                accessRight(request.getImei()),
+                Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+                customerUiTypeService.isFull(request.getIsFull()),
+                request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn()
+            ), "Success");
+        /*return productService.getTriProductModuleProductDetail(request.getMainCategoryId(),
+            request.getCategoryId(),
+            request.getPage(), 
+            request.getLanguage(), 
+            request.getSubscriberType(), 
+            request.getCallPlan(), 
+            subscriberWhitelistService.isWhitelist(request.getMsisdn()), 
+            accessRight(request.getImei()),
+            Constants.SELFCARE.equals(request.getImei())?Constants.SELFCARE:"",
+            customerUiTypeService.isFull(request.getIsFull()),
+            request.getMsisdn()==null||request.getMsisdn().isEmpty()?"0":request.getMsisdn()
+        );*/
+    }
+    
+    /**
+     * Showing the last transaction including today and previous day
+     * @param request
+     * @return 
+     */
+    @RequestMapping(value="/3product-last-transaction", method = RequestMethod.POST)
+    public Object getTriProductModuleLastTransaction(@RequestBody BaseRequestDto request){
+    	LOGGER.info("Inside ProductController in getTriProductModuleLastTransaction method::::::::::::");
+    	
+        List<PackageRegistDto> historyData = new ArrayList<>();
+        List<PackageRegistDto> todayData = profileService.getRegPackageToday(request);
+        List<PackageRegistDto> lastData = profileService.getRegPackage(request);
+        historyData.addAll(todayData);
+        historyData.addAll(lastData);
+        return new ServiceResult(StatusCode.SUCCESS, historyData, "Success");
+    }
+}
+

@@ -1,0 +1,28 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.component.xprint.XPrintImporter;
+import id.gnvsolution.d3.api.service.XPrintService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.XPrintServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 7, 2017 3:38:58 PM
+ *
+ */
+@Service
+public class XPrintServiceImpl implements XPrintService {
+
+    @Autowired
+    private XPrintImporter printImporter;
+    
+    @Override
+    public void generate() {
+        printImporter.parseXPrintFiles();
+    }
+
+}

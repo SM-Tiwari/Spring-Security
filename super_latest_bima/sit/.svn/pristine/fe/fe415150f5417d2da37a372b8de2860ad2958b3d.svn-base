@@ -1,0 +1,87 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.stereotype.Service;
+
+import id.gnvsolution.d3.api.service.AppConfigService;
+
+@Service
+@Configuration
+@PropertySources({
+		@PropertySource("classpath:app-config.properties"),
+		
+})
+
+public class AppConfigServiceImpl implements AppConfigService{
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(AppConfigServiceImpl.class);
+
+	 Map<String, String> configurations = new HashMap<>();
+	 
+	 @Value(value = "${driver_class}")
+	 String driver_class ;
+	 @Value(value = "${connection.url}")
+	 String connection_url ;
+	 @Value(value = "${connection.username}")
+	 String connection_username ;
+	 @Value(value = "${connection.password}")
+	 String connection_password ;
+	 
+	@PostConstruct
+	public void getConfiguration() {
+		 LOGGER.info("LOAD APP CONFIG FROM DB........");
+		 
+			Connection con = null;
+			Statement stmt = null;
+			 try {
+					Class.forName("oracle.jdbc.OracleDriver");
+					con = DriverManager.getConnection(connection_url, connection_username, connection_password);
+					 
+					 
+					 stmt = con.createStatement();
+					ResultSet rs = stmt.executeQuery("select NAME,VALUE from APP_CONFIG");
+					while (rs.next())
+
+						configurations.put(rs.getString(1), rs.getString(2));
+					
+				} catch (Exception e) {
+					LOGGER.error(e.getMessage(), e);
+				}finally {
+					try {
+					if (con != null) con.close();
+					if (stmt != null) stmt.close();
+					} catch (Exception e2) {
+						e2.printStackTrace();
+					}
+				}
+			 configurations.forEach((k,v)->System.out.println("Item : " + k + " Count : " + v));
+	 }
+	 
+	public String get(String key,String defaultValue) {
+		String value = configurations.get(key);
+		return value != null ? value : defaultValue;
+	//return	configurations.get(key);
+	}
+	
+	//added by siddhesh on 08/01/2020
+	public String getCron(String key) {
+		String value = configurations.get(key);
+		return value !=null ? value : "0 0 04 * * *";
+	}
+	 
+
+}

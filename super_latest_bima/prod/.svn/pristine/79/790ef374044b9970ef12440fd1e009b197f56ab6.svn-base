@@ -1,0 +1,28 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/8/17.
+ */
+public class BillingDto implements DTO {
+
+    private double outstandingAmount;
+    private int status;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public double getOutstandingAmount() {
+        return outstandingAmount;
+    }
+
+    public void setOutstandingAmount(double outstandingAmount) {
+        this.outstandingAmount = outstandingAmount;
+    }
+}

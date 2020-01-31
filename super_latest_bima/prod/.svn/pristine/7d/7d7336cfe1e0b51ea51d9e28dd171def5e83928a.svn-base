@@ -1,0 +1,145 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+@Entity
+@Table(name = "TRANSFER_PACKAGE_OTP")
+public class TransferPackageOtp implements Serializable {
+
+	@Id
+    @Column(name = "UUID")
+    private String uuid;
+	
+    @Column(name = "MSISDN")
+    private String msisdn;
+    
+    @Column(name = "TARGET_MSISDN")
+    private String targetMsisdn;
+
+	@Column(name = "PRODUCT_ID")
+    private String productId;
+
+	@Column(name = "AMOUNT")
+    private String amount;
+	
+	@Column(name = "OTP")
+    private String otp;
+	
+	@Column(name = "COUNTER")
+    private Integer counter;
+	
+	@Column(name = "IS_ACTIVE")
+    private Boolean active;
+	
+	@Column(name = "CREATED_AT", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+	
+	@Column(name = "EXPIRED_AT", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date expiredAt;
+	
+	@Column(name = "UPDATED_AT", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+    private Date updatedAt;
+	
+	public TransferPackageOtp() {
+		
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	public String getTargetMsisdn() {
+		return targetMsisdn;
+	}
+
+	public void setTargetMsisdn(String targetMsisdn) {
+		this.targetMsisdn = targetMsisdn;
+	}
+
+	public String getProductId() {
+		return productId;
+	}
+
+	public void setProductId(String productId) {
+		this.productId = productId;
+	}
+
+	public String getAmount() {
+		return amount;
+	}
+
+	public void setAmount(String amount) {
+		this.amount = amount;
+	}
+
+	public String getOtp() {
+		return otp;
+	}
+
+	public void setOtp(String otp) {
+		this.otp = otp;
+	}
+
+	public Integer getCounter() {
+		return counter;
+	}
+
+	public void setCounter(Integer counter) {
+		this.counter = counter;
+	}
+
+	public Boolean getActive() {
+		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getExpiredAt() {
+		return expiredAt;
+	}
+
+	public void setExpiredAt(Date expiredAt) {
+		this.expiredAt = expiredAt;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+}

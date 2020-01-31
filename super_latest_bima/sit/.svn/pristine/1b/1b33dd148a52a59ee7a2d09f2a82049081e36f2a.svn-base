@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.TransferPulsaDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.TransferPulsaService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 11, 2018 2:53:11 PM
+ *
+ */
+public interface TransferPulsaService {
+    public Map transfer(TransferPulsaDto transferPulsaDto);
+}

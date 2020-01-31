@@ -1,0 +1,80 @@
+# Root logger option
+log4j.rootLogger=INFO, stdout, defAppender
+
+# Redirect log messages to console
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target=System.out
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+
+log4j.logger.datalogAppender=DEBUG, datalogAppender
+log4j.logger.defAppender=DEBUG, defAppender
+#log4j.logger.org.hibernate.SQL=DEBUG, stdout, defAppender
+#log4j.logger.org.hibernate.type=TRACE, stdout, defAppender
+log4j.logger.org.hibernate.SQL=WARN, stdout, defAppender
+log4j.logger.org.hibernate.type=WARN, stdout, defAppender
+log4j.logger.id.gnvsolution.d3.api.filter=DEBUG, accessAppender
+log4j.logger.proxy=INFO, msgAppender
+log4j.logger.pg=DEBUG, pgAppender
+
+log4j.logger.social=DEBUG, socialAppender
+log4j.logger.mail=DEBUG, mailAppender
+
+log4j.logger.org.springframework=ERROR, stdout, defAppender
+
+log4j.additivity.stdout=false
+log4j.additivity.datalogAppender=false
+log4j.additivity.defAppender=false
+log4j.additivity.accessAppender=false
+log4j.additivity.id.gnvsolution.d3.api.filter=false
+log4j.additivity.proxy=false
+log4j.additivity.pg=false
+
+log4j.additivity.social=false
+log4j.additivity.mail=false
+
+log4j.appender.datalogAppender=org.apache.log4j.DailyRollingFileAppender
+#log4j.appender.datalogAppender.File=/home/asus/Source/Java/d3-api-data.log
+log4j.appender.datalogAppender.File=/log/jboss_data.log
+log4j.appender.datalogAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.datalogAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.datalogAppender.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1} - %m%n
+
+log4j.appender.defAppender=org.apache.log4j.DailyRollingFileAppender
+#log4j.appender.defAppender.File=/home/asus/Source/Java/d3-api-def.log
+log4j.appender.defAppender.File=/log/jboss_def.log
+log4j.appender.defAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.defAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.defAppender.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1} - %m%n
+
+log4j.appender.pgAppender=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.pgAppender.File=/log/jboss_pg.log
+log4j.appender.pgAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.pgAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.pgAppender.layout.ConversionPattern=%m%n
+
+log4j.appender.mailAppender=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.mailAppender.File=/log/jboss_mail.log
+log4j.appender.mailAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.mailAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.mailAppender.layout.ConversionPattern=%m%n
+
+log4j.appender.socialAppender=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.socialAppender.File=/log/jboss_soc.log
+log4j.appender.socialAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.socialAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.socialAppender.layout.ConversionPattern=%m%n
+
+log4j.appender.accessAppender=org.apache.log4j.DailyRollingFileAppender
+#log4j.appender.accessAppender.File=/home/asus/Source/Java/d3-api-access.log
+log4j.appender.accessAppender.File=/log/jboss_access.log
+log4j.appender.accessAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.accessAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.accessAppender.layout.ConversionPattern=%m%n
+
+log4j.appender.msgAppender=org.apache.log4j.DailyRollingFileAppender
+#log4j.appender.accessAppender.File=/home/asus/Source/Java/d3-api-access.log
+log4j.appender.msgAppender.File=/log/jboss_msgs.log
+log4j.appender.msgAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.msgAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.msgAppender.layout.ConversionPattern=%m%n

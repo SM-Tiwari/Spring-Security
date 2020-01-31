@@ -1,0 +1,12 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.Entity;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "etop_up_status")
+@SequenceGenerator(name = "etopup_status_seq", sequenceName = "etopup_status_seq", allocationSize = 1)
+public class EtopUpStatusEntity {
+
+}

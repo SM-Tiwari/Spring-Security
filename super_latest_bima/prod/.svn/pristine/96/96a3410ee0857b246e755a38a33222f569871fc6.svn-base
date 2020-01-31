@@ -1,0 +1,8 @@
+package id.gnvsolution.d3.api.dto;
+
+/**
+ * Created by Arie
+ * on 06/04/2017.
+ */
+public interface DTO {
+}

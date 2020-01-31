@@ -1,0 +1,44 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.DummyDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 21, 2017 2:34:47 PM
+ *
+ */
+public class DummyDto extends BaseRequestDto {
+
+    private String deviceOs;
+    private String deviceModel;
+    private String subscriberType;
+
+    public DummyDto() {
+    }
+
+    public String getDeviceOs() {
+        return deviceOs;
+    }
+
+    public void setDeviceOs(String deviceOs) {
+        this.deviceOs = deviceOs;
+    }
+
+    public String getDeviceModel() {
+        return deviceModel;
+    }
+
+    public void setDeviceModel(String deviceModel) {
+        this.deviceModel = deviceModel;
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+}

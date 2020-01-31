@@ -1,0 +1,26 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.ChangeEmailDto
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 10, 2017 12:23:13 PM
+ *
+ */
+public class ChangeEmailDto extends BaseRequestDto {
+
+    private String email;
+
+    public ChangeEmailDto() {
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+}

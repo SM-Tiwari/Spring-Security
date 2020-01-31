@@ -1,0 +1,64 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 5/10/17.
+ */
+public class ProfileWidgetDto implements DTO {
+
+    private Profile profile;
+    private boolean status;
+
+    public ProfileWidgetDto(){
+        profile = new Profile();
+    }
+
+    public Profile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(Profile profile) {
+        this.profile = profile;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+
+    public static class Profile{
+        private String balance;
+        private long quota;
+        private String msisdn;
+
+        public String getBalance() {
+            return balance;
+        }
+
+        public void setBalance(String balance) {
+            this.balance = balance;
+        }
+
+        public long getQuota() {
+            return quota;
+        }
+
+        public void setQuota(long quota) {
+            this.quota = quota;
+        }
+
+        public String getMsisdn() {
+            return msisdn;
+        }
+
+        public void setMsisdn(String msisdn) {
+            this.msisdn = msisdn;
+        }
+    }
+
+}

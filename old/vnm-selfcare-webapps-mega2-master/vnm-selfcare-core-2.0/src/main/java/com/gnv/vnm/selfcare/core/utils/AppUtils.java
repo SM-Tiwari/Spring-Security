@@ -1,0 +1,464 @@
+/**
+ * CommonUtils.java
+ * Aug 12, 2016 11:55:55 AM
+ */
+package com.gnv.vnm.selfcare.core.utils;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.net.BCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author nandipinto
+ *
+ */
+public class AppUtils {
+
+	private static final Logger logger = LoggerFactory.getLogger(AppUtils.class);
+
+	public static final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+			+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+
+	public static final String MSISDN_PATTERN = "[+]?[0-9]{10,14}";
+
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat();
+
+	public static Date stringToDate(String input, String pattern) {
+		if (input != null && !input.equals("")) {
+			try {
+				dateFormat.applyPattern(pattern);
+				return dateFormat.parse(input);
+			} catch (ParseException e) {
+				logger.warn("Unparseable date string= " + input);
+			}
+		}
+		return null;
+	}
+
+	public static String dateToString(Date date, String pattern) {
+		if (date == null)
+			return "";
+		dateFormat.applyPattern(pattern);
+		return dateFormat.format(date);
+	}
+
+	public static String encode64(String string) {
+		String result = "";
+		try {
+			result = (new BCodec()).encode(string);
+		} catch (EncoderException e) {
+			logger.error("", e);
+		}
+		return result;
+	}
+
+	public static String decode64(String string) {
+		String result = "";
+		try {
+			result = (new BCodec()).decode(string);
+		} catch (DecoderException e) {
+			logger.error("", e);
+		}
+		return result;
+	}
+
+	public static boolean emptyOrWhiteSpace(String value) {
+		if (value == null)
+			return true;
+		if (value.trim().equals(""))
+			return true;
+
+		return false;
+	}
+
+	// Integer outputDecimal = Integer.parseInt(inputHex, 16);
+	public static int hex2Decimal(String s) {
+		String digits = "0123456789ABCDEF";
+		s = s.toUpperCase();
+		int x = s.indexOf("X");
+		if (x >= 0) {
+			s = s.substring(x + 1);
+		}
+		int val = 0;
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			int d = digits.indexOf(c);
+			val = 16 * val + d;
+		}
+		return val;
+	}
+
+	// precondition: d is a nonnegative integer
+	public static String decimal2Hex(int d) {
+		String digits = "0123456789ABCDEF";
+		if (d == 0)
+			return "0";
+		String hex = "";
+		while (d > 0) {
+			int digit = d % 16; // rightmost digit
+			hex = digits.charAt(digit) + hex; // string concatenation
+			d = d / 16;
+		}
+		return hex;
+	}
+
+	public static boolean isValidEmailFormat(String email) {
+		if (emptyOrWhiteSpace(email))
+			return false;
+		Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+		Matcher matcher = pattern.matcher(email);
+		return matcher.matches();
+	}
+
+	public static boolean isValidMsisdnFormat(String msisdn) {
+		if (emptyOrWhiteSpace(msisdn))
+			return false;
+		Pattern pattern = Pattern.compile(MSISDN_PATTERN);
+		Matcher matcher = pattern.matcher(msisdn);
+		return matcher.matches();
+	}
+
+	public static String leftPad(int number, int length) {
+		return String.format("%0" + length + "d", number);
+	}
+
+	public static byte[] compressFile(File input) {
+
+		ZipOutputStream zos = null;
+		ByteArrayOutputStream baos = null;
+		BufferedInputStream bis = null;
+
+		byte[] buffer = new byte[2048];
+
+		try {
+			baos = new ByteArrayOutputStream();
+			zos = new ZipOutputStream(baos);
+			ZipEntry ze = new ZipEntry(input.getName());
+			zos.putNextEntry(ze);
+			bis = new BufferedInputStream(new FileInputStream(input));
+
+			int len;
+			while ((len = bis.read(buffer)) > 0) {
+				zos.write(buffer, 0, len);
+			}
+
+			zos.closeEntry();
+			bis.close();
+
+			zos.flush();
+			baos.flush();
+
+			return baos.toByteArray();
+
+		} catch (Exception e) {
+			logger.error("#compress >> error= ", e);
+		} finally {
+			if (zos != null) {
+				try {
+					zos.close();
+				} catch (Exception e2) {
+				}
+			}
+			if (baos != null) {
+				try {
+					baos.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return null;
+	}
+
+	public static void compressFile(File input, File zip) {
+		ZipOutputStream zos = null;
+		BufferedOutputStream bos = null;
+		BufferedInputStream bis = null;
+
+		byte[] buffer = new byte[2048];
+
+		try {
+			bos = new BufferedOutputStream(new FileOutputStream(zip));
+			zos = new ZipOutputStream(bos);
+			ZipEntry ze = new ZipEntry(input.getName());
+			zos.putNextEntry(ze);
+			bis = new BufferedInputStream(new FileInputStream(input));
+
+			int len;
+			while ((len = bis.read(buffer)) > 0) {
+				zos.write(buffer, 0, len);
+			}
+
+			zos.closeEntry();
+			zos.flush();
+			bos.flush();
+
+		} catch (Exception e) {
+			// logger.error("#compress >> error= ", e);
+			e.printStackTrace(System.out);
+		} finally {
+			if (zos != null) {
+				try {
+					zos.close();
+				} catch (Exception e2) {
+				}
+			}
+			if (bos != null) {
+				try {
+					bos.close();
+				} catch (Exception e2) {
+				}
+			}
+			if (bis != null) {
+				try {
+					bis.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+	}
+
+	public static int randomInt(int min, int max) {
+		if (min >= max) {
+			return min;
+		} else {
+			Random random = new Random();
+			return random.nextInt((max - min) + 1) + min;
+		}
+	}
+
+	public static String toString(InputStream input, String encoding) {
+		ByteArrayOutputStream result = new ByteArrayOutputStream();
+		byte[] buffer = new byte[1024];
+		int length;
+		try {
+			while ((length = input.read(buffer)) != -1) {
+				result.write(buffer, 0, length);
+			}
+			return result.toString(encoding);
+		} catch (Exception e) {
+			logger.error("#toString >> error creating string from InputStream!", e);
+		} finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return "";
+	}
+
+	/**
+	 * This works by choosing 130 bits from a crypto-graphically secure random
+	 * bit generator, and encoding them in base-32. 128 bits is considered to be
+	 * crypto-graphically strong, but each digit in a base 32 number can encode 5
+	 * bits, so 128 is rounded up to the next multiple of 5. This encoding is
+	 * compact and efficient, with 5 random bits per character.
+	 *
+	 * http://stackoverflow.com/questions/41107/how-to-generate-a-random-alpha-numeric-string/41156#41156
+	 *
+	 * @return secured random id
+	 */
+	public static String secureRandomId() {
+		SecureRandom random = new SecureRandom();
+		return new BigInteger(130, random).toString(32);
+	}
+
+	public static long toLong(String str){
+		try {
+			return Long.parseLong(str);
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	public static int toInt(String str){
+		try {
+			return Integer.parseInt(str);
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	public static double toDouble(String str){
+		try {
+			return Double.parseDouble(str);
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	public static String prependCountryCodeToMsisdn(String msisdn, String countryCode){
+		if (msisdn == null || msisdn.equals("")) return msisdn;
+		if (countryCode == null || countryCode.equals("")) return msisdn;
+		if (msisdn.startsWith(countryCode)) return msisdn;
+		
+		if (msisdn.startsWith("0")){
+			msisdn = msisdn.substring(1);
+			msisdn = countryCode + msisdn;
+			
+		} else if (msisdn.startsWith("+")) {
+			msisdn = msisdn.substring(1);
+			return prependCountryCodeToMsisdn(msisdn, countryCode);
+		}
+		return msisdn;
+	}
+
+	public static String removeCountryCode(String msisdn, String countryCode){
+		if (emptyOrWhiteSpace(msisdn)) return msisdn;
+		
+		if (msisdn.startsWith("+")) {
+			msisdn = msisdn.substring(1);
+		}
+		if (msisdn.startsWith(countryCode)){
+			return "0" + msisdn.substring(msisdn.indexOf(countryCode) + countryCode.length());
+		}
+		return msisdn.startsWith("0") ? msisdn : "0" + msisdn;
+	}
+	
+	public static String replaceCountryCodeFromMsisdn(String msisdn, String countryCode, String replacement){
+		if (emptyOrWhiteSpace(countryCode)) return msisdn;
+
+		if (msisdn.startsWith(countryCode)){
+			return replacement + msisdn.substring(msisdn.indexOf(countryCode) + countryCode.length());
+		}
+		return msisdn.startsWith(replacement) ? msisdn : replacement + msisdn;
+	}
+
+	public static String byteArrayToHexString(byte[] b) {
+		StringBuffer sb = new StringBuffer(b.length * 2);
+		for (int i = 0; i < b.length; i++) {
+			int v = b[i] & 0xff;
+			if (v < 16) {
+				sb.append('0');
+			}
+			sb.append(Integer.toHexString(v));
+		}
+		return sb.toString();
+	}
+	
+	public static int getRandomInt(int min, int max){
+		if (min >= max){
+			return min;
+		}else{
+			Random random = new Random();
+			return random.nextInt((max - min) + 1) + min;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> List<T>[] sliceList(List<T> list, int size) {
+		if (list == null) return null;
+		int total = list.size();
+		int numBatches =  total % size == 0 ? (total / size) : (total / size) + 1;
+		List<T>[] arrays = new ArrayList[numBatches];
+		for (int index = 0; index < numBatches; index++) {
+			int count = index + 1;
+			int fromIndex = Math.max(((count - 1) * size), 0);
+			int toIndex = Math.min((count * size), total);
+			arrays[index] = new ArrayList<T>();
+			arrays[index].addAll(list.subList(fromIndex, toIndex));
+		}
+		return arrays;
+	}
+	
+	public static String[] sliceString(String input, int maxLength) {
+		int length = input.length();
+		if (length <= maxLength) {
+			return new String[] { input };
+		}
+		
+		int tokenCount = length % maxLength == 0 ? (length / maxLength) : (length / maxLength) + 1;
+		String[] result = new String[tokenCount];
+		
+		for (int index=0; index<tokenCount; index++) {
+			int count = index + 1;
+			int fromIndex = Math.max(((count - 1) * maxLength), 0);
+			int toIndex = Math.min((count * maxLength), length);
+			
+			result[index] = input.substring(fromIndex, toIndex);
+		}
+		
+		return result;
+	}
+	
+	public static void mergeFiles(File[] files, File result) {
+
+		if (files == null || files.length == 1) return;
+		
+		FileWriter fstream = null;
+		BufferedWriter out = null;
+		try {
+			fstream = new FileWriter(result, true);
+			out = new BufferedWriter(fstream);
+
+			for (File f : files) {
+				LoggingUtil.debug(logger, "#mergeFiles --- merging file: " + f.getName() + " into " + result);
+				FileInputStream fis;
+				try {
+					fis = new FileInputStream(f);
+					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+
+					String aLine;
+					while ((aLine = in.readLine()) != null) {
+						out.write(aLine);
+						out.newLine();
+					}
+
+					in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+		} catch (Exception e) {
+			logger.error("#mergeFiles --- error merging files!", e);
+
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+	
+	public static void main(String[] args) {
+
+		System.out.println(AppUtils.prependCountryCodeToMsisdn("0912822828", "84"));
+		System.out.println(AppUtils.prependCountryCodeToMsisdn("84912822828", "84"));
+		System.out.println(AppUtils.prependCountryCodeToMsisdn("840912822828", "84"));
+		System.out.println(AppUtils.prependCountryCodeToMsisdn("+84912822828", "84"));
+		System.out.println(AppUtils.prependCountryCodeToMsisdn("+840912822828", "84"));
+		System.out.println(AppUtils.prependCountryCodeToMsisdn("+0912822828", "84"));
+	}
+}

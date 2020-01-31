@@ -1,0 +1,60 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.NSNDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 25, 2017 4:13:26 PM
+ *
+ */
+public class NSNDto extends BaseRequestDto {
+
+    private String productId;
+    private String vendorId;
+    private String servicePlan;
+    private String subscriberType;
+
+    public NSNDto() {
+    }
+
+    public NSNDto(String productId, String vendorId, String servicePlan, String subscriberType) {
+        this.productId = productId;
+        this.vendorId = vendorId;
+        this.servicePlan = servicePlan;
+        this.subscriberType = subscriberType;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    public String getServicePlan() {
+        return servicePlan;
+    }
+
+    public void setServicePlan(String servicePlan) {
+        this.servicePlan = servicePlan;
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+}

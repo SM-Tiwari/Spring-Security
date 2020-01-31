@@ -1,0 +1,77 @@
+package id.gnvsolution.d3.api.utils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class CommonTest {
+
+    // Pattern for recognizing a URL, based off RFC 3986
+    private static final Pattern urlPattern = Pattern.compile(
+            "(?:^|[\\W])((ht|f)tp(s?):\\/\\/|www\\.)"
+                    + "(([\\w\\-]+\\.){1,}?([\\w\\-.~]+\\/?)*"
+                    + "[\\p{Alnum}.,%_=?&#\\-+()\\[\\]\\*$~@!:/{};']*)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+    private static final Pattern phonePattern1 = Pattern.compile("(\\+\\d{10,15})", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+    private static final Pattern phonePattern2 = Pattern.compile("(\\+\\d{5}-\\d{4}-\\d{3,5})", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+    private static final Pattern phonePattern3 = Pattern.compile("(\\+\\d{5} \\d{4} \\d{3,5})", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+
+    public static void main(String[] args) {
+        StringBuffer sb = new StringBuffer();
+        String desc = "\"Sushiroll adalah sebuah portal hiburan yang menawarkan layanan streaming anime seperti Naruto, Bleach, Budy complex dan seri anime jepang lainnya yang sudah dilengkapi dengan subtittle dalam Bahasa Indonesia. <br />\n" +
+                "Jenis paket yang tersedia dan ketentuan:<br />\n" +
+                "- Paket 1 hari Rp 550<br />\n" +
+                "- Paket 3 hari Rp 1100<br />\n" +
+                "- Paket 7 hari Rp 3300<br />\n" +
+                "- Paket 30 hari Rp 11000<br />\n" +
+                "- Layanan diperpanjang secara otomatis<br />\n" +
+                "<br />\n" +
+                "Sushiroll dapat diakses melalui:<br />\n" +
+                "- http://www.sushiroll.co.id<br />\n" +
+                "<br />\n" +
+                "Cara pendaftaran:<br />\n" +
+                "- Tekan tombol harga dan pilih jenis paket layanan yang diinginkan<br />\n" +
+                "- Kamu akan menerima SMS konfirmasi dari +628999626183. Balas JOIN untuk melanjutkan<br />\n" +
+                "- Login dengan username dan password yang dikirimkan dari +62811-2323-437<br />\n" +
+                "- Login dengan username dan password yang dikirimkan dari +62811 2323 437<br />\n" +
+                "<br />\n" +
+                "Cara berhenti berlangganan:<br />\n" +
+                "Kirim SMS: ketik UNSUB kirim ke 97333<br />\n" +
+                "\"";
+
+        // url
+        Matcher matcher = urlPattern.matcher(desc);
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"" + matcher.group(0) + "\">" + matcher.group(0) + "</a>"));
+        }
+        matcher.appendTail(sb);
+        desc = sb.toString();
+        sb = new StringBuffer();
+
+        // phone pattern 1 | +628999626183
+        matcher = phonePattern1.matcher(desc);
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"tel:" + matcher.group(0) + "\">" + matcher.group(0) + "</a>"));
+        }
+        matcher.appendTail(sb);
+        desc = sb.toString();
+        sb = new StringBuffer();
+
+        // phone patter 2 | +62811-2323-437
+        matcher = phonePattern2.matcher(desc);
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"tel:" + matcher.group(0) + "\">" + matcher.group(0) + "</a>"));
+        }
+        matcher.appendTail(sb);
+        desc = sb.toString();
+        sb = new StringBuffer();
+
+        // phone patter 3 | +62811 2323 437
+        matcher = phonePattern3.matcher(desc);
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"tel:" + matcher.group(0) + "\">" + matcher.group(0) + "</a>"));
+        }
+
+        System.out.println(sb.toString());
+
+    }
+
+}

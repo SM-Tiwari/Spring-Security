@@ -1,0 +1,934 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.DefaultApiResponse;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.ChangeEmailRequestDto;
+import id.gnvsolution.d3.api.dto.request.PackageRegistDto;
+import id.gnvsolution.d3.api.dto.request.PostPaidPaymentDto;
+import id.gnvsolution.d3.api.dto.request.ProfileBioDto;
+import id.gnvsolution.d3.api.dto.request.ProfileEmailChangeRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProfileEmailRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProfileEmailVerifyDto;
+import id.gnvsolution.d3.api.dto.request.ProfilePictureRequestDto;
+import id.gnvsolution.d3.api.dto.request.ProfileRequsetDto;
+import id.gnvsolution.d3.api.dto.request.ProfileSetEmailPasswordDto;
+import id.gnvsolution.d3.api.dto.request.ProfileSocialRequestDto;
+import id.gnvsolution.d3.api.dto.request.ReloadRequestDto;
+import id.gnvsolution.d3.api.dto.request.RemoveEmailSocialDto;
+import id.gnvsolution.d3.api.dto.response.PaymentMethodDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.GetSelfPackageKeywordResponse;
+import id.gnvsolution.d3.api.model.GetSelfPackagePriceMappingsResponse;
+import id.gnvsolution.d3.api.model.SelfPackageBalance;
+import id.gnvsolution.d3.api.model.SelfPackageRequest;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.utils.ApiResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.enums.SelfPackageCycle;
+import com.gnv.vnm.selfcare.core.model.SelfPackageResponce;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Balance_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Balance_Request_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Dynamic_Bonus_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.ListBalance_type0;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.SubscriberQuery_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.BalanceQuery_Response;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 05/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/profile")
+public class ProfileController extends BaseController{
+
+    private final ProfileService profileService;
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(ProfileController.class);
+	@Autowired
+	private TokenExtractor tokenExtractor;
+
+    @Autowired
+    public ProfileController(ProfileService profileService){
+        this.profileService = profileService;
+    }
+
+    @RequestMapping(value = "/profile", method = RequestMethod.POST)
+	public Object profile(@RequestBody ProfileRequsetDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+
+		LOGGER.info("Inside ProfileController in profile method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map profiledata = profileService.getProfile(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, profiledata, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	}
+
+	@RequestMapping(value = "/subscriber", method = RequestMethod.POST)
+	public SubscriberQuery_Response subscriber(@RequestBody ProfileRequsetDto requestDto) {
+		LOGGER.info("Inside ProfileController in subscriber method::::::::::::");
+
+		return profileService.getSubscriber(requestDto);
+	}
+
+	@RequestMapping(value = "/postpaidBilledQuery", method = RequestMethod.POST)
+	public BalanceQuery_Response postPaidBilledQuery(@RequestBody ProfileRequsetDto requestDto) {
+		return profileService.getPostPaidBilledQuery(requestDto);
+	}
+
+	@RequestMapping(value = "/add-email", method = RequestMethod.POST)
+	public Object addProfileEmail(@RequestBody ProfileEmailRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in addProfileEmail method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map addEmailRespo = profileService.addProfileEmail(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, addEmailRespo, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in addProfileEmail method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in addProfileEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in addProfileEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	}
+
+	@RequestMapping(value = "/resend-verification-email", method = RequestMethod.POST)
+	public Object resendVerificationEmail(@RequestBody ProfileEmailRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in resendVerificationEmail method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map resendEmailResp = profileService.resendVerificationEmail(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, resendEmailResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in resendVerificationEmail method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in resendVerificationEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in resendVerificationEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/add-email-verify", method = RequestMethod.POST)
+	public Object verifyProfileEmail(@RequestBody ProfileEmailVerifyDto requestDto
+			,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in verifyProfileEmail method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				//Map removeEmailResp = profileService.removeEmailAndSocial(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, profileService.verifyProfileEmail(requestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in verifyProfileEmail method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in verifyProfileEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in verifyProfileEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+     //		return profileService.verifyProfileEmail(requestDto);
+	}
+
+	@RequestMapping(value = "/remove-email-social", method = RequestMethod.POST)
+	public Object removeEmailAndSocial(@RequestBody RemoveEmailSocialDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in resendVerificationEmail method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map removeEmailResp = profileService.removeEmailAndSocial(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, removeEmailResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in removeEmailAndSocial method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in removeEmailAndSocial method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in removeEmailAndSocial method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	}
+
+	@RequestMapping(value = "/set-email-password", method = RequestMethod.POST)
+	public Object setProfileEmailPassword(@RequestBody ProfileSetEmailPasswordDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in setProfileEmailPassword method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map setProfileEmailResp = profileService.setProfileEmailPassword(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, setProfileEmailResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in setProfileEmailPassword method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in setProfileEmailPassword method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in setProfileEmailPassword method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/add-social", method = RequestMethod.POST)
+	public Object addProfileEmail(@RequestBody ProfileSocialRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in addProfileEmail method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map addProfileSocialResp = profileService.addProfileSocial(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, addProfileSocialResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in addProfileEmail method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in addProfileEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in addProfileEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/change-password", method = RequestMethod.POST)
+	public Object changeProfileEmailPassword(@RequestBody ProfileEmailChangeRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in changeProfileEmailPassword method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map changepasswordResp = profileService.changeProfileEmailPassword(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, changepasswordResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in changeProfileEmailPassword method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error(
+					"Inside ProfileController in changeProfileEmailPassword method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error(
+					"Inside ProfileController in changeProfileEmailPassword method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/forgot-password", method = RequestMethod.POST)
+	public Object forgotEmailPassword(@RequestBody BaseRequestDto requestDto) {
+		LOGGER.info("Inside ProfileController in forgotEmailPassword method::::::::::::");
+		Map forgetEmailResp = profileService.forgotEmailPassword(requestDto,getJwtTokenUtil().createTokenForSignUpProcess(requestDto.getMsisdn(), null));
+		return new ServiceResult(StatusCode.SUCCESS, forgetEmailResp, "Success");
+	}
+	
+	//added by siddhesh
+	@RequestMapping(value = "/update-password", method = RequestMethod.POST)
+	public Object updatePassword(@RequestBody ProfileEmailChangeRequestDto requestDto) {
+		Map updatePasswordResp = profileService.updatePassword(requestDto);
+		return new ServiceResult(StatusCode.SUCCESS, updatePasswordResp, "Success");
+		
+	}
+
+	@RequestMapping(value = "/social-check", method = RequestMethod.POST)
+	public Object getSocialConnStatus(@RequestBody BaseRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in getSocialConnStatus method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map socialcheckResp = profileService.getEmailSocialConnStatus(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, socialcheckResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in getSocialConnStatus method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in getSocialConnStatus method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in getSocialConnStatus method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/update-user-profile", method = RequestMethod.POST)
+	public Object updateUserProfile(@RequestBody ProfileBioDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in updateUserProfile method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map updateProfileBioResp = profileService.updateProfileBio(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, updateProfileBioResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in updateUserProfile method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in updateUserProfile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in updateUserProfile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/picture", method = RequestMethod.POST)
+	public Object uploadProfilePicture(@RequestBody ProfilePictureRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in uploadProfilePicture method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map pictureResp = profileService.postProfilePicture(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, pictureResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in uploadProfilePicture method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in uploadProfilePicture method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in uploadProfilePicture method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/remove-picture", method = RequestMethod.POST)
+	public Object removeProfilePicture(@RequestBody BaseRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in removeProfilePicture method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map removePictureResp = profileService.removeProfilePicture(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, removePictureResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in removeProfilePicture method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in removeProfilePicture method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in removeProfilePicture method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+	
+@PostMapping(value="/get-profile-picture")
+	public Object getProfilePicture(@RequestBody BaseRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		
+	//return	profileService.getProfilePic(requestDto.getMsisdn() );
+		
+
+	LOGGER.info("Inside ProfileController in removeProfilePicture method::::::::::::");
+	try {
+		authToken = tokenExtractor.extract(authToken);
+		TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+		String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+		requestDto.setMsisdn(msisdn);
+		if (tokenDetails != null && requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+			
+			return new ServiceResult(StatusCode.SUCCESS, profileService.getProfilePic(requestDto.getMsisdn()), "Success");
+		} else {
+			return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+		}
+	} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+		LOGGER.error("Inside ProfileController in removeProfilePicture method :::::: " + ex.getMessage());
+		return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+	} catch (ExpiredJwtException expiredEx) {
+		System.out.println("----ExpiredJwtException-----------");
+		LOGGER.error("Inside ProfileController in removeProfilePicture method :::::: " + expiredEx.getMessage());
+		return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+	} catch (Exception expiredEx) {
+		LOGGER.error("Inside ProfileController in removeProfilePicture method :::::: " + expiredEx.getMessage());
+		return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+	}
+
+
+		
+	}
+
+	/*
+	 * @RequestMapping(value = "/reload", method = RequestMethod.POST) public Object
+	 * reload(@RequestBody ReloadRequestDto requestDto,
+	 * 
+	 * @RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String
+	 * authToken) {
+	 * LOGGER.info("Inside ProfileController in reload method::::::::::::"); try {
+	 * authToken = tokenExtractor.extract(authToken); TokenDetails tokenDetails =
+	 * getJwtTokenUtil().getUserDetailsFromToken(authToken); String
+	 * msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(),
+	 * AppDefaultValues.COUNTRY_CODE); requestDto.setMsisdn(msisdn); if
+	 * (tokenDetails != null &&
+	 * requestDto.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim(
+	 * ))) { Map removePictureResp = profileService.reload(requestDto); return new
+	 * ServiceResult(StatusCode.SUCCESS, removePictureResp, "Success"); } else {
+	 * return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+	 * } } catch (UnsupportedJwtException | MalformedJwtException |
+	 * IllegalArgumentException | SignatureException ex) {
+	 * LOGGER.error("Inside ProfileController in reload method :::::: " +
+	 * ex.getMessage()); return new ServiceResult(StatusCode.BAD_REQUEST, "",
+	 * "Bad Request");
+	 * 
+	 * } catch (ExpiredJwtException expiredEx) {
+	 * System.out.println("----ExpiredJwtException-----------");
+	 * LOGGER.error("Inside ProfileController in reload method :::::: " +
+	 * expiredEx.getMessage()); return new
+	 * ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+	 * 
+	 * } catch (Exception expiredEx) {
+	 * LOGGER.error("Inside ProfileController in reload method :::::: " +
+	 * expiredEx.getMessage()); return new ServiceResult(StatusCode.BAD_REQUEST, "",
+	 * "Bad Request"); }
+	 * 
+	 * }
+	 */
+	@RequestMapping(value = "postpaid-change-email", method = RequestMethod.POST)
+	public Object postpaidChangeEmail(@RequestBody ChangeEmailRequestDto changeEmailReq,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in postpaidChangeEmail method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(changeEmailReq.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			changeEmailReq.setMsisdn(msisdn);
+			if (tokenDetails != null && changeEmailReq.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map changeEmailResp = profileService.postPaidChangeEmail(changeEmailReq);
+				return new ServiceResult(StatusCode.SUCCESS, changeEmailResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in postpaidChangeEmail method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in postpaidChangeEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in postpaidChangeEmail method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "postpaid/get-info", method = RequestMethod.POST)
+	public Object postpaidGetInfo(@RequestBody PostPaidPaymentDto request,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in postpaidGetInfo method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+			if (tokenDetails != null && request.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map paidGetInfoResp = profileService.postPaidGetInfo(request);
+				return new ServiceResult(StatusCode.SUCCESS, paidGetInfoResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in postpaidGetInfo method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in postpaidGetInfo method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in postpaidGetInfo method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "postpaid/get-postinfo", method = RequestMethod.POST)
+	public Object postpaidGetpostInfo(@RequestBody PostPaidPaymentDto request,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in postpaidGetpostInfo method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+			if (tokenDetails != null && request.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				Map paidGetInfoResp = profileService.postPaidGetInfo(request);
+				return new ServiceResult(StatusCode.SUCCESS, paidGetInfoResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in postpaidGetpostInfo method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in postpaidGetpostInfo method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in postpaidGetpostInfo method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	// Prevent unwanted happening
+	// @RequestMapping(value = "postpaid/paid")
+	public Map postpaidPaid(@RequestBody PostPaidPaymentDto request) {
+		return profileService.postPaidPayment(request);
+	}
+
+	@RequestMapping(value = "postpaid/payment-method", method = RequestMethod.GET)
+	public List<PaymentMethodDto> postpaidPaymentMethod() {
+		return profileService.postPaidGetPaymentMethod();
+	}
+
+	@RequestMapping(value = "hybrid/email", method = RequestMethod.GET)
+	public Map hybridEmail(@RequestBody BaseRequestDto request) {
+		return profileService.hybridEmail(request);
+	}
+
+	@RequestMapping(value = "/package-purchase-today", method = RequestMethod.POST)
+	public Object packageRegToday(@RequestBody BaseRequestDto request,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in packageRegToday method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+			if (tokenDetails != null && request.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				List<PackageRegistDto> regPackageList = profileService.getRegPackageimp(request);
+				return new ServiceResult(StatusCode.SUCCESS, regPackageList, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in packageRegToday method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in packageRegToday method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in packageRegToday method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/package-purchase-history", method = RequestMethod.POST)
+	public Object packageReg(@RequestBody BaseRequestDto request,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in packageReg method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+			if (tokenDetails != null && request.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				List<PackageRegistDto> regPackageList = profileService.getRegPackageFullHistory(request);
+				return new ServiceResult(StatusCode.SUCCESS, regPackageList, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in packageReg method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in packageReg method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in packageReg method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/voucher-topup-history", method = RequestMethod.POST)
+	public Object packageRefill(@RequestBody BaseRequestDto request,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in packageRefill method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			request.setMsisdn(msisdn);
+			if (tokenDetails != null && request.getMsisdn().trim().equalsIgnoreCase(tokenDetails.getMsisdn().trim())) {
+				List<PackageRegistDto> regPackageList = profileService.getRefillPackage(request);
+				return new ServiceResult(StatusCode.SUCCESS, regPackageList, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in packageRefill method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in packageRefill method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in packageRefill method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+
+	@RequestMapping(value = "/transfer-pulsa-history", method = RequestMethod.POST)
+	public Object transferPulsaHistory(@RequestBody BaseRequestDto request) {
+		return new ServiceResult(StatusCode.SUCCESS, profileService.getTransferPulsaHistory(request), "Success");
+		//return profileService.getTransferPulsaHistory(request);
+	}
+ // self packages 
+	@GetMapping(value = "/configs")
+	public Object getConfigs() {
+
+		ArrayList<SelfPackageResponce> result = profileService.getSelfPackageCommonConfigs();
+		// TreeMap<String, String> sorted = new TreeMap<>(result);
+
+		// Set<Entry<String, String>> mappings = sorted.entrySet();
+
+		Map<String, Object> response = new Hashtable<>();
+		response.put("configs", result);
+
+		return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+	}
+    
+    @GetMapping(value = "/keywords")
+	public Object getKeywords(){
+		
+		GetSelfPackageKeywordResponse selfresponse = new GetSelfPackageKeywordResponse(true, DefaultApiResponse.SUCCESS.code(), DefaultApiResponse.SUCCESS.message(), 
+				profileService.getSelfPackageBalanceList());
+		  Map<String, Object> response = new Hashtable<>();
+	        response.put("list", selfresponse);
+		//return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+	}
+    
+    @GetMapping(value = "/pricemappings")
+	public Object getPriceMappings(){
+		
+		GetSelfPackagePriceMappingsResponse selfresponse = new GetSelfPackagePriceMappingsResponse(true,
+				DefaultApiResponse.SUCCESS.code(), DefaultApiResponse.SUCCESS.message(),
+				profileService.getSelfPackagePriceMappings());
+		 /* Map<String, Object> response = new Hashtable<>();
+	        response.put("list", selfresponse);*/
+		//return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ServiceResult(StatusCode.SUCCESS, selfresponse, "Success");
+	}
+
+    @GetMapping(value = "/pricemappings/{type}")
+	public Object getPriceMappings(@PathVariable String type){
+		
+		GetSelfPackagePriceMappingsResponse selfresponse = new GetSelfPackagePriceMappingsResponse(true,
+				DefaultApiResponse.SUCCESS.code(), DefaultApiResponse.SUCCESS.message(),
+				profileService.getSelfPackagePriceMappings(type));
+		/*  Map<String, Object> response = new Hashtable<>();
+	        response.put("list", selfresponse);*/
+		return new ServiceResult(StatusCode.SUCCESS, selfresponse, "Success");
+		//return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@GetMapping(value = "/pricemappings/{type}/{cycle}")
+	public Object getPriceMappings(@PathVariable String type, @PathVariable String cycle){
+		
+		GetSelfPackagePriceMappingsResponse selfresponse = new GetSelfPackagePriceMappingsResponse(true,
+				DefaultApiResponse.SUCCESS.code(), DefaultApiResponse.SUCCESS.message(),
+				profileService.getSelfPackagePriceMappings(type, Integer.parseInt(cycle)));
+		/*  Map<String, Object> response = new Hashtable<>();
+	        response.put("list", selfresponse);*/
+		return new ServiceResult(StatusCode.SUCCESS, selfresponse, "Success");
+		//return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@GetMapping(value = "/pricemappings/{type}/{cycle}/{amount}")
+	public Object getPriceMappings(@PathVariable String type, @PathVariable String cycle, @PathVariable String amount){
+		
+		GetSelfPackagePriceMappingsResponse selfresponse = new GetSelfPackagePriceMappingsResponse(true,
+				DefaultApiResponse.SUCCESS.code(), DefaultApiResponse.SUCCESS.message(),
+				profileService.getSelfPackagePriceMappings(type, Integer.parseInt(cycle),new BigDecimal(amount)));
+		/*  Map<String, Object> response = new Hashtable<>();
+	        response.put("list", selfresponse);*/
+		return new ServiceResult(StatusCode.SUCCESS, selfresponse, "Success");
+		//return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/reloadanother", method = RequestMethod.POST)
+	public Object reloadother(@RequestBody ReloadRequestDto requestDto,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in reloadother method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(requestDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			requestDto.setMsisdn(msisdn);
+			if (tokenDetails != null) {
+				Map removePictureResp = profileService.reloadother(requestDto);
+				return new ServiceResult(StatusCode.SUCCESS, removePictureResp, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+	}
+	
+	@RequestMapping(value = "/register", method = RequestMethod.POST)
+	public Object register(@RequestBody SelfPackageRequest request,
+			@RequestHeader(value = JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside ProfileController in selfpakge register method::::::::::::"+authToken);
+		try {
+			authToken = tokenExtractor.extract(authToken);
+		
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+			if (tokenDetails != null) {
+				LOGGER.debug("#registerSelfPackage --- receiving request= " + request);
+				Dynamic_Bonus_Request pkgRequest = new Dynamic_Bonus_Request();
+				// pkgRequest.setDescription(request.getDescription());
+				pkgRequest.setMSISDN(request.getMsisdn());
+				pkgRequest.setProduct_Code(request.getPackageId());
+				pkgRequest.setCharging_Amount("" + request.getChargingAmount());
+
+				SelfPackageCycle cycle = SelfPackageCycle.MONTHLY;
+				try {
+					cycle = SelfPackageCycle.valueOf(request.getCycle().toUpperCase());
+				} catch (Exception e) {
+				}
+				pkgRequest.setCmdID("" + cycle);
+				ListBalance_type0 listBalance_type0 = new ListBalance_type0();
+				for (SelfPackageBalance balance : request.getBalanceList()) {
+					Balance_Request balance_Request = new Balance_Request();
+					Balance_Request_type0 balance_Request_type0 = new Balance_Request_type0();
+					balance_Request_type0.setBonus_Amount("" + balance.getAmount());
+					balance_Request_type0.setBonus_Name(balance.getName());
+					balance_Request.setBalance_Request(balance_Request_type0);
+					// pkgRequest.getListBalance().addBalance_Request(balance_Request_type0);
+					listBalance_type0.addBalance_Request(balance_Request_type0);
+					pkgRequest.setListBalance(listBalance_type0);
+					;
+				}
+				ApiResponse response = null;
+				Dynamic_Bonus_Response bar = profileService.registerSelfPackage(pkgRequest);
+				if (bar.getErrorCode().equalsIgnoreCase("00000")) {
+					response = new ApiResponse(true, bar.getErrorCode(), bar.getErrorDetail());
+					return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+				} else {
+					response = new ApiResponse(false, bar.getErrorCode(), bar.getErrorDetail());
+					return new ServiceResult(StatusCode.SUCCESS, response, "Success");
+				}
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in reloadother method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		// return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+}

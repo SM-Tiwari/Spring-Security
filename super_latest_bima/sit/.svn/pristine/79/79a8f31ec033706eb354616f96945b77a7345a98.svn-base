@@ -1,0 +1,59 @@
+package id.gnvsolution.d3.api.dto.request;
+
+public class CmsOfferRequest {
+
+	 private String msisdn;             
+	 private String language;           
+	 private String interfaceType;           
+	 private String offerID;
+	 private String requestId;
+	 private String transactionID;
+	 private String productName;
+	 
+	 
+	public String getMsisdn() {
+		return msisdn;
+	}
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+	public String getLanguage() {
+		return language;
+	}
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+	public String getInterfaceType() {
+		return interfaceType;
+	}
+	public void setInterfaceType(String interfaceType) {
+		this.interfaceType = interfaceType;
+	}
+	public String getOfferID() {
+		return offerID;
+	}
+	public void setOfferID(String offerID) {
+		this.offerID = offerID;
+	}
+	public String getRequestId() {
+		return requestId;
+	}
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
+	}
+	public String getTransactionID() {
+		return transactionID;
+	}
+	public void setTransactionID(String transactionID) {
+		this.transactionID = transactionID;
+	}
+	public String getProductName() {
+		return productName;
+	}
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}           
+	
+	 
+	 
+}

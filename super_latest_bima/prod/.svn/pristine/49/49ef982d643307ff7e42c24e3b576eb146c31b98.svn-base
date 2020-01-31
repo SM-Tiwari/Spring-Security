@@ -1,0 +1,7 @@
+package id.gnvsolution.d3.api.service;
+
+public interface ProductBillingService {
+	boolean apiProductBilling(String subscriberId, String langCode, String pakageid, String product_code,
+			String packagcode);
+
+}

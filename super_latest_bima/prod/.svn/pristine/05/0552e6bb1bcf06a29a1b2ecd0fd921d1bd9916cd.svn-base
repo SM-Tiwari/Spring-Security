@@ -1,0 +1,11 @@
+#JDBC.ConnectionURL=jdbc:oracle:thin:@localhost:1521:xe
+#JDBC.ConnectionURL=jdbc:oracle:thin:@10.64.19.247:1521:odpdev
+#JDBC.Username=odp
+#JDBC.Password=odp
+
+JDBC.ConnectionURL=jdbc:oracle:thin:@172.29.5.173:1528:vnmdb
+JDBC.Username=INDOTEL
+JDBC.Password=INDO#4567TEL
+
+
+FCM.Key=AAAA6cp_-jw:APA91bHeRdkS-fRFxwJoAPunBTRZWgfNP7TPs-A_9xvug8WfuTX05YRpaI3M-cbpWlkSRvliehMz5uwfrFDh62mwwUaKHMz_-uWOfdYGbr0TyllO3MYIQj6rkGHd1EzI4zWVsp_MBKz4

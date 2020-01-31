@@ -1,0 +1,179 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.PaymentStatusDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.RptInvoiceSummaryDTO;
+import id.gnvsolution.d3.api.model.RptInvoiceSummary;
+import id.gnvsolution.d3.api.service.InvoiceService;
+import id.gnvsolution.d3.api.service.TibcoService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.Attribute_type4;
+import id.gnvsolution.d3.api.wsdl.GenericTIBCOQueryServicesStub.QUERY_RESPONSE_type1;
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.axis2.AxisFault;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.model.BillingSummary;
+import com.gnv.vnm.selfcare.core.model.GetBillingSummaryResponse;
+import com.gnv.vnm.selfcare.core.model.SubscriberInfoFromTibco;
+
+import com.tibco.Selfcare_InboundStub;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.InvoiceServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 7, 2017 7:08:45 PM
+ *
+ */
+@Service
+@Transactional
+public class InvoiceServiceImpl extends BaseService implements InvoiceService {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Autowired
+    private TibcoService tibcoService;
+
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(InvoiceServiceImpl.class);
+    
+    @Override
+    public Map<String, Object> viewLast3Invoices(BaseRequestDto baseRequestDto) {
+    	LOGGER.info("#viewLast3Invoices-----------msisdn ::::::",baseRequestDto.getMsisdn() );
+        // do not forget to validate msisdn + secretKey
+       /* if (!isMsisdnValid(baseRequestDto.getMsisdn(), baseRequestDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }*/
+    //	baseRequestDto.setMsisdn("09187491078");
+    	//List<RptInvoiceSummary> rptInvoiceSummarys=tibcoService.getLast3Invoices(baseRequestDto.getMsisdn());
+    	Map<String, Object> rptInvoiceSummarys = tibcoService.getLast3Invoices(baseRequestDto.getMsisdn(),baseRequestDto.getLanguage());
+    	LOGGER.info("#viewLast3Invoices-----------rptInvoiceSummarys ::::::"+rptInvoiceSummarys.get("responseStatus"));
+        return rptInvoiceSummarys;
+    }
+
+    @Override
+    public Map<String, Object> getPaymentStatus(PaymentStatusDto paymentStatusDto) {
+    	
+    	LOGGER.info("#getPaymentStatus-----------msisdn ::::::",paymentStatusDto.getMsisdn() );
+
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(paymentStatusDto.getMsisdn(), paymentStatusDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        Map<String, Object> containerResp = new HashMap<>();
+        Map<String, Object> finalResp = new HashMap<>();
+
+        try {
+            
+            GenericTIBCOQueryServicesStub stub = new GenericTIBCOQueryServicesStub(Constants.TIBCO_URL_PURCHASE_HISTORY_URL);
+            GenericTIBCOQueryServicesStub.BillingHistoryQueryReq reqPayload = new GenericTIBCOQueryServicesStub.BillingHistoryQueryReq();
+            reqPayload.setMSISDN(paymentStatusDto.getMsisdn());
+            reqPayload.setSOURCE("ODP_GNV");    
+            reqPayload.setSUB_TYPE("Prepaid");
+            
+            List<String> listInv = paymentStatusDto.getInvoicesList();
+            for (String invoiceNum : listInv) {
+                if(invoiceNum.isEmpty()) continue;
+                GenericTIBCOQueryServicesStub.Attribute_type3 invoicesParameter = new GenericTIBCOQueryServicesStub.Attribute_type3();
+                GenericTIBCOQueryServicesStub.AttribDtl_type1E dtl = new GenericTIBCOQueryServicesStub.AttribDtl_type1E();
+                dtl.setName("INVOICE_NUM");
+                dtl.setString(invoiceNum);
+                invoicesParameter.setAttribDtl(dtl);
+                reqPayload.addAttribute(invoicesParameter);
+                
+                finalResp.put(invoiceNum, null);
+            }
+            
+            GenericTIBCOQueryServicesStub.BillingHistoryQueryRes tibResp = stub.billingHistoryQueryOperation(reqPayload);
+            
+            if(tibResp.getSTATUS_CODE().equals("00000")){
+                if(tibResp.getQUERY_RESPONSE() != null){
+                    QUERY_RESPONSE_type1[] data = tibResp.getQUERY_RESPONSE();
+                    for (QUERY_RESPONSE_type1 qryRes : data) {
+                        Map<String,String> dataDtl = new HashMap<>();
+                        String invoiceNum = "";
+                        String invoiceStatus = paymentStatusDto.getLanguage().equals(Constants.LANG_ID)
+                            ? Languages.ID.PAYMENT_STATUS_NOT_PAID
+                            : Languages.EN.PAYMENT_STATUS_NOT_PAID;
+                        
+                        Attribute_type4[] attr = qryRes.getAttribute();
+                        for (Attribute_type4 attribute_type4 : attr) {
+                            if(attribute_type4.getAttribDtl().getName().equals("INVOICE_NUM"))
+                                invoiceNum = attribute_type4.getAttribDtl().getString();
+                            switch(attribute_type4.getAttribDtl().getName()){
+                                case "INVOICE_NUM":
+                                case "BILL_DUE_DATE":
+                                case "BILL_DATE":
+                                case "BILL_TYPE":
+                                case "PAYMENT_STATUS":
+                                    dataDtl.put(toCamelCase(attribute_type4.getAttribDtl().getName()), attribute_type4.getAttribDtl().getString());
+                                    break;
+                            }
+                        }
+                        
+                        switch(dataDtl.get("PaymentStatus")){
+                            case "Fully Paid":{
+                                invoiceStatus = paymentStatusDto.getLanguage().equals(Constants.LANG_ID)
+                                ? Languages.ID.PAYMENT_STATUS_PAID
+                                : Languages.EN.PAYMENT_STATUS_PAID;
+                            }
+                            case "Partially Paid":{
+                                invoiceStatus = paymentStatusDto.getLanguage().equals(Constants.LANG_ID)
+                                ? Languages.ID.PAYMENT_STATUS_PARTIALLY_PAID
+                                : Languages.EN.PAYMENT_STATUS_PARTIALLY_PAID;
+                            }
+                        }
+                        dataDtl.put("PaymentStatus", invoiceStatus);
+                        finalResp.put(invoiceNum, dataDtl);
+                    }
+                }
+            } else {
+                for (String invoiceNum : listInv) {
+                    finalResp.put(invoiceNum, null);
+                }
+            }
+        } catch (AxisFault ex) {
+            LOGGER.info("getPaymentStatus.AxisFault "+ ex.getMessage());
+        } catch (RemoteException ex) {
+            LOGGER.info("getPaymentStatus.RemoteException "+ ex.getMessage());
+        } catch (NullPointerException ex) {
+            LOGGER.info("getPaymentStatus.NullPointerException "+ ex.getMessage());
+        }
+        
+        containerResp.put("content", finalResp);
+        return containerResp;
+    }
+    
+    static String toCamelCase(String s){
+        String[] parts = s.split("_");
+        String camelCaseString = "";
+        for (String part : parts){
+           camelCaseString = camelCaseString + toProperCase(part);
+        }
+        return camelCaseString;
+    }
+    
+    static String toProperCase(String s) {
+        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
+}

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://xmlns.example.com/1401975688896/TIbcoODPOpImpl/Business__Process/ODP__Interfaces" xmlns:ns0="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/ODP/TibcoODPMessage.xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="Untitled" targetNamespace="http://xmlns.example.com/1401975688896/TIbcoODPOpImpl/Business__Process/ODP__Interfaces">
+    <wsdl:types>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/ODP/TibcoODPMessage.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT_01042014/Shared_Resources/Schema/XML/ODP/TibcoODPMessage.xsd" elementFormDefault="unqualified" attributeFormDefault="unqualified">
+            <xs:element name="TibcoODPRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TRANSACTION_ID" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="SOURCE" type="xs:string"/>
+                        <xs:element name="SUBSCRIBER_TYPE" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="TibcoODPResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="SubsriberInfo" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Total_Balance" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Main_Account_Balance" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="On-Net_Bal" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Off-Net_Bal" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Expiry_Date" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Subscription_Type" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="HYBRID_Type" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Call_Plan" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Payment_type" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Ebill_mail_id" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusCode" type="xs:string"/>
+                                    <xs:element name="StatusText" type="xs:string"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="BONUS_INFO" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttribDtl" minOccurs="0">
+                                                    <xs:complexType>
+                                                        <xs:simpleContent>
+                                                            <xs:extension base="xs:string">
+                                                                <xs:attribute name="Name" type="xs:string"/>
+                                                            </xs:extension>
+                                                        </xs:simpleContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="StatusCode" type="xs:string"/>
+                                    <xs:element name="StatusText" type="xs:string"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="TKCINFO" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Mon_Loyalty_Prev_Month" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Mon_Loyalty_Cur_Month" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Pacuan_Activation_Point" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusCode" type="xs:string"/>
+                                    <xs:element name="StatusText" type="xs:string"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="CreditLimitInfo" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Total_credit_limit" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Remaining_credit_limit" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Bill_cycle_day" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Last_billing_date" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Payment_due_date" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="Subscriber_status" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusCode" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusText" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="HybridBalanceInfo" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="SubscriberRegistrationDate" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="SubscriberStatus" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="BillCycle" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="LastBillDate" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="CreditLimit" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="AvailableCredit" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="OutstandingBalance" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="PreviousDue" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="PaymentDueDate" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="EmailId" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="eBill" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="eReceipt" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusCode" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusText" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="DuePaymentInfo" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="DuePaymentInfoDetails" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Account_number" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="Msisdn" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="Last_bill_cylce_outstanding_amt" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="Total_outstanding_amt" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="Account_Type" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="OverPaymentAmount" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="Payment_Type" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="Ebill_Mail_Id" type="xs:string" minOccurs="0"/>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="StatusCode" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="StatusText" type="xs:string" minOccurs="0"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="SQBonusInfo" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="ResponseCode" type="xs:string"/>
+                                    <xs:element name="ResponseDescription" type="xs:string"/>
+                                    <xs:element name="BONUS_INFO">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Attribute" minOccurs="0" maxOccurs="unbounded">
+                                                    <xs:complexType>
+                                                        <xs:sequence>
+                                                            <xs:element name="AttribDtl" minOccurs="0">
+                                                                <xs:complexType>
+                                                                    <xs:simpleContent>
+                                                                        <xs:extension base="xs:string">
+                                                                            <xs:attribute name="Name" type="xs:string"/>
+                                                                        </xs:extension>
+                                                                    </xs:simpleContent>
+                                                                </xs:complexType>
+                                                            </xs:element>
+                                                        </xs:sequence>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="Bonus_Details" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="BONUS_ITEM" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="BONUS_TYPE" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="BONUS_NAME" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="START_DATE" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="END_DATE" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="BONUS_STATUS" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="ALLOCATED_AMOUNT" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="CONSUMED_AMOUNT" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="REMAINING_AMOUNT" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="BONUS_UOM" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="ELIGIBILITY_COUNTER" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="QUALIFYING_UNITS" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="QUALIFYING_UOM" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="QUALIFYING_USAGE_SET" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="PERIODIC_FEE_DEDUCTION_STATUS" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="REGISTRATION_STATUS" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="REGISTRATION_STATUS_DATE" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="TOPUP_POINTS" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="TOPUP_AMOUNT" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="CALL_PLAN" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="TIME_BAND" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="WINDOW_START_END_TIME" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="EMAIL_ID" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="ELIGIBLE_USAGE_SET" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="REMAINING_CONTRACT_PERIOD" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="AUTORENEWAL_FLAG" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="BONUS_SUB_TYPE" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="NETWORK_PACKAGE" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="REGISTRATION_KEY" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="PRODUCT_DESCRIPTION" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="PCRF_END_DATE" type="xs:string" minOccurs="0"/>
+                                                <xs:element name="PCRF_REMAINING_AMOUNT" type="xs:string" minOccurs="0"/>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="SubscriberName" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="TibcoODPSingleQueryProcess">
+        <wsdl:port name="SOAPEventSource" binding="tns:SOAPEventSourceBinding">
+            <soap:address location="http://localhost:45012/Business_Process/ODP_Interfaces/TibcoODPSingleQueryProcess"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="TIbcoODPPT">
+        <wsdl:operation name="TIbcoODPOp">
+            <wsdl:input message="tns:TibcoODPRequest"/>
+            <wsdl:output message="tns:TibcoODPResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="SOAPEventSourceBinding" type="tns:TIbcoODPPT">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="TIbcoODPOp">
+            <soap:operation style="document" soapAction="/Business_Process/ODP_Interfaces/TibcoODPSingleQueryProcess"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="TibcoODPRequest"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="TibcoODPResponse"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="TibcoODPRequest">
+        <wsdl:part name="TibcoODPRequest" element="ns0:TibcoODPRequest"/>
+    </wsdl:message>
+    <wsdl:message name="TibcoODPResponse">
+        <wsdl:part name="TibcoODPResponse" element="ns0:TibcoODPResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

@@ -1,0 +1,15 @@
+package id.gnvsolution.d3.api.utils;
+
+import java.util.Locale;
+
+import org.springframework.context.MessageSource;
+
+public class SpringUtils {
+	
+	public static String resolveMessage(MessageSource messageSource, String key, Object[] args, String defaultMessage, Locale locale){
+		System.out.println(messageSource.getMessage(key, args, defaultMessage, locale));
+		return messageSource.getMessage(key, args, defaultMessage, locale);
+		
+	}
+
+}

@@ -1,0 +1,15 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.List;
+
+import id.gnvsolution.d3.api.dto.request.NotificationMessageDto;
+import id.gnvsolution.d3.api.model.NotificationMaster;
+
+public interface NotificationMasterService {
+
+	String getMessageText(Integer messageId, String languageId);
+
+	List<NotificationMaster> getList(Integer limit, Integer offset);
+
+	NotificationMessageDto saveOrUpdate(NotificationMessageDto request);
+}

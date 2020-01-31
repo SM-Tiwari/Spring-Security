@@ -1,0 +1,40 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tibco.www.schemas.vnm_project.shared_resources.abstract_wsdl.selfcare.schema_xsd.NonVasRegResponse;
+
+import id.gnvsolution.d3.api.service.ProductBillingService;
+import id.gnvsolution.d3.api.service.TibcoService;
+
+@Service
+@Transactional
+public class ProductBillingServiceImpl extends BaseService implements ProductBillingService{
+	
+	 @Autowired
+	 private TibcoService tibcoService;
+
+	@Override
+	public boolean apiProductBilling(String subscriberId, String langCode, String pakageid, String product_code,
+			String packagcode) {
+		 NonVasRegResponse response=null;
+     	try {
+     		LOGGER.info("Invoking Subscribpackage method of TibcoService-------------subscriberId===="+ subscriberId+  "        packageid===="+ pakageid+"       langauage code===="+langCode);
+		    response=tibcoService.Subscribpackage(subscriberId,langCode,pakageid,product_code,packagcode);
+		    LOGGER.info("NonVasRegResponse code after invoking: ", response.getResponseCode());
+            if (response.getResponseCode().equals("1")) {
+         	return true;
+         	
+	        } else {
+	            return false;
+	            }
+	        } catch (Exception e) {
+	            LOGGER.error("#apiProductBilling----------",e.getMessage());
+	            return false;
+	        }
+	    }
+
+	}
+

@@ -1,0 +1,53 @@
+/**
+ * 
+ */
+package com.gnv.vnm.selfcare.core.model.pg;
+
+/**
+ * @author nandipinto
+ *
+ */
+public enum NapasErrorCode {
+
+	BANK_SYSTEM_REJECT("1"),
+	CARD_EXPIRED("3"),
+	LIMIT_EXCEEDED("4"),
+	NO_REPLY_FROM_BANK("5"),
+	BANK_COMM_FAILURE("6"),
+	INSUFFICIENT_FUND("7"),
+	INVALID_CHECKSUM("8"),
+	TRX_TYPE_NOT_SUPPORTED("9"),
+	OTHER("10"),
+	AMOUNT_LIMIT_EXCEEDED_1("12"),
+	NOT_REGISTERED("13"),
+	INVALID_OTP("14"),
+	INVALID_STATIC_PASSWORD("15"),
+	INCORRECT_CARDHOLDER_NAME("16"),
+	INCORRECT_CARD_NUMBER("17"),
+	INVALID_VALIDITY_DATE("18"),
+	INVALID_EXPIRATION_DATE("19"),
+	UNSUCCESSFUL_TRX_1("20"),
+	OTP_TIMEOUT("21"),
+	UNSUCCESSFUL_TRX_2("22"),
+	PAYMENT_NOT_APPROVED("23"),
+	AMOUNT_LIMIT_EXCEEDED_2("24"),
+	AMOUNT_LIMIT_EXCEEDED_3("25"),
+	WRONG_AUTH_INFO("27"),
+	AMOUNT_LIMIT_EXCEEDED_4("28"),
+	TRX_FAILED_BANK_INFO_REQUIRED("29"),
+	AMOUNT_LESS_THAN_MIN_LIMIT("30"),
+	ORDER_NOT_FOUND("31"),
+	DUPLICATE_ORDERS("33"),
+	TRANSACTION_TIMEOUT("-1");
+	
+	
+	private String code;
+	
+	private NapasErrorCode(String code) {
+		this.code = code;
+	}
+	
+	public String code() {
+		return this.code;
+	}
+}

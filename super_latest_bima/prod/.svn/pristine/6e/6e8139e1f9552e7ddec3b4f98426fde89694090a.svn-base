@@ -1,0 +1,166 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.CampaignReward 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 7, 2017 6:03:50 PM
+ *
+ */
+@Entity
+@Table(name = "CAMPAIGN_REWARD")
+public class CampaignReward implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_CAMPAIGN_REWARD", sequenceName = "SEQ_CAMPAIGN_REWARD", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_CAMPAIGN_REWARD", strategy = GenerationType.SEQUENCE)
+    private Long id;
+    
+    @Basic(optional = false)
+    @Column(name = "MSISDN")
+    private String msisdn;
+    @Column(name = "IMEI")
+    private String imei;
+    @Column(name = "OS")
+    private String os;
+    @Column(name = "BRAND")
+    private String brand;
+    @Column(name = "CLIENT_APPID")
+    private String clientAppid;
+    @Column(name = "INSTALL_DATE")
+    private Date installDate;
+    @Column(name = "CLAIM_DATE")
+    private Date claimDate;
+    @Column(name = "CLAIM_STATUS")
+    private Short claimStatus;
+    @JoinColumn(name = "CAMPAIGN_ID", referencedColumnName = "CAMPAIGN_ID")
+    @ManyToOne(optional = false)
+    private Campaign campaignId;
+
+    public CampaignReward() {
+    }
+
+    public CampaignReward(Long id) {
+        this.id = id;
+    }
+
+    public CampaignReward(Long id, String msisdn) {
+        this.id = id;
+        this.msisdn = msisdn;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getImei() {
+        return imei;
+    }
+
+    public void setImei(String imei) {
+        this.imei = imei;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getClientAppid() {
+        return clientAppid;
+    }
+
+    public void setClientAppid(String clientAppid) {
+        this.clientAppid = clientAppid;
+    }
+
+    public Date getInstallDate() {
+        return installDate;
+    }
+
+    public void setInstallDate(Date installDate) {
+        this.installDate = installDate;
+    }
+
+    public Date getClaimDate() {
+        return claimDate;
+    }
+
+    public void setClaimDate(Date claimDate) {
+        this.claimDate = claimDate;
+    }
+
+    public Short getClaimStatus() {
+        return claimStatus;
+    }
+
+    public void setClaimStatus(Short claimStatus) {
+        this.claimStatus = claimStatus;
+    }
+
+    public Campaign getCampaignId() {
+        return campaignId;
+    }
+
+    public void setCampaignId(Campaign campaignId) {
+        this.campaignId = campaignId;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof CampaignReward)) {
+            return false;
+        }
+        CampaignReward other = (CampaignReward) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.CampaignReward[ id=" + id + " ]";
+    }
+
+}

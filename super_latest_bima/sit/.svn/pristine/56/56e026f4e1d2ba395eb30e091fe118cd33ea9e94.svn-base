@@ -1,0 +1,93 @@
+package id.gnvsolution.d3.api.dto.request;
+
+import java.util.Objects;
+
+/**
+ * Created by rips on 4/16/17.
+ */
+public class HomeScreenRequestDto extends BaseRequestDto {
+
+    private String language;
+    private String subscriberType;
+    private String secretKey;
+    private Integer page;
+    private Integer isFull;
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    @Override
+    public String toString() {
+        return "HomeScreenRequestDto{" + "language=" + language + ", subscriberType=" + subscriberType + ", secretKey=" + secretKey + ", page=" + page + '}';
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.language);
+        hash = 59 * hash + Objects.hashCode(this.subscriberType);
+        hash = 59 * hash + Objects.hashCode(this.secretKey);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final HomeScreenRequestDto other = (HomeScreenRequestDto) obj;
+        if (!Objects.equals(this.language, other.language)) {
+            return false;
+        }
+        if (!Objects.equals(this.subscriberType, other.subscriberType)) {
+            return false;
+        }
+        if (!Objects.equals(this.secretKey, other.secretKey)) {
+            return false;
+        }
+        return true;
+    }
+
+    public Integer getIsFull() {
+        return isFull;
+    }
+
+    public void setIsFull(Integer isFull) {
+        this.isFull = isFull;
+    }
+}

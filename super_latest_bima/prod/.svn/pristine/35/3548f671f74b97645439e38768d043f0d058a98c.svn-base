@@ -1,0 +1,73 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import id.gnvsolution.d3.api.service.CLMService;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.CLMServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 3, 2017 1:09:10 PM
+ *
+ */
+@Service
+@Transactional
+public class CLMServiceImpl implements CLMService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(CLMServiceImpl.class);
+    
+    @Override
+    @Cacheable(value = "cache1", key = "#root.methodName.toString() + #msisdn ")
+    public List<String> getApiClmOfferIdList(String transactionId, String msisdn) {
+       List<String> offerIdList = new ArrayList<>();
+
+         try {
+        	 /* HttpResponse httpResult = HttpClientHelper.getData(Constants.API_CLM_PERSONALIZED_OFFERS, new HashMap<String, String>() {{
+                put("msisdn", msisdn);
+                put("shortcode", "bimatri");
+                put("tid", transactionId);
+            }}, null);
+            LOGGER.info("CLMServiceImpl.getApiClmOfferIdList.httpRequest: " + transactionId + "," + msisdn);
+
+            LOGGER.info("==================================================================");
+            LOGGER.info("CLMServiceImpl.getApiClmOfferIdList [Request] >> "+transactionId + "," + msisdn);
+            LOGGER.info("==================================================================");
+
+            if (httpResult.getStatusLine().getStatusCode() == 200) {
+                ClmOfferResponse clmOfferResponse = (ClmOfferResponse) XmlHelper.unMarshal(httpResult.getEntity().getContent(), ClmOfferResponse.class);
+
+                LOGGER.info("==================================================================");
+                LOGGER.info("CLMServiceImpl.getApiClmOfferIdList [Response] >> "+clmOfferResponse);
+                LOGGER.info("==================================================================");
+
+                if(clmOfferResponse == null || clmOfferResponse.getProducts()== null)
+                    return offerIdList;
+
+                for (ClmProduct product : clmOfferResponse.getProducts()) {
+                    offerIdList.add(product.getOfferID());
+                }
+
+                return offerIdList;
+            } else {
+                LOGGER.info("==================================================================");
+                LOGGER.info("CLMServiceImpl.getApiClmOfferIdList [StatusCode] >> " + httpResult.getStatusLine().getStatusCode());
+                LOGGER.info("==================================================================");
+            }*/
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+
+        return offerIdList;
+    }
+    
+}

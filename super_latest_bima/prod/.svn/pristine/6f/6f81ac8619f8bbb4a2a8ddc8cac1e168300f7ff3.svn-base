@@ -1,0 +1,47 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.ShareQuotaChildDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 12, 2017 11:19:48 AM
+ *
+ */
+public class ShareQuotaChildDto extends BaseRequestDto {
+    
+    private Integer isAction;
+    private String msisdnChild;
+    private Integer productId;
+
+    public ShareQuotaChildDto() {
+    }
+
+    public Integer getIsAction() {
+        return isAction;
+    }
+
+    public void setIsAction(Integer isAction) {
+        this.isAction = isAction;
+    }
+
+    public String getMsisdnChild() {
+        if (msisdnChild != null && msisdnChild.startsWith("0")) {
+            msisdnChild = String.format("62%s", msisdnChild.substring(1));
+        }
+        return msisdnChild;
+    }
+
+    public void setMsisdnChild(String msisdnChild) {
+        this.msisdnChild = msisdnChild;
+    }
+
+    public Integer getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Integer productId) {
+        this.productId = productId;
+    }
+}

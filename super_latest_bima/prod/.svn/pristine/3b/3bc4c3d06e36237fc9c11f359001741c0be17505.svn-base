@@ -1,0 +1,8 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.response.InfoWordingDto;
+
+public interface InfoWordingService {
+
+	InfoWordingDto getInfoWording(String key, String language);
+}

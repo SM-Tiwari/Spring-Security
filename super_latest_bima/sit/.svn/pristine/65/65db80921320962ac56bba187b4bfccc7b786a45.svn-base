@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.component.transid;
+
+/**
+ * Created by Arie
+ * on 10/04/2017.
+ */
+public interface SequenceGenerator {
+    public Long getNextValue();
+}

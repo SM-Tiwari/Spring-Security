@@ -1,0 +1,1912 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+
+import com.gnv.vnm.selfcare.core.model.Bank;
+import com.gnv.vnm.selfcare.core.model.CurrentBalance;
+import com.gnv.vnm.selfcare.core.model.FinalResponse;
+import com.gnv.vnm.selfcare.core.model.InitialResponse;
+import com.gnv.vnm.selfcare.core.model.NapasErrorCode;
+import com.gnv.vnm.selfcare.core.model.NapasSuccessCode;
+import com.gnv.vnm.selfcare.core.model.PaymentRequest;
+import com.gnv.vnm.selfcare.core.model.RechargeResponse;
+import com.gnv.vnm.selfcare.core.model.RefundRequest;
+import com.gnv.vnm.selfcare.core.model.RefundResponse;
+import com.gnv.vnm.selfcare.core.model.SubscriberInfoFromTibco;
+import com.google.common.base.Charsets;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.helper.OrderIdNotFoundException;
+import id.gnvsolution.d3.api.helper.TransactionInProgressException;
+import id.gnvsolution.d3.api.helper.TransactionNotFoundException;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.helper.enums.ClientAppId;
+import id.gnvsolution.d3.api.helper.enums.TibcoResponse;
+import id.gnvsolution.d3.api.helper.enums.TransactionStatus;
+import id.gnvsolution.d3.api.helper.enums.TransactionType;
+import id.gnvsolution.d3.api.model.BankEntity;
+import id.gnvsolution.d3.api.model.EtopUpStatusEntity;
+import id.gnvsolution.d3.api.model.PaymentHistoryEntity;
+import id.gnvsolution.d3.api.model.PaymentHistoryStatusModel;
+import id.gnvsolution.d3.api.model.ScratchBlockHistoryEntity;
+import id.gnvsolution.d3.api.model.ScratchStatusEntity;
+import id.gnvsolution.d3.api.model.ScratchStatusModel;
+import id.gnvsolution.d3.api.model.TrxPostpaidPayment;
+import id.gnvsolution.d3.api.model.TrxSubscriberEtopup;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.model.TrxSubscriberReload;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.service.NapasPaymentService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.service.TibcoService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+@Transactional
+@Service("napasservice")
+public class NapasPaymentServiceImpl implements NapasPaymentService {
+	public static final Logger LOGGER = LoggerFactory.getLogger(NapasPaymentServiceImpl.class);
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+	
+
+	 @Autowired
+	 private GetRequestService interfaceType;
+	 
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+	static final String SUCCESS_RESP = "0";
+	static final int CONNECTION_TIMEOUT_IN_SECS = 10;
+	static final int MAX_CONNECTIONS = 10;
+	static final int CONNECTION_CHECK_INT_SECS = 5;
+	private String url = "http://10.8.8.51:19092/vnmbl/VNM/capturePayment";
+	private String mid = "938425";
+	private String channelId = "SELFCARE";
+	private String language = "E";
+	private String requestDateFormat = "ddMMyyyy HH:mm:ss:SSS";
+	private String responseDateFormat = "yyyy-MM-dd HH:mm:ss";
+	private String userName = "";
+	private String credential = "";
+	private String secretKey = "";
+	private String callBackUrl = "";
+	private String napasCallbackURL = "";
+	private String napasCancelURL = "";
+	private String successRespCode = SUCCESS_RESP;
+	private RestTemplate restTemplate = new RestTemplate();
+	private int connectTimeout = CONNECTION_TIMEOUT_IN_SECS;
+	private int maxConnections = MAX_CONNECTIONS;
+	private int httpConnectionCheckInterval = CONNECTION_CHECK_INT_SECS * 1000;
+	private HttpComponentsClientHttpRequestFactory httpRequestFactory = null;
+	private CloseableHttpClient pgHttpClient = null;
+	private CloseableHttpClient napasHttpClient = null;
+	private PoolingHttpClientConnectionManager connectionManager = null;
+	private RequestConfig requestConfig = null;
+	@Autowired
+	private ThreadPoolTaskExecutor taskExecutor;
+	@Autowired
+	private NotificationWorker notificationWorker;
+	
+	@Autowired
+	private ProfileService profileService;
+	
+	@Autowired
+	private NotificationMasterService notificationMasterService;
+	
+	
+	
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+	private final ExternalPayment externalPayment;
+
+	@Autowired
+	public NapasPaymentServiceImpl(ExternalPayment externalPayment) {
+		this.externalPayment = externalPayment;
+	}
+
+	@Autowired
+	private TibcoService tibcoService;
+	
+	/*@Override
+	public String initTransaction(String transactionType, String MSISDN, String AMOUNT, String BILLAMOUNT,
+			ModelMap modelMap, Map<String, String> params, HttpHeaders httpHeaders, HttpServletRequest request,String loginmsisdn) {
+		LOGGER.info("#initTransaction---------Transection type :::" + transactionType +" ::::: MSISDN:::::  "+MSISDN+" ::::::::::::AMOUNT::: "+AMOUNT+" ::::::::::BILLAMOUNT::  "+BILLAMOUNT);
+		String transactionId = null;
+		String orderId = RandomStringUtils.randomAlphanumeric(40);
+
+		PaymentHistoryEntity history = new PaymentHistoryEntity();
+		if (MSISDN != null) {
+			MSISDN = AppUtils.removeCountryCode(MSISDN, AppDefaultValues.COUNTRY_CODE);
+		}
+		
+		history.setAmount(Double.parseDouble(AMOUNT));
+		String trx_type = "";
+		TransactionType transactionTypes = TransactionType.E_TOPUP;
+		try {
+			transactionTypes = TransactionType.valueOf(transactionType.toUpperCase());
+		} catch (Exception e) {
+		}
+		if (transactionTypes.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+			if (BILLAMOUNT != null) {
+				if (BILLAMOUNT.trim().isEmpty()) {
+					return "";
+				}
+			}
+			if (AMOUNT != null) {
+				if (AMOUNT.trim().isEmpty()) {
+					return "";
+				}
+			}
+		}
+		LOGGER.info("#initTransaction---------Transection type :::" + transactionType);
+		if (transactionTypes.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+
+			// POSTPAID
+			try {
+				trx_type = TransactionType.POSTPAID_BILL_PAYMENT.name();
+				transactionId = getTractionType(MSISDN, TransactionType.POSTPAID_BILL_PAYMENT.name());
+				TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+				trxPostpaidPayment.setTransactionId(transactionId);
+				trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+				trxPostpaidPayment.setPaymentMethodCode("01");
+				SubscriberInfoFromTibco subscriberInfoFromTibco = tibcoService.getSubscriberInfoFromDownSystem(MSISDN,
+						"");
+				CurrentBalance currentBalance = tibcoService.getCurrentBalance(MSISDN, "");
+				System.out.println("");
+				if (subscriberInfoFromTibco.getAccountNumber() != null) {
+					trxPostpaidPayment.setAccountNumber(subscriberInfoFromTibco.getAccountNumber());
+				} else {
+					trxPostpaidPayment.setAccountNumber("accountnumber");
+				}
+				LOGGER.info("#initTransaction-------Bill Amount is " + BILLAMOUNT);
+				trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.trim()));
+				trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.trim()));
+				trxPostpaidPayment.setInterfaceType(interfaceType.getRequestMode());
+				if (currentBalance.getFullName() != null)
+					trxPostpaidPayment.setAccountName(currentBalance.getFullName());
+				else {
+					trxPostpaidPayment.setAccountName("NA");
+				}
+				LOGGER.info("#initTransaction-----ebill mail id++++++" + subscriberInfoFromTibco.getEBILL_MAIL_ID());
+				trxPostpaidPayment.setAccountEmail(subscriberInfoFromTibco.getEBILL_MAIL_ID());
+
+				// save invoice
+				externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+			}
+
+		} else if (transactionTypes.equals(TransactionType.E_TOPUP)) {
+
+			transactionId = getTractionType(MSISDN, TransactionType.E_TOPUP.name());
+			trx_type = TransactionType.E_TOPUP.name();
+			LOGGER.info("#initTransaction--------Transection Id IS ::" + transactionId + " AMOUNT" + AMOUNT);
+			try {
+				if(loginmsisdn!=null)
+				{
+					loginmsisdn=AppUtils.removeCountryCode(loginmsisdn, AppDefaultValues.COUNTRY_CODE);
+					history.setLoginmsisdn(loginmsisdn);
+				}
+				TrxSubscriberEtopup trxSubscriberEtopup = new TrxSubscriberEtopup();
+				trxSubscriberEtopup.setTransactionId(transactionId);
+				trxSubscriberEtopup.setMsisdn(MSISDN);
+				trxSubscriberEtopup.setSubscriberMsisdn(MSISDN);
+				trxSubscriberEtopup.setPaymentMethodCode("01");
+				trxSubscriberEtopup.setInterfaceType(interfaceType.getRequestMode());
+				trxSubscriberEtopup.setEvoucherAmount(Long.parseLong((AMOUNT.replace(".00", ""))));
+				externalPayment.saveToTrxPrepaidPayment(trxSubscriberEtopup);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		} else if (transactionTypes.equals(TransactionType.POSTPAID_DEPOSIT)) {
+			transactionId = externalPayment.generateTrxNumberPostpaid();
+
+			// POSTPAID
+			trx_type = TransactionType.POSTPAID_DEPOSIT.name();
+			TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+			trxPostpaidPayment.setTransactionId(transactionId);
+			trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+			trxPostpaidPayment.setPaymentMethodCode("01");
+			SubscriberInfoFromTibco subscriberInfoFromTibco = tibcoService.getSubscriberInfoFromDownSystem(MSISDN, "");
+			trxPostpaidPayment.setAccountNumber(subscriberInfoFromTibco.getAccountNumber());
+			trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+			trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+			trxPostpaidPayment.setAccountName("");
+			trxPostpaidPayment.setInterfaceType(interfaceType.getRequestMode());
+			trxPostpaidPayment.setAccountEmail(subscriberInfoFromTibco.getEBILL_MAIL_ID());
+		}
+		history.setItemCode(transactionId);
+		history.setMsisdn(MSISDN);
+		history.setOrderId(orderId);
+		history.setChannel(interfaceType.getRequestMode());
+		history.setClientAppId(interfaceType.getRequestMode());
+		history.setTrxType(trx_type);
+		externalPayment.savePaymentHistory(history);
+		return orderId;
+	}
+
+	// TODO Auto-generated method stub
+*/
+	@Override
+	public void saveToTrxSubscriberPurchase(TrxSubscriberPurchase subscriberPurchase) {
+		BaseDao<TrxSubscriberPurchase> trxSubscriberDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberPurchase.class);
+		subscriberPurchase.setTransactionDatetime(new Timestamp(System.currentTimeMillis()));
+		subscriberPurchase.setTransactionStatus(0);
+		subscriberPurchase.setInterfaceType(interfaceType.getRequestMode());
+		trxSubscriberDao.save(subscriberPurchase);
+	}
+
+	public String getTractionType(String msisdn, String trxType) {
+		LOGGER.info("#getTractionType--------------msisdn=="+msisdn+"------transaction type=="+trxType);
+		TransactionType transactionType = TransactionType.E_TOPUP;
+		String itemCode = "";
+		try {
+			transactionType = TransactionType.valueOf(trxType.toUpperCase());
+		} catch (Exception e) {
+		}
+
+		if (transactionType.equals(TransactionType.E_TOPUP)) {
+			itemCode = "BM_" + msisdn + "_" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss");
+
+		} else if (transactionType.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+			itemCode = "BM_" + msisdn + "_" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss");
+
+		} else if (transactionType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+			itemCode = "BM_" + msisdn + "_" + AppUtils.dateToString(new Date(), "yyyyMMddHHmmss");
+		}
+		return itemCode;
+	}
+
+	
+	@Override
+	public String initTransaction(String transactionType, String MSISDN, String AMOUNT, String Actual_AMOUNT,
+			String BILLAMOUNT, ModelMap modelMap, Map<String, String> params, HttpHeaders httpHeaders,
+			HttpServletRequest request, String loginmsisdn,String discount) {
+		LOGGER.info("#initTransaction---------Transection type :::" + transactionType + " ::::: MSISDN:::::  " + MSISDN
+				+ " ::::::::::::AMOUNT::: " + AMOUNT + " ::::::::::BILLAMOUNT::  " + BILLAMOUNT);
+		String transactionId = null;
+		String orderId = RandomStringUtils.randomAlphanumeric(27)+ZonedDateTime.now().toInstant().toEpochMilli();
+		
+		
+		/*
+		 * // added by siddhesh on 09-01-2020 String msisdn = loginmsisdn;
+		 * BaseDao<PaymentHistoryEntity> paymentHistoryEntity = new
+		 * BaseDao<>(sessionFactoryDef, PaymentHistoryEntity.class); long
+		 * numberOfTrxInLast1Hour = paymentHistoryEntity
+		 * .count("msisdn = :subscriberMsisdn AND SYSDATE - 1/24 < trx_dtm", new
+		 * HashMap<String, Object>() { { put("subscriberMsisdn", msisdn); } });
+		 * 
+		 * if (numberOfTrxInLast1Hour >= 5) { return "blocked"; }
+		 */
+		
+		ScratchStatusModel topupStatusModel = checkBlockUnblockTopUp(loginmsisdn);
+		String blocktime = null;
+		String blockstatus = null;
+		long time = 0;
+		String currenttime = getCurrentDateTime(); 
+		blocktime = topupStatusModel.getTimeStamp();
+		blockstatus = topupStatusModel.getStatus();
+
+		if (blocktime != null) {
+			time = TimeDiff(blocktime, currenttime);
+		}
+		
+		if(topupStatusModel.getMsisdn()==null) {
+			  saveEtopupStatus(loginmsisdn, 0,"0", currenttime); 
+			  }
+
+		if (time >= 24) {
+			saveEtopupStatus(loginmsisdn, 0, "0", getCurrentDateTime());
+			topupStatusModel = checkBlockUnblockTopUp(loginmsisdn);
+
+		}
+		
+		
+		
+		if (topupStatusModel.getStatus().equalsIgnoreCase("0")) {
+
+		PaymentHistoryEntity history = new PaymentHistoryEntity();
+		if (MSISDN != null) {
+			MSISDN = AppUtils.removeCountryCode(MSISDN, AppDefaultValues.COUNTRY_CODE);
+		}
+
+		history.setAmount(Double.parseDouble(AMOUNT));
+		String trx_type = "";
+		TransactionType transactionTypes = TransactionType.E_TOPUP;
+		try {
+			transactionTypes = TransactionType.valueOf(transactionType.toUpperCase());
+		} catch (Exception e) {
+		}
+		if (transactionTypes.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+			if (BILLAMOUNT != null) {
+				if (BILLAMOUNT.trim().isEmpty()) {
+					return "";
+				}
+			}
+			if (AMOUNT != null) {
+				if (AMOUNT.trim().isEmpty()) {
+					return "";
+				}
+			}
+		}
+		LOGGER.info("#initTransaction---------Transection type :::" + transactionType);
+		if (transactionTypes.equals(TransactionType.POSTPAID_BILL_PAYMENT)) {
+
+			// POSTPAID
+			try {
+				trx_type = TransactionType.POSTPAID_BILL_PAYMENT.name();
+				transactionId = getTractionType(MSISDN, TransactionType.POSTPAID_BILL_PAYMENT.name());
+				TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+				trxPostpaidPayment.setTransactionId(transactionId);
+				trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+				trxPostpaidPayment.setPaymentMethodCode("01");
+				SubscriberInfoFromTibco subscriberInfoFromTibco = tibcoService.getSubscriberInfoFromDownSystem(MSISDN,
+						"");
+				CurrentBalance currentBalance = tibcoService.getCurrentBalance(MSISDN, "");
+				System.out.println("");
+				if (subscriberInfoFromTibco.getAccountNumber() != null) {
+					trxPostpaidPayment.setAccountNumber(subscriberInfoFromTibco.getAccountNumber());
+				} else {
+					trxPostpaidPayment.setAccountNumber("accountnumber");
+				}
+				LOGGER.info("#initTransaction-------Bill Amount is " + BILLAMOUNT);
+				trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.trim()));
+				trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.trim()));
+				trxPostpaidPayment.setInterfaceType(interfaceType.getRequestMode());
+				if (currentBalance.getFullName() != null)
+					trxPostpaidPayment.setAccountName(currentBalance.getFullName());
+				else {
+					trxPostpaidPayment.setAccountName("NA");
+				}
+				LOGGER.info("#initTransaction-----ebill mail id++++++" + subscriberInfoFromTibco.getEBILL_MAIL_ID());
+				trxPostpaidPayment.setAccountEmail(subscriberInfoFromTibco.getEBILL_MAIL_ID());
+
+				// save invoice
+				externalPayment.saveToTrxPostpaidPayment(trxPostpaidPayment);
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+			}
+
+		} else if (transactionTypes.equals(TransactionType.E_TOPUP)) {
+
+			transactionId = getTractionType(MSISDN, TransactionType.E_TOPUP.name());
+			trx_type = TransactionType.E_TOPUP.name();
+			LOGGER.info("#initTransaction--------Transection Id IS ::" + transactionId + " AMOUNT" + AMOUNT);
+			try {
+				if (loginmsisdn != null) {
+					loginmsisdn = AppUtils.removeCountryCode(loginmsisdn, AppDefaultValues.COUNTRY_CODE);
+					history.setLoginmsisdn(loginmsisdn);
+				}
+				TrxSubscriberEtopup trxSubscriberEtopup = new TrxSubscriberEtopup();
+				trxSubscriberEtopup.setTransactionId(transactionId);
+				trxSubscriberEtopup.setMsisdn(MSISDN);
+				trxSubscriberEtopup.setSubscriberMsisdn(MSISDN);
+				trxSubscriberEtopup.setPaymentMethodCode("01");
+				trxSubscriberEtopup.setInterfaceType(interfaceType.getRequestMode());
+				trxSubscriberEtopup.setEvoucherAmount(Long.parseLong((AMOUNT.replace(".00", ""))));
+				externalPayment.saveToTrxPrepaidPayment(trxSubscriberEtopup);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		} else if (transactionTypes.equals(TransactionType.POSTPAID_DEPOSIT)) {
+			transactionId = externalPayment.generateTrxNumberPostpaid();
+
+			// POSTPAID
+			trx_type = TransactionType.POSTPAID_DEPOSIT.name();
+			TrxPostpaidPayment trxPostpaidPayment = new TrxPostpaidPayment();
+			trxPostpaidPayment.setTransactionId("BM"+transactionId);
+			trxPostpaidPayment.setSubscriberMsisdn(MSISDN);
+			trxPostpaidPayment.setPaymentMethodCode("01");
+			SubscriberInfoFromTibco subscriberInfoFromTibco = tibcoService.getSubscriberInfoFromDownSystem(MSISDN, "");
+			trxPostpaidPayment.setAccountNumber(subscriberInfoFromTibco.getAccountNumber());
+			trxPostpaidPayment.setAccountAmountBill(new BigInteger(BILLAMOUNT.replace(".00", "")));
+			trxPostpaidPayment.setAccountAmountPaid(new BigInteger(AMOUNT.replace(".00", "")));
+			trxPostpaidPayment.setAccountName("");
+			trxPostpaidPayment.setInterfaceType(interfaceType.getRequestMode());
+			trxPostpaidPayment.setAccountEmail(subscriberInfoFromTibco.getEBILL_MAIL_ID());
+		}
+		history.setItemCode(transactionId);
+		history.setMsisdn(MSISDN);
+		history.setOrderId(orderId);
+		history.setChannel(interfaceType.getRequestMode());
+		history.setClientAppId(interfaceType.getRequestMode());
+		if (Actual_AMOUNT == null)
+			Actual_AMOUNT = "0.0";
+		history.setRecharge_amount(Double.parseDouble(Actual_AMOUNT));
+		history.setTrxType(trx_type);
+		history.setDiscount(discount);
+		externalPayment.savePaymentHistory(history);
+		return orderId;
+		} else {
+			return "5555555";
+		}
+	}
+	
+	
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public String executeTransaction(String orderId, ClientAppId appId, String language)
+			throws OrderIdNotFoundException, TransactionInProgressException {
+		// TODO Auto-generated method stub
+		HttpPost post = null;
+		InitialResponse pgResponse = null;
+		String pageContent = "";
+		try {
+
+			PaymentHistoryEntity history = getPaymentHistoryBasedOnTrx(orderId);
+			if (history == null) {
+				LOGGER.info("#executeTransaction----------------Order Id " + orderId + " does not exist!");
+				throw new OrderIdNotFoundException("#executeTransaction--------Order Id " + orderId + " does not exist!");
+			}
+
+			/*
+			 * url = "http://10.8.2.165:19092/vnmbl/VNM/capturePayment";
+			 * channelId = "SELFCARE"; mid = "938425"; userName = "sixdee";
+			 * credential = "sixdee"; secretKey = "646ed314-8";
+			 * requestDateFormat = "ddMMyyyy HH:mm:ss:SSS";
+			 */
+			url = applicationConfigurationService
+					.get("pg.requesturl", "http://10.8.8.51:19092/vnmbl/VNM/capturePayment").toString();
+			LOGGER.info("#executeTransaction--------Request Url Is ::::" + url);
+			channelId = applicationConfigurationService.get("pg.channelid", "SELFCARE").toString();
+			mid = applicationConfigurationService.get("pg.mid", "938425").toString();
+			userName = applicationConfigurationService.get("pg.username", "selfcare").toString();
+			LOGGER.info("#executeTransaction--------user name is::::" + userName);
+			credential = applicationConfigurationService.get("pg.credential", "selfcare").toString();
+			secretKey = applicationConfigurationService.get("pg.secretkey", "646ed314-8").toString();
+
+			requestDateFormat = applicationConfigurationService.get("pg.datetimeformat", "ddMMyyyy HH:mm:ss:SSS")
+					.toString();
+			long amount = 0;
+			String msisdn = "";
+			String itemCode = "";
+			if (appId.equals(ClientAppId.MOBILE_APP)) {
+				callBackUrl = applicationConfigurationService
+						.get("pg.callbackurl.api", "http://10.8.8.31:8181/webapi/pg/callback").toString();
+			} else {
+				callBackUrl = applicationConfigurationService
+						.get("pg.callbackurl.api", "http://10.8.8.31:8383/pg/callback").toString();
+
+			}
+			napasCallbackURL = applicationConfigurationService
+					.get("pg.napas.callbackurl", "http://103.129.188.37:8080/api/v1/napas/pg/napasCallBackHandler")
+					.toString();
+
+			napasCancelURL = applicationConfigurationService
+					.get("pg.napas.cancelurl", "http://103.129.188.37:8080/api/v1/napas/pg/cancelPayment?orderId=")
+					.toString();
+
+			successRespCode = applicationConfigurationService.get("pg.responsecode.success", SUCCESS_RESP).toString();
+
+			//amount = history.getAmount().intValue();
+			if ((history.getDiscount()!=null)&&(history.getDiscount().equalsIgnoreCase("APPLICABLE")))
+			{
+				amount =history.getRecharge_amount().intValue();
+			}else
+			{
+			   amount = history.getAmount().intValue();
+			}
+			msisdn = history.getMsisdn();
+			orderId = history.getOrderId();
+			itemCode = history.getItemCode();
+			if (!StringUtils.hasText(language))
+				language = "VN";
+			Date requestTime = new Date();
+			PaymentRequest request = new PaymentRequest();
+			request.setAmount(amount);
+			request.setCallBackUrl(callBackUrl);
+			request.setCardType("");
+			request.setChannel(channelId);
+			request.setMid(mid);
+			// SECRET KEY+ amount+mid+ orderId
+			String checkSumHash = sha256(secretKey + amount + mid + orderId);
+			request.setCheckSumHash(checkSumHash);
+			request.setEmailId("");
+			request.setIpAddress(InetAddress.getLocalHost().getHostAddress());
+			request.setLanguageId(language);
+			request.setMobileNumber(msisdn);
+			request.setNapasCallBackURL(napasCallbackURL);
+			request.setNapasCancelURL(napasCancelURL + orderId);
+			request.setOrderId(orderId);
+			request.setOrderInfo(itemCode);
+			request.setRequestTime(AppUtils.dateToString(requestTime, requestDateFormat));
+			request.setTxnType("");
+			restTemplate.setRequestFactory(getSimpleClientHttpRequestFactory(connectTimeout));
+			HttpEntity<PaymentRequest> entity = new HttpEntity<PaymentRequest>(request,
+					createHeaders(userName, credential));
+			try {
+				pgResponse = restTemplate.postForObject(url, entity, InitialResponse.class);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			// create payment history
+			LOGGER.info("#executeTransaction--------pgResponse  ---" + pgResponse);
+			history.setCheckSumHash(checkSumHash);
+			history.setIpAddress(request.getIpAddress());
+			history.setOrderInfo(request.getOrderInfo());
+			history.setRequestTime(requestTime);
+			if (pgResponse == null) {
+				history.setStatus(TransactionStatus.FAIL.ordinal());
+				LOGGER.info(String.format(
+						"#executeTransaction--------#makePayment(1) -- NULL response received for initial PG request(MSISDN=%s, amount=%s, order_id=%s)",
+						msisdn, "" + amount, orderId));
+				try {
+					externalPayment.updatePaymentHistory(history);
+
+				} catch (Exception e) {
+					LOGGER.error("#executeTransaction--------#makePayment(1) --- error when updating payment history with order_id# " + orderId,
+							e);
+				}
+				return pageContent;
+			}
+			if (pgResponse.getResultCode() == null || !pgResponse.getResultCode().equals(successRespCode)) {
+				history.setStatus(TransactionStatus.FAIL.ordinal());
+
+				LOGGER.error(String.format(
+						"#executeTransaction--------#makePayment(1) --- initial request to PG was not successful (order_id= %s, result_code= %s, result_msg= %s)",
+						orderId, pgResponse.getResultCode(), pgResponse.getResponseMsg()));
+				try {
+					externalPayment.updatePaymentHistory(history);
+				} catch (Exception e) {
+					LOGGER.error(
+							"#executeTransaction--------#makePayment(1) --- initial request to PG was not successful, error when updating payment history with order_id# "
+									+ orderId,
+							e);
+				}
+
+				try {
+					String trxType = history.getTrxType();
+					if (trxType.equalsIgnoreCase(TransactionType.E_TOPUP.name())) {
+
+						TrxSubscriberEtopup trxTopUp = externalPayment
+								.getPrePaidTransectionDetails(history.getItemCode());
+						if (trxTopUp != null) {
+							trxTopUp.setTransactionStatus(TransactionStatus.FAIL.ordinal());
+							externalPayment.updateToTrxPrepaidPayment(trxTopUp);
+						}
+
+					} else if (trxType.equalsIgnoreCase(TransactionType.POSTPAID_BILL_PAYMENT.name())
+							|| trxType.equalsIgnoreCase(TransactionType.POSTPAID_DEPOSIT.name())) {
+
+						TrxPostpaidPayment ph = externalPayment.getPostPaidTransectionDetails(history.getItemCode());
+						if (ph != null) {
+							ph.setTransactionStatus(BigInteger.valueOf(TransactionStatus.FAIL.ordinal()));
+							externalPayment.updateToTrxPostPayment(ph);
+						}
+					}
+
+				} catch (Exception e) {
+					LOGGER.error(
+							"#executeTransaction--------#makePayment(1) --- error when updating transaction history for payment with order_id= "
+									+ orderId,
+							e);
+				}
+
+				return pageContent;
+			}
+			history.setStatus(TransactionStatus.PROCESSING.ordinal());
+			history.setRedirectURL(pgResponse.getRedirectionURL());
+			LOGGER.info("#executeTransaction--------Redirect Url Is " + pgResponse.getRedirectionURL());
+			LOGGER.info("#executeTransaction--------Payment Gateway Redirect Url :" + pgResponse.getRedirectionURL());
+			if (pgResponse.getRedirectionURL() != null) {
+				LOGGER.info("#executeTransaction--------Check Condition ");
+				if (pgResponse.getRedirectionURL().contains("http://10.6.2.11:19091/")) {
+					LOGGER.info("#executeTransaction--------Redirect url Contails http://10.6.2.11:19091/ ");
+					String redirectUrl = pgResponse.getRedirectionURL();
+					redirectUrl = redirectUrl.replaceAll("http://10.6.2.11:19091/", "http://10.6.22.113:19091/");
+					LOGGER.info("#executeTransaction--------redirectUrl is " + redirectUrl);
+					pgResponse.setRedirectionURL(redirectUrl);
+					LOGGER.info("#executeTransaction--------final Redirect  url is ::" + pgResponse.getRedirectionURL());
+				}
+				if (pgResponse.getRedirectionURL().contains("http://10.6.2.12:19091/")) {
+					LOGGER.info("#executeTransaction--------Redirect url Contails http://10.6.2.12:19091/ ");
+					String redirectUrl = pgResponse.getRedirectionURL();
+					redirectUrl = redirectUrl.replaceAll("http://10.6.2.12:19091/", "http://10.6.22.113:19091/");
+					LOGGER.info("#executeTransaction--------redirectUrl is " + redirectUrl);
+					pgResponse.setRedirectionURL(redirectUrl);
+					LOGGER.info("#executeTransaction--------final Redirect  url is ::" + pgResponse.getRedirectionURL());
+				}
+			}
+			history.setResponseTime(AppUtils.stringToDate(pgResponse.getResponseTime(), responseDateFormat));
+			history.setInitialResultCode(pgResponse.getResultCode());
+			history.setInitialResultMsg(pgResponse.getResponseMsg());
+			history.setExtTrxId(pgResponse.getTransactionId());
+			externalPayment.updatePaymentHistory(history);
+			CloseableHttpResponse response = null;
+			LOGGER.info("#executeTransaction--------#makePayment(1) --- order_id= " + orderId + ", opening NAPAS page...");
+			try {
+				// open redirectionURL and get the page content and give it back
+				// to the browser to display payment page
+				HttpClientContext context = HttpClientContext.create();
+				post = new HttpPost(pgResponse.getRedirectionURL());
+				response = getPgHttpClient().execute(post, context);
+
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				org.apache.http.HttpEntity httpEntity = response.getEntity();
+				httpEntity.writeTo(out);
+
+				pageContent = new String(out.toByteArray(), "UTF-8");
+
+				EntityUtils.consume(httpEntity);
+
+			} catch (Exception e) {
+				LOGGER.error("#executeTransaction--------#makePayment(1) --- order_id= " + orderId + ", error when opening NAPAS page!", e);
+
+			} finally {
+				if (post != null)
+					post.releaseConnection();
+				try {
+					if (response != null)
+						response.close();
+				} catch (IOException e) {
+				}
+			}
+
+			if (!StringUtils.hasText(pageContent)) {
+				history.setStatus(TransactionStatus.FAIL.ordinal());
+
+				LOGGER.info("#executeTransaction--------#makePayment(1) --- order_id= " + orderId
+						+ ", received NAPAS page was empty - transaction could not be processed.");
+				try {
+					externalPayment.updatePaymentHistory(history);
+				} catch (Exception e) {
+					LOGGER.error(
+							"#executeTransaction--------#makePayment(1) --- received NAPAS page was empty - error when updating payment history with order_id# "
+									+ orderId,
+							e);
+				}
+
+				try {
+					String trxType = history.getTrxType();
+
+					if (trxType.equalsIgnoreCase(TransactionType.E_TOPUP.name())) {
+
+						TrxSubscriberEtopup trxTopUp = externalPayment
+								.getPrePaidTransectionDetails(history.getItemCode());
+						if (trxTopUp != null) {
+							trxTopUp.setTransactionStatus(TransactionStatus.FAIL.ordinal());
+							externalPayment.updateToTrxPrepaidPayment(trxTopUp);
+						}
+
+					} else if (trxType.equalsIgnoreCase(TransactionType.POSTPAID_BILL_PAYMENT.name())
+							|| trxType.equalsIgnoreCase(TransactionType.POSTPAID_DEPOSIT.name())) {
+
+						TrxPostpaidPayment ph = externalPayment.getPostPaidTransectionDetails(history.getItemCode());
+						if (ph != null) {
+							ph.setTransactionStatus(BigInteger.valueOf(TransactionStatus.FAIL.ordinal()));
+							externalPayment.updateToTrxPostPayment(ph);
+						}
+					}
+
+				} catch (Exception e) {
+					LOGGER.error(
+							"#makePayment(1) --- error when updating transaction history for payment with order_id= "
+									+ orderId,
+							e);
+				}
+				LOGGER.info("#executeTransaction--------pageContent::::::::::::::" + pageContent);
+				return pageContent;
+			}
+			LOGGER.info("#executeTransaction--------Pg Responce Code Is :::" + pgResponse.getResultCode());
+
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		startTransactionDaemon(orderId, pgResponse.getTransactionId(), language);
+		return pageContent;
+	}
+
+	private void startTransactionDaemon(String orderId, String transactionId, String locale) {
+
+		long trxTimeoutInSecs = Long
+				.parseLong(applicationConfigurationService.get("napas.trxtimeout.seconds", "1800").toString()); // 30
+																												// minutes
+		long startTime = System.currentTimeMillis();
+		int queryInterval = Integer
+				.parseInt(applicationConfigurationService.get("napas.querydr.interval.seconds", "30").toString());
+
+		final Timer timer = new Timer("napasTransactionDaemon-#" + transactionId);
+		long delayBeforeStart = 30 * 1000;
+
+		LOGGER.info("#transactionDaemon --- starting transaction status query #" + transactionId);
+
+		timer.scheduleAtFixedRate(new TimerTask() {
+
+			@Override
+			public void run() {
+
+				PaymentHistoryEntity paymentHistory = externalPayment.getPaymentHistoryBasedOnTrx(orderId);
+				// paymentHistoryRepository.findOne(QPaymentHistoryEntity.paymentHistoryEntity.extTrxId.eq(transactionId));
+				LOGGER.info("#transactionDaemon ----paymentHistory   ===" + paymentHistory);
+				int status = paymentHistory.getStatus();
+				if (status == TransactionStatus.PROCESSING.ordinal()) {
+					String respCode = queryTrxStatusToNapas(transactionId);
+					LOGGER.info("#transactionDaemon -----Responce code is :::::" + respCode);
+					boolean timeOutReached = (System.currentTimeMillis() - startTime) > trxTimeoutInSecs * 1000;
+
+					if (respCode.equals(NapasSuccessCode.SUCCESS.code())) {
+						// fixed on Mar 10, 2018 --- no need to wait for timeout
+						LOGGER.info("#transactionDaemon --- stopping transaction status query #" + transactionId
+								+ ", trx already completed successfully and time out has been reached, updating status to "
+								+ TransactionStatus.SUCCESS.name());
+
+						timer.cancel();
+
+						try {
+
+							paymentHistory.setStatus(TransactionStatus.SUCCESS.ordinal());
+							externalPayment.updatePaymentHistory(paymentHistory);
+
+						} catch (Exception e) {
+							LOGGER.error(
+									"#transactionDaemon --- error when updating payment|topup history with trx_id# "
+											+ transactionId,
+									e);
+						}
+
+						sendNotificationToPG(paymentHistory.getId(), transactionId, paymentHistory.getOrderId(),
+								paymentHistory.getOrderInfo(), NapasSuccessCode.SUCCESS.code(), locale);
+
+						if (paymentHistory.getTrxType() != null) {
+							handleUserTransaction(orderId, paymentHistory.getExtTrxId(),
+									TransactionType.valueOf(paymentHistory.getTrxType().toUpperCase()));
+						}
+
+						/*
+						 * if (timeOutReached) { LoggingUtil.info(logger,
+						 * "#transactionDaemon --- stopping transaction status query #"
+						 * + transactionId +
+						 * ", trx already completed successfully and time out has been reached, updating status to "
+						 * + TransactionStatus.SUCCESS.name());
+						 * 
+						 * timer.cancel();
+						 * 
+						 * try {
+						 * paymentHistory.setStatus(TransactionStatus.SUCCESS.
+						 * ordinal());
+						 * paymentHistoryRepository.save(paymentHistory);
+						 * 
+						 * } catch (Exception e) { logger.
+						 * error("#transactionDaemon --- error when updating payment|topup history with trx_id# "
+						 * + transactionId, e); }
+						 * 
+						 * sendNotificationToPG(paymentHistory.getId(),
+						 * transactionId, paymentHistory.getOrderId(),
+						 * paymentHistory.getOrderInfo(),
+						 * NapasSuccessCode.SUCCESS.code(), locale);
+						 * 
+						 * //if time out is detected and no final confirmation
+						 * has been received from NAPAS/PG execute ETOPUP anyway
+						 * handleUserTransaction(orderId,
+						 * paymentHistory.getExtTrxId(),
+						 * TransactionType.valueOf(paymentHistory.getTrxType().
+						 * toUpperCase())); }
+						 */
+					} else {
+
+						if (timeOutReached) {
+
+							LOGGER.info("#transactionDaemon --- stopping transaction status query #" + transactionId
+									+ ", trx timed out detected.");
+
+							timer.cancel();
+
+							try {
+								LOGGER.info("#transactionDaemon --- updating transaction status trxId#" + transactionId
+										+ " to= " + TransactionStatus.TIME_OUT.name());
+
+								paymentHistory.setStatus(TransactionStatus.TIME_OUT.ordinal());
+								externalPayment.updatePaymentHistory(paymentHistory);
+
+								if (paymentHistory.getStatus() >= TransactionStatus.FAIL.ordinal()
+										&& paymentHistory.getTrxType() != null) {
+
+									TransactionType trxType = TransactionType.valueOf(paymentHistory.getTrxType());
+
+									if (trxType.equals(TransactionType.E_TOPUP)) {
+
+										TrxSubscriberEtopup trxTopUp = externalPayment
+												.getPrePaidTransectionDetails(paymentHistory.getItemCode());
+										if (trxTopUp != null) {
+											trxTopUp.setTransactionStatus(paymentHistory.getStatus());
+											externalPayment.updateToTrxPrepaidPayment(trxTopUp);
+										}
+
+									} else if (trxType.equals(TransactionType.POSTPAID_BILL_PAYMENT)
+											|| trxType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+
+										TrxPostpaidPayment ph = externalPayment
+												.getPostPaidTransectionDetails(paymentHistory.getItemCode());
+										if (ph != null) {
+											ph.setTransactionStatus(BigInteger.valueOf(paymentHistory.getStatus()));
+											externalPayment.updateToTrxPostPayment(ph);
+										}
+
+									}
+								}
+							} catch (Exception e) {
+								LOGGER.error(
+										"#transactionDaemon --- error when updating payment|topup history with trx_id# "
+												+ transactionId,
+										e);
+							}
+
+							sendNotificationToPG(paymentHistory.getId(), transactionId, orderId,
+									paymentHistory.getOrderInfo(), NapasErrorCode.TRANSACTION_TIMEOUT.code(), locale);
+						}
+					}
+
+				} else {
+					timer.cancel();
+					LOGGER.info("#transactionDaemon --- not running transaction status query #" + transactionId
+							+ ", trx already completed with status= " + paymentHistory.getStatus());
+				}
+
+			}
+		}, delayBeforeStart, queryInterval * 1000);
+	}
+
+	/**
+	 * Notify PG if transaction timed out, simulating NAPAS
+	 * 
+	 * @param trxId
+	 * @param respCode
+	 */
+	private void sendNotificationToPG(Integer intTrxId, String trxId, String orderId, String orderInfo, String respCode,
+			String locale) {
+		LOGGER.info(
+				String.format("#sendNotificationToPG --- (ext_trx_id=%s), sending trx notification to PG...", trxId));
+
+		CloseableHttpResponse response = null;
+		try {
+			LOGGER.info("#sendNotificationToPG ---Order Id is -----------sendNotificationToPG --------" + orderId);
+			PaymentHistoryEntity paymentHistory = externalPayment.getPaymentHistoryBasedOnTrx(orderId);
+			boolean notifSent = paymentHistory.getPgNotificationSent() != null
+					&& paymentHistory.getPgNotificationSent().equals(1);
+			if (notifSent) {
+				LOGGER.info(String.format(
+						"#sendNotificationToPG --- (ext_trx_id=%s), trx notification has previously been sent to PG.",
+						trxId));
+				return;
+			}
+
+			String callbackURL = applicationConfigurationService.get("pg.paymentdone.callbackurl", "").toString();
+			/*
+			 * String callbackURL =
+			 * "http://10.8.2.165:19091/VNPGUI/PGCallBackHandler";
+			 */
+			String mid = applicationConfigurationService.get("pg.mid", "938425").toString();
+			/* String mid = "938425"; */
+
+			List<NameValuePair> paramList = new ArrayList<>();
+
+			// vpc_AdditionalData=970400&vpc_Amount=1000000&vpc_BatchNo=20171214&vpc_Command=pay&
+			// vpc_CurrencyCode=VND&vpc_Locale=en&vpc_MerchTxnRef=100224320069922&vpc_Merchant=SMLTEST&
+			// vpc_OrderInfo=ETOPUP_01888044003_20171213154758667&vpc_ResponseCode=0&
+			// vpc_TransactionNo=835502228&vpc_Version=2.0&vpc_SecureHash=5261522627FE8D682AFD0FD912770A4E&vpc_CardType=Smartlink+Car
+
+			paramList.add(new BasicNameValuePair("vpc_AdditionalData", ""));
+			paramList.add(new BasicNameValuePair("vpc_Amount", "0"));
+			paramList.add(new BasicNameValuePair("vpc_BatchNo", ""));
+			paramList.add(new BasicNameValuePair("vpc_Command", ""));
+			paramList.add(new BasicNameValuePair("vpc_CurrencyCode", "VND"));
+			paramList.add(new BasicNameValuePair("vpc_Locale", locale));
+
+			paramList.add(new BasicNameValuePair("vpc_MerchTxnRef", trxId));
+			paramList.add(new BasicNameValuePair("vpc_Merchant", mid));
+			paramList.add(new BasicNameValuePair("vpc_OrderInfo", orderInfo));
+			paramList.add(new BasicNameValuePair("vpc_ResponseCode", respCode));
+			paramList.add(new BasicNameValuePair("vpc_TransactionNo", trxId));
+
+			paramList.add(new BasicNameValuePair("vpc_SecureHash", ""));
+			paramList.add(new BasicNameValuePair("vpc_CardType", ""));
+
+			HttpClientContext context = HttpClientContext.create();
+			HttpPost post = new HttpPost(callbackURL);
+			post.setEntity(new UrlEncodedFormEntity(paramList));
+
+			response = getPgHttpClient().execute(post, context);
+
+			if (response != null) {
+				LOGGER.info(
+						String.format("#sendNotificationToPG --- (ext_trx_id=%s), receiving response_code from PG= %d",
+								trxId, response.getStatusLine().getStatusCode()));
+			} else {
+				LOGGER.info(String.format(
+						"#sendNotificationToPG --- (ext_trx_id=%s), not receiving any response from PG", trxId));
+			}
+
+			EntityUtils.consume(response.getEntity());
+
+			paymentHistory.setPgNotificationSent(1);
+			externalPayment.updatePaymentHistory(paymentHistory);
+
+		} catch (Exception e) {
+			LOGGER.error(String.format(
+					"#sendNotificationToPG --- (ext_trx_id=%s), error when sending trx notification to PG.", trxId), e);
+		} finally {
+			try {
+				if (response != null)
+					response.close();
+			} catch (IOException e) {
+			}
+		}
+	}
+
+	private String queryTrxStatusToNapas(String refTrxId) {
+
+		try {
+
+			// check internal status first to avoid unnecessary query
+			PaymentHistoryEntity history = externalPayment.getOrderDeatilsBasedOnExtTrxId((refTrxId));
+
+			if (history == null)
+				return "";
+			if (!history.getStatus().equals(TransactionStatus.PROCESSING.ordinal()))
+				return "";
+
+			LOGGER.info("#queryTrxStatusToNapas --- querying transaction status to NAPAS for ext_trx_id= " + refTrxId);
+
+			String secretKey = applicationConfigurationService
+					.get("napas.secretkey", "AF0EAFF75EA44DB0AAE472BE55177CC9").toString();
+			/* String secretKey = "198BE3F2E8C75A53F38C1C4A5B6DBA27"; */
+			String _url = applicationConfigurationService
+					.get("napas.querydr.url", "https://sandbox.napas.com.vn/gateway/vpcdps").toString();
+			// String _url = "https://sandbox.napas.com.vn/gateway/vpcdps";
+
+			String vpc_Version = applicationConfigurationService.get("napas.querydr.version", "2.2").toString();
+			// String vpc_Version = "2.2";
+			String vpc_Command = applicationConfigurationService.get("napas.querydr.command", "queryDR").toString();
+			// String vpc_Command = "queryDR";
+			String vpc_AccessCode = applicationConfigurationService.get("napas.accesscode", "V1IE3TN5AM4OBI6L7E8")
+					.toString();
+			// String vpc_AccessCode = "ECAFAB";
+			String vpc_Merchant = applicationConfigurationService.get("napas.merchantid", "VIETNAMOBILE").toString();
+			// String vpc_Merchant = "SMLTEST";
+			String vpc_User = applicationConfigurationService.get("napas.user", "querydr").toString();
+			// String vpc_User = "usertest";
+			String vpc_Password = applicationConfigurationService.get("napas.password", "vietnamobile@123").toString();
+			// String vpc_Password = "passtest";
+
+			String input = secretKey + vpc_AccessCode + vpc_Command + refTrxId + vpc_Merchant + vpc_Password + vpc_User
+					+ vpc_Version;
+
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(input.getBytes());
+			byte byteData[] = md.digest();
+
+			StringBuffer vpc_SecureHash = new StringBuffer();
+			for (int i = 0; i < byteData.length; i++) {
+				vpc_SecureHash.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+			}
+
+			StringBuffer params = new StringBuffer();
+			params.append("?vpc_Version=").append(vpc_Version).append("&");
+			params.append("vpc_Command=").append(vpc_Command).append("&");
+			params.append("vpc_AccessCode=").append(vpc_AccessCode).append("&");
+			params.append("vpc_Merchant=").append(vpc_Merchant).append("&");
+			params.append("vpc_MerchTxnRef=").append(refTrxId).append("&");
+			params.append("vpc_User=").append(vpc_User).append("&");
+			params.append("vpc_Password=").append(vpc_Password).append("&");
+			params.append("vpc_SecureHash=").append(vpc_SecureHash.toString().toUpperCase());
+
+			LOGGER.info(
+					"#queryTrxStatusToNapas --- ext_trx_id= " + refTrxId + ", sending params= " + params.toString());
+			HttpClientContext context = HttpClientContext.create();
+			HttpGet get = new HttpGet(_url + params.toString());
+
+			CloseableHttpClient httpClient = getNapasHttpClient();
+			CloseableHttpResponse respBody = httpClient.execute(get, context);
+			LOGGER.info("#queryTrxStatusToNapas --- ext_trx_id= " + refTrxId + ", receiving response= "
+					+ (respBody != null ? respBody.getStatusLine() : null));
+			System.out.println("respBody is :::::" + respBody);
+			if (respBody != null) {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				org.apache.http.HttpEntity httpEntity = respBody.getEntity();
+				httpEntity.writeTo(out);
+
+				String response = new String(out.toByteArray());
+				LOGGER.info("#queryTrxStatusToNapas --- ext_trx_id= " + refTrxId + ", response content= " + response);
+
+				String[] nvpList = response.split("&");
+				if (nvpList != null && nvpList.length > 0) {
+					for (String nvp : nvpList) {
+						String[] arr = nvp.split("=");
+						if (arr != null && arr.length >= 2) {
+							if (arr[0].equalsIgnoreCase("vpc_TxnResponseCode")) {
+								String respCode = arr[1];
+								LOGGER.info(String.format("#queryTrxStatusToNapas --- ext_trx_id= %s, status_code= %s",
+										refTrxId, respCode));
+
+								return respCode;
+							}
+						}
+					}
+				}
+				EntityUtils.consume(httpEntity);
+				// httpClient.close();
+			}
+		} catch (Exception e) {
+			LOGGER.error(
+					"#queryTrxStatusToNapas --- error when querying trx status to NAPAS for ext_trx_id " + refTrxId, e);
+		}
+		return "";
+	}
+
+	private String sha256(String input) throws NoSuchAlgorithmException {
+
+		MessageDigest md = MessageDigest.getInstance("SHA-256");
+		md.update(input.getBytes());
+
+		byte byteData[] = md.digest();
+
+		StringBuffer hexString = new StringBuffer();
+		for (int i = 0; i < byteData.length; i++) {
+			String hex = Integer.toHexString(0xff & byteData[i]);
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString.toString();
+	}
+
+	private ClientHttpRequestFactory getSimpleClientHttpRequestFactory(int timeout) {
+		if (httpRequestFactory == null) {
+			httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+			httpRequestFactory.setConnectTimeout(timeout * 1000);
+		}
+		return httpRequestFactory;
+	}
+
+	private HttpHeaders createHeaders(String userName, String credential) {
+		String auth = userName + "|" + credential;
+		final byte[] authHeaderBytes = Base64.encodeBase64(auth.getBytes(Charsets.UTF_8));
+		String authHeader = new String(authHeaderBytes, Charsets.UTF_8);
+
+		final HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set(HttpHeaders.AUTHORIZATION, "Basic " + authHeader);
+
+		return headers;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.gnv.vnm.selfcare.core.service.PaymentGatewayService#confirmPayment(
+	 * com.gnv.vnm.selfcare.core.model.pg.FinalResponse)
+	 */
+	@Override
+	public boolean confirmTransaction(FinalResponse finalResponse) throws TransactionNotFoundException {
+
+		LOGGER.info("#confirmTransaction(2) ---- receiving final response from PG= " + finalResponse);
+		String orderId = finalResponse.getOrderId();
+		PaymentHistoryEntity history = getPaymentHistoryBasedOnTrx(orderId);
+		if (history == null) {
+			LOGGER.error("#confirmTransaction(2) -- could not find Payment History with orderId= " + orderId);
+
+			throw new TransactionNotFoundException("#confirmTransaction(2) ----Transactionn not found, orderId= " + orderId);
+
+		} else {
+			if (history.getStatus() >= TransactionStatus.SUCCESS.ordinal()) {
+				LOGGER.warn(String.format(
+						"#confirmTransaction(2) -- transaction with order_id %s has already finished.", orderId));
+
+				return true;
+
+			} else {
+				history.setFinalResultCode(finalResponse.getResultCode());
+				history.setFinalResultMsg(finalResponse.getResponseMsg());
+				history.setReferenceId(finalResponse.getReferenceId());
+
+				if (StringUtils.hasText(finalResponse.getResultCode())
+						&& finalResponse.getResultCode().equals(successRespCode)) {
+					history.setStatus(TransactionStatus.SUCCESS.ordinal());
+				} else {
+					history.setStatus(TransactionStatus.FAIL.ordinal());
+				}
+
+				LOGGER.info("#confirmTransaction(2) -- updating payment trx with orderId = " + orderId + ", status= "
+						+ history.getStatus());
+				externalPayment.updatePaymentHistory(history);
+
+				boolean success = finalResponse.getResultCode().equals(successRespCode) ? true : false;
+				if (success || (history.getStatus() >= TransactionStatus.SUCCESS.ordinal()
+						&& StringUtils.hasText(history.getTrxType()))) {
+					handleUserTransaction(finalResponse.getOrderId(), history.getExtTrxId(),
+							TransactionType.valueOf(history.getTrxType().toUpperCase()));
+
+				} else {
+
+					TransactionType trxType = TransactionType.valueOf(history.getTrxType());
+					if (trxType != null) {
+						if (trxType.equals(TransactionType.E_TOPUP)) {
+							/*
+							 * try { TopUpHistoryEntity th =
+							 * topUpHistoryRepository.findOne(
+							 * QTopUpHistoryEntity.topUpHistoryEntity.refTrxId.
+							 * eq(orderId)); if (th != null) {
+							 * th.setStatus(TransactionStatus.FAIL.ordinal());
+							 * topUpHistoryRepository.saveAndFlush(th); } }
+							 * catch (Exception e) { logger.
+							 * error("#confirmTransaction(2) --- error when updating topup_history with ref_trx_id= "
+							 * + orderId, e); }
+							 */
+							TrxSubscriberEtopup trxTopUp = externalPayment
+									.getPrePaidTransectionDetails(history.getItemCode());
+							if (trxTopUp != null) {
+								trxTopUp.setTransactionStatus(TransactionStatus.FAIL.ordinal());
+								externalPayment.updateToTrxPrepaidPayment(trxTopUp);
+							}
+
+						} else if (trxType.equals(TransactionType.POSTPAID_BILL_PAYMENT)
+								|| trxType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+							// TODO --- added on Jan 22, 2018 for post paid
+							// support
+							/*
+							 * try { PostpaidBillPaymentHistoryEntity ph =
+							 * postpaidBillPaymentHistoryRepository.findOne(
+							 * QPostpaidBillPaymentHistoryEntity.
+							 * postpaidBillPaymentHistoryEntity.refTrxId.eq(
+							 * orderId)); if (ph != null) {
+							 * ph.setStatus(TransactionStatus.FAIL.ordinal());
+							 * postpaidBillPaymentHistoryRepository.saveAndFlush
+							 * (ph); } } catch (Exception e) { LOGGER.
+							 * error("#confirmTransaction(2) --- error when updating postpaid_pmt_history with ref_trx_id= "
+							 * + orderId, e); }
+							 */
+							TrxSubscriberEtopup trxTopUp = externalPayment
+									.getPrePaidTransectionDetails(history.getItemCode());
+							if (trxTopUp != null) {
+								trxTopUp.setTransactionStatus(TransactionStatus.FAIL.ordinal());
+								externalPayment.updateToTrxPrepaidPayment(trxTopUp);
+							}
+						}
+					}
+				}
+				return success;
+			}
+		}
+
+	}
+
+	/**
+	 * Get Payment history data based on orderId
+	 * 
+	 * @param orderId
+	 * @return PaymentHistoryEntity
+	 */
+	public PaymentHistoryEntity getPaymentHistoryBasedOnTrx(String orderId) {
+		PaymentHistoryEntity paymentHistoryEntity = new PaymentHistoryEntity();
+		LOGGER.info("Inside NapasPaymentServiceImpl in getPaymentHistoryBasedOnTrx----------order id== ",orderId);
+		try {
+			BaseDao<PaymentHistoryEntity> paymentHistoryDao = new BaseDao<>(sessionFactoryDef,
+					PaymentHistoryEntity.class);
+			List<PaymentHistoryEntity> paymentHistoryDetails = paymentHistoryDao.find("ORDER_ID = :orderId",
+					new HashMap<String, Object>() {
+						{
+							put("orderId", orderId);
+						}
+					});
+			if (paymentHistoryDetails.isEmpty())
+				return null;
+			return paymentHistoryDetails.get(0);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return paymentHistoryEntity;
+	}
+
+	private CloseableHttpClient getPgHttpClient() {
+		if (pgHttpClient == null) {
+			// updated on Mar 20, 2018 -- to use HTTP connection manager to
+			// avoid connection leakage
+			/*
+			 * pgHttpClient = HttpClients.custom()
+			 * .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(
+			 * CookieSpecs.DEFAULT).build()) .setRedirectStrategy(new
+			 * LaxRedirectStrategy()).build();
+			 */
+			pgHttpClient = HttpClients.custom().setRedirectStrategy(new LaxRedirectStrategy())
+					.setConnectionManager(getConnectionManager()).setConnectionManagerShared(true)
+					.setDefaultRequestConfig(getRequestConfig()).build();
+		}
+		return pgHttpClient;
+	}
+
+	private PoolingHttpClientConnectionManager getConnectionManager() {
+		if (connectionManager == null) {
+			connectionManager = new PoolingHttpClientConnectionManager();
+			connectionManager.setMaxTotal(maxConnections);
+			connectionManager.setValidateAfterInactivity(httpConnectionCheckInterval);
+		}
+		return connectionManager;
+	}
+
+	private RequestConfig getRequestConfig() {
+
+		if (requestConfig == null) {
+			requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT)
+					.setSocketTimeout(this.connectTimeout * 1000).setConnectTimeout(this.connectTimeout * 1000)
+					.setConnectionRequestTimeout(this.connectTimeout * 1000).build();
+		}
+		return requestConfig;
+	}
+
+	@Async
+	public void handleUserTransaction(String orderId, String refTrxId, TransactionType trxType) {
+
+		// double check if payment with the given order_id does exist
+		PaymentHistoryEntity pmtHistory = externalPayment.getPaymentHistoryBasedOnTrx(orderId);
+		if (pmtHistory == null) {
+			LOGGER.error(
+					"#handleUserTransaction --- not executing transaction, no payment history exists with order_id= "
+							+ orderId);
+			return;
+		} else {
+			if (!pmtHistory.getStatus().equals(TransactionStatus.SUCCESS.ordinal())) {
+				LOGGER.error(
+						"#handleUserTransaction --- not executing transaction, no payment history exists with order_id= "
+								+ orderId);
+				return;
+			}
+		}
+
+		LOGGER.info("#handleUserTransaction --- start handling user transaction, order_id= " + orderId + ", trx_type= "
+				+ trxType);
+
+		taskExecutor.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				if (trxType.equals(TransactionType.E_TOPUP)) {
+					try {
+						LOGGER.info("#handleUserTransaction ---pmtHistory.getItemCode()    --------------" + pmtHistory.getItemCode());
+						TrxSubscriberEtopup trxSubscriberEtopup = externalPayment
+								.getPrePaidTransectionDetails(pmtHistory.getItemCode());
+
+						Long paymentprocessstatus = (long) TransactionStatus.PROCESSING.ordinal();
+
+						LOGGER.info("#handleUserTransaction ---paymentprocessstatus    --------------" + paymentprocessstatus);
+						if (trxSubscriberEtopup != null
+								&& ((trxSubscriberEtopup.getTransactionStatus() == paymentprocessstatus))) {
+							RechargeResponse etopupResp = tibcoService.etop(pmtHistory.getMsisdn(),
+									pmtHistory.getAmount(), orderId);
+
+							LOGGER.info("#handleUserTransaction --- etopup  result= " + etopupResp);
+
+							if (!StringUtils.hasText(etopupResp.getCode())
+									|| !etopupResp.getCode().equals(TibcoResponse.SUCCESS.code())) {
+								trxSubscriberEtopup.setTransactionStatus(TransactionStatus.FAIL.ordinal());
+								externalPayment.updateToTrxPrepaidPayment(trxSubscriberEtopup);
+								String lanCode=profileService.getSubscriberLangCode(pmtHistory.getMsisdn());
+								String message="";
+								 message =notificationMasterService.getMessageText(Languages.MSG_IDS.NAPAS_FAIL, lanCode);
+								 if(!message.isEmpty())
+								 {
+									 message=message.replaceAll("#amount",pmtHistory.getAmount()+"");
+									 notificationWorker.sendNotification(pmtHistory.getMsisdn(), message);
+								 }
+								
+								refund(orderId);
+							} else {
+								trxSubscriberEtopup.setTransactionStatus(TransactionStatus.SUCCESS.ordinal());
+								externalPayment.updateToTrxPrepaidPayment(trxSubscriberEtopup);
+								String lanCode=profileService.getSubscriberLangCode(pmtHistory.getMsisdn());
+								String message="";
+								 message =notificationMasterService.getMessageText(Languages.MSG_IDS.NAPAS_SUCCESS, lanCode);
+								 if(!message.isEmpty())
+								 {
+									 message=message.replaceAll("#amount",pmtHistory.getAmount()+"");
+									 notificationWorker.sendNotification(pmtHistory.getMsisdn(), message);
+								 }
+
+							}
+						} else {
+							LOGGER.info("#handleUserTransaction --- not executing etopup "
+									+ " has already been completed with status= "
+									+ trxSubscriberEtopup.getTransactionStatus());
+						}
+
+					} catch (Exception e) {
+						LOGGER.error(
+								"#handleUserTransaction --- error when processing e_topup for order_id= " + orderId, e);
+					}
+
+				} else if (trxType.equals(TransactionType.POSTPAID_BILL_PAYMENT)
+						|| trxType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+
+					try {
+						TrxPostpaidPayment trxPostpaidPayment = externalPayment
+								.getPostPaidTransectionDetails(pmtHistory.getItemCode());
+						/*
+						 * PostpaidBillPaymentHistoryEntity history =
+						 * postpaidBillPaymentHistoryRepository.findOne(
+						 * QPostpaidBillPaymentHistoryEntity.
+						 * postpaidBillPaymentHistoryEntity.refTrxId.eq(refTrxId
+						 * ));
+						 */
+						BigInteger bi = BigInteger.valueOf(TransactionStatus.PROCESSING.ordinal());
+
+						if (trxPostpaidPayment != null && (trxPostpaidPayment.getTransactionStatus() == bi)) {
+
+							String reference = "";
+
+							boolean result = tibcoService.postpaidBillPayment(trxPostpaidPayment.getSubscriberMsisdn(),
+									trxPostpaidPayment.getAccountAmountPaid().doubleValue(), reference, trxType);
+
+							LOGGER.info("#handleUserTransaction --- postpaid bill payment , result= " + result);
+
+							trxPostpaidPayment.setTransactionStatus(
+									(result ? BigInteger.ONE : BigInteger.valueOf(TransactionStatus.FAIL.ordinal())));
+							externalPayment.updateToTrxPostPayment(trxPostpaidPayment);
+                            if(result)
+                            {
+                            	String lanCode=profileService.getSubscriberLangCode(pmtHistory.getMsisdn());
+								String message="";
+								 message =notificationMasterService.getMessageText(Languages.MSG_IDS.NAPAS_SUCCESS, lanCode);
+								 if(!message.isEmpty())
+								 {
+									 message=message.replaceAll("#amount",pmtHistory.getAmount()+"");
+									 notificationWorker.sendNotification(pmtHistory.getMsisdn(), message);
+								 }
+                            }
+                            else
+                            {
+                            	String lanCode=profileService.getSubscriberLangCode(pmtHistory.getMsisdn());
+								String message="";
+								 message =notificationMasterService.getMessageText(Languages.MSG_IDS.NAPAS_FAIL, lanCode);
+								 if(!message.isEmpty())
+								 {
+									 message=message.replaceAll("#amount",pmtHistory.getAmount()+"");
+									 notificationWorker.sendNotification(pmtHistory.getMsisdn(), message);
+								 }
+                            }
+							if (!result) {
+								refund(orderId);
+							}
+						}
+
+					} catch (Exception e) {
+						LOGGER.error(
+								"#handleUserTransaction --- error when processing postpaid bill payment for order_id= "
+										+ orderId,
+								e);
+					}
+				}
+			}
+		});
+		LOGGER.info("#handleUserTransaction --- end handling user transaction, order_id= " + orderId + ", trx_type= "
+				+ trxType);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.gnv.vnm.selfcare.core.service.PaymentGatewayService#getBankDetails(
+	 * java.lang.String)
+	 */
+	@Override
+	public Bank getBankDetails(String code) {
+
+		try {
+			// BankEntity source =
+			// bankRepository.findOne(QBankEntity.bankEntity.code.equalsIgnoreCase(code));
+			BaseDao<BankEntity> bankEntity = new BaseDao<>(sessionFactoryDef, BankEntity.class);
+			List<BankEntity> bankDetails = bankEntity.find("code = :code", new HashMap<String, Object>() {
+				{
+					put("code", code);
+				}
+			});
+
+			if (bankDetails != null) {
+				bankDetails.get(0);
+				if (bankDetails.get(0) != null) {
+					return new Bank(bankDetails.get(0).getId(), bankDetails.get(0).getCode(),
+							bankDetails.get(0).getName(), bankDetails.get(0).getDisplayName());
+				}
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#getBankDetails --- error getting bank details, bank_code= " + code, e);
+		}
+		return null;
+	}
+
+	@Override
+	public String getOrderIdByExtTrxId(String extTrxId) {
+		if (!StringUtils.hasText(extTrxId))
+			return "";
+		try {
+
+			BaseDao<PaymentHistoryEntity> paymentDAO = new BaseDao<>(sessionFactoryDef, PaymentHistoryEntity.class);
+			List<PaymentHistoryEntity> paymentHistory = paymentDAO.find("extTrxId = :ext_trx_id",
+					new HashMap<String, Object>() {
+						{
+							put("ext_trx_id", extTrxId);
+						}
+					});
+			if (!paymentHistory.isEmpty())
+				return paymentHistory.get(0).getOrderId();
+
+			return "";
+		} catch (Exception e) {
+			LOGGER.error("#getOrderIdByExtTrxId --- error retriving order_id for ext_trx_id= " + extTrxId, e);
+		}
+		return "";
+	}
+
+	private CloseableHttpClient getNapasHttpClient() {
+		if (napasHttpClient == null) {
+			// updated on Mar 20, 2018 -- to use HTTP connection manager to
+			// avoid connection leakage
+			/*
+			 * napasHttpClient =
+			 * HttpClients.custom().setDefaultRequestConfig(RequestConfig.custom
+			 * () .setConnectTimeout(connectTimeout * 1000)
+			 * .setSocketTimeout(connectTimeout * 1000)
+			 * .setConnectionRequestTimeout(connectTimeout * 1000)
+			 * .setCookieSpec(CookieSpecs.DEFAULT).build()).setRedirectStrategy(
+			 * new LaxRedirectStrategy()).build();
+			 */
+			napasHttpClient = HttpClients.custom().setRedirectStrategy(new LaxRedirectStrategy())
+					.setConnectionManager(getConnectionManager()).setConnectionManagerShared(true)
+					.setDefaultRequestConfig(getRequestConfig()).build();
+		}
+
+		return napasHttpClient;
+	}
+	
+	@Override
+	public PaymentHistoryStatusModel getPaymentHistoryStatus(String orderId) {
+		/*
+		 * Map<String, Integer> number = new HashMap<>(); number.put("number",
+		 * externalPayment.getPaymentHistoryStatus(orderId)); Gson gson = new
+		 * Gson(); String numbersJson = gson.toJson(number);
+		 */
+
+		// paymentHistoryStatusModel.set
+		int status = externalPayment.getPaymentHistoryStatus(orderId);
+		PaymentHistoryStatusModel paymentHistoryStatusModel = new PaymentHistoryStatusModel();
+		TransactionStatus sts = TransactionStatus.fromInt(status);
+		paymentHistoryStatusModel.setStatus(sts);
+		return paymentHistoryStatusModel;
+	}
+
+	@Override
+	public PaymentHistoryStatusModel getPaymentHistoryStatus(String orderId, String msisdn) {
+		/*
+		 * Map<String, Integer> number = new HashMap<>(); number.put("number",
+		 * externalPayment.getPaymentHistoryStatus(orderId)); Gson gson = new
+		 * Gson(); String numbersJson = gson.toJson(number);
+		 */
+
+		// paymentHistoryStatusModel.set
+		int status = externalPayment.getPaymentHistoryStatus(orderId);
+		if(status==1 || status == 2) {
+			long blockHours = 0;
+			String firstFailTransactionTime = getFirstTimestampTopupStatus(msisdn);
+			if (firstFailTransactionTime != null) {
+				blockHours = TimeDiff(firstFailTransactionTime, getCurrentDateTime());
+			}
+			
+			if (blockHours >= 24) {
+				saveEtopupStatus(msisdn, 1, "0", getCurrentDateTime());
+			} else {
+				int count = getCountFromEtopUpBlock(msisdn);
+				if(count<5) {
+					saveEtopupStatus(msisdn, count+1, "0", getCurrentDateTime());
+				}else {
+					saveEtopupStatus(msisdn, count, "1", getCurrentDateTime());
+				}
+			}
+		}
+		PaymentHistoryStatusModel paymentHistoryStatusModel = new PaymentHistoryStatusModel();
+		TransactionStatus sts = TransactionStatus.fromInt(status);
+		paymentHistoryStatusModel.setStatus(sts);
+		return paymentHistoryStatusModel;
+	}
+
+	@Override
+	public boolean refund(String orderId) {
+		try {
+			PaymentHistoryEntity history = externalPayment.getPaymentHistoryBasedOnTrx(orderId);
+			if (history == null) {
+				LOGGER.info("#refund --- no data found for order_id " + orderId);
+				return false;
+			}
+
+			url = applicationConfigurationService.get("pg.refundurl", "http://10.8.2.165:19092/vnmbl/VNM/refundPayment")
+					.toString();
+			/* url = "http://10.8.2.165:19092/vnmbl/VNM/refundPayment"; */
+			channelId = applicationConfigurationService.get("pg.channelid", "SELFCARE").toString();
+			// channelId = "SELFCARE";
+			mid = applicationConfigurationService.get("pg.mid", "938425").toString();
+			// mid = "938425";
+			userName = applicationConfigurationService.get("pg.username", "selfcare").toString();
+			// userName = "sixdee";
+			credential = applicationConfigurationService.get("pg.credential", "selfcare").toString();
+			// credential = "sixdee";
+			secretKey = applicationConfigurationService.get("pg.secretkey", "646ed314-8").toString();
+			// secretKey = "646ed314-8";
+			requestDateFormat = applicationConfigurationService.get("pg.datetimeformat", "ddMMyyyy HH:mm:ss:SSS")
+					.toString();
+			// requestDateFormat = "ddMMyyyy HH:mm:ss:SSS";
+			language = "E";
+
+			int amount = history.getAmount() != null ? history.getAmount().intValue() : 0;
+
+			if (amount > 0) {
+				LOGGER.info("#refund --- performing REFUND for order_id " + orderId + ", trx_amount= " + amount);
+
+				RefundRequest request = new RefundRequest(orderId, language, channelId, mid,
+						history.getAmount().intValue(), AppUtils.dateToString(new Date(), requestDateFormat),
+						history.getReferenceId(), userName, credential);
+
+				restTemplate.setRequestFactory(getSimpleClientHttpRequestFactory(connectTimeout));
+				HttpEntity<RefundRequest> entity = new HttpEntity<RefundRequest>(request,
+						createHeaders(userName, credential));
+
+				RefundResponse response = restTemplate.postForObject(url, entity, RefundResponse.class);
+
+				LOGGER.info("#refund --- order_id = " + orderId + ", response from PG= " + response);
+
+				if (response.getResultCode().equals(SUCCESS_RESP)) {
+					history.setStatus(TransactionStatus.ROLL_BACK.ordinal());
+					externalPayment.updatePaymentHistory(history);
+				}
+			} else {
+				LOGGER.info(
+						"#refund --- not performing REFUND for order_id " + orderId + ", transaction amount is 0.");
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#refund --- error occured when performing refund for orderId#" + orderId, e);
+		}
+		return false;
+	}
+
+	@Override
+	public String confirmTransaction(String orderId, TransactionStatus status)
+			throws TransactionNotFoundException, Exception {
+		if (!StringUtils.hasText(orderId))
+			return null;
+
+		try {
+			LOGGER.info("#confirmTransaction(1) -- updating payment status for order_id= " + orderId + ", status= "
+					+ status);
+
+			PaymentHistoryEntity history = externalPayment.getPaymentHistoryBasedOnTrx(orderId);
+			if (history == null) {
+				LOGGER.error("#confirmTransaction(1) -- could not find Payment History with order_id= " + orderId);
+				throw new TransactionNotFoundException("Transaction not found, order_id= " + orderId);
+
+			} else {
+				if (history.getStatus() >= TransactionStatus.SUCCESS.ordinal()) {
+					LOGGER.warn(String.format(
+							"#confirmTransaction(1) -- transaction with order_id %s has already finished.", orderId));
+
+					return history.getExtTrxId();
+
+				} else {
+					history.setStatus(status.ordinal());
+					externalPayment.updatePaymentHistory(history);
+
+					if (status.equals(TransactionStatus.SUCCESS) && StringUtils.hasText(history.getTrxType())) {
+						handleUserTransaction(history.getOrderId(), history.getExtTrxId(),
+								TransactionType.valueOf(history.getTrxType().toUpperCase()));
+
+					} else if (status.equals(TransactionStatus.CANCELED)) {
+
+						TransactionType trxType = TransactionType.valueOf(history.getTrxType());
+						if (trxType != null) {
+							if (trxType.equals(TransactionType.E_TOPUP)) {
+								try {
+									TrxSubscriberEtopup trxTopUp = externalPayment
+											.getPrePaidTransectionDetails(history.getItemCode());
+									if (trxTopUp != null) {
+										trxTopUp.setTransactionStatus(history.getStatus());
+										externalPayment.updateToTrxPrepaidPayment(trxTopUp);
+									}
+								} catch (Exception e) {
+									LOGGER.error(
+											"#confirmTransaction(1) --- error when updating topup_history with ref_trx_id= "
+													+ orderId,
+											e);
+								}
+
+							} else if (trxType.equals(TransactionType.POSTPAID_BILL_PAYMENT)
+									|| trxType.equals(TransactionType.POSTPAID_DEPOSIT)) {
+								// TODO --- added on Jan 22, 2018 for post paid
+								// support
+								try {
+									TrxPostpaidPayment ph = externalPayment
+											.getPostPaidTransectionDetails(history.getItemCode());
+									if (ph != null) {
+										ph.setTransactionStatus(BigInteger.valueOf(history.getStatus()));
+										externalPayment.updateToTrxPostPayment(ph);
+									}
+								} catch (Exception e) {
+									LOGGER.error(
+											"#confirmTransaction(1) --- error when updating postpaid_pmt_history with ref_trx_id= "
+													+ orderId,
+											e);
+								}
+							}
+						}
+					}
+
+					return history.getExtTrxId();
+				}
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#confirmTransaction(1) -- error occurred when updating payment_history status (orderId= "
+					+ orderId + ")", e);
+			throw e;
+		}
+	}
+	
+	//added by siddhesh on 09-01-2020
+	public ScratchStatusModel checkBlockUnblockTopUp(String msisdn) {
+
+		ScratchStatusModel topupStatusModel = new ScratchStatusModel();
+		try {
+			BaseDao<EtopUpStatusEntity> topupstatus = new BaseDao<>(sessionFactoryDef, EtopUpStatusEntity.class);
+			List<EtopUpStatusEntity> topupStatusEntitylist = topupstatus.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+
+			// ScratchStatusEntity scratchStatusEntity =
+			// scratchstatusRepository.findOne(QScratchStatusEntity.scratchStatusEntity.msisdn.eq(msisdn));
+
+			// if (scratchStatusEntity == null) {
+			if ((topupStatusEntitylist == null) || (topupStatusEntitylist.size() == 0)) {
+				topupStatusModel.setStatus("0");
+				topupStatusModel.setTimeStamp("00-00-0000 00:00");
+			} else {
+				topupStatusModel.setStatus(topupStatusEntitylist.get(0).getStatus());
+				topupStatusModel.setTimeStamp(topupStatusEntitylist.get(0).getTimeStamp());
+				topupStatusModel.setMsisdn(msisdn);
+			}
+
+		} catch (Exception e) {
+
+			LOGGER.error("#checkBlockUnblockTopUp --- No status in EtopupStatusEntity", e);
+		}
+		return topupStatusModel;
+	}
+	
+	public String getCurrentDateTime() {
+
+		Date dt = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+		String strDate = dateFormat.format(dt);
+		// System.out.println(strDate);
+		return strDate;
+	}
+	
+	public long TimeDiff(String blockTime,String currentTime){
+		DateFormat dateFormat1 = new SimpleDateFormat("dd-MM-yyyy HH:mm"); 
+		Date d1 = null;
+		Date d2 = null;
+		long diffHours=0;
+		try {
+		d1 = dateFormat1.parse(blockTime);
+		d2 = dateFormat1.parse(currentTime);
+
+		//in milliseconds
+		long diff = (long) (d2.getTime() - d1.getTime());
+
+
+		diffHours = diff / (60*60*1000);
+
+		// System.out.print(diffHours + " hours, ");
+
+		} catch (Exception e) {
+		e.printStackTrace();
+		}
+
+
+		return diffHours;
+
+		}
+	
+	public void saveEtopupStatus(String msisdn, int count, String status, String timeStamp) {
+		// create failure scratch card status
+		try {
+
+			EtopUpStatusEntity etopupStatusEntity = new EtopUpStatusEntity();// =
+			// this.scratchstatusRepository.findOne(QScratchStatusEntity.scratchStatusEntity.msisdn.equalsIgnoreCase(msisdn));
+
+			BaseDao<EtopUpStatusEntity> etopupstatusdao = new BaseDao<>(sessionFactoryDef, EtopUpStatusEntity.class);
+			List<EtopUpStatusEntity> etopupStatusEntitylist = etopupstatusdao.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+
+			if ((etopupStatusEntitylist != null) && (etopupStatusEntitylist.size() > 0)) {
+				etopupStatusEntity = etopupStatusEntitylist.get(0);
+				etopupStatusEntity.setCount(count);
+				etopupStatusEntity.setMsisdn(msisdn);
+				etopupStatusEntity.setStatus(status);
+				if (count == 1 || count == 5) {
+					etopupStatusEntity.setTimeStamp(timeStamp); // after 24hrs,
+					// count
+					// value
+					// will be
+					// zero.
+				}
+
+				// scratchStatusEntity.setId(0);
+
+				etopupstatusdao.save(etopupStatusEntity);
+			} else {
+				EtopUpStatusEntity etopupStatus = new EtopUpStatusEntity();
+				etopupStatus.setCount(count);
+				etopupStatus.setMsisdn(msisdn);
+				etopupStatus.setStatus(status);
+				etopupStatus.setTimeStamp(timeStamp);
+				etopupStatus.setCreatedBy("ADMIN");
+				etopupStatus.setCreateTimestamp(new Date());
+				etopupStatus.setLastModifiedBy("ADMIN");
+				etopupStatus.setLastModifiedTime(new Date());
+				etopupStatus.setId(0);
+
+				etopupstatusdao.save(etopupStatus);
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#saveScratchStatus -- error creating failure scratch card status : msisdn::" + msisdn
+					+ "::count::" + count + "status::" + status + "timeStamp::" + timeStamp, e);
+		}
+
+	}
+	
+	public String getFirstTimestampTopupStatus(String msisdn) {
+
+		String firstTimestamp = null;
+		try {
+			BaseDao<EtopUpStatusEntity> topupstatus = new BaseDao<>(sessionFactoryDef, EtopUpStatusEntity.class);
+			List<EtopUpStatusEntity> topupStatusEntitylist = topupstatus.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+			if ((topupStatusEntitylist != null) && (topupStatusEntitylist.size() > 0)) {
+				firstTimestamp = topupStatusEntitylist.get(0).getTimeStamp();
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#getFirstTimestampScratchStatus --- No Timestamp in ScratchStatusEntity", e);
+		}
+		return firstTimestamp;
+	}
+	
+	public int getCountFromEtopUpBlock(String msisdn) {
+		int count = 0;
+		try {
+			/*
+			 * ScratchStatusEntity scratchStatusEntity = scratchstatusRepository
+			 * .findOne(QScratchStatusEntity.scratchStatusEntity.msisdn.eq(msisdn));
+			 */
+			BaseDao<EtopUpStatusEntity> etopupstatus = new BaseDao<>(sessionFactoryDef, EtopUpStatusEntity.class);
+			List<EtopUpStatusEntity> etopupStatusEntitylist = etopupstatus.find(" msisdn =:msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+
+			if ((etopupStatusEntitylist != null) && (etopupStatusEntitylist.size() > 0)) {
+				count = etopupStatusEntitylist.get(0).getCount();
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("#getCountFromScratchBlock --- No Count in ScratchStatusEntity", e);
+		}
+		return count;
+	}
+
+
+
+
+	
+	
+	/*public String getSubscriberLangCode(String msisdn)
+	{
+		LOGGER.info("#Inside getSubscriberLangCode method ");
+		String langCode="0";
+		try
+		{
+			BaseDao<Subscriber> subscriberDAO = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+			List<Subscriber> list = subscriberDAO.find("subscriberMsisdn = :msisdn ",
+					new HashMap<String, Object>() {
+						{
+							put("msisdn", msisdn);
+						}
+					});
+			if(!list.isEmpty())langCode=list.get(0).getSubscriberLangCode();
+		}
+		catch (Exception e) {
+			// TODO: handle exception
+			LOGGER.error(
+					"# error when get subscriber code  "
+							+ msisdn,
+					e);
+		}
+		return langCode;
+	}*/
+
+}

@@ -1,0 +1,43 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.*;
+
+/**
+ <?xml version="1.0" encoding="UTF-8"?>
+ <CLM_TIBCO_INTERFACE_Request>
+ <MSISDN>628996393544</MSISDN>
+ <TransactionId>201710091337195928</TransactionId>
+ </CLM_TIBCO_INTERFACE_Request>
+ */
+@XmlRootElement(name= "CLM_TIBCO_INTERFACE_Request")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"MSISDN","TransactionId"})
+public class BonstriTibcoRequest {
+    @XmlElement(name="MSISDN")
+    private String MSISDN;
+
+    @XmlElement(name = "TransactionId")
+    private String TransactionId;
+
+    public String getMSISDN() {
+        return MSISDN;
+    }
+
+    public void setMSISDN(String MSISDN) {
+        this.MSISDN = MSISDN;
+    }
+
+    public String getTransactionId() {
+        return TransactionId;
+    }
+
+    public void setTransactionId(String TransactionId) {
+        this.TransactionId = TransactionId;
+    }
+
+   
+
+    public String toString() {
+        return "BonstriTibcoGetPoin {"+"MSISD="+ MSISDN +" , TransactionID="+TransactionId+"}";
+    }
+}

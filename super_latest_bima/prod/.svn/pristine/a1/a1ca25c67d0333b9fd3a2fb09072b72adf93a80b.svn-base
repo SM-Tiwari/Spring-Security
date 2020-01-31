@@ -1,0 +1,11 @@
+package id.gnvsolution.d3.api.security.securityutil;
+
+/**
+ * This interface is use for Token Extractor
+ * 
+ * @author Ankur Kumar
+ *
+ */
+public interface TokenExtractor {
+	public String extract(String payload);
+}

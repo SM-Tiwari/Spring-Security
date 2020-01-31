@@ -1,0 +1,37 @@
+package id.gnvsolution.d3.api.component.transid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.apache.commons.lang3.RandomStringUtils;
+
+/**
+ * Created by Arie
+ * on 10/04/2017.
+ */
+@Component
+public class ModuleTransactionIDGenerator implements TransactionIDGenerator {
+    private static final SimpleDateFormat YY_MM_DD_HH = new SimpleDateFormat("yyMMddHH");
+
+    private final SequenceGenerator sequenceGenerator;
+    
+    @Autowired
+    public ModuleTransactionIDGenerator(@Qualifier("transactionSeqGenerator") SequenceGenerator sequenceGenerator) {
+        this.sequenceGenerator = sequenceGenerator;
+    }
+
+    // max 20 char ke SV
+    public String generate(Module module) {
+       Long seq = sequenceGenerator.getNextValue();
+       /* return id.gnvsolution.d3.api.Constants.PREFIX 
+                                + module.getCode() 
+                                + YY_MM_DD_HH.format(new Date()) 
+                                + RandomStringUtils.randomAlphanumeric(3).toUpperCase()
+                                + String.format("%04d", seq);*/
+    	
+    	return ""+RandomStringUtils.randomAlphanumeric(12).toUpperCase();
+    }
+}

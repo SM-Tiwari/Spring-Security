@@ -1,0 +1,29 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.SuccessMessageDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 24, 2017 1:07:34 PM
+ *
+ */
+public class SuccessMessageDto implements DTO {
+
+    private boolean status;
+
+    public SuccessMessageDto() {
+        status = true;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+}

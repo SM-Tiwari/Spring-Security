@@ -1,0 +1,65 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.ShareQuotaChildDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.service.QuotaService;
+import id.gnvsolution.d3.api.service.SubscriberService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.QuotaController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 10, 2017 6:13:05 PM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/share-quota")
+public class ShareQuotaController {
+
+    private QuotaService quotaService;
+    private SubscriberService subscriberService;
+
+    @Autowired
+    public void ShareQuotaController(QuotaService quotaService, SubscriberService subscriberService) {
+        this.quotaService = quotaService;
+        this.subscriberService = subscriberService;
+    }
+    
+    @RequestMapping(value = "/is-parent", method = RequestMethod.POST)
+    public Map<String, Object> isParent(@RequestBody BaseRequestDto baseRequestDto) {
+        return quotaService.isParent(baseRequestDto);
+    }
+    
+    @RequestMapping(value = "/child", method = RequestMethod.POST)
+    public Map<String, Object> child(@RequestBody ShareQuotaChildDto shareQuotaChildDto) {
+        // validation msisdn = msisdn_child
+        // validation non_prepaid msisdn
+        if (shareQuotaChildDto.getMsisdn().equals(shareQuotaChildDto.getMsisdnChild()) ||
+                !subscriberService.isMsisdnPrepaid(shareQuotaChildDto.getMsisdnChild())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, shareQuotaChildDto.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)).all().build();
+        }
+
+        return quotaService.child(shareQuotaChildDto);
+    }
+    
+    @RequestMapping(value = "/get-childs", method = RequestMethod.POST)
+    public Map<String, Object> getChilds(@RequestBody BaseRequestDto baseRequestDto) {
+        return quotaService.getChilds(baseRequestDto);
+    }
+
+}

@@ -1,0 +1,309 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.RequestScopeBean;
+import id.gnvsolution.d3.api.dto.request.EmailLoginRequestDto;
+import id.gnvsolution.d3.api.dto.request.LoginInDto;
+import id.gnvsolution.d3.api.dto.request.SocialLoginRequestDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.LoginHistoryEntity;
+import id.gnvsolution.d3.api.model.MsisdnTokenEntity;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.service.LoginService;
+import id.gnvsolution.d3.api.service.MsisdnTokenService;
+import id.gnvsolution.d3.api.service.impl.GetRequestService;
+import id.gnvsolution.d3.api.service.impl.PushedScheduledForRtbsSystemService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+
+import org.springframework.web.bind.annotation.*;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Created by Arie on 04/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/login")
+public class LoginController extends BaseController {
+	private final LoginService loginService;
+	private RequestScopeBean requestScopeBean;
+
+	@Autowired
+	private MsisdnTokenService msisdnTokenService;
+	
+	 @Autowired
+	 private GetRequestService interfaceType;
+	 
+	 @Autowired
+	 
+	 private PushedScheduledForRtbsSystemService service;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(ProfileController.class);
+
+	@Autowired
+	public LoginController(LoginService loginService, RequestScopeBean requestScopeBean) {
+		this.loginService = loginService;
+		this.requestScopeBean = requestScopeBean;
+	}
+
+	@RequestMapping(value = "autologin", method = RequestMethod.POST)
+	public Object autoLogin(@RequestBody LoginInDto loginInDto, @RequestHeader HttpHeaders httpHeaders) {
+
+		String msisdn = httpHeaders.getFirst("msisdn");
+		if (msisdn == null || msisdn.isEmpty()) {
+			if (loginInDto.getLanguage() == null) {
+				loginInDto.setLanguage(Constants.LANG_ID);
+			}
+			ErrorMessageDto errorDto = new ErrorMessageDto(false, loginInDto.getLanguage().equals(Constants.LANG_ID)
+					? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST);
+			return new ServiceResult(StatusCode.SUCCESS, errorDto, "Success");
+			// return JSONResultFilter.filter(new ErrorMessageDto(false,
+			// loginInDto.getLanguage().equals(Constants.LANG_ID) ?
+			// Languages.ID.COMMON_INVALID_REQUEST :
+			// Languages.EN.COMMON_INVALID_REQUEST)).all().build();
+		}
+
+		loginInDto.setMsisdn(msisdn);
+		loginService.autoLogin(loginInDto);
+		return new ServiceResult(StatusCode.SUCCESS, loginService.autoLogin(loginInDto), "Success");
+	}
+
+	/*
+	 * @RequestMapping(value = "auto-login", method = RequestMethod.POST) public
+	 * Map<String, Object> autoLogin(@RequestBody LoginInDto
+	 * loginInDto, @RequestHeader HttpHeaders httpHeaders) {
+	 * 
+	 * //String msisdn = httpHeaders.getFirst("X-MSP-MSISDN"); String tokenvalue
+	 * = loginInDto.getSecretKey();
+	 * 
+	 * String tokenValid =
+	 * StringUtils.newStringUtf8(Base64.decodeBase64(tokenvalue)); String msisdn
+	 * = fetchMsisdn(tokenValid); // validate IMEI and check language preference
+	 * if (loginInDto.getImei() == null || loginInDto.getImei().isEmpty()) { if
+	 * (loginInDto.getLanguage() == null) {
+	 * loginInDto.setLanguage(Constants.LANG_ID); }
+	 * 
+	 * return JSONResultFilter.filter(new ErrorMessageDto(false,
+	 * loginInDto.getLanguage().equals(Constants.LANG_ID) ?
+	 * Languages.ID.COMMON_INVALID_REQUEST :
+	 * Languages.EN.COMMON_INVALID_REQUEST)).all().build(); }
+	 * 
+	 * loginInDto.setMsisdn(msisdn); return loginService.autoLogin(loginInDto);
+	 * }
+	 */
+
+	@RequestMapping(value = "logout", method = RequestMethod.POST)
+	public Object logout(@RequestBody LoginInDto loginInDto, @RequestHeader HttpHeaders httpHeaders) {
+		// return loginService.logout(loginInDto);
+		LOGGER.info("Inside LoginController in logout method::::::::::::");
+		return new ServiceResult(StatusCode.SUCCESS, loginService.logout(loginInDto), "Success");
+	}
+
+	@RequestMapping(value = "otp-request", method = RequestMethod.POST)
+	public Object otpRequest(@RequestBody LoginInDto loginInDto) {
+		System.out.println("------------------");
+		LOGGER.info("Inside LoginController in otpRequest method::::::::::::");
+		// validate IMEI and check language preference
+		/*
+		 * if (loginInDto.getImei() == null || loginInDto.getImei().isEmpty()) {
+		 * if (loginInDto.getLanguage() == null) {
+		 * loginInDto.setLanguage(Constants.LANG_ID); } return
+		 * JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * loginInDto.getLanguage().equals(Constants.LANG_ID) ?
+		 * Languages.ID.COMMON_INVALID_REQUEST :
+		 * Languages.EN.COMMON_INVALID_REQUEST)).all().build(); }
+		 */
+		return new ServiceResult(StatusCode.SUCCESS, loginService.requestOtp(loginInDto), "Success");
+	}
+
+	@RequestMapping(value = "login-with-otp", method = RequestMethod.POST)
+	public Object loginWithOtp(@RequestBody LoginInDto loginInDto, HttpServletRequest request,
+			HttpServletResponse response) {
+		LOGGER.info("Inside LoginController in loginWithOtp method::::::::::::");
+		// validate IMEI and check language preference
+		/*
+		 * if (loginInDto.getImei() == null || loginInDto.getImei().isEmpty()) {
+		 * if (loginInDto.getLanguage() == null) {
+		 * loginInDto.setLanguage(Constants.LANG_ID); }
+		 * 
+		 * return JSONResultFilter.filter(new ErrorMessageDto(false,
+		 * loginInDto.getLanguage().equals(Constants.LANG_ID) ?
+		 * Languages.ID.COMMON_INVALID_REQUEST :
+		 * Languages.EN.COMMON_INVALID_REQUEST)).all().build(); }
+		 */
+		Map<String, Object> loginResponce = loginService.loginWithOtp(loginInDto);
+		boolean status = (boolean) loginResponce.get("status");
+		String token = "";
+		String msisdn = AppUtils.removeCountryCode(loginInDto.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+		LoginHistoryEntity loginHistoryEntity=new LoginHistoryEntity();
+		loginHistoryEntity.setMsisdn(msisdn);
+		loginHistoryEntity.setLastLoginTime(new Date());
+		loginHistoryEntity.setInterfaceTYPE(interfaceType.getRequestMode());
+	    loginHistoryEntity.setLoginWith("login-with-otp");
+		if (status) {
+			loginInDto.setMsisdn(msisdn);
+			token = getJwtTokenUtil().createTokenForSignUpProcess(loginInDto.getMsisdn(), null);
+			loginHistoryEntity.setLoginStatus("success");
+			
+		}
+		else
+		{
+			loginHistoryEntity.setLoginStatus("fail");
+			loginHistoryEntity.setMessage((String)loginResponce.get("message"));
+		}
+		System.out.println("Token Is " + token);
+		loginService.saveLoginDetails(loginHistoryEntity);
+		loginResponce.put("token", token);
+		response.setHeader(JWTConstant.JWT_HEADER_NAME, token);
+		return new ServiceResult(StatusCode.SUCCESS, loginResponce, "Success");
+	}
+
+	@RequestMapping(value = "login-with-social", method = RequestMethod.POST)
+	public Object loginWithSocial(@RequestBody SocialLoginRequestDto loginInDto, HttpServletRequest request,
+			HttpServletResponse response) {
+		LoginHistoryEntity loginHistoryEntity=null;
+		String token = "";
+		String msisdn="";
+		if (loginInDto.getImei() == null || loginInDto.getImei().isEmpty()) {
+			if (loginInDto.getLanguage() == null) {
+				loginInDto.setLanguage(Constants.LANG_ID);
+			}
+		}
+		Map<String, Object> loginResponce = loginService.loginWithSocial(loginInDto);
+		boolean status = (boolean) loginResponce.get("status");
+		try{
+	
+		  msisdn = AppUtils.removeCountryCode(loginResponce.get("msisdn").toString(),
+				AppDefaultValues.COUNTRY_CODE);
+		  loginHistoryEntity=new LoginHistoryEntity();
+		loginHistoryEntity.setMsisdn(msisdn);
+		loginHistoryEntity.setLastLoginTime(new Date());
+		loginHistoryEntity.setInterfaceTYPE(interfaceType.getRequestMode());
+	    loginHistoryEntity.setLoginWith("login-with-social");
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		if (status) {	
+			loginInDto.setMsisdn(msisdn);
+			loginHistoryEntity.setLoginStatus("success");
+			token = getJwtTokenUtil().createTokenForSignUpProcess(loginInDto.getMsisdn(), null);
+			loginService.saveLoginDetails(loginHistoryEntity);
+		}
+		/*else
+		{
+			 loginHistoryEntity=new LoginHistoryEntity();
+			loginHistoryEntity.setLoginStatus("fail");
+			loginHistoryEntity.setMessage((String)loginResponce.get("message"));
+		}*/
+		//loginService.saveLoginDetails(loginHistoryEntity);
+		loginResponce.put("token", token);
+		response.setHeader(JWTConstant.JWT_HEADER_NAME, token);
+		// return loginService.loginWithSocial(loginInDto);
+		return new ServiceResult(StatusCode.SUCCESS, loginResponce, "Success");
+	}
+
+	@RequestMapping(value = "login-with-email", method = RequestMethod.POST)
+	public Object loginWithEmail(@RequestBody EmailLoginRequestDto loginInDto, HttpServletRequest request,
+			HttpServletResponse response) {
+		LoginHistoryEntity loginHistoryEntity=null;
+		String token = "";
+		String msisdn="";
+		if (loginInDto.getImei() == null || loginInDto.getImei().isEmpty()) {
+			if (loginInDto.getLanguage() == null) {
+				loginInDto.setLanguage(Constants.LANG_ID);
+			}
+		}
+		Map<String, Object> loginResponce = loginService.loginWithEmail(loginInDto);
+		boolean status = (boolean) loginResponce.get("status");
+		try{
+		  msisdn = AppUtils.removeCountryCode(loginResponce.get("msisdn").toString(), AppDefaultValues.COUNTRY_CODE);
+		  loginHistoryEntity=new LoginHistoryEntity();
+		loginHistoryEntity.setMsisdn(msisdn);
+		loginHistoryEntity.setLastLoginTime(new Date());
+		loginHistoryEntity.setInterfaceTYPE(interfaceType.getRequestMode());
+	    loginHistoryEntity.setLoginWith("login-with-email");
+		}catch (Exception e) {
+			// TODO: handle exception.
+			e.printStackTrace();
+		}
+		if (status) {
+			loginHistoryEntity.setLoginStatus("success");
+			loginInDto.setMsisdn(msisdn);
+			token = getJwtTokenUtil().createTokenForSignUpProcess(loginInDto.getMsisdn(), null);
+			loginService.saveLoginDetails(loginHistoryEntity);
+		}
+		/*else
+		{
+			 loginHistoryEntity=new LoginHistoryEntity();
+			loginHistoryEntity.setLoginStatus("fail");
+			loginHistoryEntity.setMessage((String)loginResponce.get("message"));
+		}*/
+		loginResponce.put("token", token);
+		
+		response.setHeader(JWTConstant.JWT_HEADER_NAME, token);
+		// return loginService.loginWithEmail(loginInDto);
+		return new ServiceResult(StatusCode.SUCCESS, loginResponce, "Success");
+	}
+
+	public String fetchMsisdn(String token) {
+		String msisdn = null;
+		try {
+			List<MsisdnTokenEntity> msisdnTokenEntity = msisdnTokenService.getMsisdn(token);
+
+			Iterator<?> it = msisdnTokenEntity.iterator();
+
+			while (it.hasNext()) {
+				Object obj = (Object) it.next();
+				MsisdnTokenEntity msisdnTokn = (MsisdnTokenEntity) obj;
+				Date tokenDate = msisdnTokn.getCreateTimestamp();
+				Date current = new Date();
+				msisdn = msisdnTokn.getMsisdn();
+				System.out.println("msisdn " + msisdn + " tokenDate" + tokenDate);
+				if ((current.getTime() - tokenDate.getTime()) > 300000) {
+					return null;
+				} else {
+					return msisdn;
+				}
+
+			}
+			return msisdn;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+	
+	@RequestMapping(value = "is-valid-number", method = RequestMethod.POST)
+	public Object checkNumber(@RequestBody LoginInDto loginInDto, HttpServletRequest request,
+			HttpServletResponse response) {
+		return new ServiceResult(StatusCode.SUCCESS, loginService.isValidNumber(loginInDto), "Success");
+		}
+	@RequestMapping(value = "checks", method = RequestMethod.GET)
+	public Object check() {
+		service.getAllPostPaidUsers();
+		return new ServiceResult(StatusCode.SUCCESS,"hiiii", "Success");
+		}
+	
+
+}

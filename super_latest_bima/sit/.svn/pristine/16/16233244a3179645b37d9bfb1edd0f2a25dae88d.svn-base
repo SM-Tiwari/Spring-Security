@@ -1,0 +1,48 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * Created by rips on 4/28/17.
+ * <ProcessPaymentRequest>
+ *     <MakePayment>
+ *         <Account_num>SV-ACC-0000371546</Account_num>
+ *         <Payment_Date>2017-04-27 18:17:01</Payment_Date>
+ *         <Amount>1000</Amount>
+ *         <Payment_Type>PAYMENT</Payment_Type>
+ *         <Payment_Text />
+ *         <Payment_Refence>PBIL17042700001</Payment_Refence>
+ *         <Payment_Method>CC</Payment_Method>
+ *         <Payment_Level />
+ *         <Status_Code />
+ *         <Status_Text />
+ *     </MakePayment>
+ * </ProcessPaymentRequest>
+ */
+@XmlRootElement(name = "ProcessPaymentRequest")
+@XmlAccessorType(XmlAccessType.FIELD)
+public class ProcessPaymentRequest {
+
+    public ProcessPaymentRequest(){
+        setMakePayment(new MakePayment());
+    }
+
+    @XmlElement(name = "MakePayment", nillable = true)
+    private MakePayment makePayment;
+
+    public MakePayment getMakePayment() {
+        return makePayment;
+    }
+
+    public void setMakePayment(MakePayment makePayment) {
+        this.makePayment = makePayment;
+    }
+
+    @Override
+    public String toString() {
+        return "ProcessPaymentRequest{" + "makePayment=" + makePayment + '}';
+    }
+}

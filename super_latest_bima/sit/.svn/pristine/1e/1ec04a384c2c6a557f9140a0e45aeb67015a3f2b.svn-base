@@ -1,0 +1,45 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by aswzen on 1/11/2018.
+ */
+public class TriProductModDto implements DTO {
+
+    private List<ProductDto> bannerList;
+    private List<TriProductTabContentDto> tabList;
+    private boolean status;
+
+    public TriProductModDto(){
+        bannerList = new ArrayList<>();
+        tabList = new ArrayList<>();
+    }
+    
+    public List<TriProductTabContentDto> getTabList() {
+        return tabList;
+    }
+
+    public void setTabList(List<TriProductTabContentDto> tabList) {
+        this.tabList = tabList;
+    }
+
+    public List<ProductDto> getBannerList() {
+        return bannerList;
+    }
+
+    public void setBannerList(List<ProductDto> bannerList) {
+        this.bannerList = bannerList;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+}

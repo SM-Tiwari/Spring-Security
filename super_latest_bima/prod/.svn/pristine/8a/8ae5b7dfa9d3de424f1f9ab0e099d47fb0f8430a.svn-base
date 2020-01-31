@@ -1,0 +1,197 @@
+package id.gnvsolution.d3.api.model;
+
+import java.sql.Timestamp;
+import javax.persistence.*;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "NOTIFICATION")
+public class Notification {
+    private int notificationId;
+    private String subscriberMsisdn;
+    private String transactionId;
+    private String trxTransactionId;
+    private Long trxTransactionId2;
+    private String notificationTitle;
+    private String notificationMessage;
+    private int isRead;
+    private Subscriber subscriberBySubscriberMsisdn;
+    private TrxSubscriberPurchase trxSubscriberPurchaseByTransactionId;
+    private TrxSubscriberEtopup trxSubscriberEtopupByTrxTransactionId;
+    private TrxSubscriberReload trxSubscriberReloadByTrxTransactionId2;
+    
+    private Timestamp notificationAt;
+
+    @Id
+    @Column(name = "NOTIFICATION_ID", nullable = false, precision = 0)
+    @SequenceGenerator(name = "SEQ_NOTIFICATION", sequenceName = "SEQ_NOTIFICATION", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_NOTIFICATION", strategy = GenerationType.SEQUENCE)
+    public int getNotificationId() {
+        return notificationId;
+    }
+
+    public void setNotificationId(int notificationId) {
+        this.notificationId = notificationId;
+    }
+
+    @Basic
+    @Column(name = "SUBSCRIBER_MSISDN", nullable = true, length = 15)
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    @Basic
+    @Column(name = "TRANSACTION_ID", nullable = true, length = 50)
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    @Basic
+    @Column(name = "TRX_TRANSACTION_ID", nullable = true, length = 50)
+    public String getTrxTransactionId() {
+        return trxTransactionId;
+    }
+
+    public void setTrxTransactionId(String trxTransactionId) {
+        this.trxTransactionId = trxTransactionId;
+    }
+
+    @Basic
+    @Column(name = "TRX_TRANSACTION_ID2", nullable = true, precision = 0)
+    public Long getTrxTransactionId2() {
+        return trxTransactionId2;
+    }
+
+    public void setTrxTransactionId2(Long trxTransactionId2) {
+        this.trxTransactionId2 = trxTransactionId2;
+    }
+
+    @Basic
+    @Column(name = "NOTIFICATION_TITLE", nullable = false, length = 255)
+    public String getNotificationTitle() {
+        return notificationTitle;
+    }
+
+    public void setNotificationTitle(String notificationTitle) {
+        this.notificationTitle = notificationTitle;
+    }
+
+    @Basic
+    @Column(name = "NOTIFICATION_MESSAGE", nullable = false)
+    public String getNotificationMessage() {
+        return notificationMessage;
+    }
+
+    public void setNotificationMessage(String notificationMessage) {
+        this.notificationMessage = notificationMessage;
+    }
+
+    @Basic
+    @Column(name = "IS_READ", nullable = false, precision = 0)
+    public int getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(int isRead) {
+        this.isRead = isRead;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Notification that = (Notification) o;
+
+        if (notificationId != that.notificationId) return false;
+        if (isRead != that.isRead) return false;
+        if (subscriberMsisdn != null ? !subscriberMsisdn.equals(that.subscriberMsisdn) : that.subscriberMsisdn != null)
+            return false;
+        if (transactionId != null ? !transactionId.equals(that.transactionId) : that.transactionId != null)
+            return false;
+        if (trxTransactionId != null ? !trxTransactionId.equals(that.trxTransactionId) : that.trxTransactionId != null)
+            return false;
+        if (trxTransactionId2 != null ? !trxTransactionId2.equals(that.trxTransactionId2) : that.trxTransactionId2 != null)
+            return false;
+        if (notificationTitle != null ? !notificationTitle.equals(that.notificationTitle) : that.notificationTitle != null)
+            return false;
+        if (notificationMessage != null ? !notificationMessage.equals(that.notificationMessage) : that.notificationMessage != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (notificationId ^ (notificationId >>> 32));
+        result = 31 * result + (subscriberMsisdn != null ? subscriberMsisdn.hashCode() : 0);
+        result = 31 * result + (transactionId != null ? transactionId.hashCode() : 0);
+        result = 31 * result + (trxTransactionId != null ? trxTransactionId.hashCode() : 0);
+        result = 31 * result + (trxTransactionId2 != null ? trxTransactionId2.hashCode() : 0);
+        result = 31 * result + (notificationTitle != null ? notificationTitle.hashCode() : 0);
+        result = 31 * result + (notificationMessage != null ? notificationMessage.hashCode() : 0);
+        result = 31 * result + (int) (isRead ^ (isRead >>> 32));
+        return result;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "SUBSCRIBER_MSISDN", referencedColumnName = "SUBSCRIBER_MSISDN", updatable = false, insertable = false)
+    public Subscriber getSubscriberBySubscriberMsisdn() {
+        return subscriberBySubscriberMsisdn;
+    }
+
+    public void setSubscriberBySubscriberMsisdn(Subscriber subscriberBySubscriberMsisdn) {
+        this.subscriberBySubscriberMsisdn = subscriberBySubscriberMsisdn;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "TRANSACTION_ID", referencedColumnName = "TRANSACTION_ID", updatable = false, insertable = false)
+    public TrxSubscriberPurchase getTrxSubscriberPurchaseByTransactionId() {
+        return trxSubscriberPurchaseByTransactionId;
+    }
+
+    public void setTrxSubscriberPurchaseByTransactionId(TrxSubscriberPurchase trxSubscriberPurchaseByTransactionId) {
+        this.trxSubscriberPurchaseByTransactionId = trxSubscriberPurchaseByTransactionId;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "TRX_TRANSACTION_ID", referencedColumnName = "TRANSACTION_ID", insertable = false, updatable = false
+    )
+    public TrxSubscriberEtopup getTrxSubscriberEtopupByTrxTransactionId() {
+        return trxSubscriberEtopupByTrxTransactionId;
+    }
+
+    public void setTrxSubscriberEtopupByTrxTransactionId(TrxSubscriberEtopup trxSubscriberEtopupByTrxTransactionId) {
+        this.trxSubscriberEtopupByTrxTransactionId = trxSubscriberEtopupByTrxTransactionId;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "TRX_TRANSACTION_ID2", referencedColumnName = "TRANSACTION_ID", updatable = false, insertable = false)
+    public TrxSubscriberReload getTrxSubscriberReloadByTrxTransactionId2() {
+        return trxSubscriberReloadByTrxTransactionId2;
+    }
+
+    public void setTrxSubscriberReloadByTrxTransactionId2(TrxSubscriberReload trxSubscriberReloadByTrxTransactionId2) {
+        this.trxSubscriberReloadByTrxTransactionId2 = trxSubscriberReloadByTrxTransactionId2;
+    }
+    
+    @Basic
+    @Column(name = "NOTIFICATION_AT", nullable = true)
+    public Timestamp getNotificationAt() {
+        return notificationAt;
+    }
+
+    public void setNotificationAt(Timestamp notificationAt) {
+        this.notificationAt = notificationAt;
+    }
+}

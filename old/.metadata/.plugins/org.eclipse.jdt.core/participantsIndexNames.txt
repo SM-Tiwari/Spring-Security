@@ -1,0 +1,5 @@
+INDEX VERSION 1.131
+D:\old\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\2703448219.index
+\vnm-selfcare-web-api-2.0\src\main\java
+D:\old\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\4212175664.index
+\vnm-selfcare-web-portal-2.0\src\main\java

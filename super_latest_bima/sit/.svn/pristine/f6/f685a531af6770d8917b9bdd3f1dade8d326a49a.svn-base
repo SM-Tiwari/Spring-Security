@@ -1,0 +1,383 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dto.DTO;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 05/04/2017.
+ */
+public class ProfileDto implements DTO {
+    private String msisdn;
+    private String balance;
+    private String creditLimit = "-";
+    private String creditLimitHybrid = "";
+    private String type;
+    private String validity;
+    private String balanceTrims;
+    private boolean status;
+    private boolean statusSubscription;
+    private String scratchCardCode;
+    private String subscriberType;
+    private String email;
+    private String emailHybrid = "";
+    private List<PackageProductDto> packageProductList;
+    private List<PackageDto> packageList;
+    private String message;
+    private String dueDateHybrid = "";
+    private String dueDate = "-";
+    private long balanceValue = 0;
+    private long balanceOnNetValue = 0;
+    private long balanceOffNetValue = 0;
+    private long balanceOnAndOffNetValue = 0;
+    private long balanceTotalValue = 0;
+    private String balanceOnNet = "";
+    private String balanceOffNet = "";
+    private String balanceTotal = "";
+    private String balanceOnAndOffNet = "";
+    private String profilePicture = "";
+    private long quotaValue = 0;
+    private String callPlan;
+    private String profileColor = "";
+    private long profileTime;
+    private String unbilledAmount;
+    public String getUnbilledAmount() {
+		return unbilledAmount;
+	}
+
+	public void setUnbilledAmount(String unbilledAmount) {
+		this.unbilledAmount = unbilledAmount;
+	}
+
+	private CustomerSegmentation customerSegmentation;
+    
+    private String profileName = "";
+    private String profileHobby = "";
+    
+    private String dukcapilName = "";
+    private String dukcapilUrl = "";
+
+    private Map<String, String> sumOfBonuses;
+    
+    public ProfileDto(){
+        this.packageList = new ArrayList<>();
+        this.packageProductList = new ArrayList<>();
+        this.sumOfBonuses = new HashMap();
+    }
+    
+    public void setCustomerSegmentation(CustomerSegmentation customerSegmentation) {
+		this.customerSegmentation = customerSegmentation;
+	}
+    
+    public CustomerSegmentation getCustomerSegmentation() {
+		return customerSegmentation;
+	}
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getBalance() {
+        return balance;
+    }
+
+    public void setBalance(String balance) {
+        this.balance = balance;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getValidity() {
+        return validity;
+    }
+
+    public void setValidity(String validity) {
+        this.validity = validity;
+    }
+
+    public List<PackageDto> getPackageList() {
+        return packageList;
+    }
+
+    public void setPackageList(List<PackageDto> packageList) {
+        this.packageList = packageList;
+    }
+
+    public String getBalanceTrims() {
+        return balanceTrims;
+    }
+
+    public void setBalanceTrims(String balanceTrims) {
+        this.balanceTrims = balanceTrims;
+    }
+
+    public boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getScratchCardCode() {
+        return scratchCardCode;
+    }
+
+    public void setScratchCardCode(String scratchCardCode) {
+        this.scratchCardCode = scratchCardCode;
+    }
+
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean addPackage(PackageDto packageDto){
+        return this.packageList.add(packageDto);
+    }
+    
+    public boolean addPackageProduct(PackageProductDto packageProductDto){
+        return this.packageProductList.add(packageProductDto);
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(String dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public long getQuotaValue() {
+        return quotaValue;
+    }
+
+    public void setQuotaValue(long quotaValue) {
+        this.quotaValue = quotaValue;
+    }
+
+    public long getBalanceValue() {
+        return balanceValue;
+    }
+
+    public void setBalanceValue(long balanceValue) {
+        this.balanceValue = balanceValue;
+    }
+
+    public String getCreditLimit() {
+        return creditLimit;
+    }
+
+    public void setCreditLimit(String creditLimit) {
+        this.creditLimit = creditLimit;
+    }
+
+    public String getProfileColor() {
+        return profileColor == null || profileColor.isEmpty() ? Constants.DEFAULT_COLOR_FLASH_PROFILE : profileColor;
+    }
+
+    public void setProfileColor(String profileColor) {
+        this.profileColor = profileColor;
+    }
+
+    public String getCallPlan() {
+        return callPlan;
+    }
+
+    public void setCallPlan(String callPlan) {
+        this.callPlan = callPlan;
+    }
+
+    public long getProfileTime() {
+        return profileTime;
+    }
+
+    public void setProfileTime(long profileTime) {
+        this.profileTime = profileTime;
+    }
+
+    public String getCreditLimitHybrid() {
+        return creditLimitHybrid;
+    }
+
+    public void setCreditLimitHybrid(String creditLimitHybrid) {
+        this.creditLimitHybrid = creditLimitHybrid;
+    }
+
+    public String getEmailHybrid() {
+        return emailHybrid;
+    }
+
+    public void setEmailHybrid(String emailHybrid) {
+        this.emailHybrid = emailHybrid;
+    }
+
+    public boolean isStatusSubscription() {
+        return statusSubscription;
+    }
+
+    public void setStatusSubscription(boolean statusSubscription) {
+        this.statusSubscription = statusSubscription;
+    }
+
+    public String getDueDateHybrid() {
+        return dueDateHybrid;
+    }
+
+    public void setDueDateHybrid(String dueDateHybrid) {
+        this.dueDateHybrid = dueDateHybrid;
+    }
+
+    public String getBalanceOnNet() {
+        return balanceOnNet;
+    }
+
+    public void setBalanceOnNet(String balanceOnNet) {
+        this.balanceOnNet = balanceOnNet;
+    }
+
+    public String getBalanceOffNet() {
+        return balanceOffNet;
+    }
+
+    public void setBalanceOffNet(String balanceOffNet) {
+        this.balanceOffNet = balanceOffNet;
+    }
+
+    public String getBalanceTotal() {
+        return balanceTotal;
+    }
+
+    public void setBalanceTotal(String balanceTotal) {
+        this.balanceTotal = balanceTotal;
+    }
+
+    public long getBalanceOnNetValue() {
+        return balanceOnNetValue;
+    }
+
+    public void setBalanceOnNetValue(long balanceOnNetValue) {
+        this.balanceOnNetValue = balanceOnNetValue;
+    }
+
+    public long getBalanceOffNetValue() {
+        return balanceOffNetValue;
+    }
+
+    public void setBalanceOffNetValue(long balanceOffNetValue) {
+        this.balanceOffNetValue = balanceOffNetValue;
+    }
+
+    public long getBalanceTotalValue() {
+        return balanceTotalValue;
+    }
+
+    public void setBalanceTotalValue(long balanceTotalValue) {
+        this.balanceTotalValue = balanceTotalValue;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public long getBalanceOnAndOffNetValue() {
+        return balanceOnAndOffNetValue;
+    }
+
+    public void setBalanceOnAndOffNetValue(long balanceOnAndOffNetValue) {
+        this.balanceOnAndOffNetValue = balanceOnAndOffNetValue;
+    }
+
+    public String getBalanceOnAndOffNet() {
+        return balanceOnAndOffNet;
+    }
+
+    public void setBalanceOnAndOffNet(String balanceOnAndOffNet) {
+        this.balanceOnAndOffNet = balanceOnAndOffNet;
+    }
+
+    public List<PackageProductDto> getPackageProductList() {
+        return packageProductList;
+    }
+
+    public void setPackageProductList(List<PackageProductDto> packageProductList) {
+        this.packageProductList = packageProductList;
+    }
+
+    public String getProfileName() {
+        return profileName;
+    }
+
+    public void setProfileName(String profileName) {
+        this.profileName = profileName;
+    }
+
+    public String getProfileHobby() {
+        return profileHobby;
+    }
+
+    public void setProfileHobby(String profileHobby) {
+        this.profileHobby = profileHobby;
+    }
+
+    public String getDukcapilName() {
+        return dukcapilName;
+    }
+
+    public void setDukcapilName(String dukcapilName) {
+        this.dukcapilName = dukcapilName;
+    }
+
+    public String getDukcapilUrl() {
+        return dukcapilUrl;
+    }
+
+    public void setDukcapilUrl(String dukcapilUrl) {
+        this.dukcapilUrl = dukcapilUrl;
+    }
+
+    public Map<String, String> getSumOfBonuses() {
+        return sumOfBonuses;
+    }
+
+    public void setSumOfBonuses(Map<String, String> sumOfBonuses) {
+        this.sumOfBonuses = sumOfBonuses;
+    }
+}

@@ -1,0 +1,216 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.dto.response.PurchaseDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.Campaign;
+import id.gnvsolution.d3.api.model.CampaignReward;
+import id.gnvsolution.d3.api.service.CampaignService;
+import id.gnvsolution.d3.api.service.PurchasingService;
+import id.gnvsolution.d3.api.service.WelcomeRewardService;
+import id.gnvsolution.d3.api.utils.ApiHelpers;
+import id.gnvsolution.d3.api.utils.Helpers;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 23/04/2017.
+ */
+@Service
+@Transactional
+public class WelcomeRewardServiceImpl extends BaseService implements WelcomeRewardService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(WelcomeRewardServiceImpl.class);
+
+    @Autowired
+    ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    private PurchasingService purchasingService;
+    private CampaignService campaignService;
+    private BaseDao<CampaignReward> campaignRewardDao;
+
+    @Autowired
+    public void init(PurchasingService purchasingService, CampaignService campaignService) {
+    	logger.info("start init method of WelcomeRewardServiceImpl------");
+        this.purchasingService = purchasingService;
+        this.campaignService = campaignService;
+        this.campaignRewardDao = new BaseDao<>(sessionFactoryDef, CampaignReward.class);
+    }
+
+    public void saveOrUpdateReward(CampaignReward campaignReward) {
+    	logger.info("saveOrUpdateReward method of WelcomeRewardServiceImpl------ updating campaignReward---------msisdn:::::", campaignReward.getMsisdn());
+        campaignRewardDao.saveOrUpdate(campaignReward);
+    }
+
+    public CampaignReward saveReward(PurchaseRequestDto request) {
+    	logger.info("saveReward method of WelcomeRewardServiceImpl------ saving campaignReward---------msisdn:::::", request.getMsisdn());
+        // record CAMPAIGN_REWARD history
+        Campaign campaign = campaignService.getCampaign(request.getProductId());
+
+        CampaignReward campaignReward = new CampaignReward();
+        campaignReward.setCampaignId(campaign);
+        campaignReward.setMsisdn(request.getMsisdn());
+        campaignReward.setImei(request.getImei());
+        campaignReward.setClaimDate(new Date());
+        campaignReward.setClaimStatus((short) 1);
+        campaignRewardDao.save(campaignReward);
+
+        return campaignReward;
+    }
+
+    @Override
+    public Map<String, Object> doTibcoFulfilment(CampaignReward campaignReward, PurchaseRequestDto request) {
+    	logger.info("doTibcoFulfilment method of WelcomeRewardServiceImpl------ calling tibco service based on claim method---------msisdn:::::", request.getMsisdn());
+        boolean isSuccess = false;
+        PurchaseDto purchaseDto = new PurchaseDto();
+        purchaseDto.setStatus(true);
+
+        // process CAMPAIGN redeem
+        Campaign campaign = campaignService.getCampaign(request.getProductId());
+
+        String transactionId = campaign.getCampaignId() + Helpers.toString(campaignReward.getClaimDate());
+        switch (campaign.getClaimMethod()) {
+            case "clmapi": {
+            	logger.info("doTibcoFulfilment method of WelcomeRewardServiceImpl------clmapi");
+                // getServicePlan is equals to offerId based on CLM
+                isSuccess = ApiHelpers.apiClm(transactionId, request.getMsisdn(), campaign.getCampaignId());
+                break;
+            }
+            case "api_3pd": {
+            	logger.info("doTibcoFulfilment method of WelcomeRewardServiceImpl------api_3pd");
+                isSuccess = ApiHelpers.apiProductData(transactionId, request.getMsisdn(), campaign.getClaimCharge().intValue() == 1, campaign.getPackageCode());
+                break;
+            }
+            case "api_3pb": {
+            	logger.info("doTibcoFulfilment method of WelcomeRewardServiceImpl------api_3pb");
+                //isSuccess = ApiHelpers.apiProductBilling(transactionId, request.getMsisdn(), campaign.getClaimCharge().intValue() == 1, campaign.getPackageCode());
+                isSuccess = ApiHelpers.apiClm(transactionId, request.getMsisdn(), campaign.getCampaignId());
+                break;
+            }
+            case "smsmt": {
+            	logger.info("doTibcoFulfilment method of WelcomeRewardServiceImpl------smsmt");
+                isSuccess = true;
+                
+                purchaseDto.setIsSms(true);
+                purchaseDto.setSmsTo(campaign.getSdc());
+                purchaseDto.setSmsKeyword(campaign.getKeyword());
+                break;
+            }
+            default: {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PURCHASE_FAILED : Languages.EN.PURCHASE_FAILED)).all().build();
+            }
+        }
+
+        if (!isSuccess) {
+            campaignReward.setClaimStatus((short) 0);
+            logger.info("doTibcoFulfilment method of WelcomeRewardServiceImpl------updating campaignReward");
+            campaignRewardDao.saveOrUpdate(campaignReward);
+            return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_EXCEPTION : Languages.EN.COMMON_EXCEPTION)).all().build();
+        } else {
+            return JSONResultFilter.filter(purchaseDto).all().build();
+        }
+    }
+
+    @Override
+    public Map<String, Object> getReward(BaseRequestDto request, boolean isFull) {
+    	
+    	logger.info("getReward method of WelcomeRewardServiceImpl------msisdn:::",request.getMsisdn());
+    	
+    	/*change msisdn by Vimal*/
+    	if(request.getMsisdn()!= null){
+    	String msisdn = AppUtils.removeCountryCode(request.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+    	request.setMsisdn(msisdn);
+    	}
+        if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        } else if (campaignService.isAlreadyRedeemOrCancelWelcomeReward(request.getMsisdn(), request.getImei())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_ALREADY : Languages.EN.PROMO_REDEEM_ALREADY)).all().build();
+        }
+
+        Campaign welcomeReward = campaignService.getCampaignWelcomeReward(request.getMsisdn());
+        if (welcomeReward != null) {
+            // validate CALL_PLAN
+            switch (welcomeReward.getTargetType()) {
+                case "specificcp": {
+                	logger.info("getReward method of WelcomeRewardServiceImpl---target type---specificcp");
+                    if (welcomeReward.getCallplan().toLowerCase().indexOf(request.getCallPlan().toLowerCase()) < 0) {
+                        // not for request.CALL_PLAN
+                        return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_NOT_AVAILABLE : Languages.EN.PROMO_REDEEM_NOT_AVAILABLE)).all().build();
+                    }
+                    break;
+                }
+                case "cms": {
+                	logger.info("getReward method of WelcomeRewardServiceImpl--target type----cms");
+                    if (!campaignService.isMsisdnWhitelisted(welcomeReward.getCampaignId(), request.getMsisdn())) {
+                        // not for request.MSISDN
+                        return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_NOT_AVAILABLE : Languages.EN.PROMO_REDEEM_NOT_AVAILABLE)).all().build();
+                    }
+                    break;
+                }
+            }
+
+            if (welcomeReward.getClaimMethod() != null) {
+                Map<String, Object> promo = new HashMap<>();
+                promo.put("status", true);
+                promo.put("product", ProductDto.fromCampaign(welcomeReward, request.getLanguage(), null, isFull));
+
+                return promo;
+            }
+
+            return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_NOT_AVAILABLE : Languages.EN.PROMO_REDEEM_NOT_AVAILABLE)).all().build();
+        } else {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_NOT_AVAILABLE : Languages.EN.PROMO_REDEEM_NOT_AVAILABLE)).all().build();
+        }
+    }
+
+    @Override
+    public Map<String, Object> redeemReward(PurchaseRequestDto request) {
+    	logger.info("redeemReward method of WelcomeRewardServiceImpl------msisdn", request.getMsisdn());
+        if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+        // validate only 1 redeem is allowed
+        if (!campaignService.isAlreadyRedeemOrCancelWelcomeReward(request.getMsisdn(), request.getImei())) {
+            return purchasingService.redeemCampaign(request);
+        } else {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+        }
+    }
+
+    @Override
+    public Map<String, Object> isAlreadyRedeem(BaseRequestDto request) {
+    	logger.info("isAlreadyRedeem method of WelcomeRewardServiceImpl------msisdn", request.getMsisdn());
+        if(!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+        if (campaignService.isAlreadyRedeemOrCancelWelcomeReward(request.getMsisdn(), request.getImei())) {
+            return JSONResultFilter.filter(new BoolStatusOutDto(true)).include("status").build();
+        } else {
+            return JSONResultFilter.filter(new BoolStatusOutDto(false)).include("status").build();
+        }
+    }
+}

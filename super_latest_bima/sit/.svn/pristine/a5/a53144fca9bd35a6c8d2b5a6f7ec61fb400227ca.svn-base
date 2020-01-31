@@ -1,0 +1,84 @@
+package id.gnvsolution.d3.api.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.model.Recommedation;
+import id.gnvsolution.d3.api.service.CustomerCareService;
+import id.gnvsolution.d3.api.service.ProductService;
+import id.gnvsolution.d3.api.service.StaticService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+
+@RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequestMapping("/api/v1/customercare")
+public class CustomerCareController {
+
+	@Autowired
+	private CustomerCareService customerCareService;
+
+	@Autowired
+	ProductService productService;
+	@Autowired
+	private StaticService staticService;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(CustomerCareController.class);
+
+
+	private final Map<String, String> staticValue = new HashMap<String, String>() {
+		{
+			put("SHARE_QUOTA_PRODUCT", "allowed");
+		}
+	};
+
+	@RequestMapping(value = "/contactus", method = RequestMethod.GET)
+	public Object contactus(HttpServletRequest request) {
+		LOGGER.info("Inside CustomerCareController in contactus method::::::::::::");
+
+		// return customerCareService.custDetails();
+		return new ServiceResult(StatusCode.SUCCESS, customerCareService.custDetails(), "Success");
+		// return null;
+	}
+
+	@GetMapping(value = "/storeList/{key}")
+	public Object storeList(@PathVariable("key") String key) {
+		LOGGER.info("Inside CustomerCareController in storeList method::::::::::::");
+		Parameter parameter = staticService.getParameter(key);
+
+		List<Recommedation> recommedationsList = productService.getRecomended();
+		if (parameter != null) {
+			Map<String, Object> list=new HashMap<String, Object>() {
+				{
+					put("status", true);
+					put("storeList", parameter.getValue());
+					put("recommedationsList", recommedationsList);
+				}
+			};
+			
+			return new ServiceResult(StatusCode.SUCCESS, list, "Success");
+		} else {
+			return new ServiceResult(StatusCode.SUCCESS, new ErrorMessageDto(false, "Invalid Request"), "Success");
+			//return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid Request")).all().build();
+		}
+
+	}
+}

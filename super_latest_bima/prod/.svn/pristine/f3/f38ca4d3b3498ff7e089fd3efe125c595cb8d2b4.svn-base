@@ -1,0 +1,16 @@
+package com.gnv.vnm.selfcare.core.model;
+
+import java.util.Hashtable;
+import java.util.Map;
+
+public class SelfPackegeResp {
+	 Map<String, Object> response = new Hashtable<>();
+
+	public Map<String, Object> getResponse() {
+		return response;
+	}
+
+	public void setResponse(Map<String, Object> response) {
+		this.response = response;
+	} 
+}

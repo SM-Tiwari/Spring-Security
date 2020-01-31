@@ -1,0 +1,58 @@
+package id.gnvsolution.d3.api.controller.inbound;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import org.apache.commons.io.IOUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.LoggerFactory;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.inbound.TibcoChangeEmailResponseController
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jun 6, 2017 7:50:41 PM
+ */
+@RestController
+@RequestMapping("/api/v1/inbound/tibco/change-email-response")
+@ApiIgnore
+public class TibcoChangeEmailResponseController {
+
+    private final org.slf4j.Logger LOGGER = LoggerFactory.getLogger("proxy");
+
+    @RequestMapping(method = RequestMethod.POST)
+    public void getResponse(HttpServletRequest request) {
+        try {
+            Enumeration headerNames = request.getHeaderNames();
+            HashMap<String, String> mapHeaderInfo = new HashMap<>();
+            while (headerNames.hasMoreElements()) {
+                String key = (String) headerNames.nextElement();
+                String value = request.getHeader(key);
+                if (!key.equalsIgnoreCase("host")) {
+                    mapHeaderInfo.put(key, value);
+                }
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("\r\n========== START =============== \r\n");
+            sb.append("Timestamp\t:\t").append(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())).append("\r\n");
+            sb.append("Accessing\t:\t").append("/api/v1/inbound/tibco/change-email-response").append("\r\n");
+            sb.append("Headers\t\t:\t").append(mapHeaderInfo.toString()).append("\r\n");
+            sb.append("Response \t:\t").append(IOUtils.toString(request.getReader())).append("\r\n");
+            sb.append("==========  END  =============== \r\n");
+
+            LOGGER.info(sb.toString());
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+    }
+
+}

@@ -1,0 +1,105 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.service.MicService;
+import id.gnvsolution.d3.api.service.StaticService;
+
+
+@Service
+@Transactional
+public class MicServiceImpl implements MicService{
+	
+	public static final Logger logger = LoggerFactory.getLogger(MicServiceImpl.class);
+	
+	@Autowired
+    @Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+	
+	@Autowired
+	private StaticService staticService;
+	
+	@Override
+	public Map<String, Object> getMICStatusandURL(String msisdn) {
+		logger.info("#getMICStatusandURL----------msisdn:::", msisdn);
+		String micStatus ="0";
+		Map<String, Object> map = new HashMap<String, Object>();
+		Parameter parameter = staticService.getParameter("MIC_URL");
+        String micUrl = parameter.getValue();
+        /*Parameter parameters = staticService.getParameter("MIC_STATUS");
+        micStatus = parameters.getValue();*/
+        try {
+        	micStatus = getMicStatus(msisdn);
+		} 
+       
+        catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        map.put("micurl", micUrl);
+        map.put("micstatus", micStatus);
+        
+        
+		
+		return map;
+	}
+
+	private String getMicStatus(String msisdn) throws SQLException {
+        String status_value=null;
+        Connection connection =null;
+        Statement statement=null;
+        try{
+        	logger.info("#getMicStatus----------msisdn:::", msisdn);
+               
+              Class.forName("oracle.jdbc.driver.OracleDriver");
+               //String url = "jdbc:oracle:thin:@10.6.16.32:1526:WSCDBP";
+               String url ="jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS = (PROTOCOL = TCP)(HOST ="+Constants.HOST+")(PORT = 1526))(CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = BIMADBP)))";
+              
+                 connection = DriverManager.getConnection(url,Constants.UNAME,Constants.DPASS);
+                 statement= connection.createStatement(); 
+                 String query = "select * from APP_CCW.TB_SUBS_UPDATE_INFO@INETDB where MSISDN ='"+msisdn+"'";
+             
+               ResultSet rs = statement.executeQuery(query);
+               
+               if (rs.next()) {
+             	  status_value=rs.getString(2).toString();
+             } else {
+             	status_value="2";
+             }
+    
+                       
+        }
+        catch (Exception e) {
+			e.printStackTrace();
+		}       
+        finally {
+     	    
+     	   connection.close();
+     	   statement.close();
+		}
+  return status_value;
+
+ }
+	
+	
+	
+	
+
+}

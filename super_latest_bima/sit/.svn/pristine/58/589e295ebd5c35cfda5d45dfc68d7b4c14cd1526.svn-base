@@ -1,0 +1,82 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.sql.Timestamp;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.ProfileColor 
+ * </pre>
+ *
+ * @author aswzen < aswzen at gmail dot com >
+ * Jan 16, 2018 3:22:34 PM
+ *
+ */
+@Entity
+@Table(name = "SUBSCRIBER_PICTURES")
+public class SubscriberPictures {
+
+     
+    @Id
+    @Column(name = "UUID")
+    private String uuid;
+
+    @Column(name = "MSISDN")
+    private String msisdn;
+
+    @Column(name = "PICTURE_NAME")
+    private String pictureName;
+
+    @Column(name = "CREATED_DATE")
+    private Timestamp createdDate;
+
+    @Column(name = "STATUS")
+    private Integer status;
+
+    public SubscriberPictures() {
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getPictureName() {
+        return pictureName;
+    }
+
+    public void setPictureName(String pictureName) {
+        this.pictureName = pictureName;
+    }
+
+    public Timestamp getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Timestamp createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+}

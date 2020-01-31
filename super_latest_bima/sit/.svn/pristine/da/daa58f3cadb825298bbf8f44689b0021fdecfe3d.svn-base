@@ -1,0 +1,70 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by aswzen on 10/08/2018.
+ */
+@Entity
+@Table(name = "SUBSCRIBER_USER_PROFILE")
+public class SubscriberUserProfile {
+    private String msisdn;
+    private String name;
+    private String hobby;
+    private Timestamp updatedDate;
+    private Timestamp createdDate;
+
+    @Id
+    @Basic
+    @Column(name = "MSISDN")
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    @Basic
+    @Column(name = "NAME")
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Basic
+    @Column(name = "HOBBY")
+    public String getHobby() {
+        return hobby;
+    }
+
+    public void setHobby(String hobby) {
+        this.hobby = hobby;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_DATE")
+    public Timestamp getUpdatedDate() {
+        return updatedDate;
+    }
+
+    public void setUpdatedDate(Timestamp updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+    @Basic
+    @Column(name = "CREATED_DATE")
+    public Timestamp getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Timestamp createdDate) {
+        this.createdDate = createdDate;
+    }
+
+
+}

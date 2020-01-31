@@ -1,0 +1,46 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.ProductCharging;
+import id.gnvsolution.d3.api.service.ProductChargingService;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.CreditServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ *         May 24, 2017 3:34:14 PM
+ */
+@Service
+@Transactional
+public class ProductChargingServiceImpl extends BaseService implements ProductChargingService {
+	private final Logger logger = LoggerFactory.getLogger(ProductChargingServiceImpl.class);
+
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<ProductCharging> productChargingDao;
+
+    @Autowired
+    public ProductChargingServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.productChargingDao = new BaseDao<>(sessionFactoryDef, ProductCharging.class);
+    }
+
+    public String getProductIdFromRegistrationKey(String registrationKey) {
+    	logger.info("#getProductIdFromRegistrationKey----getting product id from ProductCharging--------registration key is::::", registrationKey);
+        Object productId = sessionFactoryDef.getCurrentSession().createQuery("select productId from ProductCharging where registrationKey = :registrationKey and productByProductId.isActive = true")
+                .setString("registrationKey", registrationKey)
+                .setMaxResults(1)
+                .uniqueResult();
+
+        return productId != null ? productId.toString() : "";
+    }
+
+}

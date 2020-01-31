@@ -1,0 +1,85 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.SupportedLanguage;
+import id.gnvsolution.d3.api.model.DiscountTopUp;
+import id.gnvsolution.d3.api.model.DiscountTopupEntity;
+import id.gnvsolution.d3.api.service.DiscountTopupService;
+
+@Service
+@Transactional
+public class DiscountTopupServiceImpl implements DiscountTopupService {
+	
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@SuppressWarnings("unused")
+	@Override
+	public Map getDiscountTopupData(String langCode) {
+		if (!StringUtils.hasLength(langCode))
+			langCode = SupportedLanguage.ENGLISH.code();
+		langCode = langCode.toUpperCase();
+		Map<String, Object> result = new HashMap<>();
+		List<DiscountTopUp> dicounttopup = new ArrayList<>();
+		BaseDao<DiscountTopupEntity> discountTopupEntity = new BaseDao<>(sessionFactoryDef, DiscountTopupEntity.class);
+		try {
+			Iterable<DiscountTopupEntity> dte = null;// discountTopupRepositry.findAll(QDiscountTopupEntity.discountTopupEntity.discountStatus.eq(DataStatus.ACTIVE.ordinal()));
+
+			List<DiscountTopupEntity> listDiscountTopupEntity = discountTopupEntity.find(" STATUS =:status and trunc(TO_DATE(valid_from)) <= TO_DATE(sysdate, 'DD-MM-YY') and trunc(TO_DATE(valid_to)) >= TO_DATE(sysdate, 'DD-MM-YY')",
+					new HashMap<String, Object>() {
+						{
+							put("status", 1);
+						}
+					});
+			if (listDiscountTopupEntity.size()> 0 ) {
+				for (DiscountTopupEntity et : listDiscountTopupEntity) {
+					dicounttopup.add(fromDiscounttopupEntity(et, langCode));
+				}
+				result.put("resultList", dicounttopup);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	private DiscountTopUp fromDiscounttopupEntity(DiscountTopupEntity source, String langCode) {
+
+		DiscountTopUp discountTopUp = new DiscountTopUp();
+		discountTopUp.setId(source.getDiscounttopupId());
+		// discountTopUp.setCode(source.getDiscounttopupCode());
+
+		if (langCode.equalsIgnoreCase(AppDefaultValues.LANGUAGE_ENGLISH)) {
+			discountTopUp.setName(source.getDiscountNameEN());
+			discountTopUp.setDescription(source.getDiscountDescEN());
+			// discountTopUp.setDetails(source.getDiscountDetailEN());
+
+		} else if (langCode.equalsIgnoreCase(AppDefaultValues.LANGUAGE_VIETNAMESE)) {
+			discountTopUp.setName(source.getDiscountNameVI());
+			discountTopUp.setDescription(source.getDiscountNameVI());
+//			discountTopUp.setDetails(source.getDiscountDetailVI());
+
+		}
+
+		discountTopUp.setRechage_amount(source.getRechageAmount());
+		discountTopUp.setRechage_dicount(source.getRechageDiscount());
+
+		return discountTopUp;
+	}
+
+}

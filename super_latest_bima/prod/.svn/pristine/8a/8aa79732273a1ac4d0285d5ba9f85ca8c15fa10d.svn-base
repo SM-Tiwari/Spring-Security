@@ -1,0 +1,19 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.NSNDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.NSNService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 25, 2017 4:16:18 PM
+ *
+ */
+public interface NSNService {
+
+    Map<String, Object> purchase(NSNDto nsndto);
+    
+}

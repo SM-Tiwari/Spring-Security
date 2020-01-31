@@ -1,0 +1,281 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.model.SVAndRtbsData;
+
+import id.gnvsolution.d3.api.service.ProfileService;
+
+@Service("PushedScheduledForFatty")
+@Configuration
+@PropertySources({ @PropertySource("classpath:app-config.properties"),
+
+})
+
+public class PushedScheduledForRtbsSystem implements PushedScheduledForRtbsSystemService {
+
+	@Value(value = "${connection.username}")
+	String connection_username;
+
+	@Value(value = "${connection.password}")
+	public String connection_password;
+
+	@Value(value = "${connection.ip}")
+	public String ipAddress;
+
+	@Value(value = "${connection.port}")
+	public String port;
+
+	@Value(value = "${connection.url}")
+	public String connection_url;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(PushedScheduledForRtbsSystem.class);
+
+	Connection connection = null;
+	Statement stmt = null;
+
+	@Autowired
+	private ProfileService profileService;
+
+	@Scheduled(cron = "0 0 6 * * *")
+	public void initPushedScheduledForFatty() {
+		try {
+			String ipAddress=getIpAdress();
+			System.out.println("time is ::"+new Date());
+			if(ipAddress.equalsIgnoreCase("10.6.3.104"))
+			{
+				getAllPostPaidUsers();
+				
+				LOGGER.info("Inside PushedScheduledForFatty method initPushedScheduledForFatty ::Scheduled time is :"+new Date());
+			}
+		    
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+	
+	@Scheduled(cron = "0 0 10 * * *")
+	public void initPushedScheduledForFattySecoundServer() {
+		try {
+			String ipAddress=getIpAdress();
+			System.out.println("time is ::"+new Date());
+			if(ipAddress.equalsIgnoreCase("10.6.3.102"))
+			{
+				getAllPostPaidUsers();
+				
+				LOGGER.info("Inside PushedScheduledForFatty method initPushedScheduledForFattySecoundServer ::Scheduled time is :"+new Date());
+			}
+		    
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+
+	
+
+	/*
+	 * Make connection too database
+	 */
+	@Override
+	public Connection getDataBaseConection() {
+		try {
+			Class.forName("oracle.jdbc.OracleDriver");
+			System.out.println("connection_url---" + connection_url);
+			System.out.println("connection_username---" + connection_username);
+			System.out.println("connection_password---" + connection_password);
+			connection = DriverManager.getConnection(connection_url, connection_username, connection_password);
+			stmt = connection.createStatement();
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		return connection;
+	}
+
+	@Override
+	public void getAllPostPaidUsers() {
+		LOGGER.info("Inside PushedScheduledForRtbsSystem method getAllPostPaidUsers");
+		try {
+			connection = getDataBaseConection();
+			LOGGER.info("Inside PushedScheduledForRtbsSystem method getAllPostPaidUsers get database connection "
+					+ connection);
+
+			List<String> postPaidNumber = profileService.getPostPaidUsers();
+			if (postPaidNumber.size() != 0) {
+				for (int index = 0; index < postPaidNumber.size(); index++) {
+					System.out.println("Msisdn is :::" + postPaidNumber.get(index));
+					SVAndRtbsData sVAndRtbsData = getVoiceSmsAndDataFromSVAndRtbsSystem(postPaidNumber.get(index));
+					profileService.updatePostPaidUserData(sVAndRtbsData, postPaidNumber.get(index));
+				}
+
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		} finally {
+			System.out.println("-----finally block -------");
+			LOGGER.info("Inside PushedScheduledForRtbsSystem method getAllPostPaidUsers finally block ");
+			try {
+				if (connection != null)
+					connection.close();
+				if (stmt != null)
+					stmt.close();
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		
+
+	}
+    @Transactional
+	@Override
+	public SVAndRtbsData getVoiceSmsAndDataFromSVAndRtbsSystem(String msisdn) {
+		SVAndRtbsData svandrtbs = new SVAndRtbsData();
+		LOGGER.info("Inside PushedScheduledForRtbsSystem method getVoiceSmsAndDataFromSVAndRtbsSystem msisdn is ::"
+				+ msisdn);
+		try {
+			String startDate = getBillDate();
+			LOGGER.info(
+					"Inside PushedScheduledForRtbsSystem method getVoiceSmsAndDataFromSVAndRtbsSystem --excute data query ");
+			LOGGER.info(
+					"select msisdn, event_type, event_dtm, duration, amount, b_number from SV_SIEBEL.HCPT_INTEC_USAGE_DETAILS_NEW @CSVDBR "
+							+ " where msisdn ='" + msisdn + "' and Event_type='GPRS' and created_dtm  >to_date('"
+							+ startDate + "','DD-MM-YYYY')");
+			String queryfordata = "select msisdn, event_type, event_dtm, duration, amount, b_number from SV_SIEBEL.HCPT_INTEC_USAGE_DETAILS_NEW @CSVDBR "
+					+ " where msisdn ='" + msisdn + "' and Event_type='GPRS' and created_dtm  >to_date('" + startDate
+					+ "','DD-MM-YYYY')";
+			String queryforvoice = "select msisdn, event_type, event_dtm, duration, amount, b_number from SV_SIEBEL.HCPT_INTEC_USAGE_DETAILS_NEW @CSVDBR "
+					+ " where msisdn ='" + msisdn + "' and Event_type='GSM Voice MOC' and created_dtm >to_date('"
+					+ startDate + "','DD-MM-YYYY')";
+			String queryforsms = "select msisdn, event_type, event_dtm, duration, amount, b_number from SV_SIEBEL.HCPT_INTEC_USAGE_DETAILS_NEW @CSVDBR "
+					+ " where msisdn ='" + msisdn + "' and Event_type='GSM SMS MO' and created_dtm  >to_date('"
+					+ startDate + "','DD-MM-YYYY')";
+
+			ResultSet dataresult = stmt.executeQuery(queryfordata);
+			ArrayList<Long> dataListInByte = new ArrayList<>();
+			long datais = 0;
+			while (dataresult.next()) {
+				dataListInByte.add(Long.parseLong(dataresult.getString("amount")));
+				datais = datais + Long.parseLong(dataresult.getString("amount"));
+			}
+			if (dataListInByte.size() != 0) {
+				long dataInByte = dataListInByte.stream().mapToInt(Long::intValue).sum();
+				if (dataInByte != 0)
+					svandrtbs.setData(dataInByte);
+			}
+			ResultSet voiceresult = stmt.executeQuery(queryforvoice);
+			ArrayList<Long> voiceList = new ArrayList<>();
+			long voiceIs = 0;
+			while (voiceresult.next()) {
+				voiceList.add(Long.parseLong(voiceresult.getString("duration")));
+				voiceIs = voiceIs + Long.parseLong(voiceresult.getString("duration"));
+			}
+			if (voiceList.size() != 0) {
+				long voice = voiceList.stream().mapToInt(Long::intValue).sum();
+				if (voice != 0)
+					svandrtbs.setVoice(voice);
+			}
+			ResultSet smsresult = stmt.executeQuery(queryforsms);
+		
+			long smsIs = 0;
+			while (smsresult.next()) {
+				//smsList.add(Long.parseLong(smsresult.getString("amount")));
+				smsIs++;
+			}
+			svandrtbs.setSms(smsIs);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LOGGER.error("Inside PushedScheduledForRtbsSystem method getVoiceSmsAndDataFromSVAndRtbsSystem", e);
+		}
+		return svandrtbs;
+	}
+
+	public String getBillDate() {
+		String date = "";
+		Calendar now = Calendar.getInstance();
+		int year = now.get(Calendar.YEAR);
+		int month = (now.get(Calendar.MONTH) + 1);
+		int day = 25;
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+		LocalDate localDate = LocalDate.now();
+		String currentDate = dtf.format(localDate);
+		/*
+		 * get current day off month
+		 */
+		System.out.println(dtf.format(localDate));
+		int currentDay = Integer.parseInt(currentDate.split("-")[0]);
+		if (currentDay > day) {
+
+		} else {
+			if (month == 1) {
+				month = 12;
+				year = year - 1;
+			} else {
+				month = month - 1;
+			}
+
+		}
+		date = date.concat(day + "-").concat(month + "-").concat(Integer.toString(year));
+		return date;
+	}
+
+	public String getCurrentDate() {
+
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
+		return dateFormat.format(date);
+	}
+
+
+
+	 /**
+	 * This method used for get ip address .
+	 * 
+	 * @return ipAddress {@link String}
+	 */
+	@Override
+	public  String getIpAdress() {
+		InetAddress ip;
+		String ipAdress = "";
+		
+		try {
+			LOGGER.info("Inside PushedScheduledForFatty method getIpAdress");
+			ip = InetAddress.getLocalHost();
+			ipAdress = ip.getHostAddress();
+			System.out.println("Current IP address : " + ip.getHostAddress());
+
+		} catch (UnknownHostException e) {
+
+			e.printStackTrace();
+
+		}
+		return ipAdress;
+	}
+
+}

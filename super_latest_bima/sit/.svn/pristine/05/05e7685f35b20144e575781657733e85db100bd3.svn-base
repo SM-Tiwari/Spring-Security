@@ -1,0 +1,15 @@
+package id.gnvsolution.d3.api.dto.request;
+
+public class BonstriRequestDto extends BaseRequestDto {
+    private String msisdn;
+
+    @Override
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    @Override
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+}

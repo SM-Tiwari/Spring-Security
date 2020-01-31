@@ -1,0 +1,35 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.TransferPulsaDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 11, 2018 2:43:47 PM
+ *
+ */
+public class TransferPulsaDto extends BaseRequestDto {
+    
+    private String targetMsisdn;
+    private Integer amount;
+
+    public TransferPulsaDto() {
+    }
+
+    public String getTargetMsisdn() {
+        return targetMsisdn;
+    }
+
+    public void setTargetMsisdn(String targetMsisdn) {
+        this.targetMsisdn = targetMsisdn;
+    }
+
+    public Integer getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+}

@@ -1,0 +1,6 @@
+package id.gnvsolution.d3.api.helper.enums;
+
+public enum RequestStatus {
+
+	PROCESSING, SUCCESS, FAIL
+}

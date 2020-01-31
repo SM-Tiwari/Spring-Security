@@ -1,0 +1,31 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.BonstriEndpointDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Dec 21, 2017 3:53:37 PM
+ *
+ */
+public class BonstriEndpointDto implements DTO {
+
+    private String endpoint;
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public BonstriEndpointDto() {
+    }
+    
+    
+    
+}

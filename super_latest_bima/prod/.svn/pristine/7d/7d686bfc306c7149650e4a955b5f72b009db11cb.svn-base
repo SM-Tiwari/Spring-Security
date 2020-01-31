@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://xmlns.example.com/1518607327112" xmlns:ns0="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="Untitled" targetNamespace="http://xmlns.example.com/1518607327112">
+    <wsdl:types>
+        <xs:schema xmlns="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:element name="transferRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TransactionID" type="xs:string"/>
+                        <xs:element name="CurrentDate" type="xs:string"/>
+                        <xs:element name="MSISDN" type="xs:string"/>
+                        <xs:element name="TO_MSISDN" type="xs:string"/>
+                        <xs:element name="Source" type="xs:string"/>
+                        <xs:element name="Request_Type" type="xs:string"/>
+                        <xs:element name="Amount" type="xs:string"/>
+                        <xs:element name="Service_Type" type="xs:string" minOccurs="0"/>
+                        <xs:element name="GenericParams" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="transferResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="GenericParams" type="xs:string" minOccurs="0"/>
+                        <xs:element name="ResponseCode" type="xs:string"/>
+                        <xs:element name="ResponseText" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="ODPTIB_WSDL-service">
+        <wsdl:port name="GenericODPTIBServicesEndpoint1" binding="tns:GenericODPTIBServicesEndpoint1Binding">
+            <soap:address location="http://TIBCO_URL_TRANSFER_PACKAGE"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="GenericODPTIBServices">
+        <wsdl:operation name="transferODPTIB">
+            <wsdl:input message="tns:transferRequest"/>
+            <wsdl:output message="tns:transferResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="GenericODPTIBServicesEndpoint1Binding" type="tns:GenericODPTIBServices">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="transferODPTIB">
+            <soap:operation style="document" soapAction="/Business_Process/Transfer_Package/ODPTIB_WSDL-service1.serviceagent/GenericODPTIBServicesEndpoint1/transferODPTIB"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="request"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="response"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="transferRequest">
+        <wsdl:part name="request" element="ns0:transferRequest"/>
+    </wsdl:message>
+    <wsdl:message name="transferResponse">
+        <wsdl:part name="response" element="ns0:transferResponse"/>
+    </wsdl:message>
+</wsdl:definitions>

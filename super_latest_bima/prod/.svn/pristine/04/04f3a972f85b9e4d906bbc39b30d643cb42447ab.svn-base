@@ -1,0 +1,60 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.DwhStatsSubDetailDevice;
+import id.gnvsolution.d3.api.service.DwhStatsSubDetailDeviceService;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.HashMap;
+import org.springframework.scheduling.annotation.Async;
+
+@Service
+@Transactional
+public class DwhStatsSubDetailDeviceServiceImpl implements DwhStatsSubDetailDeviceService {
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(DwhStatsSubDetailDeviceServiceImpl.class);
+
+    private SessionFactory sessionFactoryDef;
+    private BaseDao<DwhStatsSubDetailDevice> baseDao;
+
+    @Autowired
+    public DwhStatsSubDetailDeviceServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+        this.baseDao = new BaseDao<>(sessionFactoryDef, DwhStatsSubDetailDevice.class);
+    }
+
+    @Async
+    @Override
+    public void saveOrUpdate(Date date, int android, int ios) {
+    	
+    	LOGGER.info("#saveOrUpdate------getting count from DwhStatsSubDetailDevice based on date:::", date);
+        // check count dulu, kalo ada lalu update, kalo engga ada lalu insert
+        long count = baseDao.count("datetime = :datetime", new HashMap<String, Object>() {{
+            put("datetime", date);
+        }});
+        
+        if(count > 0) {
+        	LOGGER.info("#saveOrUpdate----save or update DwhStatsSubDetailDevice data based on date:: ", date);
+            // update
+            sessionFactoryDef.getCurrentSession().createSQLQuery("UPDATE DWH_STATS_SUB_DETAIL_DEVICE SET TOTAL_UNIQUE = TOTAL_UNIQUE + 1, ANDROIDV2_UNIQUE = ANDROIDV2_UNIQUE + "+android+", IPHONEV2_UNIQUE = IPHONEV2_UNIQUE + "+ios+" WHERE DATETIME = :currentDate")
+                .setDate("currentDate", date)
+                .executeUpdate();
+        } else {
+            // insert new
+            DwhStatsSubDetailDevice statsSubDetailDevice = new DwhStatsSubDetailDevice();
+            statsSubDetailDevice.setDatetime(date);
+            statsSubDetailDevice.setAndroidv2Unique(android);
+            statsSubDetailDevice.setIphonev2Unique(ios);
+            statsSubDetailDevice.setTotalUnique(1);
+            baseDao.save(statsSubDetailDevice);
+        }
+    }
+
+}

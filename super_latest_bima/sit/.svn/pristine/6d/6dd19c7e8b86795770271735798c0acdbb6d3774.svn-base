@@ -1,0 +1,15 @@
+package com.gnv.vnm.selfcare.core.model;
+
+public class ParentBonusResponse {
+	
+	private BonusResponse message;
+
+	public BonusResponse getMessage() {
+		return message;
+	}
+
+	public void setMessage(BonusResponse message) {
+		this.message = message;
+	}
+
+}

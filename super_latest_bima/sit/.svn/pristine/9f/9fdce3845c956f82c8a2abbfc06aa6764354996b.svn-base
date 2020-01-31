@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+public interface DiscountTopupService {
+
+	Map getDiscountTopupData(String lang);
+
+}

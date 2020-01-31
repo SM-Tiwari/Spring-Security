@@ -1,0 +1,58 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.response.StaticDto;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.service.StaticService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by rips on 4/30/17.
+ */
+@Service
+@Transactional
+public class StaticServiceImpl implements StaticService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(StaticServiceImpl.class);
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+
+    @Override
+    public Map<String, Object> getFaq(BaseRequestDto request) {
+    	logger.info("getFaq method of StaticServiceImpl==========msisdn is++++++", request.getMsisdn());
+        BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+        List<Parameter> results = parameterDao.find("key = :key", new HashMap<String, Object>() {{
+            put("key", "STATIC_FAQ");
+        }});
+        if(results.size() > 0){
+            return JSONResultFilter.filter(new StaticDto(true, results.get(0).getValue())).all().build();
+        }
+        return JSONResultFilter.filter(new StaticDto(true, "http://tri.co.id/faq")).all().build();
+    }
+
+    @Cacheable(value = "cache1Hour", key = "#root.methodName.toString() + #key")
+    public Parameter getParameter(String key) {
+    	logger.info("getParameter method of StaticServiceImpl==========key is++++++", key);
+        BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+        List<Parameter> parameterList = parameterDao.find("key = :key", new HashMap<String, Object>() {{
+            put("key", key);
+        }});
+
+        return parameterList.isEmpty() ? null : parameterList.get(0);
+    }
+}

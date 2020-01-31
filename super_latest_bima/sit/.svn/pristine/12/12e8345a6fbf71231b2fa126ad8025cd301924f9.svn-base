@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.HomeScreenRequestDto;
+import id.gnvsolution.d3.api.dto.response.HomescreenProfileDto;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.HomeScreenProfileService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Feb 1, 2018 5:05:27 PM
+ *
+ */
+public interface HomeScreenProfileService {
+    public HomescreenProfileDto getHomescreenProfileDto(HomeScreenRequestDto request);
+}

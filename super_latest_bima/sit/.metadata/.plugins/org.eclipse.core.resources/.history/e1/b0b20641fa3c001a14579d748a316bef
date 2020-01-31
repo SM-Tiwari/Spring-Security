@@ -1,0 +1,55 @@
+package id.gnvsolution.d3.api.service;
+
+import java.rmi.RemoteException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.axis2.AxisFault;
+
+import com.gnv.vnm.selfcare.core.model.BillingSummary;
+import com.gnv.vnm.selfcare.core.model.CurrentBalance;
+import com.gnv.vnm.selfcare.core.model.RechargeResponse;
+import com.gnv.vnm.selfcare.core.model.SubscriberInfoFromTibco;
+import com.gnv.vnm.selfcare.core.model.TopUpHistory;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Dynamic_Bonus_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.abstract_wsdl.selfcare.schema_xsd.NonVasRegResponse;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.SubscriberQuery_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.activateoffer_xsd.ActivateOffer_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.schema_xsd.GetVasDetails_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.BalanceQuery_Response;
+
+import id.gnvsolution.d3.api.dto.request.CmsOfferRequest;
+import id.gnvsolution.d3.api.dto.request.RemainingCreditLimitDto;
+import id.gnvsolution.d3.api.dto.response.CreditLimitDto;
+import id.gnvsolution.d3.api.dto.response.RptInvoiceSummaryDTO;
+import id.gnvsolution.d3.api.helper.enums.TransactionType;
+import id.gnvsolution.d3.api.model.RptInvoiceSummary;
+
+public interface TibcoService {
+	
+	CurrentBalance getCurrentBalance(String subscriberId, String langCode) throws RemoteException;
+	SubscriberInfoFromTibco getSubscriberInfoFromDownSystem(String subscriberId, String langCode);
+	List<TopUpHistory> getDailyTopUpHistory(String subscriberId);
+	List<TopUpHistory> getTwoMonthTopUpHistory(String subscriberId);
+	List<TopUpHistory> getTopUpHistory(String subscriberId, Date startDate, Date endDate);
+	CreditLimitDto getRemainingCreditLimit(String msisdn);
+	Map<String, Object> getLast3Invoices(String msidn,String language);
+	RechargeResponse etop(String subscriberId, double value, String refCode) ;
+	public boolean postpaidBillPayment(String msisdn, double amount, String reference, TransactionType trxType);
+	NonVasRegResponse Subscribpackage(String subscriberId, String langCode,String pakageid,String packagcode,String product_code) throws RemoteException;
+	NonVasRegResponse unSubscribpackage(String msisdn, String language, String productId, String productId2,
+			String registrationKey) throws RemoteException;
+	GetVasDetails_Response getVasDetails(String msisdn);
+	
+	String getSubscriberType(SubscriberQuery_Response responseSubscriber);
+	SubscriberQuery_Response subscriberResponce(String msisdn);
+	BalanceQuery_Response billedQueryResponce(String msisdn);
+	
+	Map getCmsOfferList(CmsOfferRequest request);
+	ActivateOffer_Response activateCmsOffer(CmsOfferRequest request);
+	Dynamic_Bonus_Response getSelfPackageresponce(Dynamic_Bonus_Request request);
+	boolean isValidnumber(String msisdn);
+	 
+}

@@ -1,0 +1,12 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+
+import id.gnvsolution.d3.api.dto.request.CustomerCareDto;
+
+public interface CustomerCareService {
+
+	
+	Map<String, Object> custDetails();
+}

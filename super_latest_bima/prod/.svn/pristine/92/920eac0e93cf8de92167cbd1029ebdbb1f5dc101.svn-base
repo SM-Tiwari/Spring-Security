@@ -1,0 +1,29 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.stereotype.Service;
+
+import id.gnvsolution.d3.api.service.SMPPServiceProvider;
+import id.gnvsolution.d3.api.utils.SmppConstant;
+@Service("smppService")
+public class SMPPService implements SMPPServiceProvider {
+
+	private String[] hostList={SmppConstant.IP};
+	
+	String UserNanme = SmppConstant.USERNAME;
+	String UserPass = SmppConstant.PASSWORD;
+	String IP = SmppConstant.IP;
+	Integer Port = SmppConstant.PORT;
+	String SourceAdd = SmppConstant.SOURCEMSISDN;
+	
+	@PostConstruct
+	public void setupSmppConnection(){
+		if (hostList.length > 0) {
+			int clientCount = hostList.length;
+			for (int i=0; i<clientCount; i++) {
+				
+			   }
+			}
+	}
+}

@@ -1,0 +1,214 @@
+package id.gnvsolution.d3.api.model;
+
+
+import java.util.Date;
+
+ 
+ 
+import javax.persistence.*;
+
+
+@Entity
+@Table(name = "scratch_card_history")
+@SequenceGenerator(name = "scratch_card_seq", sequenceName = "scratch_card_seq", allocationSize = 1)
+public class ScratchBlockHistoryEntity  {
+
+	private static final long serialVersionUID = -5027352163052435955L;
+	
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "scratch_card_seq")
+	@Column(name = "id")
+	private Integer id;
+	
+	@Column(length = 20, nullable = false)
+	private String msisdn;
+ 
+	@Column(name = "timeStamp")
+	private String timeStamp;
+	
+	@Column(name = "statusMessage")
+	private String statusMessage;
+ 
+	@Column(name = "count")
+	private Integer count;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "create_timestamp", updatable = false, nullable = false)
+	protected Date createTimestamp = new Date();
+
+	@Column(name = "created_by", nullable = false)
+	private String createdBy;
+	
+	@Version
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "last_modified_timestamp", nullable = false)
+	protected Date lastModifiedTime;
+	
+    @Column(name = "last_modified_by", nullable = false)
+	protected String lastModifiedBy;
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	 
+
+	public String getTimeStamp() {
+		return timeStamp;
+	}
+
+	public void setTimeStamp(String timeStamp) {
+		this.timeStamp = timeStamp;
+	}
+
+ 
+
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+
+	public void setStatusMessage(String statusMessage) {
+		this.statusMessage = statusMessage;
+	}
+
+	public Integer getCount() {
+		return count;
+	}
+
+	public void setCount(Integer count) {
+		this.count = count;
+	}
+
+	public ScratchBlockHistoryEntity(){ }
+
+	public ScratchBlockHistoryEntity(String msisdn, String timeStamp, String statusMessage, Integer count) {
+		super();
+		this.msisdn = msisdn;
+		this.timeStamp = timeStamp;
+		this.statusMessage = statusMessage;
+		this.count = count;
+	}
+
+	public Date getCreateTimestamp() {
+		return createTimestamp;
+	}
+
+	public void setCreateTimestamp(Date createTimestamp) {
+		this.createTimestamp = createTimestamp;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getLastModifiedTime() {
+		return lastModifiedTime;
+	}
+
+	public void setLastModifiedTime(Date lastModifiedTime) {
+		this.lastModifiedTime = lastModifiedTime;
+	}
+
+	public String getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	public void setLastModifiedBy(String lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	@Override
+	public String toString() {
+		return "ScratchBlockHistoryEntity [msisdn=" + msisdn + ", timeStamp=" + timeStamp + ", statusMessage="
+				+ statusMessage + ", count=" + count + ", createTimestamp=" + createTimestamp + ", createdBy="
+				+ createdBy + ", lastModifiedTime=" + lastModifiedTime + ", lastModifiedBy=" + lastModifiedBy + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((count == null) ? 0 : count.hashCode());
+		result = prime * result + ((createTimestamp == null) ? 0 : createTimestamp.hashCode());
+		result = prime * result + ((createdBy == null) ? 0 : createdBy.hashCode());
+		result = prime * result + ((lastModifiedBy == null) ? 0 : lastModifiedBy.hashCode());
+		result = prime * result + ((lastModifiedTime == null) ? 0 : lastModifiedTime.hashCode());
+		result = prime * result + ((msisdn == null) ? 0 : msisdn.hashCode());
+		result = prime * result + ((statusMessage == null) ? 0 : statusMessage.hashCode());
+		result = prime * result + ((timeStamp == null) ? 0 : timeStamp.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ScratchBlockHistoryEntity other = (ScratchBlockHistoryEntity) obj;
+		if (count == null) {
+			if (other.count != null)
+				return false;
+		} else if (!count.equals(other.count))
+			return false;
+		if (createTimestamp == null) {
+			if (other.createTimestamp != null)
+				return false;
+		} else if (!createTimestamp.equals(other.createTimestamp))
+			return false;
+		if (createdBy == null) {
+			if (other.createdBy != null)
+				return false;
+		} else if (!createdBy.equals(other.createdBy))
+			return false;
+		if (lastModifiedBy == null) {
+			if (other.lastModifiedBy != null)
+				return false;
+		} else if (!lastModifiedBy.equals(other.lastModifiedBy))
+			return false;
+		if (lastModifiedTime == null) {
+			if (other.lastModifiedTime != null)
+				return false;
+		} else if (!lastModifiedTime.equals(other.lastModifiedTime))
+			return false;
+		if (msisdn == null) {
+			if (other.msisdn != null)
+				return false;
+		} else if (!msisdn.equals(other.msisdn))
+			return false;
+		if (statusMessage == null) {
+			if (other.statusMessage != null)
+				return false;
+		} else if (!statusMessage.equals(other.statusMessage))
+			return false;
+		if (timeStamp == null) {
+			if (other.timeStamp != null)
+				return false;
+		} else if (!timeStamp.equals(other.timeStamp))
+			return false;
+		return true;
+	}
+
+	 
+	 
+	
+	
+}

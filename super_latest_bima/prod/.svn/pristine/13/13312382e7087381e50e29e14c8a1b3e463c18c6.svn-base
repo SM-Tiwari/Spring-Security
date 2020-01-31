@@ -1,0 +1,622 @@
+/**
+ * PaymentHistoryEntity.java
+ */
+package id.gnvsolution.d3.api.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+/**
+ * @author nandipinto
+ *
+ */
+
+@Entity
+@Table(name = "payment_history")
+@SequenceGenerator(name = "pay_hist_seq", sequenceName = "pay_hist_seq", allocationSize = 1)
+public class PaymentHistoryEntity  {
+
+	private static final long serialVersionUID = 2032877736844216544L;
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pay_hist_seq")
+	@Column(name = "id")
+	private Integer id;
+	
+	@Column(name = "channel_id", length = 50)
+	private String channel;
+	
+	@Column(name = "order_id", length = 40, nullable = false)
+	private String orderId;
+	
+	@Column(name = "trx_type", length = 50)
+	private String trxType;
+	
+	@Column(name = "trx_dtm")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date requestTime;		////datetimeformat: DDMMYYYY HH24:MI:SS:SSS
+	
+	@Column(name = "msisdn", length = 20, nullable = false)
+	private String msisdn;
+	
+	@Column(name = "item_code", length = 50)
+	private String itemCode;
+	
+	@Column(name = "amount")
+	private Double amount;
+	
+	@Column(name = "order_info")
+	private String orderInfo;
+	
+	@Column(name = "recharge_amount")
+	private Double recharge_amount;
+	
+	@Column(name = "ip_addr")
+	private String ipAddress;
+
+	@Column(name = "checksum_hash", length = 300)
+	private String checkSumHash;
+	
+	@Column(name = "status")
+	private Integer status; //= 0;
+
+	@Column(name = "ext_trx_id")
+	private String extTrxId;
+	
+	@Column(name = "resp_time")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date responseTime;
+	
+	@Column(name = "initial_result_code", length = 10)
+	private String initialResultCode;
+	
+	@Column(name = "initial_result_msg")
+	private String initialResultMsg;
+	
+	@Column(name = "command_status", length = 10)
+	private String commandStatus;
+	
+	@Column(name = "redirect_url", length = 500)
+	private String redirectURL;
+	
+	@Column(name = "final_result_code", length = 10)
+	private String finalResultCode;
+	
+	@Column(name = "final_result_msg")
+	private String finalResultMsg;
+	
+	@Column(name = "reference_id", length = 50)
+	private String referenceId;
+	
+	@Column(name = "client_app_id")
+	private String clientAppId;
+	
+	@Column(name = "pg_notif_sent")
+	private Integer pgNotificationSent =  0;
+	
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "create_timestamp", updatable = false, nullable = false)
+	protected Date createTimestamp = new Date();
+	
+	
+	@Column(name = "created_by", nullable = false)
+	private String createdBy;
+	
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "last_modified_timestamp", nullable = false)
+	protected Date lastModifiedTime;
+	
+	
+    @Column(name = "last_modified_by", nullable = false)
+	protected String lastModifiedBy;
+    
+    @Column(name="LOGIN_MSISDN")
+    private String loginmsisdn;
+
+	public String getLoginmsisdn() {
+		return loginmsisdn;
+	}
+
+	public void setLoginmsisdn(String loginmsisdn) {
+		this.loginmsisdn = loginmsisdn;
+	}
+
+	/**
+	 * @return the createTimestamp
+	 */
+	public Date getCreateTimestamp() {
+		return createTimestamp;
+	}
+
+	/**
+	 * @param createTimestamp the createTimestamp to set
+	 */
+	public void setCreateTimestamp(Date createTimestamp) {
+		this.createTimestamp = createTimestamp;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the lastModifiedTime
+	 */
+	public Date getLastModifiedTime() {
+		return lastModifiedTime;
+	}
+
+	/**
+	 * @param lastModifiedTime the lastModifiedTime to set
+	 */
+	public void setLastModifiedTime(Date lastModifiedTime) {
+		this.lastModifiedTime = lastModifiedTime;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public String getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(String lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+	
+	public PaymentHistoryEntity(){ }
+
+	/**
+	 * @return the id
+	 */
+	public Integer getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	
+	
+	public Double getRecharge_amount() {
+		return recharge_amount;
+	}
+
+	public void setRecharge_amount(Double recharge_amount) {
+		this.recharge_amount = recharge_amount;
+	}
+
+	/**
+	 * @return the channel
+	 */
+	public String getChannel() {
+		return channel;
+	}
+
+	/**
+	 * @param channel the channel to set
+	 */
+	public void setChannel(String channel) {
+		this.channel = channel;
+	}
+
+	/**
+	 * @return the orderId
+	 */
+	public String getOrderId() {
+		return orderId;
+	}
+
+	/**
+	 * @param orderId the orderId to set
+	 */
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+
+	/**
+	 * @return the trxType
+	 */
+	public String getTrxType() {
+		return trxType;
+	}
+
+	/**
+	 * @param trxType the trxType to set
+	 */
+	public void setTrxType(String trxType) {
+		this.trxType = trxType;
+	}
+
+	/**
+	 * @return the requestTime
+	 */
+	public Date getRequestTime() {
+		return requestTime;
+	}
+
+	/**
+	 * @param requestTime the requestTime to set
+	 */
+	public void setRequestTime(Date requestTime) {
+		this.requestTime = requestTime;
+	}
+
+	/**
+	 * @return the msisdn
+	 */
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	/**
+	 * @param msisdn the msisdn to set
+	 */
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	/**
+	 * @return the itemCode
+	 */
+	public String getItemCode() {
+		return itemCode;
+	}
+
+	/**
+	 * @param itemCode the itemCode to set
+	 */
+	public void setItemCode(String itemCode) {
+		this.itemCode = itemCode;
+	}
+
+	/**
+	 * @return the amount
+	 */
+	public Double getAmount() {
+		return amount;
+	}
+
+	/**
+	 * @param amount the amount to set
+	 */
+	public void setAmount(Double amount) {
+		this.amount = amount;
+	}
+
+	/**
+	 * @return the orderInfo
+	 */
+	public String getOrderInfo() {
+		return orderInfo;
+	}
+
+	/**
+	 * @param orderInfo the orderInfo to set
+	 */
+	public void setOrderInfo(String orderInfo) {
+		this.orderInfo = orderInfo;
+	}
+
+	/**
+	 * @return the ipAddress
+	 */
+	public String getIpAddress() {
+		return ipAddress;
+	}
+
+	/**
+	 * @param ipAddress the ipAddress to set
+	 */
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
+	}
+
+	/**
+	 * @return the checkSumHash
+	 */
+	public String getCheckSumHash() {
+		return checkSumHash;
+	}
+
+	/**
+	 * @param checkSumHash the checkSumHash to set
+	 */
+	public void setCheckSumHash(String checkSumHash) {
+		this.checkSumHash = checkSumHash;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public Integer getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the extTrxId
+	 */
+	public String getExtTrxId() {
+		return extTrxId;
+	}
+
+	/**
+	 * @param extTrxId the extTrxId to set
+	 */
+	public void setExtTrxId(String extTrxId) {
+		this.extTrxId = extTrxId;
+	}
+
+	/**
+	 * @return the responseTime
+	 */
+	public Date getResponseTime() {
+		return responseTime;
+	}
+
+	/**
+	 * @param responseTime the responseTime to set
+	 */
+	public void setResponseTime(Date responseTime) {
+		this.responseTime = responseTime;
+	}
+
+	/**
+	 * @return the initialResultCode
+	 */
+	public String getInitialResultCode() {
+		return initialResultCode;
+	}
+
+	/**
+	 * @param initialResultCode the initialResultCode to set
+	 */
+	public void setInitialResultCode(String resultCode) {
+		this.initialResultCode = resultCode;
+	}
+
+	/**
+	 * @return the initialResultMsg
+	 */
+	public String getInitialResultMsg() {
+		return initialResultMsg;
+	}
+
+	/**
+	 * @param initialResultMsg the initialResultMsg to set
+	 */
+	public void setInitialResultMsg(String resultDescription) {
+		this.initialResultMsg = resultDescription;
+	}
+
+	/**
+	 * @return the commandStatus
+	 */
+	public String getCommandStatus() {
+		return commandStatus;
+	}
+
+	/**
+	 * @param commandStatus the commandStatus to set
+	 */
+	public void setCommandStatus(String commandStatus) {
+		this.commandStatus = commandStatus;
+	}
+
+	/**
+	 * @return the redirectURL
+	 */
+	public String getRedirectURL() {
+		return redirectURL;
+	}
+
+	/**
+	 * @param redirectURL the redirectURL to set
+	 */
+	public void setRedirectURL(String redirectURL) {
+		this.redirectURL = redirectURL;
+	}
+
+	/**
+	 * @return the finalResultCode
+	 */
+	public String getFinalResultCode() {
+		return finalResultCode;
+	}
+
+	/**
+	 * @param finalResultCode the finalResultCode to set
+	 */
+	public void setFinalResultCode(String finalResultCode) {
+		this.finalResultCode = finalResultCode;
+	}
+
+	/**
+	 * @return the finalResultMsg
+	 */
+	public String getFinalResultMsg() {
+		return finalResultMsg;
+	}
+
+	/**
+	 * @param finalResultMsg the finalResultMsg to set
+	 */
+	public void setFinalResultMsg(String finalResultMsg) {
+		this.finalResultMsg = finalResultMsg;
+	}
+
+	/**
+	 * @return the referenceId
+	 */
+	public String getReferenceId() {
+		return referenceId;
+	}
+
+	/**
+	 * @param referenceId the referenceId to set
+	 */
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
+	}
+
+	/**
+	 * @return the clientAppId
+	 */
+	public String getClientAppId() {
+		return clientAppId;
+	}
+
+	/**
+	 * @return the pgNotificationSent
+	 */
+	public Integer getPgNotificationSent() {
+		return pgNotificationSent;
+	}
+
+	/**
+	 * @param pgNotificationSent the pgNotificationSent to set
+	 */
+	public void setPgNotificationSent(Integer pgNotificationSent) {
+		this.pgNotificationSent = pgNotificationSent;
+	}
+
+	/**
+	 * @param clientAppId the clientAppId to set
+	 */
+	public void setClientAppId(String clientAppId) {
+		this.clientAppId = clientAppId;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((msisdn == null) ? 0 : msisdn.hashCode());
+		result = prime * result + ((orderId == null) ? 0 : orderId.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PaymentHistoryEntity other = (PaymentHistoryEntity) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (msisdn == null) {
+			if (other.msisdn != null)
+				return false;
+		} else if (!msisdn.equals(other.msisdn))
+			return false;
+		if (orderId == null) {
+			if (other.orderId != null)
+				return false;
+		} else if (!orderId.equals(other.orderId))
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("PaymentHistoryEntity [id=");
+		builder.append(id);
+		builder.append(", channel=");
+		builder.append(channel);
+		builder.append(", orderId=");
+		builder.append(orderId);
+		builder.append(", trxType=");
+		builder.append(trxType);
+		builder.append(", requestTime=");
+		builder.append(requestTime);
+		builder.append(", msisdn=");
+		builder.append(msisdn);
+		builder.append(", itemCode=");
+		builder.append(itemCode);
+		builder.append(", amount=");
+		builder.append(amount);
+		builder.append(", orderInfo=");
+		builder.append(orderInfo);
+		builder.append(", ipAddress=");
+		builder.append(ipAddress);
+		builder.append(", checkSumHash=");
+		builder.append(checkSumHash);
+		builder.append(", status=");
+		builder.append(status);
+		builder.append(", extTrxId=");
+		builder.append(extTrxId);
+		builder.append(", responseTime=");
+		builder.append(responseTime);
+		builder.append(", initialResultCode=");
+		builder.append(initialResultCode);
+		builder.append(", initialResultMsg=");
+		builder.append(initialResultMsg);
+		builder.append(", commandStatus=");
+		builder.append(commandStatus);
+		builder.append(", redirectURL=");
+		builder.append(redirectURL);
+		builder.append(", finalResultCode=");
+		builder.append(finalResultCode);
+		builder.append(", finalResultMsg=");
+		builder.append(finalResultMsg);
+		builder.append(", referenceId=");
+		builder.append(referenceId);
+		builder.append(", clientAppId=");
+		builder.append(clientAppId);
+		builder.append("]");
+		return builder.toString();
+	}
+	
+}

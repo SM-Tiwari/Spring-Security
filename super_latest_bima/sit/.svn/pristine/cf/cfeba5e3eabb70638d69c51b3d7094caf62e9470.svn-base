@@ -1,0 +1,100 @@
+package id.gnvsolution.d3.api.utils;
+
+import id.gnvsolution.d3.api.Constants;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.entity.StringEntity;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.HttpClientBuilder;
+
+/**
+ * Created by rips on 4/12/17.
+ */
+public class HttpClientHelper {
+
+    public static HttpClient newClient(){
+        int timeout = 2; // seconds (2 seconds)
+        RequestConfig config = RequestConfig.custom()
+                                .setConnectTimeout(timeout * 1000)
+                                .setConnectionRequestTimeout(timeout * 1000)
+                                .setSocketTimeout(timeout * 1000).build();
+        return HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+    }
+
+    public static GenericRequest createRequest(String method, String url){
+        return new GenericRequest(method, url);
+    }
+
+    public static HttpResponse postData(String url, String payload) throws IOException {
+        return postData(url, payload, new HashMap<>());
+    }
+
+    public static HttpResponse postData(String url, String payload, Map<String, String> headers) throws IOException {
+        HttpClient client = newClient();
+        GenericRequest post = new GenericRequest(GenericRequest.Methods.POST, Constants.PROXY+url);
+        headers.forEach(post::addHeader);
+        post.setEntity(new StringEntity(payload));
+        return client.execute(post);
+    }
+
+    public static HttpResponse getData(String url, Map<String, String> params, Map<String, String> headers) throws IOException, URISyntaxException {
+        org.apache.http.client.utils.URIBuilder uriBuilder = new org.apache.http.client.utils.URIBuilder(url);
+        if(params != null)
+            params.forEach((s, s2) -> uriBuilder.addParameter(s, s2));
+        HttpClient client = newClient();
+        GenericRequest get = new GenericRequest(GenericRequest.Methods.GET, Constants.PROXY+uriBuilder.build());
+        if(headers != null){
+            headers.forEach(get::addHeader);
+        }
+        return client.execute(get);
+    }
+
+    // 092Packages 
+    public static HttpResponse getPackages(String url, String msisdn) throws IOException, URISyntaxException {
+        org.apache.http.client.utils.URIBuilder uriBuilder = new org.apache.http.client.utils.URIBuilder(url);
+        
+        HttpClient client = newClient();
+        GenericRequest get = new GenericRequest(GenericRequest.Methods.GET, uriBuilder.build());
+        
+        
+        return client.execute(get);
+    }
+    public static class GenericRequest extends HttpEntityEnclosingRequestBase{
+
+        private String method;
+
+        public GenericRequest(String method){
+            this.method = method;
+        }
+
+        public GenericRequest(String method, String url){
+            this(method, URI.create(url));
+        }
+
+        public GenericRequest(String method, URI uri){
+            this.method = method;
+            this.setURI(uri);
+        }
+
+        @Override
+        public String getMethod() {
+            return method;
+        }
+
+        public interface Methods{
+            public static final String GET = "GET";
+            public static final String POST = "POST";
+            public static final String PUT = "PUT";
+            public static final String DELETE = "DELETE";
+            public static final String OPTION = "OPTION";
+        }
+    }
+
+}

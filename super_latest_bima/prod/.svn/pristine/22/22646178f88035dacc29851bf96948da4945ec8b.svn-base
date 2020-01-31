@@ -1,0 +1,18 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.DeezerService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Nov 24, 2017 4:35:57 PM
+ *
+ */
+public interface DeezerService {
+
+    Map getStatus();
+    
+}

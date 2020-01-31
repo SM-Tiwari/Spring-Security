@@ -1,0 +1,10 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+public interface MicService {
+
+	Map<String,Object> getMICStatusandURL(String msisdn);
+	
+	
+}

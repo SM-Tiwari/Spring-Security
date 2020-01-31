@@ -1,0 +1,82 @@
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_0987550_TRX_SUBS;
+
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_2642870_TRX_SUBS;
+
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_3564873_TRX_SUBS;
+
+ALTER TABLE NOTIFICATION
+   DROP CONSTRAINT FK_NOTIFICA_R_9015016_SUBSCRIB;
+
+DROP INDEX R_3564873911_FK;
+
+DROP INDEX R_2642870419_FK;
+
+DROP INDEX R_0987550076_FK;
+
+DROP INDEX R_9015016244_FK;
+
+DROP TABLE NOTIFICATION CASCADE CONSTRAINTS;
+
+/==============================================================/
+/* Table: NOTIFICATION                                          */
+/==============================================================/
+CREATE TABLE NOTIFICATION
+(
+   NOTIFICATION_ID      INTEGER              NOT NULL,
+   NOTIFICATION_AT      TIMESTAMP            NOT NULL,
+   SUBSCRIBER_MSISDN    VARCHAR2(15),
+   TRANSACTION_ID       VARCHAR2(50),
+   TRX_TRANSACTION_ID   VARCHAR2(50),
+   TRX_TRANSACTION_ID2  VARCHAR2(50),
+   NOTIFICATION_TITLE   VARCHAR2(255)        NOT NULL,
+   NOTIFICATION_MESSAGE CLOB                 NOT NULL,
+   IS_READ              SMALLINT             NOT NULL,
+   CONSTRAINT PK_NOTIFICATION PRIMARY KEY (NOTIFICATION_ID)
+);
+
+/==============================================================/
+/* Index: R_9015016244_FK                                       */
+/==============================================================/
+CREATE INDEX R_9015016244_FK ON NOTIFICATION (
+   SUBSCRIBER_MSISDN ASC
+);
+
+/==============================================================/
+/* Index: R_0987550076_FK                                       */
+/==============================================================/
+CREATE INDEX R_0987550076_FK ON NOTIFICATION (
+   TRANSACTION_ID ASC
+);
+
+/==============================================================/
+/* Index: R_2642870419_FK                                       */
+/==============================================================/
+CREATE INDEX R_2642870419_FK ON NOTIFICATION (
+   TRX_TRANSACTION_ID ASC
+);
+
+/==============================================================/
+/* Index: R_3564873911_FK                                       */
+/==============================================================/
+CREATE INDEX R_3564873911_FK ON NOTIFICATION (
+   TRX_TRANSACTION_ID2 ASC
+);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_0987550_TRX_SUBS FOREIGN KEY (TRANSACTION_ID)
+      REFERENCES TRX_SUBSCRIBER_PURCHASE (TRANSACTION_ID);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_2642870_TRX_SUBS FOREIGN KEY (TRX_TRANSACTION_ID)
+      REFERENCES TRX_SUBSCRIBER_ETOPUP (TRANSACTION_ID);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_3564873_TRX_SUBS FOREIGN KEY (TRX_TRANSACTION_ID2)
+      REFERENCES TRX_SUBSCRIBER_RELOAD (TRANSACTION_ID);
+
+ALTER TABLE NOTIFICATION
+   ADD CONSTRAINT FK_NOTIFICA_R_9015016_SUBSCRIB FOREIGN KEY (SUBSCRIBER_MSISDN)
+      REFERENCES SUBSCRIBER (SUBSCRIBER_MSISDN);

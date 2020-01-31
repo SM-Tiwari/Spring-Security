@@ -1,0 +1,36 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+public class PaymentDto implements DTO {
+
+    private String methodCode;
+    private String methodName;
+
+    public PaymentDto(){}
+
+    public PaymentDto(String methodCode, String methodName) {
+        this.methodCode = methodCode;
+        this.methodName = methodName;
+    }
+
+    public String getMethodCode() {
+        return methodCode;
+    }
+
+    public void setMethodCode(String methodCode) {
+        this.methodCode = methodCode;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+}

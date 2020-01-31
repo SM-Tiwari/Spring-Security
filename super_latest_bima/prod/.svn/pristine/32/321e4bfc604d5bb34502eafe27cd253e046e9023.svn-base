@@ -1,0 +1,27 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by aswzen on 7/09/2018.
+ */
+public class ProfileEmailVerifyDto  extends BaseRequestDto{
+
+    private String msisdn;
+    private String token;
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+    
+}

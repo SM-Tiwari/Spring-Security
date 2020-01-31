@@ -1,0 +1,93 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "TRX_WELCOME_REWARD")
+public class TrxWelcomeReward {
+    private String subscriberMsisdn;
+    private String productId;
+    private Timestamp createdAt;
+    private Subscriber subscriberBySubscriberMsisdn;
+    private Product productByProductId;
+
+    public TrxWelcomeReward(){
+        setCreatedAt((new Timestamp(System.currentTimeMillis())));
+    }
+
+    public TrxWelcomeReward(String subscriberMsisdn, String productId){
+        this();
+        setSubscriberMsisdn(subscriberMsisdn);
+        setProductId(productId);
+    }
+
+    @Id
+    @Column(name = "SUBSCRIBER_MSISDN", nullable = true, length = 15)
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    @Column(name = "PRODUCT_ID")
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    @Column(name = "CREATED_AT")
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TrxWelcomeReward that = (TrxWelcomeReward) o;
+
+        if (subscriberMsisdn != null ? !subscriberMsisdn.equals(that.subscriberMsisdn) : that.subscriberMsisdn != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return subscriberMsisdn != null ? subscriberMsisdn.hashCode() : 0;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "SUBSCRIBER_MSISDN", referencedColumnName = "SUBSCRIBER_MSISDN", updatable = false, insertable = false)
+    public Subscriber getSubscriberBySubscriberMsisdn() {
+        return subscriberBySubscriberMsisdn;
+    }
+
+    public void setSubscriberBySubscriberMsisdn(Subscriber subscriberBySubscriberMsisdn) {
+        this.subscriberBySubscriberMsisdn = subscriberBySubscriberMsisdn;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "PRODUCT_ID", referencedColumnName = "PRODUCT_ID", updatable = false, insertable = false)
+    public Product getProductByProductId() {
+        return productByProductId;
+    }
+
+    public void setProductByProductId(Product productByProductId) {
+        this.productByProductId = productByProductId;
+    }
+}

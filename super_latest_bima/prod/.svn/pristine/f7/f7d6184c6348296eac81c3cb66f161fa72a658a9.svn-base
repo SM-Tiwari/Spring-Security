@@ -1,0 +1,14 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+
+import java.util.Map;
+
+/**
+ * Created by rips on 4/29/17.
+ */
+public interface SettingService {
+
+    Map changeLanguage(BaseRequestDto request);
+
+}

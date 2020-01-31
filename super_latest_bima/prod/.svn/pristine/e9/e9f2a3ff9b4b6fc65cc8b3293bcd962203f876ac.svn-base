@@ -1,0 +1,176 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.model.JsonData;
+import com.gnv.vnm.selfcare.core.model.Packege092Responce;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.selfcare.activateoffer_xsd.ActivateOffer_Response;
+
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.CmsOfferRequest;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.ProductMetadata;
+import id.gnvsolution.d3.api.model.TrxCmsOffer;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.Packages092Service;
+import id.gnvsolution.d3.api.service.ProductService;
+import id.gnvsolution.d3.api.service.TibcoService;
+import id.gnvsolution.d3.api.utils.ApiHelpers;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import id.gnvsolution.d3.api.utils.Util092Packages;
+
+@Service
+@Transactional
+public class Packages092ServiceImpl implements Packages092Service {
+
+	public static final Logger logger = LoggerFactory.getLogger(Packages092ServiceImpl.class);
+
+	
+	@Autowired
+	private NotificationMasterService notificationMasterService;
+	@Autowired
+	TibcoService tibcoService;
+
+	@Autowired
+	ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+	@Autowired
+	private NotificationWorker notificationWorker;
+
+	@Autowired
+	private InAppNotificationService inAppNotificationService;
+	@Autowired
+	ProductService productService;
+
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Override
+	public Packege092Responce getPackages(String msisdn, String lang, String subscriberType, String imei) {
+
+		Packege092Responce packege092Responce = new Packege092Responce();
+		/* String response=""; */
+		ApiHelpers apiHelpers = new ApiHelpers();
+		String response = apiHelpers.get092Packages(moduleTransactionIDGenerator.generate(Module.PKG), msisdn);
+		if (response != null) {
+			JsonData jsonData = Util092Packages.getProductCode(response);
+
+			// List<String> producCodetList = new ArrayList<>();
+		 if(jsonData!=null)packege092Responce = productService.getOfferProduct(jsonData, lang, subscriberType, imei);else packege092Responce=null;
+			
+		}
+		return packege092Responce;
+
+		// return new ResponseEntity<List<String>>(producCodetList, HttpStatus.OK);
+	}
+
+	@Override
+	public Map getCmsOfferList(CmsOfferRequest request) {
+
+		return tibcoService.getCmsOfferList(request);
+
+	}
+
+	@Override
+	public Map activateCmsOffer(CmsOfferRequest request) {
+
+		ActivateOffer_Response activateOffer_Response = tibcoService.activateCmsOffer(request);
+		BaseDao<TrxCmsOffer> baseDao = new BaseDao<>(sessionFactoryDef, TrxCmsOffer.class);
+		String message="";
+		if(activateOffer_Response != null && activateOffer_Response.getStatusCode().equals("00000")) {
+			
+			 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_CMS_00000, request.getLanguage());
+			 sendNotification(request.getMsisdn(),message, null);
+			
+		}else {
+			
+			switch (activateOffer_Response.getStatusCode()) {
+			case "-1":
+				 message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_FAIL, request.getLanguage());
+				 sendNotification(request.getMsisdn(),message, null);
+				break;
+			
+			default:
+				message =notificationMasterService.getMessageText(Languages.MSG_IDS.STATUS_VALUE_101, request.getLanguage());
+				sendNotification(request.getMsisdn(),message, null);
+				break;
+			}
+		}
+
+		try {
+			TrxCmsOffer trxCmsOffer = new TrxCmsOffer();
+			trxCmsOffer.setSubscriberMsisdn(activateOffer_Response.getMsisdn());
+			trxCmsOffer.setOfferId(activateOffer_Response.getOfferID());
+			trxCmsOffer.setStatusMessage(activateOffer_Response.getStatusMessage());
+			trxCmsOffer.setStatusCode(activateOffer_Response.getStatusCode());
+			trxCmsOffer.setTransactionId(activateOffer_Response.getRequestID());
+			baseDao.save(trxCmsOffer);
+
+		} catch (Exception e) {
+
+			logger.info("# IN activateCmsOffer ---- subscriberId =  ",
+					activateOffer_Response.getMsisdn() + " DB Insertion failed ");
+			e.printStackTrace();
+		}
+		try {
+
+			return new HashMap<String, String>() {
+				{
+					put("msisdn", activateOffer_Response.getMsisdn());
+					put("offerID", activateOffer_Response.getOfferID());
+					put("statusCode", activateOffer_Response.getStatusCode());
+					put("statusMessage", activateOffer_Response.getStatusMessage());
+					// put("",activateOffer_Response.getRequestID());
+
+				}
+			};
+		} catch (Exception e) {
+			logger.info("# IN activateCmsOffer  Subscription failed ");
+		}
+		return JSONResultFilter.filter(new ErrorMessageDto(false, "Subscription failed")).all().build();
+
+	}
+	
+	private void sendNotification(String msisdn, String message, Product product) {
+		
+		try {
+			
+		
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append(message);
+		notificationWorker.sendNotification(msisdn, stringBuilder.toString());
+		inAppNotificationService.saveToInAppNotifications(msisdn, null, null, null, stringBuilder.toString(),
+				stringBuilder.toString(), null, null, null);
+
+		} catch (Exception e) {
+			logger.info("#Failed to send notification  || Save in AppNotificationTable");
+		}
+	}
+
+//	@Async
+//	@Override
+//	public void save(TrxCmsOffer trxCmsOffer) {
+//
+//		BaseDao<TrxCmsOffer> baseDao = new BaseDao<>(sessionFactoryDef, TrxCmsOffer.class);
+//
+//		Object obj = baseDao.save(trxCmsOffer);
+//
+//	}
+}

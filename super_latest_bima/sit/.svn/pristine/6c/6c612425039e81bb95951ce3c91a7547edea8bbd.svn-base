@@ -1,0 +1,15 @@
+/**
+ * Dec 24, 2017 5:20:50 PM
+ */
+package id.gnvsolution.d3.api.helper.enums;
+
+/**
+ * @author nandipinto
+ *
+ */
+public enum DataBalanceDisplayOption {
+
+	AVAILABLE_VALUE,
+	CONSUMED_VALUE,
+	FREE
+}

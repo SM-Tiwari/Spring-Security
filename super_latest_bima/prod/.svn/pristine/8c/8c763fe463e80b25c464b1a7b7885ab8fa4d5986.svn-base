@@ -1,0 +1,9 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.model.DwhUniqueMsisdnDevice;
+
+public interface DwhUniqueMsisdnDeviceService {
+
+    void save(DwhUniqueMsisdnDevice dwhUniqueMsisdnDevice);
+
+}

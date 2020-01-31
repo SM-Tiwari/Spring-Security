@@ -1,0 +1,16 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.List;
+
+import id.gnvsolution.d3.api.fault.SubscriberNotFoundException;
+import id.gnvsolution.d3.api.model.Subscriber;
+
+public interface SubscriberService {
+
+    boolean isMsisdnPrepaid(String msisdn);
+
+    Subscriber get(String msisdn);
+    List<Subscriber> getPrepaidUser();
+    boolean inviteMembers(String subscriberId, List<String> invitedNumbers, String language) throws SubscriberNotFoundException;
+
+}

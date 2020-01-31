@@ -1,0 +1,51 @@
+ <ehcache name="mySpringCacheManager">
+    <diskStore path="java.io.tmpdir"/>
+    
+ 24hour
+    <cache name="cache1" maxElementsInMemory="100000"
+           timeToIdleSeconds="86400"
+           timeToLiveSeconds="86400" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+
+    1hour
+    <cache name="cache1Hour" maxElementsInMemory="100000"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="3600" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+
+    1minute
+    <cache name="cache1Minute" maxElementsInMemory="100000"
+           timeToIdleSeconds="60"
+           timeToLiveSeconds="60" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+
+    10minutes
+    <cache name="cache10Minute" maxElementsInMemory="100000"
+           timeToIdleSeconds="600"
+           timeToLiveSeconds="600" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+    
+</ehcache>
+
+  
+ <!--  <ehcache name="mySpringCacheManager">
+    <diskStore path="java.io.tmpdir"/>
+    
+    24hour
+    <cache name="cache1" maxElementsInMemory="100000"
+           timeToIdleSeconds="180"
+           timeToLiveSeconds="180" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+
+    1hour
+    <cache name="cache1Hour" maxElementsInMemory="100000"
+           timeToIdleSeconds="180"
+           timeToLiveSeconds="180" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+
+    1minute
+    <cache name="cache1Minute" maxElementsInMemory="100000"
+           timeToIdleSeconds="60"
+           timeToLiveSeconds="60" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+
+    10minutes
+    <cache name="cache10Minute" maxElementsInMemory="100000"
+           timeToIdleSeconds="180"
+           timeToLiveSeconds="180" memoryStoreEvictionPolicy="LFU" statistics="false"/>
+    
+</ehcache>  -->
+  

@@ -1,0 +1,7 @@
+-------------------------------------------------------------------------------
+Test set: id.gnvsolution.d3.api.filter.HibernateSessionFilterTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.007 sec <<< FAILURE!
+updateStatementTest(id.gnvsolution.d3.api.filter.HibernateSessionFilterTest)  Time elapsed: 0.007 sec  <<< ERROR!
+mockit.internal.ClassFile$NotFoundException: Unable to find class file for id.gnvsolution.d3.api.filter.HibernateSessionFilterTest
+

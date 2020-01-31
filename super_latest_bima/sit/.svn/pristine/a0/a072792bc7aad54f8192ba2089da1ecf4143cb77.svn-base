@@ -1,0 +1,113 @@
+package id.gnvsolution.d3.api.utils;
+
+/**
+ * Created by asus on 7/7/17.
+ */
+public class Languages {
+
+    public static class MSG_IDS {
+        public static int LOGIN_VERIFICATION_EMAIL = 99901;
+        public static int ALLOW_SOCIAL_LOGIN_FAIL = 99902; 
+        public static int SOCIAL_LOGIN_FAIL = 99903;
+        public static int EMAIL_LOGIN_FAIL = 99904;
+        public static int OTP_LOGIN_SENT = 99905;
+        public static int OTP_LOGIN_FAIL = 99906;
+        public static int OTP_LOGIN_EXP = 99910;
+        public static int SOCIAL_IN_USE = 99907;
+        public static int EMAIL_IN_USE = 99908;
+        public static int OTP_MESSAGE = 11;
+        public static int NOT_VALID_MSISDN = 99950;
+        public static int VALID_MSISDN=99962;
+        public static int STATUS_VALUE_00000 = 99911;
+        public static int STATUS_VALUE_21 = 99912;
+        public static int STATUS_VALUE_32 = 99913;
+        public static int STATUS_VALUE_39 = 99914;
+        public static int STATUS_VALUE_7 = 7;
+        public static int STATUS_VALUE_31 = 99915;
+        public static int STATUS_VALUE_00000_UNSUBSCRIBE = 99916;
+        public static int STATUS_VALUE_39_UNSUBSCRIBE = 99917;
+        public static int STATUS_VALUE_DEFAULT_UNSUBSCRIBE = 99918;
+        
+        public static int NAPAS_SUCCESS = 99920;
+        public static int NAPAS_FAIL = 99921;
+        public static int STATUS_VALUE_CMS_00000 = 99922;
+        public static int STATUS_VALUE_FAIL = 99923;
+        public static int STATUS_VALUE_101 = 99924;
+        public static int EMAIL_IN_VERIFICATION = 99909;
+        
+        /*Created by Vimal */
+        public static int SCRATCH_CARD_ALREADY_USED = 99965;
+        public static int NUMBER_INCORRECT = 99966;
+        public static int TOPUP_NOT_SUCCESSFUL = 99967;
+        public static int RECHARGE_SUCCESS = 99920;
+        
+        public static int RECHARGE_SELF_SUCCESS = 11121;
+        public static int RECHARGE_NOT_SUCCESSFUL = 11120; 
+        public static int INVITE_MSG = 99969;
+        public static int OTP_RESPONSE_TIMEOUT = 99970;
+        
+        
+        
+        
+    }
+    
+    public static class ID {
+
+        public static String BUTTON_BUY = "Mua";
+        public static String BUTTON_FREE = "Lấy nó";
+        public static String COMMON_EXCEPTION = "Lỗi máy chủ nội bộ";
+        public static String COMMON_INVALID_REQUEST = "Yêu cầu không hợp lệ";
+        public static String FAILED_RELOAD = "Mã chứng từ sai";
+        /*public static String CURRENCY_INDONESIA = "Rp";*/
+        public static String CURRENCY_VIETNA = "VND";
+        public static String HYBRID_EBILL_UNSUBSCRIPTION = "Thank you for using Indie+ Bill Feature. You are now not registered to Indie+ Bill. You can always register by going to Email in bima+";
+        public static String HYBRID_EBILL_SUBSCRIPTION = "Thank you for subscribing Indie+ Bill Feature. You will receive monthly email from 3Customer Care. Please register the sender so the email will not be categorized as Spam.";
+        public static String OTP_INVALID = "OTP hết hạn";
+        public static String LOGIN_FAILED = "Đăng nhập thất bại";
+        public static String INVALID_SOCIAL_ID = "Tài khoản xã hội chưa được đăng ký";
+        public static String PRODUCT_LABEL_DESCRIPTION = "Trong khoảng";
+        public static String PRODUCT_LABEL_HOW_TO = "Thực hiện theo các bước sau để bắt đầu thưởng thức ứng dụng của bạn:";
+        public static String PRODUCT_LABEL_PRICING = "Làm thế nào để có được";
+        public static String PRODUCT_LABEL_DETAILS = "Thông tin chi tiết sản phẩm";
+        public static String PURCHASE_FAILED = "Xin lỗi, yêu cầu của bạn không thể được tiến hành";
+        public static String PROMO_REDEEM_ALREADY = "Đã chuộc lại";
+        public static String PROMO_REDEEM_NOT_AVAILABLE = "Tidak ada promo tersedia";
+        public static String GENERAL_UNSUBSCRIPTION_SUCCESS = "Hủy đăng ký thành công.";
+        public static String GENERAL_UNSUBSCRIPTION_FAILED = "Gagal untuk berhenti berlangganan";
+        public static String PAYMENT_STATUS_PAID = "Sudah dibayar";
+        public static String PAYMENT_STATUS_PARTIALLY_PAID = "Sebagian dibayar";
+        public static String PAYMENT_STATUS_NOT_PAID = "Belum dibayar";
+        public static String PRODUCT_LABEL_OTHER_INFO = "Informasi lainnya";
+        
+    }
+
+    public static class EN {
+
+    	 
+        public static String BUTTON_BUY = "Buy";
+        public static String BUTTON_FREE = "Take It";
+        public static String COMMON_EXCEPTION = "Internal server error";
+        public static String COMMON_INVALID_REQUEST = "Invalid request";
+        public static String FAILED_RELOAD = "Wrong Voucher Code";
+       /* public static String CURRENCY_INDONESIA = "IDR";*/
+        public static String CURRENCY_VND = "VND";
+        public static String HYBRID_EBILL_UNSUBSCRIPTION = "Thank you for using Indie+ Bill Feature. You are now not registered to Indie+ Bill. You can always register by going to Email in bima+";
+        public static String HYBRID_EBILL_SUBSCRIPTION = "Thank you for subscribing Indie+ Bill Feature. You will receive monthly email from 3Customer Care. Please register the sender so the email will not be categorized as Spam.";
+        public static String OTP_INVALID = "OTP Expired";
+        public static String LOGIN_FAILED = "Login failed";
+        public static String INVALID_SOCIAL_ID = "Social account is not registered";
+        public static String PRODUCT_LABEL_DESCRIPTION = "About";
+        public static String PRODUCT_LABEL_HOW_TO = "Follow these steps to start enjoying your app:";
+        public static String PRODUCT_LABEL_PRICING = "How to get";
+        public static String PRODUCT_LABEL_DETAILS = "Product details";
+        public static String PURCHASE_FAILED = "Sorry your request can't be proceed";
+        public static String PROMO_REDEEM_ALREADY = "Already Redeemed";
+        public static String PROMO_REDEEM_NOT_AVAILABLE = "No Promo Product";    
+        public static String GENERAL_UNSUBSCRIPTION_SUCCESS = "Unsubscribe success.";
+        public static String GENERAL_UNSUBSCRIPTION_FAILED = "Unsubscribe failed.";
+        public static String PAYMENT_STATUS_PAID = "Fully Paid";
+        public static String PAYMENT_STATUS_PARTIALLY_PAID = "Partially Paid";
+        public static String PAYMENT_STATUS_NOT_PAID = "Not Paid";
+        public static String PRODUCT_LABEL_OTHER_INFO = "Other information";
+    }
+}

@@ -1,0 +1,384 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import javax.annotation.PostConstruct;
+
+import org.apache.tomcat.jdbc.pool.PoolProperties;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.SmsCallHistoryStatusRequestDto;
+import id.gnvsolution.d3.api.dto.request.UsageHistoryRequestDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.CallRecord;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.model.SmsCallHistoryStatus;
+import id.gnvsolution.d3.api.model.SmsRecord;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.StaticService;
+import id.gnvsolution.d3.api.service.UsageHistoryService;
+import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.enums.CallDirection;
+import com.gnv.vnm.selfcare.core.enums.CallType;
+import org.apache.tomcat.jdbc.pool.DataSource;
+
+@Service
+@Configuration
+@PropertySources({ @PropertySource("classpath:singleview-db.properties"),
+
+})
+
+@Transactional
+public class UsageHistoryServiceipml implements UsageHistoryService {
+
+	/**
+	 * Instance of Logger {@link Logger}
+	 */
+	public static final Logger LOGGER = LoggerFactory.getLogger(UsageHistoryServiceipml.class);
+	/**
+	 * Instance of {@link FattyMonsterService}
+	 */
+
+	@Autowired
+	AppConfigService appConfigService;
+
+	@Autowired
+	private Environment env;
+
+	@Autowired
+	private StaticService staticService;
+
+	private JdbcTemplate jdbcTemplate;
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Value(value = "${datasource.singleview.url}")
+	String singleview_URL;
+
+	private static final String DEFAULT_CALL_HISTORY_SQL = "select msisdn, event_type, event_dtm, duration, amount, b_number "
+			+ "from hcpt_intec_usage_details_uat where msisdn = ? " + "and event_type = 'GSM Voice MOC' "
+			+ "and event_dtm between ? and ?";
+
+	private static final String DEFAULT_SMS_HISTORY_SQL = "select msisdn, event_type, event_dtm, duration, amount, b_number "
+			+ "from hcpt_intec_usage_details_uat where msisdn = ? " + "and event_type = 'GSM SMS MO' "
+			+ "and event_dtm between ? and ?";
+
+	private DataSource singleViewDataSource;
+
+	@PostConstruct
+	public void initService() throws Exception {
+
+		System.out.println("Hello initService() usage history" + env.getProperty("datasource.singleview.url"));
+		PoolProperties p = new PoolProperties();
+		p.setUrl(env.getProperty("datasource.singleview.url"));
+		p.setDriverClassName(env.getProperty("datasource.singleview.driverclassname"));
+		p.setUsername(env.getProperty("datasource.singleview.username"));
+		p.setPassword(env.getProperty("datasource.singleview.password"));
+		p.setJmxEnabled(true);
+		p.setTestWhileIdle(false);
+		p.setTestOnBorrow(true);
+		p.setValidationQuery(env.getProperty("datasource.singleview.connectionvalidationsql", "SELECT 1 from DUAL"));
+		p.setTestOnReturn(false);
+		p.setValidationInterval(
+				Long.parseLong(env.getProperty("datasource.singleview.connpool.validationinterval", "30")) * 1000);
+		p.setTimeBetweenEvictionRunsMillis(
+				Integer.parseInt(env.getProperty("datasource.singleview.connpool.timebetweenbvictionruns", "30"))
+						* 1000);
+		p.setMaxWait(Integer.parseInt(env.getProperty("datasource.singleview.connpool.maxwait", "10")) * 1000);
+		p.setMinEvictableIdleTimeMillis(
+				Integer.parseInt(env.getProperty("datasource.singleview.connpool.minevictableidletime", "30")) * 1000);
+
+		p.setRemoveAbandonedTimeout(
+				Integer.parseInt(env.getProperty("datasource.singleview.connpool.removeabandonedtimeout", "60"))); // in
+																													// seconds
+
+		p.setInitialSize(Integer.parseInt(env.getProperty("datasource.singleview.connpool.initialsize", "50")));
+		p.setMaxActive(Integer.parseInt(env.getProperty("datasource.singleview.connpool.maxactive", "100")));
+		p.setMinIdle(Integer.parseInt(env.getProperty("datasource.singleview.connpool.minidle", "10")));
+
+		p.setLogAbandoned(true);
+		p.setRemoveAbandoned(true);
+		p.setJdbcInterceptors(env.getProperty("datasource.singleview.connpool.interceptors"));
+
+		singleViewDataSource = new DataSource();
+		singleViewDataSource.setPoolProperties(p);
+
+		jdbcTemplate = new JdbcTemplate(singleViewDataSource);
+
+	}
+
+	@Override
+	public HashMap<String, Object> getCallHistory(UsageHistoryRequestDto usageHistoryRequestDto) {
+
+		HashMap<String, Object> returnObject = new HashMap<>();
+		System.out.println("CallHistory date and Time " + usageHistoryRequestDto.getStartDate() + "End Date --- "
+				+ usageHistoryRequestDto.getEndDate());
+		String dateFormat = appConfigService.get("dateformat.long", AppDefaultValues.DATE_TIME_FORMAT).toString();
+
+		String sql = env.getProperty("datasource.singleview.callhistory.sql", DEFAULT_CALL_HISTORY_SQL);
+		String msisdn = AppUtils.prependCountryCodeToMsisdn(usageHistoryRequestDto.getMsisdn(),
+				AppDefaultValues.COUNTRY_CODE);
+		// String msisdn = "84"+usageHistoryRequestDto.getMsisdn();
+
+		try {
+			List<CallRecord> list = jdbcTemplate.query(sql,
+					new Object[] { msisdn, usageHistoryRequestDto.getStartDate(), usageHistoryRequestDto.getEndDate() },
+					new RowMapper<CallRecord>() {
+
+						@Override
+						public CallRecord mapRow(ResultSet rs, int rowNum) throws SQLException {
+
+							CallRecord record = new CallRecord();
+							record.setCalledNumber(rs.getString("b_number"));
+							record.setCallType(CallType.UNKNOWN);
+							record.setDirection(CallDirection.OUTGOING);
+
+							
+
+							record.setDuration(rs.getLong("duration") + " sec");
+							
+							/*if(rs.getLong("duration")>0)
+							{
+							String timeInhousandSec	= getTimeinMin(rs.getLong("duration"));
+							record.setDuration(timeInhousandSec);
+							}
+							else
+							{
+								record.setDuration(rs.getLong("duration") + "sec");
+							}*/
+							
+							
+							
+
+							record.setStartTime(rs.getTimestamp("event_dtm"));
+							record.setStartTimeAsString(
+									AppUtils.dateToString(rs.getTimestamp("event_dtm"), dateFormat));
+
+							return record;
+						}
+					});
+
+			if (list.isEmpty()) {
+				returnObject.put("CallRecordStatus", "0");
+				returnObject.put("CallRecord", list);
+				if (usageHistoryRequestDto.getLanguage().equals(Constants.LANG_ID)) {
+					Parameter parameter = staticService.getParameter("call_history_not_found_vi");
+					returnObject.put("CallRecordMsg", parameter.getValue());
+				} else {
+					Parameter parameter = staticService.getParameter("call_history_not_found_en");
+					returnObject.put("CallRecordMsg", parameter.getValue());
+				}
+
+			} else {
+				returnObject.put("CallRecordStatus", "1");
+				returnObject.put("CallRecord", list);
+				returnObject.put("CallRecordMsg", "Data Found");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			// logger.error("#getCallHistory --- error retrieving call history
+			// from SingleView for MSISDN= " + subscriberId, e);
+		}
+		return returnObject;
+	}
+
+	protected String getTimeinMin(long dtm) {
+		
+		String returnTime=null;
+		
+		long seconds = dtm; 
+		
+        long p1 = seconds % 60;
+        long p2 = seconds / 60;
+        long p3 = p2 % 60;
+        p2 = p2 / 60;
+        
+        
+        
+        returnTime =    p2 + ":" + p3 + ":" + p1;
+        //System.out.print( hour + " : " + min + " : " + sec);
+       return returnTime;
+	}
+
+	@Override
+	public HashMap<String, Object> getSmsHistory(UsageHistoryRequestDto usageHistoryRequestDto) {
+		HashMap<String, Object> returnObject = new HashMap<>();
+		System.out.println("SmsHistory date and Time " + usageHistoryRequestDto.getStartDate() + "End Date --- "
+				+ usageHistoryRequestDto.getEndDate());
+		String dateFormat = appConfigService.get("dateformat.long", AppDefaultValues.DATE_TIME_FORMAT).toString();
+
+		String sql = env.getProperty("datasource.singleview.smshistory.sql", DEFAULT_SMS_HISTORY_SQL);
+		String msisdn = AppUtils.prependCountryCodeToMsisdn(usageHistoryRequestDto.getMsisdn(),
+				AppDefaultValues.COUNTRY_CODE);
+		// String msisdn = "84"+usageHistoryRequestDto.getMsisdn();
+		try {
+			List<SmsRecord> list = jdbcTemplate.query(sql,
+					new Object[] { msisdn, usageHistoryRequestDto.getStartDate(), usageHistoryRequestDto.getEndDate() },
+					new RowMapper<SmsRecord>() {
+
+						@Override
+						public SmsRecord mapRow(ResultSet rs, int rowNum) throws SQLException {
+
+							SmsRecord record = new SmsRecord();
+							record.setDestinationNumber(rs.getString("b_number"));
+							record.setDirection(CallDirection.OUTGOING);
+							record.setTimeStamp(rs.getTimestamp("event_dtm"));
+							record.setTimeStampAsString(
+									AppUtils.dateToString(rs.getTimestamp("event_dtm"), dateFormat));
+
+							return record;
+						}
+					});
+
+			if (list.isEmpty()) {
+				returnObject.put("SmsRecordStatus", "0");
+				returnObject.put("SmsRecord", list);
+
+				if (usageHistoryRequestDto.getLanguage().equals(Constants.LANG_ID)) {
+					Parameter parameter = staticService.getParameter("sms_history_not_found_vi");
+					returnObject.put("SmsRecordMsg", parameter.getValue());
+				} else {
+					Parameter parameter = staticService.getParameter("sms_history_not_found_en");
+					returnObject.put("SmsRecordMsg", parameter.getValue());
+				}
+
+			} else {
+				returnObject.put("SmsRecordStatus", "1");
+				returnObject.put("SmsRecord", list);
+				returnObject.put("SmsRecordMsg", "Data Found");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return returnObject;
+	}
+
+	@Override
+	public HashMap<String, Object> checkSmsCallHistorycredential(
+			SmsCallHistoryStatusRequestDto smsCallHistoryStatusRequestDto) {
+		HashMap<String, Object> returnObject = new HashMap<>();
+		try {
+			BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+			List<Subscriber> subscribers = subscriberDao.find("subscriberMsisdn =:subscriberMsisdn",new HashMap<String, Object>() {
+				{
+					put("subscriberMsisdn", smsCallHistoryStatusRequestDto.getMsisdn());
+				}
+			});
+			if(subscribers.size()==0) {
+				returnObject.put("message", "SubscriberProfile " + smsCallHistoryStatusRequestDto.getMsisdn() + "does not exist!");
+				return returnObject;
+			}
+			if(smsCallHistoryStatusRequestDto.getCredential()!=null && smsCallHistoryStatusRequestDto.getCredential().length()!=0) {
+				if(!BCrypt.hashpw(smsCallHistoryStatusRequestDto.getCredential(), Constants.BCRYPT_SALT).equals(subscribers.get(0).getSubscriberPassword())) {
+					returnObject.put("message", "Password Mismatch");
+					returnObject.put("status", "2");
+					return returnObject;
+				}
+			}
+			BaseDao<SmsCallHistoryStatus> smsCallHistoryStatusDao = new BaseDao<>(sessionFactoryDef, SmsCallHistoryStatus.class);
+			List<SmsCallHistoryStatus> smsStatusEntity =  smsCallHistoryStatusDao.find("msisdn =:msisdn", new HashMap<String, Object>() {
+				{
+					put("msisdn", smsCallHistoryStatusRequestDto.getMsisdn());
+				}
+			});
+			returnObject.put("message", "Password match");
+			if(smsStatusEntity==null) {
+				returnObject.put("status", "0");
+			}
+			else {
+				if(smsStatusEntity.get(0).getStatus()==null) {
+					returnObject.put("status", "0");
+				}
+				else {
+					returnObject.put("status", smsCallHistoryStatusRequestDto.getStatus());
+				}
+
+			}
+				
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return returnObject;
+	}
+
+	@Override
+	public HashMap<String, Object> updateSmsCallHistoryStatus(
+			SmsCallHistoryStatusRequestDto smsCallHistoryStatusRequestDto) {
+		HashMap<String, Object> returnObject = new HashMap<>();
+		try {
+			BaseDao<Subscriber> subscriberDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+			List<Subscriber> subscribers = subscriberDao.find("subscriberMsisdn =:subscriberMsisdn",new HashMap<String, Object>() {
+				{
+					put("subscriberMsisdn", smsCallHistoryStatusRequestDto.getMsisdn());
+				}
+			});
+			
+			if(subscribers.size()==0) {
+				returnObject.put("message", "SubscriberProfile " + smsCallHistoryStatusRequestDto.getMsisdn() + "does not exist!");
+				return returnObject;
+			}
+			
+			if(smsCallHistoryStatusRequestDto.getCredential()!=null && smsCallHistoryStatusRequestDto.getCredential().length()!=0) {
+				if (!BCrypt.hashpw(smsCallHistoryStatusRequestDto.getCredential(), Constants.BCRYPT_SALT)
+						.equals(subscribers.get(0).getSubscriberPassword())) {
+					returnObject.put("message", "Password Mismatch");
+					returnObject.put("status", "2");
+					return returnObject;
+				}	
+			}
+			BaseDao<SmsCallHistoryStatus> smsCallHistoryStatusDao = new BaseDao<>(sessionFactoryDef, SmsCallHistoryStatus.class);
+			List<SmsCallHistoryStatus> smsStatusEntity =  smsCallHistoryStatusDao.find("msisdn =:msisdn", new HashMap<String, Object>() {
+				{
+					put("msisdn", smsCallHistoryStatusRequestDto.getMsisdn());
+				}
+			});
+			if(smsStatusEntity.size()!=0) {
+				smsStatusEntity.get(0).setMsisdn(smsCallHistoryStatusRequestDto.getMsisdn());
+				smsStatusEntity.get(0).setStatus(smsCallHistoryStatusRequestDto.getStatus());
+				smsCallHistoryStatusDao.save(smsStatusEntity.get(0));	
+			}
+			else {
+				smsStatusEntity.get(0).setId((long) 0);
+				smsStatusEntity.get(0).setMsisdn(smsCallHistoryStatusRequestDto.getMsisdn());
+				smsStatusEntity.get(0).setStatus(smsCallHistoryStatusRequestDto.getStatus());
+				smsCallHistoryStatusDao.save(smsStatusEntity.get(0));
+			}
+			returnObject.put("message", "Successfully updated!");
+			if(smsCallHistoryStatusRequestDto.getStatus()!=null) {
+				returnObject.put("status", smsCallHistoryStatusRequestDto.getStatus());
+			}
+			else {
+				returnObject.put("status", "0");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			returnObject.put("message", "Updation failed!");
+			returnObject.put("status", "3");
+		}
+		return returnObject;
+	}
+
+
+}

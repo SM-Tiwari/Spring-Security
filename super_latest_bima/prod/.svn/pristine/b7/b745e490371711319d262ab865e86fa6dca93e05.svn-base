@@ -1,0 +1,44 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dto.response.ProductDto;
+import id.gnvsolution.d3.api.model.Campaign;
+import id.gnvsolution.d3.api.model.Product;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.ProductCacheService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 9, 2017 8:27:53 PM
+ *
+ */
+@Service
+public class ProductCacheService {
+	
+	private final Logger logger = LoggerFactory.getLogger(ProductCacheService.class);
+
+    @Cacheable(value = "cache1", key = "#root.methodName.toString() + #product.productId + #language + #subscriberType + #accessRight + #isFull")
+    public ProductDto getProductDto(SessionFactory sessionFactoryDef, 
+                                        Product product, 
+                                        String language, 
+                                        String subscriberType, 
+                                        String accessRight, 
+                                        boolean isFull) {
+        ProductDto productDto = ProductDto.fromProduct(sessionFactoryDef, product, language, subscriberType, accessRight, isFull);
+        logger.info("#getProductDto is :::product id+++++"+productDto.getProductId() +"  product description++++++---"+productDto.getProductDescription());
+        return productDto;
+    }
+    
+    @Cacheable(value = "cache1", key = "#root.methodName.toString() + #campaign.campaignId + #language + #offerId + #isFull")
+    public ProductDto fromCampaign(Campaign campaign, String language, String offerId, boolean isFull) {
+    	logger.info("---#ProductCharging-----offerId----"+offerId+"  =----------campaign::::::"+campaign+"    language:::::"+ language);
+        return ProductDto.fromCampaign(campaign, language, offerId, isFull);
+    }
+    
+}

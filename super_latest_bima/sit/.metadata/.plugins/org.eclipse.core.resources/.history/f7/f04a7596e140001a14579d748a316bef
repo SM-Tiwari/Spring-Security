@@ -1,0 +1,107 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TRX_SELF_PACKAGE")
+@SequenceGenerator(name = "SEQ_TRX_SELF_PACKAGE", sequenceName = "SEQ_TRX_SELF_PACKAGE", allocationSize = 1)
+public class TrxSelfPackage {
+
+//	ID
+//	MSISDN
+//	PACKAGE_ID
+//	RESPONSE_CODE
+//	PACKAGE_TYPE
+//	PACKGE_DESCRIPTION
+//	CREATED_AT
+//	CREATED_BY
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_TRX_SELF_PACKAGE")
+	@Column(name = "ID")
+	private int id;
+	@Column(name = "MSISDN")
+	private String msisdn;
+	@Column(name = "PACKAGE_ID")
+	private String packageId;
+	@Column(name = "RESPONSE_CODE")
+	private String responseCode;
+	@Column(name = "PACKAGE_TYPE")
+	private String packageType;
+	@Column(name = "ERROR_DETAIL")
+	private String errorDetail;
+	
+	@Column(name = "CHARGING_AMOUNT")
+	private String chargingAmount;
+	
+	@Column(name = "CREATED_BY")
+	private String createdBy;
+
+	public String getMsisdn() {
+		return msisdn;
+	}
+
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+
+	public String getPackageId() {
+		return packageId;
+	}
+
+	public void setPackageId(String packageId) {
+		this.packageId = packageId;
+	}
+
+	public String getResponseCode() {
+		return responseCode;
+	}
+
+	public void setResponseCode(String responseCode) {
+		this.responseCode = responseCode;
+	}
+
+	public String getPackageType() {
+		return packageType;
+	}
+
+	public void setPackageType(String packageType) {
+		this.packageType = packageType;
+	}
+
+	
+	
+
+	public String getErrorDetail() {
+		return errorDetail;
+	}
+
+	public void setErrorDetail(String errorDetail) {
+		this.errorDetail = errorDetail;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+
+
+	public String getChargingAmount() {
+		return chargingAmount;
+	}
+
+	public void setChargingAmount(String chargingAmount) {
+		this.chargingAmount = chargingAmount;
+	}
+
+}

@@ -1,0 +1,61 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.RecommendedForYouBox 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 30, 2017 7:56:16 PM
+ *
+ */
+@Entity
+@Table(name = "RECOMMENDED_FOR_YOU_BOX")
+public class RecommendedForYouBox implements Serializable {
+
+    @EmbeddedId
+    private RecommendedForYouBoxKey recommendedForYouBoxKey;
+    
+    @Basic
+    @Column(name = "BOX_END_AT")
+    private Timestamp boxEndAt;
+    
+    @Basic
+    @Column(name = "BOX_STATUS")
+    private int boxStatus;
+
+    public RecommendedForYouBox() {
+    }
+
+    public RecommendedForYouBoxKey getRecommendedForYouBoxKey() {
+        return recommendedForYouBoxKey;
+    }
+
+    public void setRecommendedForYouBoxKey(RecommendedForYouBoxKey recommendedForYouBoxKey) {
+        this.recommendedForYouBoxKey = recommendedForYouBoxKey;
+    }
+    
+    public Timestamp getBoxEndAt() {
+        return boxEndAt;
+    }
+
+    public void setBoxEndAt(Timestamp boxEndAt) {
+        this.boxEndAt = boxEndAt;
+    }
+
+    public int getBoxStatus() {
+        return boxStatus;
+    }
+
+    public void setBoxStatus(int boxStatus) {
+        this.boxStatus = boxStatus;
+    }
+}

@@ -1,0 +1,40 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.EmailLoginRequestDto;
+import id.gnvsolution.d3.api.dto.request.LoginInDto;
+import id.gnvsolution.d3.api.dto.request.SocialLoginRequestDto;
+import id.gnvsolution.d3.api.model.LoginHistoryEntity;
+import id.gnvsolution.d3.api.model.Subscriber;
+
+import java.util.Hashtable;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 04/04/2017.
+ */
+public interface LoginService {
+    Map<String, Object> login(LoginInDto loginInDto);
+
+    Map<String, Object> autoLogin(LoginInDto loginInDto);
+    
+    Map<String, Object> logout(LoginInDto loginInDto);
+
+    Map<String, Object> loginWithOtp(LoginInDto loginInDto);
+
+    Map<String, Object> requestOtp(LoginInDto loginInDto);
+    
+    Map<String, Object> loginWithSocial(SocialLoginRequestDto loginInDto);
+    
+    Map<String, Object> loginWithEmail(EmailLoginRequestDto loginInDto);
+
+    Subscriber getCrmData(String msisdn, String imsi);
+    
+    Hashtable<String, String> loadClassOfServiceMappings();
+
+	boolean saveLoginDetails(LoginHistoryEntity loginHistoryEntity);
+	
+	Map<String, Object> isValidNumber(LoginInDto loginInDto);
+
+}
+

@@ -1,0 +1,27 @@
+package id.gnvsolution.d3.api.component.transid;
+
+/**
+ * Created by Arie
+ * on 19/04/2017.
+ */
+public enum Module {
+    
+    /* Note
+       - Please don't change UNSUBSCRIBE (UNSU) Code because it being used on log response comparer 
+    */
+    
+    SOCIAL("SOCI"),UNSUBSCRIBE("UNSU"),PURCHASE("PURC"), LOGIN("LOGI"), WELCOMEREWARD("WELC"),
+    PAYMENTBILL("PBIL"), PAYMENT("PAYM"), VOUCHER_TOPUP("VTOP"),PKG("PACKAGES"),
+    CLM("CLMO"), PROFILE("PROF"), WIDGET("WIDG"), SQTX("SQTX"), POST("POST"), EMAIL("EMAIL"),
+    MAIL("MAIL"), HYBRID("HYBR"),BONSTRI("BONS"), TRF("TRF") ;
+
+    private String code;
+
+    Module(String code) {
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+}

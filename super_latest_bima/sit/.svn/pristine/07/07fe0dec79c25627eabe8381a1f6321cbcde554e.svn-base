@@ -1,0 +1,67 @@
+package com.gnv.h3i.bima3.imagecaching.service;
+
+import com.googlecode.pngtastic.core.PngImage;
+import com.googlecode.pngtastic.core.PngOptimizer;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.commons.io.IOUtils;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+/**
+ * <pre>
+ *  com.gnv.h3i.bima3.imagecaching.service.ImageService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jun 13, 2017 1:57:36 PM
+ *
+ */
+@Service
+public class ImageService {
+    
+    @Cacheable(value = "oneday", key="#root.methodName.toString() + #imagename" )
+    public byte[] getImage(String imagename) throws Exception {
+        InputStream in = null;
+        try {
+       //     in = new FileInputStream(new File("/app/fusionmobapp/images/"+imagename));
+       // 	 in = new FileInputStream(new File("C:/Users/rajat.nagpal/Desktop/Testt/"+imagename));
+       	 in = new FileInputStream(new File("/app/bima/imageserver/images/"+imagename));
+            if(imagename.toLowerCase().endsWith("png")) {
+                final PngImage image = new PngImage(in);
+                // optimize
+                final PngOptimizer optimizer = new PngOptimizer();
+                final PngImage optimizedImage = optimizer.optimize(image);
+		final ByteArrayOutputStream optimizedBytes = new ByteArrayOutputStream();
+		optimizedImage.writeDataOutputStream(optimizedBytes);
+                
+                return optimizedBytes.toByteArray();
+            } else { // jpg / jpeg
+                return IOUtils.toByteArray(in);
+            }
+        } catch (Exception e) {
+            throw e;
+        }finally {
+            if(in != null)
+                in.close();
+        }
+    }
+    
+    public byte[] getVideo(String videoname) throws Exception {
+        InputStream in = null;
+        try {
+        //    in = new FileInputStream(new File("/app/fusionmobapp/images/"+videoname));
+            in = new FileInputStream(new File("/app/bima/imageserver/images/"+videoname));
+            return IOUtils.toByteArray(in);
+        } catch (Exception e) {
+            throw e;
+        }finally {
+            if(in != null)
+                in.close();
+        }
+    }
+
+}

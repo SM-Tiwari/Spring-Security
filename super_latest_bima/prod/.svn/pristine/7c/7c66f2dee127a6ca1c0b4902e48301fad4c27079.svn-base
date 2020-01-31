@@ -1,0 +1,35 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+public class PriceDto implements DTO {
+
+    private String planName;
+    private String price;
+
+    public PriceDto(){}
+
+    public PriceDto(String planName, String price) {
+        this.planName = planName;
+        this.price = price;
+    }
+
+    public String getPlanName() {
+        return planName;
+    }
+
+    public void setPlanName(String planName) {
+        this.planName = planName;
+    }
+
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+}

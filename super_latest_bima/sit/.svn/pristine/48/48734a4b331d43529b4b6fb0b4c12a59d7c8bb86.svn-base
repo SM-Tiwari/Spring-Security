@@ -1,0 +1,83 @@
+package id.gnvsolution.d3.api.helper;
+
+import id.gnvsolution.d3.api.Constants;
+
+public class SqlProductHomescreen {
+
+    public static String GET_CATEGORY_QUERY(String subscriberType, String accessRight) {
+        // filter based on subscriberType
+        String filter = " AND (P.PRODUCT_CALL_PLAN IS NULL OR P.PRODUCT_CALL_PLAN = :productCallPlan) AND P.IS_PREVIEW = :isPreview ";
+        if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+            filter = filter + " AND P.IS_POSTPAID = 1 ";
+        } else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+            filter = filter + " AND P.IS_HYBRID = 1 ";
+        } else {
+            filter = filter + " AND P.IS_PREPAID = 1 ";
+        }
+        
+        final String phone = (isIphoneFromAccessRight(accessRight)?" and P.IS_IPHONE = 1 ":" ");
+        final String webselfcare = (isWebselfcareFromAccessRight(accessRight)?" and P.ACCESS_RIGHT like '%SELFCARE%' ":" ");
+
+        return "SELECT P.PRODUCT_ID FROM PRODUCT_CATEGORY PC " +
+                "  INNER JOIN PRODUCT P ON P.PRODUCT_ID = PC.PRODUCT_ID AND P.IS_PREVIEW = :isPreview " + filter +
+                "  INNER JOIN PRODUCT_HOMESCREEN PH ON PH.CATEGORY_ID = PC.MENU_CATEGORY_ID AND PH.SUB_MENU_CATEGORY_ID IS NULL " +
+                "  LEFT JOIN PRODUCT_HOMESCREEN_POSITION PHP ON PHP.PRODUCT_HOMESCREEN_ID = PH.ID AND PHP.PRODUCT_ID = P.PRODUCT_ID " +
+                "WHERE PC.MENU_CATEGORY_ID = :menuCategoryId AND PC.IS_ACTIVE = 1 AND P.IS_ACTIVE = 1 " + phone +  webselfcare +
+                "ORDER BY PHP.HOMESCREEN_ORDER, P.PRODUCT_NAME_ID " +
+                "OFFSET :offset ROWS FETCH NEXT :max ROWS ONLY";
+    }
+
+    public static String GET_SUB_CATEGORY_QUERY(String subscriberType, String accessRight, String campaignIds) {
+        // filter based on subscriberType
+        String filter = " ";
+        if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_POSTPAID)) {
+            filter = filter + " P.IS_POSTPAID = 1 ";
+        } else if (subscriberType != null && subscriberType.equals(Constants.SUBSCRIBER_TYPE_HYBRID)) {
+            filter = filter + " P.IS_HYBRID = 1 ";
+        } else {
+            filter = filter + " P.IS_PREPAID = 1 ";
+        }
+        
+        return "select * from\n" +
+                "  (\n" +
+                "    (\n" +
+                "      SELECT\n" +
+                "        DISTINCT(P.PRODUCT_ID),\n" +
+                "        HOMESCREEN_ORDER as myorder\n" +
+                "      FROM PRODUCT_CATEGORY PC INNER JOIN PRODUCT P\n" +
+                "          ON P.PRODUCT_ID = PC.PRODUCT_ID AND (P.PRODUCT_CALL_PLAN IS NULL OR P.PRODUCT_CALL_PLAN = :productCallPlan) AND\n" +
+                "             P.IS_PREVIEW = :isPreview\n" +
+                "             AND "+filter+"\n" +
+                "        INNER JOIN PRODUCT_HOMESCREEN PH\n" +
+                "          ON PH.CATEGORY_ID = PC.MENU_CATEGORY_ID AND PH.SUB_MENU_CATEGORY_ID = PC.SUB_MENU_CATEGORY_ID\n" +
+                "        LEFT JOIN PRODUCT_HOMESCREEN_POSITION PHP ON PHP.PRODUCT_HOMESCREEN_ID = PH.ID AND PHP.PRODUCT_ID = P.PRODUCT_ID\n" +
+                "      WHERE PC.SUB_MENU_CATEGORY_ID = :subMenuCategoryId AND P.IS_ACTIVE = 1 AND PC.IS_ACTIVE = 1\n" +
+                "    )\n" +
+                "    union all\n" +
+                "    (\n" +
+                "      SELECT\n" +
+                "        distinct(CAMPAIGN_ID),\n" +
+                "  producthom0_.\"HOMESCREEN_ORDER\" as myorder\n" +
+                "  from PRODUCT_HOMESCREEN_POSITION producthom0_, Campaign campaign, PRODUCT_HOMESCREEN producthom4_,SUB_MENU_CATEGORY submenucat5_\n" +
+                "where producthom0_.PRODUCT_ID = campaign.campaign_id and producthom0_.PRODUCT_HOMESCREEN_ID = producthom4_.ID and\n" +
+                "  producthom4_.SUB_MENU_CATEGORY_ID = submenucat5_.SUB_MENU_CATEGORY_ID and producthom0_.IS_ACTIVE = 1 and\n" +
+                "  campaign.STATUS = 1 and\n" +
+                "  (submenucat5_.ACCESS_RIGHT like '%') and (producthom0_.HOMESCREEN_ORDER between 0 and 20) and\n" +
+                "  sysdate between startdate and enddate\n" +
+                "AND CAMPAIGN_ID IN ("+campaignIds+") and producthom4_.SUB_MENU_CATEGORY_ID = :subMenuCategoryId \n" +
+                "\n" +
+                "    )\n" +
+                "  )\n" +
+                "order by myorder ASC\n" +
+                "OFFSET :offset ROWS FETCH NEXT :max ROWS ONLY";
+    }
+
+    private static boolean isIphoneFromAccessRight(String accessRight) {
+        return "IPHONE".equals(accessRight);
+    }
+    
+    private static boolean isWebselfcareFromAccessRight(String accessRight) {
+        return "SELFCARE".equals(accessRight);
+    }
+    
+}

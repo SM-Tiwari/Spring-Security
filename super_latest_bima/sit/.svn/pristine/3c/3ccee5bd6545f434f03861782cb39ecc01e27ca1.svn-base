@@ -1,0 +1,20 @@
+# Global logging configuration
+log4j.rootLogger=INFO,msgAppender
+
+# Console output...
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d [%c{1}] %-5p %c:%L - %m%n
+
+#log4j.logger.org.springframework.web.servlet.mvc=TRACE, stdout
+log4j.logger.com.gnv.h3i.bima3.imagecaching=DEBUG,msgAppender
+
+#log4j.logger.com.ibatis.common.jdbc.SimpleDataSource=TRACE
+#log4j.logger.com.ibatis.common.jdbc.ScriptRunner=TRACE
+#log4j.logger.com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate=TRACE
+
+log4j.appender.msgAppender=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.msgAppender.File=/opt/tomcat/logs/info.log
+log4j.appender.msgAppender.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.msgAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.msgAppender.layout.ConversionPattern=%m%n

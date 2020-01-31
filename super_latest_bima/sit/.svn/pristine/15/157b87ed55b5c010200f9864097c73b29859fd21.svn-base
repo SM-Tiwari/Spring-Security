@@ -1,0 +1,573 @@
+package id.gnvsolution.d3.api.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import id.gnvsolution.d3.api.dto.request.SmsCallHistoryStatusRequestDto;
+import id.gnvsolution.d3.api.dto.request.UsageHistoryRequestDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.security.securityutil.AuthConstants;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.UsageHistoryService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+
+@RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequestMapping("/api/v1/subscriber")
+public class UsageHistoryController extends BaseController{
+	
+	/**
+	 * Instance of Logger {@link Logger}
+	 */
+	public static final Logger LOGGER = LoggerFactory.getLogger(UsageHistoryController.class);
+	/**
+	 * Instance of {@link FattyMonsterService}
+	 */
+	@Autowired
+	private TokenExtractor tokenExtractor;
+	
+	@Autowired 
+	UsageHistoryService usageHistoryService;
+	
+	SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MMM-yy");
+
+	
+	
+	@RequestMapping(value = "/getCallHistory", method = RequestMethod.POST)
+	public Object  getCallHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+			
+		LOGGER.info("Inside UsageHistoryController in getCallHistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				
+				Calendar startDate = Calendar.getInstance();
+				startDate.add(Calendar.DATE, -7);
+				
+				String startDate1 = simpleDateFormat.format(startDate.getTime());
+				String endDate = simpleDateFormat.format(new Date());
+				usageHistoryRequestDto.setStartDate(startDate1);
+				usageHistoryRequestDto.setEndDate(endDate);	
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getCallHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in CallHistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in CallHistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in CallHistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+	
+	}
+	
+	@RequestMapping(value = "/dailycallhistory", method = RequestMethod.POST)
+	public Object getDailyCallHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+
+		LOGGER.info("Inside UsageHistoryController in dailycallhistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				//CallRecord callRecord = new CallRecord();			 
+				 Calendar startDate = Calendar.getInstance();
+					startDate.set(Calendar.HOUR, 0);
+					startDate.set(Calendar.MINUTE, 0);
+					startDate.set(Calendar.SECOND, 0);			
+					
+					
+					String startDate1 = simpleDateFormat.format(startDate.getTime());
+					String endDate = simpleDateFormat.format(new Date());
+					usageHistoryRequestDto.setStartDate(startDate1);
+					usageHistoryRequestDto.setEndDate(endDate);	
+					//callRecord = usageHistoryService.getCallHistory(usageHistoryRequestDto);
+				 
+				 //System.out.println("callRecord " + callRecord.getDuration());
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getCallHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in dailycallhistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in dailycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in dailycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+		
+	}
+
+	@RequestMapping(value = "/weeklycallhistory", method = RequestMethod.POST)
+	public Object getWeeklyCallHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+
+		LOGGER.info("Inside UsageHistoryController in weeklycallhistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				//CallRecord callRecord = new CallRecord();
+				 			 
+				    Calendar startDate = Calendar.getInstance();
+					startDate.add(Calendar.DATE, -7);
+					String startDate1 = simpleDateFormat.format(startDate.getTime());
+					String endDate = simpleDateFormat.format(new Date());
+					usageHistoryRequestDto.setStartDate(startDate1);
+					usageHistoryRequestDto.setEndDate(endDate);	
+					//callRecord = usageHistoryService.getCallHistory(usageHistoryRequestDto);
+				 
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getCallHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in weeklycallhistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in weeklycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in weeklycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+		
+
+		
+	}
+
+	@RequestMapping(value = "/monthlycallhistory", method = RequestMethod.POST)
+	public Object getMonthlyCallHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+
+		
+		LOGGER.info("Inside UsageHistoryController in monthlycallhistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				//CallRecord callRecord = new CallRecord();
+								 
+				    Calendar startDate = Calendar.getInstance();
+					startDate.add(Calendar.DATE, -30);	
+					String startDate1 = simpleDateFormat.format(startDate.getTime());
+					String endDate = simpleDateFormat.format(new Date());
+					usageHistoryRequestDto.setStartDate(startDate1);
+					usageHistoryRequestDto.setEndDate(endDate);	
+					//callRecord = usageHistoryService.getCallHistory(usageHistoryRequestDto);
+				 
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getCallHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in monthlycallhistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in monthlycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in monthlycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+		
+	}
+
+	@RequestMapping(value = "/yearlycallhistory", method = RequestMethod.POST)
+	public Object getYearlyCallHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+
+		LOGGER.info("Inside UsageHistoryController in yearlycallhistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				    //CallRecord callRecord = new CallRecord();
+							 
+				    Calendar startDate = Calendar.getInstance();
+					startDate.add(Calendar.YEAR, -1);
+					String startDate1 = simpleDateFormat.format(startDate.getTime());
+					String endDate = simpleDateFormat.format(new Date());
+					usageHistoryRequestDto.setStartDate(startDate1);
+					usageHistoryRequestDto.setEndDate(endDate);	
+					//callRecord = usageHistoryService.getCallHistory(usageHistoryRequestDto);
+				 
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getCallHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in yearlycallhistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in yearlycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in yearlycallhistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+		
+	}
+
+	
+	@RequestMapping(value = "/smshistory", method = RequestMethod.POST)
+	public Object getSmsHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken){
+	
+		LOGGER.info("Inside UsageHistoryController in weeklysmshistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+							 
+				Calendar startDate = Calendar.getInstance();
+				startDate.add(Calendar.DATE, -7);
+				
+				String startDate1 = simpleDateFormat.format(startDate.getTime());
+				String endDate = simpleDateFormat.format(new Date());
+				usageHistoryRequestDto.setStartDate(startDate1);
+				usageHistoryRequestDto.setEndDate(endDate);			 
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getSmsHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in weeklysmshistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in weeklysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in weeklysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+	}
+	
+	
+	@RequestMapping(value = "/dailysmshistory", method = RequestMethod.POST)
+	public Object getDailySmsHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken){
+
+		LOGGER.info("Inside UsageHistoryController in dailysmshistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				//SmsRecord smsRecord = new SmsRecord();
+				 
+				 
+				 Calendar startDate = Calendar.getInstance();
+					startDate.set(Calendar.HOUR, 0);
+					startDate.set(Calendar.MINUTE, 0);
+					startDate.set(Calendar.SECOND, 0);
+					String startDate1 = simpleDateFormat.format(startDate.getTime());
+					String endDate = simpleDateFormat.format(new Date());
+					usageHistoryRequestDto.setStartDate(startDate1);
+					usageHistoryRequestDto.setEndDate(endDate);	
+					//smsRecord = usageHistoryService.getSmsHistory(usageHistoryRequestDto);
+				 
+					//System.out.println("smsRecord " + smsRecord.getDirection());
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getSmsHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in dailysmshistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in dailysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in dailysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+		
+	}
+	
+	
+	
+	
+	@RequestMapping(value = "/weeklysmshistory", method = RequestMethod.POST)
+	public Object getWeeklySmsHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken){
+	
+		LOGGER.info("Inside UsageHistoryController in weeklysmshistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				//SmsRecord smsRecord = new SmsRecord();
+				 
+				 
+				Calendar startDate = Calendar.getInstance();
+				startDate.add(Calendar.DATE, -7);
+				String startDate1 = simpleDateFormat.format(startDate.getTime());
+				String endDate = simpleDateFormat.format(new Date());
+				usageHistoryRequestDto.setStartDate(startDate1);
+				usageHistoryRequestDto.setEndDate(endDate);	
+				//smsRecord = usageHistoryService.getSmsHistory(usageHistoryRequestDto);
+				 
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getSmsHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in weeklysmshistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in weeklysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in weeklysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+	}
+	
+	@RequestMapping(value = "/monthlysmshistory", method = RequestMethod.POST)
+	public Object getMonthlySmsHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken){
+	
+		LOGGER.info("Inside UsageHistoryController in monthlysmshistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				//SmsRecord smsRecord = new SmsRecord(); 
+				 
+				Calendar startDate = Calendar.getInstance();
+				startDate.add(Calendar.DATE, -30);
+				String startDate1 = simpleDateFormat.format(startDate.getTime());
+				String endDate = simpleDateFormat.format(new Date());
+				usageHistoryRequestDto.setStartDate(startDate1);
+				usageHistoryRequestDto.setEndDate(endDate);	
+				//smsRecord = usageHistoryService.getSmsHistory(usageHistoryRequestDto);
+				 
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getSmsHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in monthlysmshistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in monthlysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in monthlysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+		
+	}
+	
+	@RequestMapping(value = "/yearlysmshistory", method = RequestMethod.POST)
+	public Object getYearlySmsHistory(@RequestBody UsageHistoryRequestDto usageHistoryRequestDto,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken){
+	
+		LOGGER.info("Inside UsageHistoryController in yearlysmshistory method::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				//SmsRecord smsRecord = new SmsRecord(); 
+				 
+				Calendar startDate = Calendar.getInstance();
+				startDate.add(Calendar.YEAR, -1);
+				String startDate1 = simpleDateFormat.format(startDate.getTime());
+				String endDate = simpleDateFormat.format(new Date());
+				usageHistoryRequestDto.setStartDate(startDate1);
+				usageHistoryRequestDto.setEndDate(endDate);	
+				//smsRecord = usageHistoryService.getSmsHistory(usageHistoryRequestDto);
+				 
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.getSmsHistory(usageHistoryRequestDto), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in yearlysmshistory method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in yearlysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in yearlysmshistory method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+
+		
+	}
+	
+	@RequestMapping(value = "/updatehistorystatus", method = RequestMethod.POST)
+    public Object updateHistoryStatus(@RequestBody SmsCallHistoryStatusRequestDto smsCallHistoryStatusRequest, @RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside UsageHistoryController in updatehistorystatus method for update call status history::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) { 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.updateSmsCallHistoryStatus(smsCallHistoryStatusRequest), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in updateHistoryStatus method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in updateHistoryStatus method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in updateHistoryStatus method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	}
+	
+	@RequestMapping(value = "/gethistorystatus", method = RequestMethod.POST)
+    public Object getHistoryStatus(@RequestBody SmsCallHistoryStatusRequestDto smsCallHistoryStatusRequest, @RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.info("Inside UsageHistoryController in gethistorystatus method for call history password::::::::::::");
+		try {
+			authToken = tokenExtractor.extract(authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null ) {
+				 
+				return new ServiceResult(StatusCode.SUCCESS, usageHistoryService.checkSmsCallHistorycredential(smsCallHistoryStatusRequest), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside UsageHistoryController in getHistoryStatus method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside UsageHistoryController in getHistoryStatus method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside UsageHistoryController in getHistoryStatus method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	}
+	
+	
+	@RequestMapping(value = "/usagehistory/{usermsisdn}/{language}", method = RequestMethod.GET)
+	public ServiceResult  getUnsecuredUsageHistory(@PathVariable String usermsisdn, @PathVariable String language) {
+		//@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken
+		// List<Object>
+		// ModelAndView mav = new ModelAndView(USAGE_HISTORY);
+		String msisdn="";
+		try {
+			//authToken = tokenExtractor.extract(authToken);
+			//System.out.println("authToken _____________" + authToken);
+			//TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+
+			//if (tokenDetails != null) {
+				usermsisdn = usermsisdn.replace(AuthConstants.JWT_PREFIX, "");
+				byte[] decoded = Base64.getMimeDecoder().decode(usermsisdn);
+				String decodeString = new String(decoded);
+				msisdn= getJwtTokenUtil().getUsernameFromToken(decodeString);
+				System.out.println("final msisdn::"+msisdn);
+				msisdn = AppUtils.removeCountryCode(msisdn, AppDefaultValues.COUNTRY_CODE);
+				System.out.println("final msisdn after removing country code::"+ msisdn);
+
+				UsageHistoryRequestDto usageHistoryRequestDto = new UsageHistoryRequestDto();
+				Calendar startDate = Calendar.getInstance();
+				startDate.add(Calendar.DATE, -30);
+				String startDate1 = simpleDateFormat.format(startDate.getTime());
+				String endDate = simpleDateFormat.format(new Date());
+				usageHistoryRequestDto.setStartDate(startDate1);
+				usageHistoryRequestDto.setEndDate(endDate);
+				usageHistoryRequestDto.setMsisdn(msisdn);
+				usageHistoryRequestDto.setLanguage(language);
+
+				HashMap<String, Object> callHistory = usageHistoryService.getCallHistory(usageHistoryRequestDto);
+				HashMap<String, Object> smsHistory = usageHistoryService.getSmsHistory(usageHistoryRequestDto);
+
+				List<Object> result = new ArrayList<>();
+				result.add(callHistory);
+				result.add(smsHistory);
+				
+				return new ServiceResult(StatusCode.SUCCESS, result, "Success");
+			//} else {
+			// new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			//}
+				
+		} catch(Exception e) {
+			LOGGER.error("Inside UsageHistoryController :::::: " +e.getMessage());
+			return new ServiceResult(StatusCode.INTERNAL_SERVER_ERROR, "", "Internal server error");
+			}
+	}
+
+}

@@ -1,0 +1,176 @@
+package id.gnvsolution.d3.api.model;
+
+import java.sql.Timestamp;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+@Entity
+@Table(name = "RECOMMENDATION")
+public class Recommedation {
+	
+@Id
+@Column(name = "ID", nullable = true)
+ private String	id;
+ @Basic
+ @Column(name = "CAMPAIGN_ID", nullable = true)
+ private String	campaignIid;
+ @Basic
+ @Column(name = "CAMPAIGN_NAME_ID", nullable = true)
+ private String	campaignNameId;
+ @Basic
+ @Column(name = "CAMPAIGN_NAME_DESCRIPTION", nullable = true)
+ private String	campaignNameDescription;
+ @Basic
+ @Column(name = "STATUS", nullable = true)
+ private String	status;
+ @Basic
+ @Column(name = "TYPE", nullable = true)
+ private String	type;
+ @Basic
+ @Column(name = "CREATED_AT", nullable = false)
+ private Timestamp	created_at;
+ @Basic
+ @Column(name = "CAMPAIGN_NAME_ID_EN", nullable = true)
+ private String	campaignNameIdEn;
+ @Basic
+ @Column(name = "CAMPAIGN_NAME_DESCRIPTION_EN", nullable = true)
+ private String	campaignNameDescriptionEn;
+ @Basic
+ @Column(name = "CAMPAIGN_IMAGE_MAIN", nullable = true)
+ private String	campaignImageMain;
+ @Basic
+ @Column(name = "CAMPAIGN_IMAGE_SMS", nullable = true)
+ private String	campaignImageSms;
+ @Basic
+ @Column(name = "CAMPAIGN_IMAGE_VOICE", nullable = true)
+ private String	campaignImageVoice;
+ @Basic
+ @Column(name = "CAMPAIGN_IMAGE_DATA", nullable = true)
+ private String	campaignImageData;
+ @Basic
+ @Column(name = "IS_DELETE", nullable = false)
+ private int	isDelete;
+ @Basic
+ @Column(name = "UPDATED_AT", nullable = true)
+ private Timestamp	updatedAt;
+ @Basic
+ @Column(name = "CREATED_BY", nullable = true)
+ private String	createdBy;
+ @Basic
+ @Column(name = "UPDATED_BY", nullable = true)
+ private String	updatedBy;
+ 
+ 
+ 
+ 
+ 
+ public String getId() {
+	return id;
+}
+public void setId(String id) {
+	this.id = id;
+}
+public String getCampaignIid() {
+	return campaignIid;
+}
+
+public void setCampaignIid(String campaignIid) {
+	this.campaignIid = campaignIid;
+}
+public String getCampaignNameId() {
+	return campaignNameId;
+}
+public void setCampaignNameId(String campaignNameId) {
+	this.campaignNameId = campaignNameId;
+}
+public String getCampaignNameDescription() {
+	return campaignNameDescription;
+}
+public void setCampaignNameDescription(String campaignNameDescription) {
+	this.campaignNameDescription = campaignNameDescription;
+}
+public String getStatus() {
+	return status;
+}
+public void setStatus(String status) {
+	this.status = status;
+}
+public String getType() {
+	return type;
+}
+public void setType(String type) {
+	this.type = type;
+}
+public Timestamp getCreated_at() {
+	return created_at;
+}
+public void setCreated_at(Timestamp created_at) {
+	this.created_at = created_at;
+}
+public String getCampaignNameIdEn() {
+	return campaignNameIdEn;
+}
+public void setCampaignNameIdEn(String campaignNameIdEn) {
+	this.campaignNameIdEn = campaignNameIdEn;
+}
+public String getCampaignNameDescriptionEn() {
+	return campaignNameDescriptionEn;
+}
+public void setCampaignNameDescriptionEn(String campaignNameDescriptionEn) {
+	this.campaignNameDescriptionEn = campaignNameDescriptionEn;
+}
+public String getCampaignImageMain() {
+	return campaignImageMain;
+}
+public void setCampaignImageMain(String campaignImageMain) {
+	this.campaignImageMain = campaignImageMain;
+}
+public String getCampaignImageSms() {
+	return campaignImageSms;
+}
+public void setCampaignImageSms(String campaignImageSms) {
+	this.campaignImageSms = campaignImageSms;
+}
+public String getCampaignImageVoice() {
+	return campaignImageVoice;
+}
+public void setCampaignImageVoice(String campaignImageVoice) {
+	this.campaignImageVoice = campaignImageVoice;
+}
+public String getCampaignImageData() {
+	return campaignImageData;
+}
+public void setCampaignImageData(String campaignImageData) {
+	this.campaignImageData = campaignImageData;
+}
+public int getIsDelete() {
+	return isDelete;
+}
+public void setIsDelete(int isDelete) {
+	this.isDelete = isDelete;
+}
+public Timestamp getUpdatedAt() {
+	return updatedAt;
+}
+public void setUpdatedAt(Timestamp updatedAt) {
+	this.updatedAt = updatedAt;
+}
+public String getCreatedBy() {
+	return createdBy;
+}
+public void setCreatedBy(String createdBy) {
+	this.createdBy = createdBy;
+}
+public String getUpdatedBy() {
+	return updatedBy;
+}
+public void setUpdatedBy(String updatedBy) {
+	this.updatedBy = updatedBy;
+}
+
+
+}
+	

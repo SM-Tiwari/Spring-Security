@@ -1,0 +1,168 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.model.Campaign;
+import id.gnvsolution.d3.api.model.CampaignReward;
+import id.gnvsolution.d3.api.service.CLMService;
+import id.gnvsolution.d3.api.service.CampaignService;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.service.PromoService;
+import id.gnvsolution.d3.api.service.PurchasingService;
+import id.gnvsolution.d3.api.utils.ApiHelpers;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.utils.Languages;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.PromoServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ *         Apr 24, 2017 12:05:15 PM
+ */
+@Service
+@Transactional
+public class PromoServiceImpl extends BaseService implements PromoService {
+	
+	public static Logger logger = LoggerFactory.getLogger(PromoServiceImpl.class);
+
+    @Autowired
+    ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Autowired
+    private CLMService cLMService;
+
+    private CampaignService campaignService;
+    private PurchasingService purchasingService;
+    private ProductCacheService productCacheService;
+    private BaseDao<CampaignReward> campaignRewardDao;
+
+    @Autowired
+    public void initialization(CampaignService campaignService, PurchasingService purchasingService, ProductCacheService productCacheService) {
+    	logger.info("initialization method of PromoServiceImpl--------------");
+        this.campaignService = campaignService;
+        this.purchasingService = purchasingService;
+        this.productCacheService = productCacheService;
+        this.campaignRewardDao = new BaseDao<>(sessionFactoryDef, CampaignReward.class);
+    }
+
+    @Override
+    public Map<String, Object> getShakePromo(BaseRequestDto baseRequestDto, boolean isFull) {
+    	
+    	logger.info("#getShakePromo method of PromoServiceImpl--------------msisdn::"+baseRequestDto.getMsisdn());
+
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(baseRequestDto.getMsisdn(), baseRequestDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        List<Campaign> shakeList = campaignService.getCampaignShake(baseRequestDto.getMsisdn());
+        if (shakeList.size() > 0) {
+
+            // get available whitelist_clm
+            List<String> offerIdList = cLMService.getApiClmOfferIdList(moduleTransactionIDGenerator.generate(Module.CLM), baseRequestDto.getMsisdn());
+
+            Map<String, Object> promo = new HashMap<>();
+            for (Campaign campaign : shakeList) {
+                // validate target type
+				/*
+				 * if (campaign.getTargetType().equals(Constants.TARGET_TYPE_CMS_WHITELIST) ||
+				 * !campaignService.isMsisdnWhitelisted(campaign.getCampaignId(),
+				 * baseRequestDto.getMsisdn())) { continue; } else if
+				 * (campaign.getTargetType().equals(Constants.TARGET_TYPE_SPECIFIC_CALLPLAN) &&
+				 * !campaign.getCallplan().equals(baseRequestDto.getCallPlan())) { continue; }
+				 */
+
+                if (campaignService.isCampaignStillEligible(campaign.getCampaignId(), baseRequestDto.getMsisdn(), false)) {
+                    if (campaign.getClaimMethod() != null) {
+                        if (campaign.getClaimMethod().equals(Constants.CHARGING_API_CLM) && offerIdList.contains(campaign.getCampaignId())) {
+                            promo.put("product", productCacheService.fromCampaign(campaign, baseRequestDto.getLanguage(), campaign.getCampaignId(), isFull));
+                            break;
+                        } else if (!campaign.getClaimMethod().equals(Constants.CHARGING_API_CLM)) {
+                            promo.put("product", productCacheService.fromCampaign(campaign, baseRequestDto.getLanguage(), null, isFull));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (promo.get("product") == null) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, baseRequestDto.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_NOT_AVAILABLE : Languages.EN.PROMO_REDEEM_NOT_AVAILABLE)).all().build();
+            } else {
+                promo.put("status", true);
+            }
+
+            return promo;
+        }
+
+        return JSONResultFilter.filter(new ErrorMessageDto(false, baseRequestDto.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.PROMO_REDEEM_NOT_AVAILABLE : Languages.EN.PROMO_REDEEM_NOT_AVAILABLE)).all().build();
+    }
+
+    @Override
+    public Map<String, Object> redeemPromo(PurchaseRequestDto purchaseRequestDto) {
+    	
+    	logger.info("#redeemPromo method of PromoServiceImpl--------------msisdn::"+purchaseRequestDto.getMsisdn());
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(purchaseRequestDto.getMsisdn(), purchaseRequestDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+        if (campaignService.isCampaignStillEligible(purchaseRequestDto.getProductId(), purchaseRequestDto.getMsisdn(), true)) {
+            return purchasingService.redeemCampaign(purchaseRequestDto);
+        } else {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, purchaseRequestDto.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)).all().build();
+        }
+
+    }
+
+    @Override
+    public Map<String, Object> cancelShakePromo(PurchaseRequestDto purchaseRequestDto) {
+    	logger.info("#cancelShakePromo method of PromoServiceImpl--------------msisdn::"+purchaseRequestDto.getMsisdn());
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(purchaseRequestDto.getMsisdn(), purchaseRequestDto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+        if (campaignService.isCampaignStillEligible(purchaseRequestDto.getProductId(), purchaseRequestDto.getMsisdn(), false)) {
+            CampaignReward campaignReward = campaignService.getCampaignReward(purchaseRequestDto.getProductId(), purchaseRequestDto.getMsisdn(), (short) 9);
+            if (campaignReward == null) {
+                campaignReward = new CampaignReward();
+                campaignReward.setCampaignId(new Campaign(purchaseRequestDto.getProductId()));
+                campaignReward.setMsisdn(purchaseRequestDto.getMsisdn());
+                campaignReward.setImei(purchaseRequestDto.getImei());
+                campaignReward.setInstallDate(new Date());
+                campaignReward.setClaimStatus((short) 9);
+                logger.info("#cancelShakePromo method of PromoServiceImpl--------------save campaignReward" );
+                campaignRewardDao.save(campaignReward);
+
+                return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+            } else {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, purchaseRequestDto.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)).all().build();
+            }
+        } else {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, purchaseRequestDto.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.COMMON_INVALID_REQUEST : Languages.EN.COMMON_INVALID_REQUEST)).all().build();
+        }
+    }
+}

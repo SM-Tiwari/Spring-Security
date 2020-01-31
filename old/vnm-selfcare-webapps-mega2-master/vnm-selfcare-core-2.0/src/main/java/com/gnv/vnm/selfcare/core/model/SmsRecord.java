@@ -1,0 +1,167 @@
+/**
+ * SmsHistory.java
+ */
+package com.gnv.vnm.selfcare.core.model;
+
+import java.io.Serializable;
+import java.util.Comparator;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gnv.vnm.selfcare.core.enums.CallDirection;
+
+/**
+ * @author nandipinto
+ *
+ */
+public class SmsRecord implements Serializable {
+
+	private static final long serialVersionUID = 3330049368301308333L;
+	
+	@JsonIgnore
+	private Date timeStamp;
+	private String timeStampAsString;
+	private CallDirection direction;
+	private String destinationNumber;
+	
+	public SmsRecord(){ }
+	
+	public SmsRecord(Date timeStamp, CallDirection direction, String destinationNumber) {
+		this.timeStamp = timeStamp;
+		this.direction = direction;
+		this.destinationNumber = destinationNumber;
+	}
+
+	/**
+	 * @return the timeStamp
+	 */
+	public Date getTimeStamp() {
+		return timeStamp;
+	}
+
+	/**
+	 * @param timeStamp the timeStamp to set
+	 */
+	public void setTimeStamp(Date timeStamp) {
+		this.timeStamp = timeStamp;
+	}
+
+	/**
+	 * @return the timeStampAsString
+	 */
+	public String getTimeStampAsString() {
+		return timeStampAsString;
+	}
+
+	/**
+	 * @param timeStampAsString the timeStampAsString to set
+	 */
+	public void setTimeStampAsString(String timeStampAsString) {
+		this.timeStampAsString = timeStampAsString;
+	}
+
+	/**
+	 * @return the direction
+	 */
+	public CallDirection getDirection() {
+		return direction;
+	}
+
+	/**
+	 * @param direction the direction to set
+	 */
+	public void setDirection(CallDirection direction) {
+		this.direction = direction;
+	}
+
+	/**
+	 * @return the destinationNumber
+	 */
+	public String getDestinationNumber() {
+		return destinationNumber;
+	}
+
+	/**
+	 * @param destinationNumber the destinationNumber to set
+	 */
+	public void setDestinationNumber(String destinationNumber) {
+		this.destinationNumber = destinationNumber;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((destinationNumber == null) ? 0 : destinationNumber.hashCode());
+		result = prime * result + ((direction == null) ? 0 : direction.hashCode());
+		result = prime * result + ((timeStamp == null) ? 0 : timeStamp.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SmsRecord other = (SmsRecord) obj;
+		if (destinationNumber == null) {
+			if (other.destinationNumber != null)
+				return false;
+		} else if (!destinationNumber.equals(other.destinationNumber))
+			return false;
+		if (direction != other.direction)
+			return false;
+		if (timeStamp == null) {
+			if (other.timeStamp != null)
+				return false;
+		} else if (!timeStamp.equals(other.timeStamp))
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("SmsHistory [timeStamp=");
+		builder.append(timeStamp);
+		builder.append(", timeStampAsString=");
+		builder.append(timeStampAsString);
+		builder.append(", direction=");
+		builder.append(direction);
+		builder.append(", destinationNumber=");
+		builder.append(destinationNumber);
+		builder.append("]");
+		return builder.toString();
+	}
+	
+	
+	public static class SmsRecordTimeDescComparator implements Comparator<SmsRecord>{
+
+		@Override
+		public int compare(SmsRecord o1, SmsRecord o2) {
+			return o2.timeStamp.after(o1.timeStamp) ? 1 : -1;
+		}
+	}
+
+	public static class SmsRecordTimeAscComparator implements Comparator<SmsRecord>{
+
+		@Override
+		public int compare(SmsRecord o1, SmsRecord o2) {
+			return o1.timeStamp.after(o2.timeStamp) ? 1 : -1;
+		}
+	}
+
+	
+}

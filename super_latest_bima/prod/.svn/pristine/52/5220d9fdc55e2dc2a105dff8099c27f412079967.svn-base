@@ -1,0 +1,39 @@
+package id.gnvsolution.d3.api.dto.request;
+
+import java.util.HashMap;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.WishlistDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Feb 12, 2018 5:37:41 PM
+ *
+ */
+public class WishlistDto extends BaseRequestDto {
+
+    private String productId;
+    private String mssidn;
+
+    public WishlistDto() {
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getMssidn() {
+        return mssidn;
+    }
+
+    public void setMssidn(String mssidn) {
+        this.mssidn = mssidn;
+    }
+    
+    
+}

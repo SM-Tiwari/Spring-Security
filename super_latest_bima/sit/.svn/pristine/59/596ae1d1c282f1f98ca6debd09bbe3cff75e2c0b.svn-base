@@ -1,0 +1,27 @@
+package id.gnvsolution.d3.api.utils;
+
+/**
+ * Created by Arie
+ * on 01/05/2017.
+ */
+public class SQLParserException extends RuntimeException {
+    public SQLParserException() {
+        super();
+    }
+
+    public SQLParserException(String message) {
+        super(message);
+    }
+
+    public SQLParserException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public SQLParserException(Throwable cause) {
+        super(cause);
+    }
+
+    protected SQLParserException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}

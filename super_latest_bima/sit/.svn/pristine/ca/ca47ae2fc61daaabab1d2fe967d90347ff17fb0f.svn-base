@@ -1,0 +1,45 @@
+package id.gnvsolution.d3.api.component.logger;
+
+import java.io.StringWriter;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.component.logger.TibcoRequestLogger 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jun 6, 2017 8:05:42 PM
+ *
+ */
+@Component
+public class TibcoRequestLogger {
+
+    /**
+     * 
+     */
+    public static final Logger LOGGER = LoggerFactory.getLogger(TibcoRequestLogger.class);
+    
+    @Async
+    public void logging(Object o) {
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(o.getClass());
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            
+            JAXBElement rootElement = new JAXBElement(new QName(o.getClass().getSimpleName()), o.getClass(), o);
+            StringWriter sw = new StringWriter();
+            jaxbMarshaller.marshal(rootElement, sw);
+            LOGGER.info(sw.toString());
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+    }
+}

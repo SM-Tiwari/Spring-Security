@@ -1,0 +1,91 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+@Entity
+@Table(name = "SMS_CALL_HISTORY_STATUS")
+@SequenceGenerator(name = "sms_call_history_status_seq", sequenceName = "sms_call_history_status_seq", allocationSize = 1)
+public class SmsCallHistoryStatus implements Serializable {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sms_call_history_status_seq")
+	@Column(name = "ID")
+	private Long id;
+	
+	@Column(name = "MSISDN", length = 15, nullable = false)
+	private String msisdn;
+	
+	@Column(name = "STATUS", length = 20)
+	private String status;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATE_TIMESTAMP")
+	private Date createTimestamp = new Date();
+	
+	@Column(name = "CREATED_BY")
+	private String createdBy = "system";
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "LAST_MODIFIED_TIMESTAMP")
+	protected Date lastModifiedTime = new Date();
+	
+	@Column(name = "LAST_MODIFIED_BY")
+	protected String lastModifiedBy = "system";
+	
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getMsisdn() {
+		return msisdn;
+	}
+	public void setMsisdn(String msisdn) {
+		this.msisdn = msisdn;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public Date getCreateTimestamp() {
+		return createTimestamp;
+	}
+	public void setCreateTimestamp(Date createTimestamp) {
+		this.createTimestamp = createTimestamp;
+	}
+	public String getCreatedBy() {
+		return createdBy;
+	}
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+	public Date getLastModifiedTime() {
+		return lastModifiedTime;
+	}
+	public void setLastModifiedTime(Date lastModifiedTime) {
+		this.lastModifiedTime = lastModifiedTime;
+	}
+	public String getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+	public void setLastModifiedBy(String lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+	
+	
+
+}

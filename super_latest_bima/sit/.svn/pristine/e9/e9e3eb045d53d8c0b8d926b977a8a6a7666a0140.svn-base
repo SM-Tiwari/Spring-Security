@@ -1,0 +1,10 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+import id.gnvsolution.d3.api.dto.request.UtmCounterRequestDto;
+import id.gnvsolution.d3.api.model.UtmCounter;
+
+public interface CounterService {
+    void save(UtmCounterRequestDto dto);
+}

@@ -1,0 +1,115 @@
+package id.gnvsolution.d3.api.model.helper;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+public class HybridInvoice {
+
+    private String invoiceId;
+    private String invoiceDate;
+    private String invoiceStatus;
+    private String amountPaid;
+    private String outstandingAmount;
+    private String currentDue;
+    private String PreviousDue;
+    private List<Usage> usageList;
+
+    public String getInvoiceId() {
+        return invoiceId;
+    }
+
+    public void setInvoiceId(String invoiceId) {
+        this.invoiceId = invoiceId;
+    }
+
+    public String getInvoiceDate() {
+        return invoiceDate;
+    }
+
+    public void setInvoiceDate(String invoiceDate) {
+        this.invoiceDate = invoiceDate.substring(3, invoiceDate.length()).replace("-", " ");
+    }
+
+    public String getInvoiceStatus() {
+        return invoiceStatus;
+    }
+
+    public void setInvoiceStatus(String invoiceStatus) {
+        this.invoiceStatus = invoiceStatus;
+    }
+
+    public String getAmountPaid() {
+        return amountPaid;
+    }
+
+    public void setAmountPaid(String amountPaid) {
+        this.amountPaid = amountPaid;
+    }
+
+    public String getOutstandingAmount() {
+        return outstandingAmount;
+    }
+
+    public void setOutstandingAmount(String outstandingAmount) {
+        this.outstandingAmount = outstandingAmount;
+    }
+
+    public String getCurrentDue() {
+        return currentDue;
+    }
+
+    public void setCurrentDue(String currentDue) {
+        this.currentDue = currentDue;
+    }
+
+    public String getPreviousDue() {
+        return PreviousDue;
+    }
+
+    public void setPreviousDue(String previousDue) {
+        PreviousDue = previousDue;
+    }
+
+    public List<Usage> getUsageList() {
+        return usageList;
+    }
+
+    public void setUsageList(List<Usage> usageList) {
+        this.usageList = usageList;
+    }
+
+    public static class Usage {
+        private String date;
+        private String amount;
+        private String type;
+
+        private SimpleDateFormat dateFormatSource = new SimpleDateFormat("dd-MMM-yyyy");
+        private SimpleDateFormat dateFormatDestination = new SimpleDateFormat("dd/MM/yyyy");
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) throws ParseException {
+            this.date = dateFormatDestination.format(dateFormatSource.parse(date));
+        }
+
+        public String getAmount() {
+            return amount;
+        }
+
+        public void setAmount(String amount) {
+            this.amount = amount;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+    }
+
+}

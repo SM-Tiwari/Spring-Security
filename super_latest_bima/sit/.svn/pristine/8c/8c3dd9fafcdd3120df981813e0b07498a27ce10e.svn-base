@@ -1,0 +1,18 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by asw on 16-07-2018.
+ */
+public class ProfilePictureRequestDto  extends BaseRequestDto{
+
+    private String photo;
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+    
+}

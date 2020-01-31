@@ -1,0 +1,103 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.Secretkey;
+import id.gnvsolution.d3.api.model.Subscriber;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.SecretKeyServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 6, 2017 9:45:03 PM
+ *
+ */
+@Service
+public abstract class BaseService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(BaseService.class);
+    
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+  
+    
+    /**
+     * validate msisdn using secretkey table
+     * @param msisdn
+     * @param secretKey
+     * @return 
+     */
+    public boolean isMsisdnValid(String msisdn, String secretKey) {
+        if (secretKey == null) {
+            return false;
+        } 
+        
+        BaseDao<Secretkey> secretkeyDao = new BaseDao(sessionFactoryDef, Secretkey.class);
+        List<Secretkey> secretkeys = secretkeyDao.find("msisdn = :msisdn AND secretkey like :secretkey", new HashMap<String, Object>() {
+            {
+                put("msisdn", msisdn);
+                put("secretkey", secretKey.substring(0, 24)+"%");
+            }
+        });
+        LOGGER.info("isMsisdnValid() method, Return true if msisdn is valid otherwise false---------msisdn is:::", msisdn);
+        return !secretkeys.isEmpty();
+    }
+
+    public boolean isMsisdnSubscriberTypeValid(String msisdn, String secretKey, String subscriberType) {
+        if (isMsisdnValid(msisdn, secretKey)) {
+            BaseDao<Subscriber> subscriberBaseDao = new BaseDao<>(sessionFactoryDef, Subscriber.class);
+            List<Subscriber> subscriberList = subscriberBaseDao.find("subscriberMsisdn = :msisdn AND subscriberType = :subscriberType", new HashMap<String, Object>() {
+                {
+                    put("msisdn", msisdn);
+                    put("subscriberType", subscriberType);
+                }
+            });
+            LOGGER.info("isMsisdnSubscriberTypeValid() method, Return true if msisdn subscriber is valid otherwise false---------msisdn is:::", msisdn);
+            return !subscriberList.isEmpty();
+        } else {
+            return false;
+        }
+    }
+    
+    private boolean isDecryptValid(String msisdn, String token) {
+        try {
+            
+            if(!token.contains("=")) {
+                return true;
+            }
+            
+            Key aesKey = new SecretKeySpec(Constants.AES_PARAM.getBytes(), "AES");
+            
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+            byte[] decordedValue = Base64.getDecoder().decode(token);
+            byte[] decValue = cipher.doFinal(decordedValue);
+            String decryptedValue = new String(decValue);
+            LOGGER.info("isDecryptValid() method, Return true if msisdn decrypted value is valid otherwise false---------msisdn is:::", msisdn);
+            return msisdn.equals(decryptedValue);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage()+" - "+msisdn);
+        }
+        return false;
+    }
+    
+    
+}

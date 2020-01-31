@@ -1,0 +1,19 @@
+package id.gnvsolution.d3.api.model;
+
+import id.gnvsolution.d3.api.helper.enums.TransactionStatus;
+
+public class PaymentHistoryStatusModel {
+	
+	private TransactionStatus status;
+
+	public TransactionStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(TransactionStatus status) {
+		this.status = status;
+	}
+
+	
+	
+}

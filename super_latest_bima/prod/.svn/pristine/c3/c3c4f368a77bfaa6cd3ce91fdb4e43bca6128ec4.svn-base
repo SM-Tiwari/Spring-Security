@@ -1,0 +1,177 @@
+package id.gnvsolution.d3.api.component.social;
+
+import id.gnvsolution.d3.api.Constants;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.social.InvalidAuthorizationException;
+import org.springframework.social.connect.Connection;
+import org.springframework.social.google.api.Google;
+import org.springframework.social.google.api.plus.Person;
+import org.springframework.social.google.connect.GoogleConnectionFactory;
+import org.springframework.social.oauth2.AccessGrant;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+
+import com.fasterxml.jackson.core.JsonFactory;
+
+/**
+ * Created by aswzen on 10/8/2018.
+ */
+@Component
+@Transactional
+public class GoogleComponent {
+
+    private final Logger logger = LoggerFactory.getLogger("social");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private Long ms;
+
+    public Google generateGoogleInterface(String accessToken) {
+        ms = System.currentTimeMillis();
+        GoogleConnectionFactory googleConnectionFactory = new GoogleConnectionFactory(Constants.GOOGLE_API_KEY, Constants.GOOGLE_API_SECRET);
+        googleConnectionFactory.setScope("https://www.googleapis.com/auth/plus.login");
+        
+        String authCode = accessToken;
+        String redirectUri = "";
+        MultiValueMap<String, String> additionalParam = null;
+        
+        AccessGrant ag = googleConnectionFactory.getOAuthOperations().exchangeForAccess(authCode, redirectUri, additionalParam);
+
+        Connection<Google> connection = googleConnectionFactory.createConnection(ag);
+        return connection.getApi();
+    }
+
+    public Map loadUserDetails(String token) {
+        Map<String, Object> data = new HashMap();
+        data.put("status", false);
+        data.put("id", "");
+        data.put("name", "");
+
+        String error = "-";
+        String ep = "https://www.googleapis.com/";
+        try {
+            Google googleApi = generateGoogleInterface(token);
+            
+            Person p = googleApi.plusOperations().getGoogleProfile();
+
+            data.put("status", true);
+            data.put("id", p.getId());
+            data.put("name", p.getDisplayName());
+
+        } catch (HttpClientErrorException e) {
+        	e.printStackTrace();
+            error = "Fetching google data HttpClientErrorException: " + e.getMessage();
+        } catch (InvalidAuthorizationException e) {
+        	e.printStackTrace();
+        	e.printStackTrace();
+            error = "Fetching google data InvalidAuthorizationException: " + e.getMessage();
+        } catch (Exception e) {
+        	e.printStackTrace();
+            error = "Fetching google data Exception: " + e.getMessage();
+        } finally {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("\r\n========== START =============== \r\n");
+            sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+            sb.append("Destination\t:\t").append("Google+ API").append("\r\n");
+            sb.append("Base\t\t:\t").append(ep).append("\r\n");
+            sb.append("Token\t\t:\t").append(token).append("\r\n");
+            sb.append("Fields\t\t:\t").append("{id,name,link}").append("\r\n");
+            sb.append("Error\t\t:\t").append(error).append("\r\n");
+            sb.append("Time\t\t:\t").append(System.currentTimeMillis() - ms).append("ms \r\n");
+            sb.append("==========  END  =============== \r\n");
+            System.out.println("google +++++++++++"+sb.toString());
+            logger.debug(sb.toString());
+        }
+        
+        return data;
+    }
+    
+   /* public void googleAuth()
+    {
+    	private static final HttpTransport transport = new NetHttpTransport();
+      final JsonFactory jsonFactory = new JacksonFactory();
+    	GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+    		    // Specify the CLIENT_ID of the app that accesses the backend:
+    		    .setAudience(Collections.singletonList(CLIENT_ID))
+    		    // Or, if multiple clients access the backend:
+    		    //.setAudience(Arrays.asList(CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3))
+    		    .build();
+
+    		// (Receive idTokenString by HTTPS POST)
+
+    		GoogleIdToken idToken = verifier.verify(idTokenString);
+    		if (idToken != null) {
+    		  Payload payload = idToken.getPayload();
+
+    		  // Print user identifier
+    		  String userId = payload.getSubject();
+    		  System.out.println("User ID: " + userId);
+
+    		  // Get profile information from payload
+    		  String email = payload.getEmail();
+    		  boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
+    		  String name = (String) payload.get("name");
+    		  String pictureUrl = (String) payload.get("picture");
+    		  String locale = (String) payload.get("locale");
+    		  String familyName = (String) payload.get("family_name");
+    		  String givenName = (String) payload.get("given_name");
+
+    		  // Use or store profile information
+    		  // ...
+
+    		} else {
+    		  System.out.println("Invalid ID token.");
+    		}
+    }*/
+    
+   /* private static void parseGoogleAccountFromIdToken(String clientId, String idTokenString) {
+    	Preconditions.notEmptyString(clientId, "OAuth client ID should be provided.");
+    	Preconditions.notEmptyString(idTokenString, "IdToken should be provided.");
+    	
+    	 final NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
+    	    final JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    	    GoogleIdTokenVerifier verifier =
+    	            new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+    	                    .setAudience(Collections.singletonList(oauthClientId))
+    	                    .build();
+
+    	GoogleIdTokenVerifier oldVerifier = new GoogleIdTokenVerifier.Builder(getDefaultHttpTransport(), getDefaultJsonFactory())
+    			.setAudience(Collections.singletonList(clientId))
+    			// For Android Play Services older than 8.3 and web client
+    			.setIssuer("accounts.google.com")
+    			.build();
+
+    	GoogleIdTokenVerifier newVerifier = new GoogleIdTokenVerifier.Builder(getDefaultHttpTransport(), getDefaultJsonFactory())
+    			.setAudience(Collections.singletonList(clientId))
+    			// For Android Play Services newer than 8.3
+    			.setIssuer("https://accounts.google.com")
+    			.build();
+
+    	GoogleIdToken idToken;
+    	try {
+    		idToken = oldVerifier.verify(idTokenString);
+    		if (idToken == null) {
+    			idToken = newVerifier.verify(idTokenString);
+    		}
+    	} catch (Exception e) {
+    		LOGGER.error(e.getMessage(), e);
+    		return null;
+    	}
+    	if (idToken == null) {
+    		LOGGER.warn(String.format("Invalid or expired Google ID token: %s", idTokenString));
+    		return null;
+    	}
+
+    	Payload payload = idToken.getPayload();
+    	for (Entry<String, Object> entry : payload.entrySet()) {
+    		LOGGER.trace(String.format("%s=%s", entry.getKey(), entry.getValue()));
+    	}
+
+    	return idTokenPayloadToGoogleAccount(payload);
+    }*/
+}

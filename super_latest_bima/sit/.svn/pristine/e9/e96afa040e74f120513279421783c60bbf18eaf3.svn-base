@@ -1,0 +1,120 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.Date;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.model.DwhStatsSubDetailDevice 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 21, 2017 7:44:22 PM
+ *
+ */
+@Entity
+@Table(name = "DWH_STATS_SUB_DETAIL_DEVICE")
+public class DwhStatsSubDetailDevice implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Id
+    @Basic(optional = false)
+    @Column(name = "ID")
+    @SequenceGenerator(name = "SEQ_DWH_STATS", sequenceName = "SEQ_DWH_STATS", allocationSize = 1)
+    @GeneratedValue(generator = "SEQ_DWH_STATS", strategy = GenerationType.SEQUENCE)
+    private BigInteger id;
+    @Column(name = "DATETIME")
+    @Temporal(TemporalType.DATE)
+    private Date datetime;
+    @Column(name = "TYPE")
+    private String type;
+    @Column(name = "TOTAL_UNIQUE")
+    private int totalUnique;
+    @Column(name = "ANDROIDV2_UNIQUE")
+    private int androidv2Unique = 0;
+    @Column(name = "IPHONEV2_UNIQUE")
+    private int iphonev2Unique = 0;
+
+    public DwhStatsSubDetailDevice() {
+    }
+
+    public DwhStatsSubDetailDevice(BigInteger id) {
+        this.id = id;
+    }
+
+    public BigInteger getId() {
+        return id;
+    }
+
+    public void setId(BigInteger id) {
+        this.id = id;
+    }
+
+    public Date getDatetime() {
+        return datetime;
+    }
+
+    public void setDatetime(Date datetime) {
+        this.datetime = datetime;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public int getTotalUnique() {
+        return totalUnique;
+    }
+
+    public void setTotalUnique(int totalUnique) {
+        this.totalUnique = totalUnique;
+    }
+
+    public int getAndroidv2Unique() {
+        return androidv2Unique;
+    }
+
+    public void setAndroidv2Unique(int androidv2Unique) {
+        this.androidv2Unique = androidv2Unique;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof DwhStatsSubDetailDevice)) {
+            return false;
+        }
+        DwhStatsSubDetailDevice other = (DwhStatsSubDetailDevice) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.DwhStatsSubDetailDevice[ id=" + id + " ]";
+    }
+
+    public int getIphonev2Unique() {
+        return iphonev2Unique;
+    }
+
+    public void setIphonev2Unique(int iphonev2Unique) {
+        this.iphonev2Unique = iphonev2Unique;
+    }
+}

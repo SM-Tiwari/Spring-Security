@@ -1,0 +1,162 @@
+package id.gnvsolution.d3.api.controller.inbound;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.model.TrxTibcoResponse;
+import id.gnvsolution.d3.api.model.Inbound.TibcoODPUpdateTransaction;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.ProductService;
+import id.gnvsolution.d3.api.service.SubscriberService;
+import id.gnvsolution.d3.api.service.TrxTibcoResponseService;
+import id.gnvsolution.d3.api.utils.XmlHelper;
+import springfox.documentation.annotations.ApiIgnore;
+
+@ApiIgnore
+@RestController
+@RequestMapping("/api/v1/inbound/tibco/purchase-product-data-response")
+public class TibcoProductDataResponse {
+
+    private final org.slf4j.Logger LOGGER = LoggerFactory.getLogger("proxy");
+    private InAppNotificationService inAppNotificationService;
+    private SubscriberService subscriberService;
+    private ProductService productService;
+    
+    @Autowired
+    private TrxTibcoResponseService service;
+    
+    @Autowired
+    private NotificationMasterService notificationMasterService;
+
+    @Autowired
+    public TibcoProductDataResponse(InAppNotificationService inAppNotificationService, 
+                                    SubscriberService subscriberService, 
+                                    ProductService productService) {
+        this.inAppNotificationService = inAppNotificationService;
+        this.subscriberService = subscriberService;
+        this.productService = productService;
+    }
+    
+    @RequestMapping(method = RequestMethod.POST)
+    public void getResponse(HttpServletRequest request) {
+        
+        Enumeration headerNames = request.getHeaderNames();
+        HashMap<String, String> mapHeaderInfo = new HashMap<>();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = request.getHeader(key);
+            if (!key.equalsIgnoreCase("host")) 
+                mapHeaderInfo.put(key, value);
+        }
+        
+        TibcoODPUpdateTransaction response = null;
+        
+        try {
+            TrxTibcoResponse trxTibcoResponse = new TrxTibcoResponse();
+            
+            // parse to object
+            response = (TibcoODPUpdateTransaction) XmlHelper.unMarshal(request.getInputStream(), TibcoODPUpdateTransaction.class);
+            String responseFromTibco = StringUtils.arrayToCommaDelimitedString(new Object[]{response.getUpdateTransaction().getTransactionId(),
+                    response.getUpdateTransaction().getResponseCode(), response.getUpdateTransaction().getResponseDescription(),
+                    response.getUpdateTransaction().getMsisdn(), response.getUpdateTransaction().getPackageId(),
+                    response.getUpdateTransaction().getExpiryDate()});
+
+            String serviceType = response.getUpdateTransaction().getTransactionId();
+            serviceType = serviceType.substring(1, 5);
+
+            // check failed or not
+            Product product = productService.getTrxSubscriberPurchase(response.getUpdateTransaction().getTransactionId());
+            if (product != null) {
+                Subscriber subscriber = subscriberService.get(response.getUpdateTransaction().getMsisdn());
+                
+                trxTibcoResponse.setMsisdn(response.getUpdateTransaction().getMsisdn());
+                trxTibcoResponse.setProductId(product.getProductId());
+                trxTibcoResponse.setProductName(product.getProductNameId());
+                trxTibcoResponse.setTrxId(response.getUpdateTransaction().getTransactionId());
+                trxTibcoResponse.setTrxResponseCode(response.getUpdateTransaction().getResponseCode());
+                trxTibcoResponse.setTrxResponseDesc(response.getUpdateTransaction().getResponseDescription());
+                service.save(trxTibcoResponse);
+                
+                String messageText = null;
+                if (!response.getUpdateTransaction().getResponseCode().equals(Constants.TIBCO_RESPONSE_CODE_SUCCESS)) {
+                    if(serviceType.equals(Module.UNSUBSCRIBE.getCode())){
+                        messageText = notificationMasterService.getMessageText(14, subscriber.getSubscriberLangCode());
+                    } else {
+                        // save failure purchase notification
+                        messageText = notificationMasterService.getMessageText(4, subscriber.getSubscriberLangCode());
+                    }
+                    
+                		if (Constants.LANG_EN.equals(subscriber.getSubscriberLangCode()))
+                			messageText = messageText.replace("{getProductName}", product.getProductNameEn());
+                		else
+                			messageText = messageText.replace("{getProductName}", product.getProductNameId());
+                		
+                		inAppNotificationService.saveToInAppNotifications(subscriber.getSubscriberMsisdn(), null, null, null, "-", messageText, "", "", "");
+                    
+                } else {
+                    
+                    if(serviceType.equals(Module.UNSUBSCRIBE.getCode())){
+                        messageText = notificationMasterService.getMessageText(13, subscriber.getSubscriberLangCode());
+                    } else {
+                        // save success purchase notification
+                        messageText = notificationMasterService.getMessageText(3, subscriber.getSubscriberLangCode());
+                    }
+                    
+            		if (Constants.LANG_EN.equals(subscriber.getSubscriberLangCode()))
+            			messageText = messageText.replace("{getProductName}", product.getProductNameEn());
+            		else
+            			messageText = messageText.replace("{getProductName}", product.getProductNameId());
+            		
+            		inAppNotificationService.saveToInAppNotifications(subscriber.getSubscriberMsisdn(), null, null, null, "-", messageText, "", "", "");
+                }
+            } else {
+                // ini masuk campaign 
+                trxTibcoResponse.setMsisdn(response.getUpdateTransaction().getMsisdn());
+                trxTibcoResponse.setTrxId(response.getUpdateTransaction().getTransactionId());
+                trxTibcoResponse.setTrxResponseCode(response.getUpdateTransaction().getResponseCode());
+                trxTibcoResponse.setTrxResponseDesc(response.getUpdateTransaction().getResponseDescription());
+                service.save(trxTibcoResponse);
+            }
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("\r\n========== START =============== \r\n"); 
+            sb.append("Timestamp\t:\t").append(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())).append("\r\n");
+            sb.append("Accessing\t:\t").append("/api/v1/inbound/tibco/purchase-product-data-response").append("\r\n");
+            sb.append("Headers\t\t:\t").append(mapHeaderInfo.toString()).append("\r\n");
+            sb.append("Response \t:\t").append(responseFromTibco).append("\r\n");
+            sb.append("==========  END  =============== \r\n"); 
+            
+            LOGGER.info(sb.toString());
+            
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("\r\n========== START =============== \r\n"); 
+            sb.append("URL \t\t:\t").append("/api/v1/inbound/tibco/purchase-product-data-response").append("\r\n");
+            sb.append("BODY \t\t:\t").append(response).append("\r\n");
+            sb.append("HEADERS \t:\t").append(mapHeaderInfo).append("\r\n");
+            sb.append("ERROR \t\t:\t").append(e.getCause()).append("\r\n");
+            for (StackTraceElement elem : e.getStackTrace()) {
+                sb.append("ERROR \t\t:\t\t").append(elem.toString()).append("\r\n");        
+            }
+            sb.append("==========  END  =============== \r\n"); 
+            LOGGER.info(sb.toString());
+        }
+    }
+
+}

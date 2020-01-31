@@ -1,0 +1,52 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by rips on 4/8/17.
+ */
+public class ReloadRequestDto extends BaseRequestDto {
+
+    private String voucherNumber;
+    private String loginmsisdn;
+    private String status;
+    private String statuscode;
+    public ReloadRequestDto(){}
+
+    public ReloadRequestDto(String scratchCardCode, String secretKey, String language) {
+        this.setVoucherNumber(scratchCardCode);
+        this.setSecretKey(secretKey);
+        this.setLanguage(language);
+    }
+
+    public String getLoginmsisdn() {
+		return loginmsisdn;
+	}
+
+	public void setLoginmsisdn(String loginmsisdn) {
+		this.loginmsisdn = loginmsisdn;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getStatuscode() {
+		return statuscode;
+	}
+
+	public void setStatuscode(String statuscode) {
+		this.statuscode = statuscode;
+	}
+
+	public String getVoucherNumber() {
+        return voucherNumber;
+    }
+
+    public void setVoucherNumber(String scratchCardCode) {
+        this.voucherNumber = scratchCardCode;
+    }
+
+}

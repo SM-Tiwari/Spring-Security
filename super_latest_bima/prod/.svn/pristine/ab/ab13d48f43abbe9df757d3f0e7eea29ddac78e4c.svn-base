@@ -1,0 +1,227 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.InAppNotificationDto;
+import id.gnvsolution.d3.api.dto.request.InAppReadNotificationDto;
+import id.gnvsolution.d3.api.dto.response.BoolStatusOutDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.InAppNotificationResponseDto;
+import id.gnvsolution.d3.api.dto.response.InAppNotificationResponsesDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.model.INotification;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.InAppNotificationServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 24, 2017 4:16:11 PM
+ *
+ */
+@Service
+@Transactional
+public class InAppNotificationServiceImpl extends BaseService implements InAppNotificationService {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    
+    @Override
+    public Map getInAppNotifications(InAppNotificationDto dto) {
+    	
+        
+    	/*change msisdn by Vimal*/
+    	String msisdn = AppUtils.removeCountryCode(dto.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+    	dto.setMsisdn(msisdn);
+    	
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(dto.getMsisdn(), dto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+
+        
+       char lastId = dto.getMsisdn().charAt(dto.getMsisdn().length()-1);
+       
+       logger.info("#getInAppNotifications-------getting data from inappnotification based on lastId::: ",lastId);
+        
+        //
+        try {
+            return JSONResultFilter.filter(populate("Notification"+lastId, Class.forName("id.gnvsolution.d3.api.model.Notification"+lastId).getClass(), dto)).all().build();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+        }
+    }
+
+    @Override
+    public Map readInAppNotifications(InAppReadNotificationDto dto) {
+        
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(dto.getMsisdn(), dto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        
+        try {
+            char lastId = dto.getMsisdn().charAt(dto.getMsisdn().length()-1);
+            logger.info("#readInAppNotifications-------getting data from inappnotification based on msisdn & notificationId::: ",dto.getMsisdn(), new BigDecimal(dto.getId()));
+        
+            BaseDao notificationDao = new BaseDao<>(sessionFactoryDef, Class.forName("id.gnvsolution.d3.api.model.Notification"+lastId).getClass());
+            List<INotification> notifications = notificationDao.listData("from "+"Notification"+lastId+" where subscriberMsisdn = :msisdn and notificationId = :notificationId", new HashMap<String, Object>() {{
+                    put("msisdn", dto.getMsisdn());
+                    put("notificationId", new BigDecimal(dto.getId()));
+            }});
+
+            if(notifications.isEmpty())
+                return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+
+            INotification notification = notifications.get(0);
+            notification.setIsRead(new BigInteger("1"));
+            notificationDao.update(notification);
+
+            return JSONResultFilter.filter(new BoolStatusOutDto(true)).include("status").build();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+        }
+    }
+    
+    private String formatDate(long timestamp) {
+        SimpleDateFormat sdFormat = new SimpleDateFormat("dd MMM yyyy");
+        return sdFormat.format(new Date(timestamp));
+    }
+    
+    private String formatTime(long timestamp) {
+        SimpleDateFormat sdFormat = new SimpleDateFormat("HH:mm");
+        return sdFormat.format(new Date(timestamp));
+    }
+    
+    private InAppNotificationResponsesDto populate(String tableName, Class c, InAppNotificationDto dto) {
+        BaseDao notificationDao = new BaseDao<>(sessionFactoryDef, c);
+        List<INotification> notifications = new ArrayList<>();
+
+        List<BigDecimal> deviceType = new ArrayList();
+        deviceType.add(null);
+        deviceType.add(BigDecimal.ZERO);
+        
+        if(dto.getImei() != null && dto.getImei().contains("-")) { // iphone
+            deviceType.add(new BigDecimal("2"));
+        } else { // android
+            deviceType.add(BigDecimal.ONE);
+        }
+        
+        logger.info("------#populate-----populate data------based on msisdn and notificationId::::::",dto.getMsisdn());
+        
+        if(dto.getLastId() == null) {
+            notifications = notificationDao.listData("from " + tableName + " where subscriberMsisdn = :msisdn and deviceType in :deviceType order by notificationAt DESC", new HashMap<String, Object>() {{
+                put("msisdn", dto.getMsisdn());
+                put("deviceType", deviceType);
+            }});
+        } else {
+            notifications = notificationDao.listData("from " + tableName + " where subscriberMsisdn = :msisdn and deviceType in :deviceType and notificationId > :notificationId  order by notificationAt DESC", new HashMap<String, Object>() {{
+                put("msisdn", dto.getMsisdn());
+                put("notificationId", new BigDecimal(dto.getLastId()));
+                put("deviceType", deviceType);
+            }});
+        }
+        
+        // select notifications
+        InAppNotificationResponsesDto appNotificationResponsesDto = new InAppNotificationResponsesDto();
+        appNotificationResponsesDto.setStatus(Boolean.TRUE);
+        
+        for (INotification notification : notifications) {
+            appNotificationResponsesDto.getNotifications().add(new InAppNotificationResponseDto(notification.getNotificationId().intValueExact(), 
+                                                                                                notification.getNotificationTitle(),  
+                                                                                                notification.getNotificationMessage(), 
+                                                                                                formatDate(notification.getNotificationAt().getTime()),  
+                                                                                                formatTime(notification.getNotificationAt().getTime()),  
+                                                                                                ""+notification.getIsRead(),
+                                                                                                notification.getLink(), 
+                                                                                                notification.getProduct(), 
+                                                                                                notification.getImage()));
+        }
+        
+        return appNotificationResponsesDto;
+    }
+
+    @Override
+    public void saveToInAppNotifications(String subscriberMsisdn, 
+                                        String transactionId, 
+                                        String trxTransactionId, 
+                                        Long trxTransactionId2, 
+                                        String notificationTitle, 
+                                        String notificationMessage, 
+                                        String image, 
+                                        String link, 
+                                        String product) {
+    	logger.info("------#saveToInAppNotifications-----storing data------based on subscriberMsisdn::::::",subscriberMsisdn);
+        
+        char lastId = subscriberMsisdn.charAt(subscriberMsisdn.length()-1);
+        
+        try {
+            BaseDao<INotification> notificationDao = new BaseDao<>(sessionFactoryDef, Class.forName("id.gnvsolution.d3.api.model.Notification"+lastId).getClass());
+            INotification notification = (INotification) Class.forName("id.gnvsolution.d3.api.model.Notification"+lastId).newInstance();
+            notification.setSubscriberMsisdn(subscriberMsisdn);
+            notification.setNotificationAt(new Timestamp(new Date().getTime()));
+            notification.setNotificationMessage(notificationMessage);
+            notification.setNotificationTitle(notificationTitle);
+            notification.setIsRead(BigInteger.ZERO); 
+            
+            notification.setImage(image);
+            notification.setLink(link);
+            notification.setProduct(product);
+            notification.setDeviceType(BigDecimal.ZERO);
+
+            // save to table notification
+            notificationDao.save(notification);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Map deleteNotification(InAppReadNotificationDto dto) {
+        // do not forget to validate msisdn + secretKey
+        if (!isMsisdnValid(dto.getMsisdn(), dto.getSecretKey())) {
+            return JSONResultFilter.filter(new ErrorMessageDto(false, ErrorMessageDto.TOKEN_EXPIRED)).all().build();
+        }
+        try {
+            char lastId = dto.getMsisdn().charAt(dto.getMsisdn().length()-1);
+            logger.info("------#deleteNotification-----deleting------based on msisdn and notificationId::::::", dto.getMsisdn(),  new BigDecimal(dto.getId()));
+            BaseDao notificationDao = new BaseDao<>(sessionFactoryDef, Class.forName("id.gnvsolution.d3.api.model.Notification"+lastId).getClass());
+            List<INotification> notifications = notificationDao.listData("from "+"Notification"+lastId+" where subscriberMsisdn = :msisdn and notificationId = :notificationId", new HashMap<String, Object>() {{
+                    put("msisdn", dto.getMsisdn());
+                    put("notificationId", new BigDecimal(dto.getId()));
+            }});
+
+            if(notifications.isEmpty())
+                return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+
+            INotification notification = notifications.get(0);
+            notificationDao.delete(notification);
+
+            return JSONResultFilter.filter(new BoolStatusOutDto(true)).include("status").build();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return JSONResultFilter.filter(new ErrorMessageDto(false, "Invalid request")).all().build();
+        }
+    }
+}

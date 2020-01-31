@@ -1,0 +1,89 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.*;
+import id.gnvsolution.d3.api.dto.response.PaymentMethodDto;
+import id.gnvsolution.d3.api.dto.response.ProfileDto;
+import id.gnvsolution.d3.api.dto.response.TransferPulsaHistoriesDto;
+import id.gnvsolution.d3.api.model.BalanceNameMappingEntity;
+import id.gnvsolution.d3.api.model.DataUsesEntity;
+import id.gnvsolution.d3.api.model.SelfPackageBalanceName;
+import id.gnvsolution.d3.api.model.SelfPackagePriceMapping;
+import id.gnvsolution.d3.api.model.TrxPostpaidPayment;
+import org.hibernate.SessionFactory;
+
+import com.gnv.vnm.selfcare.core.model.SVAndRtbsData;
+import com.gnv.vnm.selfcare.core.model.SelfPackageResponce;
+import com.gnv.vnm.selfcare.core.model.TopUpHistory;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd.Dynamic_Bonus_Request;
+import com.tibco.www.schemas.uat_april_16.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.Dynamic_Bonus_Response;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.SubscriberQuery_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.BalanceQuery_Response;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 05/04/2017.
+ */
+public interface ProfileService {
+
+    ProfileDto getProfile(String msisdn, String subscriberType, String language, String transactionId, SessionFactory sessionFactory);
+    Map getProfile(ProfileRequsetDto request);
+    SubscriberQuery_Response getSubscriber(ProfileRequsetDto request);
+    BalanceQuery_Response getPostPaidBilledQuery(ProfileRequsetDto request);
+    Map addProfileEmail(ProfileEmailRequestDto request);
+    Map resendVerificationEmail(ProfileEmailRequestDto request);
+    Map addProfileSocial(ProfileSocialRequestDto request);
+    Map changeProfileEmailPassword(ProfileEmailChangeRequestDto request);
+    Map updatePassword(ProfileEmailChangeRequestDto request);
+    Map forgotEmailPassword(BaseRequestDto request, String token);
+    Map getEmailSocialConnStatus(BaseRequestDto request);
+    Map verifyProfileEmail(ProfileEmailVerifyDto request);
+    Map removeEmailAndSocial(RemoveEmailSocialDto request);
+    Map updateProfileBio(ProfileBioDto request);
+    Map setProfileEmailPassword(ProfileSetEmailPasswordDto request);
+    
+    Map reload(ReloadRequestDto request);
+    Map postPaidChangeEmail(ChangeEmailRequestDto request);
+    Map postPaidPayment(PostPaidPaymentDto request);
+    Map postPaidGetInfo(PostPaidPaymentDto request);
+    Map postProfilePicture(ProfilePictureRequestDto request);
+    Map removeProfilePicture(BaseRequestDto request);
+    List<PaymentMethodDto> postPaidGetPaymentMethod();
+    Map hybridEmail(BaseRequestDto request);
+
+    Map hybridPayment(PostPaidPaymentDto request, TrxPostpaidPayment transaction);
+    
+    List<PackageRegistDto> getRegPackage(BaseRequestDto request);
+    List<PackageRegistDto> getRegPackageToday(BaseRequestDto request);
+    List<PackageRegistDto> getRefillPackage(BaseRequestDto request);
+    
+    List<TransferPulsaHistoriesDto> getTransferPulsaHistory(BaseRequestDto request);
+	boolean updateEmailStatusBasedOnToken(String token);
+	Map postPaidGetdetails(PostPaidPaymentDto request);
+	List<PackageRegistDto> getRegPackageimp(BaseRequestDto request);
+     ArrayList<String> getPromotionBalanceHideList();
+    BalanceNameMappingEntity getBalenceMappingEntity(String nameOnRTBS);
+ 
+	List<SelfPackageBalanceName> getSelfPackageBalanceList();
+	List<SelfPackagePriceMapping> getSelfPackagePriceMappings();
+	List<SelfPackagePriceMapping> getSelfPackagePriceMappings(String type);
+	List<SelfPackagePriceMapping> getSelfPackagePriceMappings(String type, int parseInt);
+	List<SelfPackagePriceMapping> getSelfPackagePriceMappings(String type, int parseInt, BigDecimal parseDouble);
+	ArrayList<SelfPackageResponce> getSelfPackageCommonConfigs();
+	Map reloadother(ReloadRequestDto request);
+	String getSubscriberLangCode(String msisdn);
+	List<PackageRegistDto> getRegPackageFullHistory(BaseRequestDto request);
+	TopUpHistory getTopUpHistoryTypeName(TopUpHistory tuh, String originator);
+    String getEmailidByToken(String token);
+    Dynamic_Bonus_Response registerSelfPackage(Dynamic_Bonus_Request pkgRequest);
+    	Map getProfilePic(String msisdn);
+		List<String> getPostPaidUsers();
+		boolean updatePostPaidUserData(SVAndRtbsData svdata, String msisdn);
+		DataUsesEntity getDataSmsvoice(String msisdn);
+		
+    	
+}

@@ -1,0 +1,49 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.StaticDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.model.Parameter;
+import id.gnvsolution.d3.api.service.DeezerService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.DeezerServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Nov 24, 2017 4:36:08 PM
+ *
+ */
+@Service
+@Transactional
+public class DeezerServiceImpl implements DeezerService {
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Override
+    public Map getStatus() {
+        BaseDao<Parameter> parameterDao = new BaseDao<>(sessionFactoryDef, Parameter.class);
+        List<Parameter> results = parameterDao.find("key = :key", new HashMap<String, Object>() {{
+            put("key", "DEEZER");
+        }});
+        if(results.size() > 0){
+            if("1".equals(results.get(0).getValue()))
+                return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+        }
+        return JSONResultFilter.filter(new ErrorMessageDto(false, "Deezer Inactive")).all().build(); 
+    }
+
+}

@@ -1,0 +1,11 @@
+driver_class=oracle.jdbc.OracleDriver
+connection.url=jdbc:oracle:thin:@10.6.17.37:1526/BIMADBP
+#connection.url=jdbc:oracle:thin:@10.6.13.44:1521/BIMATST
+connection.username=ODP
+connection.password=Abcd12345
+connection.ip=10.6.13.44
+connection.port=1521
+#Used for web server 
+user.mode=WEB
+#USED for App Server
+#user.mode=APP

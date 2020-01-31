@@ -1,0 +1,76 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.DeeplinkDto;
+import id.gnvsolution.d3.api.model.DeeplinkUrl;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.DeeplinkService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.DeeplinkServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 10, 2018 2:58:07 PM
+ *
+ */
+@Service
+@Transactional
+public class DeeplinkServiceImpl implements DeeplinkService {
+
+    private SessionFactory sessionFactoryDef;
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(DeeplinkServiceImpl.class);
+    
+    @Autowired
+	private AppConfigService applicationConfig;
+
+    @Autowired
+    public DeeplinkServiceImpl(@Qualifier("sessionFactory_Def") SessionFactory sessionFactoryDef) {
+        this.sessionFactoryDef = sessionFactoryDef;
+    }
+
+    @Override
+    public String getDeeplinkUrl(String url) {
+        LOGGER.info("#getDeeplinkUrl-------getting real url based on url::::::", url);
+        BaseDao<DeeplinkUrl> deeplinkDao = new BaseDao<>(sessionFactoryDef, DeeplinkUrl.class);
+        List<DeeplinkUrl> deeplinks = deeplinkDao.find("urlShortened = :urlShortened", new HashMap<String, Object>() {{
+            //put("urlShortened", "http://"+Constants.DEEPLINK_URL_SHORTENED+"/"+url);
+        	put("urlShortened", "http://"+applicationConfig.get("DEEPLINK_URL_SHORTENED", "bima.vietnamobile.com.vn:8443")+"/"+url);
+        }});
+        
+        if(deeplinks.isEmpty())
+            return "https://"+applicationConfig.get("DEEPLINK_URL_SHORTENED", "bima.vietnamobile.com.vn:8443")+"/";
+        return deeplinks.get(0).getUrlReal();
+    }
+    
+    @Override
+    public Map getDeeplink(DeeplinkDto request) {
+        BaseDao<DeeplinkUrl> deeplinkDao = new BaseDao<>(sessionFactoryDef, DeeplinkUrl.class);
+        Map map = new HashMap();
+        LOGGER.info("#getDeeplink-------getting real url based on request::::::", request.getUrl());
+
+        List<DeeplinkUrl> deeplinks = deeplinkDao.find("urlShortened = :urlShortened OR urlShortened = :urlShortened2 ", new HashMap<String, Object>() {{
+            put("urlShortened", "http://"+applicationConfig.get("DEEPLINK_URL_SHORTENED", "bima.vietnamobile.com.vn:8443")+"/"+request.getUrl());
+            put("urlShortened2", Constants.DEEPLINK_URL_SHORTENED2+request.getUrl());
+        }});
+        
+        if(!deeplinks.isEmpty())
+            map.put("url", deeplinks.get(0).getUrlReal());
+        
+        return map;
+    }
+
+}

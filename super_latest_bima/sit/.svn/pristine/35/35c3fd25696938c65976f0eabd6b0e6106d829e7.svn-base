@@ -1,0 +1,2014 @@
+/**
+ * ODPTIB_WSDLServiceStub.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis2 version: 1.7.4  Built on : Oct 21, 2016 (10:47:34 BST)
+ */
+package id.gnvsolution.d3.api.wsdl;
+
+import id.gnvsolution.d3.api.wsdl.*;
+
+
+/*
+ *  ODPTIB_WSDLServiceStub java implementation
+ */
+public class ODPTIB_WSDLServiceStub extends org.apache.axis2.client.Stub {
+    private static int counter = 0;
+    protected org.apache.axis2.description.AxisOperation[] _operations;
+
+    //hashmaps to keep the fault mapping
+    private java.util.HashMap faultExceptionNameMap = new java.util.HashMap();
+    private java.util.HashMap faultExceptionClassNameMap = new java.util.HashMap();
+    private java.util.HashMap faultMessageMap = new java.util.HashMap();
+    private javax.xml.namespace.QName[] opNameArray = null;
+
+    /**
+     *Constructor that takes in a configContext
+     */
+    public ODPTIB_WSDLServiceStub(
+        org.apache.axis2.context.ConfigurationContext configurationContext,
+        java.lang.String targetEndpoint) throws org.apache.axis2.AxisFault {
+        this(configurationContext, targetEndpoint, false);
+    }
+
+    /**
+     * Constructor that takes in a configContext  and useseperate listner
+     */
+    public ODPTIB_WSDLServiceStub(
+        org.apache.axis2.context.ConfigurationContext configurationContext,
+        java.lang.String targetEndpoint, boolean useSeparateListener)
+        throws org.apache.axis2.AxisFault {
+        //To populate AxisService
+        populateAxisService();
+        populateFaults();
+
+        _serviceClient = new org.apache.axis2.client.ServiceClient(configurationContext,
+                _service);
+
+        _serviceClient.getOptions()
+                      .setTo(new org.apache.axis2.addressing.EndpointReference(
+                targetEndpoint));
+        _serviceClient.getOptions().setUseSeparateListener(useSeparateListener);
+    }
+
+    /**
+     * Default Constructor
+     */
+    public ODPTIB_WSDLServiceStub(
+        org.apache.axis2.context.ConfigurationContext configurationContext)
+        throws org.apache.axis2.AxisFault {
+        this(configurationContext, "http://TIBCO_URL_TRANSFER_PACKAGE");
+    }
+
+    /**
+     * Default Constructor
+     */
+    public ODPTIB_WSDLServiceStub() throws org.apache.axis2.AxisFault {
+        this("http://TIBCO_URL_TRANSFER_PACKAGE");
+    }
+
+    /**
+     * Constructor taking the target endpoint
+     */
+    public ODPTIB_WSDLServiceStub(java.lang.String targetEndpoint)
+        throws org.apache.axis2.AxisFault {
+        this(null, targetEndpoint);
+    }
+
+    private static synchronized java.lang.String getUniqueSuffix() {
+        // reset the counter if it is greater than 99999
+        if (counter > 99999) {
+            counter = 0;
+        }
+
+        counter = counter + 1;
+
+        return java.lang.Long.toString(java.lang.System.currentTimeMillis()) +
+        "_" + counter;
+    }
+
+    private void populateAxisService() throws org.apache.axis2.AxisFault {
+        //creating the Service with a unique name
+        _service = new org.apache.axis2.description.AxisService(
+                "ODPTIB_WSDLService" + getUniqueSuffix());
+        addAnonymousOperations();
+
+        //creating the operations
+        org.apache.axis2.description.AxisOperation __operation;
+
+        _operations = new org.apache.axis2.description.AxisOperation[1];
+
+        __operation = new org.apache.axis2.description.OutInAxisOperation();
+
+        __operation.setName(new javax.xml.namespace.QName(
+                "http://xmlns.example.com/1518607327112", "transferODPTIB"));
+        _service.addOperation(__operation);
+
+        _operations[0] = __operation;
+    }
+
+    //populates the faults
+    private void populateFaults() {
+    }
+
+    /**
+     * Auto generated method signature
+     *
+     * @see id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLService#transferODPTIB
+     * @param transferRequest0
+     */
+    public id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse transferODPTIB(
+        id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest transferRequest0)
+        throws java.rmi.RemoteException {
+        org.apache.axis2.context.MessageContext _messageContext = null;
+
+        try {
+            org.apache.axis2.client.OperationClient _operationClient = _serviceClient.createClient(_operations[0].getName());
+            _operationClient.getOptions()
+                            .setAction("/Business_Process/Transfer_Package/ODPTIB_WSDL-service1.serviceagent/GenericODPTIBServicesEndpoint1/transferODPTIB");
+            _operationClient.getOptions().setExceptionToBeThrownOnSOAPFault(true);
+
+            addPropertyToOperationClient(_operationClient,
+                org.apache.axis2.description.WSDL2Constants.ATTR_WHTTP_QUERY_PARAMETER_SEPARATOR,
+                "&");
+
+            // create a message context
+            _messageContext = new org.apache.axis2.context.MessageContext();
+
+            // create SOAP envelope with that payload
+            org.apache.axiom.soap.SOAPEnvelope env = null;
+
+            env = toEnvelope(getFactory(_operationClient.getOptions()
+                                                        .getSoapVersionURI()),
+                    transferRequest0,
+                    optimizeContent(
+                        new javax.xml.namespace.QName(
+                            "http://xmlns.example.com/1518607327112",
+                            "transferODPTIB")),
+                    new javax.xml.namespace.QName(
+                        "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                        "transferRequest"));
+
+            //adding SOAP soap_headers
+            _serviceClient.addHeadersToEnvelope(env);
+            // set the message context with that soap envelope
+            _messageContext.setEnvelope(env);
+
+            // add the message contxt to the operation client
+            _operationClient.addMessageContext(_messageContext);
+
+            //execute the operation client
+            _operationClient.execute(true);
+
+            org.apache.axis2.context.MessageContext _returnMessageContext = _operationClient.getMessageContext(org.apache.axis2.wsdl.WSDLConstants.MESSAGE_LABEL_IN_VALUE);
+            org.apache.axiom.soap.SOAPEnvelope _returnEnv = _returnMessageContext.getEnvelope();
+
+            java.lang.Object object = fromOM(_returnEnv.getBody()
+                                                       .getFirstElement(),
+                    id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse.class);
+
+            return (id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse) object;
+        } catch (org.apache.axis2.AxisFault f) {
+            org.apache.axiom.om.OMElement faultElt = f.getDetail();
+
+            if (faultElt != null) {
+                if (faultExceptionNameMap.containsKey(
+                            new org.apache.axis2.client.FaultMapKey(
+                                faultElt.getQName(), "transferODPTIB"))) {
+                    //make the fault by reflection
+                    try {
+                        java.lang.String exceptionClassName = (java.lang.String) faultExceptionClassNameMap.get(new org.apache.axis2.client.FaultMapKey(
+                                    faultElt.getQName(), "transferODPTIB"));
+                        java.lang.Class exceptionClass = java.lang.Class.forName(exceptionClassName);
+                        java.lang.reflect.Constructor constructor = exceptionClass.getConstructor(java.lang.String.class);
+                        java.lang.Exception ex = (java.lang.Exception) constructor.newInstance(f.getMessage());
+
+                        //message class
+                        java.lang.String messageClassName = (java.lang.String) faultMessageMap.get(new org.apache.axis2.client.FaultMapKey(
+                                    faultElt.getQName(), "transferODPTIB"));
+                        java.lang.Class messageClass = java.lang.Class.forName(messageClassName);
+                        java.lang.Object messageObject = fromOM(faultElt,
+                                messageClass);
+                        java.lang.reflect.Method m = exceptionClass.getMethod("setFaultMessage",
+                                new java.lang.Class[] { messageClass });
+                        m.invoke(ex, new java.lang.Object[] { messageObject });
+
+                        throw new java.rmi.RemoteException(ex.getMessage(), ex);
+                    } catch (java.lang.ClassCastException e) {
+                        // we cannot intantiate the class - throw the original Axis fault
+                        throw f;
+                    } catch (java.lang.ClassNotFoundException e) {
+                        // we cannot intantiate the class - throw the original Axis fault
+                        throw f;
+                    } catch (java.lang.NoSuchMethodException e) {
+                        // we cannot intantiate the class - throw the original Axis fault
+                        throw f;
+                    } catch (java.lang.reflect.InvocationTargetException e) {
+                        // we cannot intantiate the class - throw the original Axis fault
+                        throw f;
+                    } catch (java.lang.IllegalAccessException e) {
+                        // we cannot intantiate the class - throw the original Axis fault
+                        throw f;
+                    } catch (java.lang.InstantiationException e) {
+                        // we cannot intantiate the class - throw the original Axis fault
+                        throw f;
+                    }
+                } else {
+                    throw f;
+                }
+            } else {
+                throw f;
+            }
+        } finally {
+            if (_messageContext.getTransportOut() != null) {
+                _messageContext.getTransportOut().getSender()
+                               .cleanup(_messageContext);
+            }
+        }
+    }
+
+    /**
+     * Auto generated method signature for Asynchronous Invocations
+     *
+     * @see id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLService#starttransferODPTIB
+     * @param transferRequest0
+     */
+    public void starttransferODPTIB(
+        id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest transferRequest0,
+        final id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceCallbackHandler callback)
+        throws java.rmi.RemoteException {
+        org.apache.axis2.client.OperationClient _operationClient = _serviceClient.createClient(_operations[0].getName());
+        _operationClient.getOptions()
+                        .setAction("/Business_Process/Transfer_Package/ODPTIB_WSDL-service1.serviceagent/GenericODPTIBServicesEndpoint1/transferODPTIB");
+        _operationClient.getOptions().setExceptionToBeThrownOnSOAPFault(true);
+
+        addPropertyToOperationClient(_operationClient,
+            org.apache.axis2.description.WSDL2Constants.ATTR_WHTTP_QUERY_PARAMETER_SEPARATOR,
+            "&");
+
+        // create SOAP envelope with that payload
+        org.apache.axiom.soap.SOAPEnvelope env = null;
+        final org.apache.axis2.context.MessageContext _messageContext = new org.apache.axis2.context.MessageContext();
+
+        //Style is Doc.
+        env = toEnvelope(getFactory(_operationClient.getOptions()
+                                                    .getSoapVersionURI()),
+                transferRequest0,
+                optimizeContent(
+                    new javax.xml.namespace.QName(
+                        "http://xmlns.example.com/1518607327112",
+                        "transferODPTIB")),
+                new javax.xml.namespace.QName(
+                    "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                    "transferRequest"));
+
+        // adding SOAP soap_headers
+        _serviceClient.addHeadersToEnvelope(env);
+        // create message context with that soap envelope
+        _messageContext.setEnvelope(env);
+
+        // add the message context to the operation client
+        _operationClient.addMessageContext(_messageContext);
+
+        _operationClient.setCallback(new org.apache.axis2.client.async.AxisCallback() {
+                public void onMessage(
+                    org.apache.axis2.context.MessageContext resultContext) {
+                    try {
+                        org.apache.axiom.soap.SOAPEnvelope resultEnv = resultContext.getEnvelope();
+
+                        java.lang.Object object = fromOM(resultEnv.getBody()
+                                                                  .getFirstElement(),
+                                id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse.class);
+                        callback.receiveResulttransferODPTIB((id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse) object);
+                    } catch (org.apache.axis2.AxisFault e) {
+                        callback.receiveErrortransferODPTIB(e);
+                    }
+                }
+
+                public void onError(java.lang.Exception error) {
+                    if (error instanceof org.apache.axis2.AxisFault) {
+                        org.apache.axis2.AxisFault f = (org.apache.axis2.AxisFault) error;
+                        org.apache.axiom.om.OMElement faultElt = f.getDetail();
+
+                        if (faultElt != null) {
+                            if (faultExceptionNameMap.containsKey(
+                                        new org.apache.axis2.client.FaultMapKey(
+                                            faultElt.getQName(),
+                                            "transferODPTIB"))) {
+                                //make the fault by reflection
+                                try {
+                                    java.lang.String exceptionClassName = (java.lang.String) faultExceptionClassNameMap.get(new org.apache.axis2.client.FaultMapKey(
+                                                faultElt.getQName(),
+                                                "transferODPTIB"));
+                                    java.lang.Class exceptionClass = java.lang.Class.forName(exceptionClassName);
+                                    java.lang.reflect.Constructor constructor = exceptionClass.getConstructor(java.lang.String.class);
+                                    java.lang.Exception ex = (java.lang.Exception) constructor.newInstance(f.getMessage());
+
+                                    //message class
+                                    java.lang.String messageClassName = (java.lang.String) faultMessageMap.get(new org.apache.axis2.client.FaultMapKey(
+                                                faultElt.getQName(),
+                                                "transferODPTIB"));
+                                    java.lang.Class messageClass = java.lang.Class.forName(messageClassName);
+                                    java.lang.Object messageObject = fromOM(faultElt,
+                                            messageClass);
+                                    java.lang.reflect.Method m = exceptionClass.getMethod("setFaultMessage",
+                                            new java.lang.Class[] { messageClass });
+                                    m.invoke(ex,
+                                        new java.lang.Object[] { messageObject });
+
+                                    callback.receiveErrortransferODPTIB(new java.rmi.RemoteException(
+                                            ex.getMessage(), ex));
+                                } catch (java.lang.ClassCastException e) {
+                                    // we cannot intantiate the class - throw the original Axis fault
+                                    callback.receiveErrortransferODPTIB(f);
+                                } catch (java.lang.ClassNotFoundException e) {
+                                    // we cannot intantiate the class - throw the original Axis fault
+                                    callback.receiveErrortransferODPTIB(f);
+                                } catch (java.lang.NoSuchMethodException e) {
+                                    // we cannot intantiate the class - throw the original Axis fault
+                                    callback.receiveErrortransferODPTIB(f);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    // we cannot intantiate the class - throw the original Axis fault
+                                    callback.receiveErrortransferODPTIB(f);
+                                } catch (java.lang.IllegalAccessException e) {
+                                    // we cannot intantiate the class - throw the original Axis fault
+                                    callback.receiveErrortransferODPTIB(f);
+                                } catch (java.lang.InstantiationException e) {
+                                    // we cannot intantiate the class - throw the original Axis fault
+                                    callback.receiveErrortransferODPTIB(f);
+                                } catch (org.apache.axis2.AxisFault e) {
+                                    // we cannot intantiate the class - throw the original Axis fault
+                                    callback.receiveErrortransferODPTIB(f);
+                                }
+                            } else {
+                                callback.receiveErrortransferODPTIB(f);
+                            }
+                        } else {
+                            callback.receiveErrortransferODPTIB(f);
+                        }
+                    } else {
+                        callback.receiveErrortransferODPTIB(error);
+                    }
+                }
+
+                public void onFault(
+                    org.apache.axis2.context.MessageContext faultContext) {
+                    org.apache.axis2.AxisFault fault = org.apache.axis2.util.Utils.getInboundFaultFromMessageContext(faultContext);
+                    onError(fault);
+                }
+
+                public void onComplete() {
+                    try {
+                        _messageContext.getTransportOut().getSender()
+                                       .cleanup(_messageContext);
+                    } catch (org.apache.axis2.AxisFault axisFault) {
+                        callback.receiveErrortransferODPTIB(axisFault);
+                    }
+                }
+            });
+
+        org.apache.axis2.util.CallbackReceiver _callbackReceiver = null;
+
+        if ((_operations[0].getMessageReceiver() == null) &&
+                _operationClient.getOptions().isUseSeparateListener()) {
+            _callbackReceiver = new org.apache.axis2.util.CallbackReceiver();
+            _operations[0].setMessageReceiver(_callbackReceiver);
+        }
+
+        //execute the operation client
+        _operationClient.execute(false);
+    }
+
+    private boolean optimizeContent(javax.xml.namespace.QName opName) {
+        if (opNameArray == null) {
+            return false;
+        }
+
+        for (int i = 0; i < opNameArray.length; i++) {
+            if (opName.equals(opNameArray[i])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private org.apache.axiom.om.OMElement toOM(
+        id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest param,
+        boolean optimizeContent) throws org.apache.axis2.AxisFault {
+        try {
+            return param.getOMElement(id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest.MY_QNAME,
+                org.apache.axiom.om.OMAbstractFactory.getOMFactory());
+        } catch (org.apache.axis2.databinding.ADBException e) {
+            throw org.apache.axis2.AxisFault.makeFault(e);
+        }
+    }
+
+    private org.apache.axiom.om.OMElement toOM(
+        id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse param,
+        boolean optimizeContent) throws org.apache.axis2.AxisFault {
+        try {
+            return param.getOMElement(id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse.MY_QNAME,
+                org.apache.axiom.om.OMAbstractFactory.getOMFactory());
+        } catch (org.apache.axis2.databinding.ADBException e) {
+            throw org.apache.axis2.AxisFault.makeFault(e);
+        }
+    }
+
+    private org.apache.axiom.soap.SOAPEnvelope toEnvelope(
+        org.apache.axiom.soap.SOAPFactory factory,
+        id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest param,
+        boolean optimizeContent, javax.xml.namespace.QName elementQName)
+        throws org.apache.axis2.AxisFault {
+        try {
+            org.apache.axiom.soap.SOAPEnvelope emptyEnvelope = factory.getDefaultEnvelope();
+            emptyEnvelope.getBody()
+                         .addChild(param.getOMElement(
+                    id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest.MY_QNAME,
+                    factory));
+
+            return emptyEnvelope;
+        } catch (org.apache.axis2.databinding.ADBException e) {
+            throw org.apache.axis2.AxisFault.makeFault(e);
+        }
+    }
+
+    /* methods to provide back word compatibility */
+
+    /**
+     *  get the default envelope
+     */
+    private org.apache.axiom.soap.SOAPEnvelope toEnvelope(
+        org.apache.axiom.soap.SOAPFactory factory) {
+        return factory.getDefaultEnvelope();
+    }
+
+    private java.lang.Object fromOM(org.apache.axiom.om.OMElement param,
+        java.lang.Class type) throws org.apache.axis2.AxisFault {
+        try {
+            if (id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest.class.equals(
+                        type)) {
+                return id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferRequest.Factory.parse(param.getXMLStreamReaderWithoutCaching());
+            }
+
+            if (id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse.class.equals(
+                        type)) {
+                return id.gnvsolution.d3.api.wsdl.ODPTIB_WSDLServiceStub.TransferResponse.Factory.parse(param.getXMLStreamReaderWithoutCaching());
+            }
+        } catch (java.lang.Exception e) {
+            throw org.apache.axis2.AxisFault.makeFault(e);
+        }
+
+        return null;
+    }
+
+    //http://TIBCO_URL_TRANSFER_PACKAGE
+    public static class TransferRequest implements org.apache.axis2.databinding.ADBBean {
+        public static final javax.xml.namespace.QName MY_QNAME = new javax.xml.namespace.QName("http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                "transferRequest", "ns30");
+
+        /**
+         * field for TransactionID
+         */
+        protected java.lang.String localTransactionID;
+
+        /**
+         * field for CurrentDate
+         */
+        protected java.lang.String localCurrentDate;
+
+        /**
+         * field for MSISDN
+         */
+        protected java.lang.String localMSISDN;
+
+        /**
+         * field for TO_MSISDN
+         */
+        protected java.lang.String localTO_MSISDN;
+
+        /**
+         * field for Source
+         */
+        protected java.lang.String localSource;
+
+        /**
+         * field for Request_Type
+         */
+        protected java.lang.String localRequest_Type;
+
+        /**
+         * field for Amount
+         */
+        protected java.lang.String localAmount;
+
+        /**
+         * field for Service_Type
+         */
+        protected java.lang.String localService_Type;
+
+        /*  This tracker boolean wil be used to detect whether the user called the set method
+         *   for this attribute. It will be used to determine whether to include this field
+         *   in the serialized XML
+         */
+        protected boolean localService_TypeTracker = false;
+
+        /**
+         * field for GenericParams
+         */
+        protected java.lang.String localGenericParams;
+
+        /*  This tracker boolean wil be used to detect whether the user called the set method
+         *   for this attribute. It will be used to determine whether to include this field
+         *   in the serialized XML
+         */
+        protected boolean localGenericParamsTracker = false;
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getTransactionID() {
+            return localTransactionID;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param TransactionID
+         */
+        public void setTransactionID(java.lang.String param) {
+            this.localTransactionID = param;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getCurrentDate() {
+            return localCurrentDate;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param CurrentDate
+         */
+        public void setCurrentDate(java.lang.String param) {
+            this.localCurrentDate = param;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getMSISDN() {
+            return localMSISDN;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param MSISDN
+         */
+        public void setMSISDN(java.lang.String param) {
+            this.localMSISDN = param;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getTO_MSISDN() {
+            return localTO_MSISDN;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param TO_MSISDN
+         */
+        public void setTO_MSISDN(java.lang.String param) {
+            this.localTO_MSISDN = param;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getSource() {
+            return localSource;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param Source
+         */
+        public void setSource(java.lang.String param) {
+            this.localSource = param;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getRequest_Type() {
+            return localRequest_Type;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param Request_Type
+         */
+        public void setRequest_Type(java.lang.String param) {
+            this.localRequest_Type = param;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getAmount() {
+            return localAmount;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param Amount
+         */
+        public void setAmount(java.lang.String param) {
+            this.localAmount = param;
+        }
+
+        public boolean isService_TypeSpecified() {
+            return localService_TypeTracker;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getService_Type() {
+            return localService_Type;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param Service_Type
+         */
+        public void setService_Type(java.lang.String param) {
+            localService_TypeTracker = param != null;
+
+            this.localService_Type = param;
+        }
+
+        public boolean isGenericParamsSpecified() {
+            return localGenericParamsTracker;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getGenericParams() {
+            return localGenericParams;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param GenericParams
+         */
+        public void setGenericParams(java.lang.String param) {
+            localGenericParamsTracker = param != null;
+
+            this.localGenericParams = param;
+        }
+
+        /**
+         *
+         * @param parentQName
+         * @param factory
+         * @return org.apache.axiom.om.OMElement
+         */
+        public org.apache.axiom.om.OMElement getOMElement(
+            final javax.xml.namespace.QName parentQName,
+            final org.apache.axiom.om.OMFactory factory)
+            throws org.apache.axis2.databinding.ADBException {
+            return factory.createOMElement(new org.apache.axis2.databinding.ADBDataSource(
+                    this, MY_QNAME));
+        }
+
+        public void serialize(final javax.xml.namespace.QName parentQName,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException,
+                org.apache.axis2.databinding.ADBException {
+            serialize(parentQName, xmlWriter, false);
+        }
+
+        public void serialize(final javax.xml.namespace.QName parentQName,
+            javax.xml.stream.XMLStreamWriter xmlWriter, boolean serializeType)
+            throws javax.xml.stream.XMLStreamException,
+                org.apache.axis2.databinding.ADBException {
+            java.lang.String prefix = null;
+            java.lang.String namespace = null;
+
+            prefix = parentQName.getPrefix();
+            namespace = parentQName.getNamespaceURI();
+            writeStartElement(prefix, namespace, parentQName.getLocalPart(),
+                xmlWriter);
+
+            if (serializeType) {
+                java.lang.String namespacePrefix = registerPrefix(xmlWriter,
+                        "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2");
+
+                if ((namespacePrefix != null) &&
+                        (namespacePrefix.trim().length() > 0)) {
+                    writeAttribute("xsi",
+                        "http://www.w3.org/2001/XMLSchema-instance", "type",
+                        namespacePrefix + ":transferRequest", xmlWriter);
+                } else {
+                    writeAttribute("xsi",
+                        "http://www.w3.org/2001/XMLSchema-instance", "type",
+                        "transferRequest", xmlWriter);
+                }
+            }
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "TransactionID", xmlWriter);
+
+            if (localTransactionID == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "TransactionID cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localTransactionID);
+            }
+
+            xmlWriter.writeEndElement();
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "CurrentDate", xmlWriter);
+
+            if (localCurrentDate == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "CurrentDate cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localCurrentDate);
+            }
+
+            xmlWriter.writeEndElement();
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "MSISDN", xmlWriter);
+
+            if (localMSISDN == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "MSISDN cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localMSISDN);
+            }
+
+            xmlWriter.writeEndElement();
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "TO_MSISDN", xmlWriter);
+
+            if (localTO_MSISDN == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "TO_MSISDN cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localTO_MSISDN);
+            }
+
+            xmlWriter.writeEndElement();
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "Source", xmlWriter);
+
+            if (localSource == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "Source cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localSource);
+            }
+
+            xmlWriter.writeEndElement();
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "Request_Type", xmlWriter);
+
+            if (localRequest_Type == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "Request_Type cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localRequest_Type);
+            }
+
+            xmlWriter.writeEndElement();
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "Amount", xmlWriter);
+
+            if (localAmount == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "Amount cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localAmount);
+            }
+
+            xmlWriter.writeEndElement();
+
+            if (localService_TypeTracker) {
+                namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+                writeStartElement(null, namespace, "Service_Type", xmlWriter);
+
+                if (localService_Type == null) {
+                    // write the nil attribute
+                    throw new org.apache.axis2.databinding.ADBException(
+                        "Service_Type cannot be null!!");
+                } else {
+                    xmlWriter.writeCharacters(localService_Type);
+                }
+
+                xmlWriter.writeEndElement();
+            }
+
+            if (localGenericParamsTracker) {
+                namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+                writeStartElement(null, namespace, "GenericParams", xmlWriter);
+
+                if (localGenericParams == null) {
+                    // write the nil attribute
+                    throw new org.apache.axis2.databinding.ADBException(
+                        "GenericParams cannot be null!!");
+                } else {
+                    xmlWriter.writeCharacters(localGenericParams);
+                }
+
+                xmlWriter.writeEndElement();
+            }
+
+            xmlWriter.writeEndElement();
+        }
+
+        private static java.lang.String generatePrefix(
+            java.lang.String namespace) {
+            if (namespace.equals(
+                        "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2")) {
+                return "ns30";
+            }
+
+            return org.apache.axis2.databinding.utils.BeanUtil.getUniquePrefix();
+        }
+
+        /**
+         * Utility method to write an element start tag.
+         */
+        private void writeStartElement(java.lang.String prefix,
+            java.lang.String namespace, java.lang.String localPart,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String writerPrefix = xmlWriter.getPrefix(namespace);
+
+            if (writerPrefix != null) {
+                xmlWriter.writeStartElement(writerPrefix, localPart, namespace);
+            } else {
+                if (namespace.length() == 0) {
+                    prefix = "";
+                } else if (prefix == null) {
+                    prefix = generatePrefix(namespace);
+                }
+
+                xmlWriter.writeStartElement(prefix, localPart, namespace);
+                xmlWriter.writeNamespace(prefix, namespace);
+                xmlWriter.setPrefix(prefix, namespace);
+            }
+        }
+
+        /**
+         * Util method to write an attribute with the ns prefix
+         */
+        private void writeAttribute(java.lang.String prefix,
+            java.lang.String namespace, java.lang.String attName,
+            java.lang.String attValue,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String writerPrefix = xmlWriter.getPrefix(namespace);
+
+            if (writerPrefix != null) {
+                xmlWriter.writeAttribute(writerPrefix, namespace, attName,
+                    attValue);
+            } else {
+                xmlWriter.writeNamespace(prefix, namespace);
+                xmlWriter.setPrefix(prefix, namespace);
+                xmlWriter.writeAttribute(prefix, namespace, attName, attValue);
+            }
+        }
+
+        /**
+         * Util method to write an attribute without the ns prefix
+         */
+        private void writeAttribute(java.lang.String namespace,
+            java.lang.String attName, java.lang.String attValue,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            if (namespace.equals("")) {
+                xmlWriter.writeAttribute(attName, attValue);
+            } else {
+                xmlWriter.writeAttribute(registerPrefix(xmlWriter, namespace),
+                    namespace, attName, attValue);
+            }
+        }
+
+        /**
+         * Util method to write an attribute without the ns prefix
+         */
+        private void writeQNameAttribute(java.lang.String namespace,
+            java.lang.String attName, javax.xml.namespace.QName qname,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String attributeNamespace = qname.getNamespaceURI();
+            java.lang.String attributePrefix = xmlWriter.getPrefix(attributeNamespace);
+
+            if (attributePrefix == null) {
+                attributePrefix = registerPrefix(xmlWriter, attributeNamespace);
+            }
+
+            java.lang.String attributeValue;
+
+            if (attributePrefix.trim().length() > 0) {
+                attributeValue = attributePrefix + ":" + qname.getLocalPart();
+            } else {
+                attributeValue = qname.getLocalPart();
+            }
+
+            if (namespace.equals("")) {
+                xmlWriter.writeAttribute(attName, attributeValue);
+            } else {
+                registerPrefix(xmlWriter, namespace);
+                xmlWriter.writeAttribute(attributePrefix, namespace, attName,
+                    attributeValue);
+            }
+        }
+
+        /**
+         *  method to handle Qnames
+         */
+        private void writeQName(javax.xml.namespace.QName qname,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String namespaceURI = qname.getNamespaceURI();
+
+            if (namespaceURI != null) {
+                java.lang.String prefix = xmlWriter.getPrefix(namespaceURI);
+
+                if (prefix == null) {
+                    prefix = generatePrefix(namespaceURI);
+                    xmlWriter.writeNamespace(prefix, namespaceURI);
+                    xmlWriter.setPrefix(prefix, namespaceURI);
+                }
+
+                if (prefix.trim().length() > 0) {
+                    xmlWriter.writeCharacters(prefix + ":" +
+                        org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                            qname));
+                } else {
+                    // i.e this is the default namespace
+                    xmlWriter.writeCharacters(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                            qname));
+                }
+            } else {
+                xmlWriter.writeCharacters(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                        qname));
+            }
+        }
+
+        private void writeQNames(javax.xml.namespace.QName[] qnames,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            if (qnames != null) {
+                // we have to store this data until last moment since it is not possible to write any
+                // namespace data after writing the charactor data
+                java.lang.StringBuffer stringToWrite = new java.lang.StringBuffer();
+                java.lang.String namespaceURI = null;
+                java.lang.String prefix = null;
+
+                for (int i = 0; i < qnames.length; i++) {
+                    if (i > 0) {
+                        stringToWrite.append(" ");
+                    }
+
+                    namespaceURI = qnames[i].getNamespaceURI();
+
+                    if (namespaceURI != null) {
+                        prefix = xmlWriter.getPrefix(namespaceURI);
+
+                        if ((prefix == null) || (prefix.length() == 0)) {
+                            prefix = generatePrefix(namespaceURI);
+                            xmlWriter.writeNamespace(prefix, namespaceURI);
+                            xmlWriter.setPrefix(prefix, namespaceURI);
+                        }
+
+                        if (prefix.trim().length() > 0) {
+                            stringToWrite.append(prefix).append(":")
+                                         .append(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                    qnames[i]));
+                        } else {
+                            stringToWrite.append(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                    qnames[i]));
+                        }
+                    } else {
+                        stringToWrite.append(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                qnames[i]));
+                    }
+                }
+
+                xmlWriter.writeCharacters(stringToWrite.toString());
+            }
+        }
+
+        /**
+         * Register a namespace prefix
+         */
+        private java.lang.String registerPrefix(
+            javax.xml.stream.XMLStreamWriter xmlWriter,
+            java.lang.String namespace)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String prefix = xmlWriter.getPrefix(namespace);
+
+            if (prefix == null) {
+                prefix = generatePrefix(namespace);
+
+                javax.xml.namespace.NamespaceContext nsContext = xmlWriter.getNamespaceContext();
+
+                while (true) {
+                    java.lang.String uri = nsContext.getNamespaceURI(prefix);
+
+                    if ((uri == null) || (uri.length() == 0)) {
+                        break;
+                    }
+
+                    prefix = org.apache.axis2.databinding.utils.BeanUtil.getUniquePrefix();
+                }
+
+                xmlWriter.writeNamespace(prefix, namespace);
+                xmlWriter.setPrefix(prefix, namespace);
+            }
+
+            return prefix;
+        }
+
+        /**
+         *  Factory class that keeps the parse method
+         */
+        public static class Factory {
+            private static org.apache.commons.logging.Log log = org.apache.commons.logging.LogFactory.getLog(Factory.class);
+
+            /**
+             * static method to create the object
+             * Precondition:  If this object is an element, the current or next start element starts this object and any intervening reader events are ignorable
+             *                If this object is not an element, it is a complex type and the reader is at the event just after the outer start element
+             * Postcondition: If this object is an element, the reader is positioned at its end element
+             *                If this object is a complex type, the reader is positioned at the end element of its outer element
+             */
+            public static TransferRequest parse(
+                javax.xml.stream.XMLStreamReader reader)
+                throws java.lang.Exception {
+                TransferRequest object = new TransferRequest();
+
+                int event;
+                javax.xml.namespace.QName currentQName = null;
+                java.lang.String nillableValue = null;
+                java.lang.String prefix = "";
+                java.lang.String namespaceuri = "";
+
+                try {
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    currentQName = reader.getName();
+
+                    if (reader.getAttributeValue(
+                                "http://www.w3.org/2001/XMLSchema-instance",
+                                "type") != null) {
+                        java.lang.String fullTypeName = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "type");
+
+                        if (fullTypeName != null) {
+                            java.lang.String nsPrefix = null;
+
+                            if (fullTypeName.indexOf(":") > -1) {
+                                nsPrefix = fullTypeName.substring(0,
+                                        fullTypeName.indexOf(":"));
+                            }
+
+                            nsPrefix = (nsPrefix == null) ? "" : nsPrefix;
+
+                            java.lang.String type = fullTypeName.substring(fullTypeName.indexOf(
+                                        ":") + 1);
+
+                            if (!"transferRequest".equals(type)) {
+                                //find namespace for the prefix
+                                java.lang.String nsUri = reader.getNamespaceContext()
+                                                               .getNamespaceURI(nsPrefix);
+
+                                return (TransferRequest) ExtensionMapper.getTypeObject(nsUri,
+                                    type, reader);
+                            }
+                        }
+                    }
+
+                    // Note all attributes that were handled. Used to differ normal attributes
+                    // from anyAttributes.
+                    java.util.Vector handledAttributes = new java.util.Vector();
+
+                    reader.next();
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "TransactionID").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "TransactionID").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "TransactionID" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setTransactionID(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "CurrentDate").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "CurrentDate").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "CurrentDate" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setCurrentDate(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "MSISDN").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "MSISDN").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "MSISDN" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setMSISDN(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "TO_MSISDN").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "TO_MSISDN").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "TO_MSISDN" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setTO_MSISDN(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "Source").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "Source").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "Source" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setSource(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "Request_Type").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "Request_Type").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "Request_Type" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setRequest_Type(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "Amount").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "Amount").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "Amount" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setAmount(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "Service_Type").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "Service_Type").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "Service_Type" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setService_Type(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "GenericParams").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "GenericParams").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "GenericParams" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setGenericParams(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if (reader.isStartElement()) {
+                        // 2 - A start element we are not expecting indicates a trailing invalid property
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+                } catch (javax.xml.stream.XMLStreamException e) {
+                    throw new java.lang.Exception(e);
+                }
+
+                return object;
+            }
+        } //end of factory class
+    }
+
+    public static class ExtensionMapper {
+        public static java.lang.Object getTypeObject(
+            java.lang.String namespaceURI, java.lang.String typeName,
+            javax.xml.stream.XMLStreamReader reader) throws java.lang.Exception {
+            throw new org.apache.axis2.databinding.ADBException(
+                "Unsupported type " + namespaceURI + " " + typeName);
+        }
+    }
+
+    public static class TransferResponse implements org.apache.axis2.databinding.ADBBean {
+        public static final javax.xml.namespace.QName MY_QNAME = new javax.xml.namespace.QName("http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                "transferResponse", "ns30");
+
+        /**
+         * field for GenericParams
+         */
+        protected java.lang.String localGenericParams;
+
+        /*  This tracker boolean wil be used to detect whether the user called the set method
+         *   for this attribute. It will be used to determine whether to include this field
+         *   in the serialized XML
+         */
+        protected boolean localGenericParamsTracker = false;
+
+        /**
+         * field for ResponseCode
+         */
+        protected java.lang.String localResponseCode;
+
+        /**
+         * field for ResponseText
+         */
+        protected java.lang.String localResponseText;
+
+        /*  This tracker boolean wil be used to detect whether the user called the set method
+         *   for this attribute. It will be used to determine whether to include this field
+         *   in the serialized XML
+         */
+        protected boolean localResponseTextTracker = false;
+
+        public boolean isGenericParamsSpecified() {
+            return localGenericParamsTracker;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getGenericParams() {
+            return localGenericParams;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param GenericParams
+         */
+        public void setGenericParams(java.lang.String param) {
+            localGenericParamsTracker = param != null;
+
+            this.localGenericParams = param;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getResponseCode() {
+            return localResponseCode;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param ResponseCode
+         */
+        public void setResponseCode(java.lang.String param) {
+            this.localResponseCode = param;
+        }
+
+        public boolean isResponseTextSpecified() {
+            return localResponseTextTracker;
+        }
+
+        /**
+         * Auto generated getter method
+         * @return java.lang.String
+         */
+        public java.lang.String getResponseText() {
+            return localResponseText;
+        }
+
+        /**
+         * Auto generated setter method
+         * @param param ResponseText
+         */
+        public void setResponseText(java.lang.String param) {
+            localResponseTextTracker = param != null;
+
+            this.localResponseText = param;
+        }
+
+        /**
+         *
+         * @param parentQName
+         * @param factory
+         * @return org.apache.axiom.om.OMElement
+         */
+        public org.apache.axiom.om.OMElement getOMElement(
+            final javax.xml.namespace.QName parentQName,
+            final org.apache.axiom.om.OMFactory factory)
+            throws org.apache.axis2.databinding.ADBException {
+            return factory.createOMElement(new org.apache.axis2.databinding.ADBDataSource(
+                    this, MY_QNAME));
+        }
+
+        public void serialize(final javax.xml.namespace.QName parentQName,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException,
+                org.apache.axis2.databinding.ADBException {
+            serialize(parentQName, xmlWriter, false);
+        }
+
+        public void serialize(final javax.xml.namespace.QName parentQName,
+            javax.xml.stream.XMLStreamWriter xmlWriter, boolean serializeType)
+            throws javax.xml.stream.XMLStreamException,
+                org.apache.axis2.databinding.ADBException {
+            java.lang.String prefix = null;
+            java.lang.String namespace = null;
+
+            prefix = parentQName.getPrefix();
+            namespace = parentQName.getNamespaceURI();
+            writeStartElement(prefix, namespace, parentQName.getLocalPart(),
+                xmlWriter);
+
+            if (serializeType) {
+                java.lang.String namespacePrefix = registerPrefix(xmlWriter,
+                        "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2");
+
+                if ((namespacePrefix != null) &&
+                        (namespacePrefix.trim().length() > 0)) {
+                    writeAttribute("xsi",
+                        "http://www.w3.org/2001/XMLSchema-instance", "type",
+                        namespacePrefix + ":transferResponse", xmlWriter);
+                } else {
+                    writeAttribute("xsi",
+                        "http://www.w3.org/2001/XMLSchema-instance", "type",
+                        "transferResponse", xmlWriter);
+                }
+            }
+
+            if (localGenericParamsTracker) {
+                namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+                writeStartElement(null, namespace, "GenericParams", xmlWriter);
+
+                if (localGenericParams == null) {
+                    // write the nil attribute
+                    throw new org.apache.axis2.databinding.ADBException(
+                        "GenericParams cannot be null!!");
+                } else {
+                    xmlWriter.writeCharacters(localGenericParams);
+                }
+
+                xmlWriter.writeEndElement();
+            }
+
+            namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+            writeStartElement(null, namespace, "ResponseCode", xmlWriter);
+
+            if (localResponseCode == null) {
+                // write the nil attribute
+                throw new org.apache.axis2.databinding.ADBException(
+                    "ResponseCode cannot be null!!");
+            } else {
+                xmlWriter.writeCharacters(localResponseCode);
+            }
+
+            xmlWriter.writeEndElement();
+
+            if (localResponseTextTracker) {
+                namespace = "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2";
+                writeStartElement(null, namespace, "ResponseText", xmlWriter);
+
+                if (localResponseText == null) {
+                    // write the nil attribute
+                    throw new org.apache.axis2.databinding.ADBException(
+                        "ResponseText cannot be null!!");
+                } else {
+                    xmlWriter.writeCharacters(localResponseText);
+                }
+
+                xmlWriter.writeEndElement();
+            }
+
+            xmlWriter.writeEndElement();
+        }
+
+        private static java.lang.String generatePrefix(
+            java.lang.String namespace) {
+            if (namespace.equals(
+                        "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2")) {
+                return "ns30";
+            }
+
+            return org.apache.axis2.databinding.utils.BeanUtil.getUniquePrefix();
+        }
+
+        /**
+         * Utility method to write an element start tag.
+         */
+        private void writeStartElement(java.lang.String prefix,
+            java.lang.String namespace, java.lang.String localPart,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String writerPrefix = xmlWriter.getPrefix(namespace);
+
+            if (writerPrefix != null) {
+                xmlWriter.writeStartElement(writerPrefix, localPart, namespace);
+            } else {
+                if (namespace.length() == 0) {
+                    prefix = "";
+                } else if (prefix == null) {
+                    prefix = generatePrefix(namespace);
+                }
+
+                xmlWriter.writeStartElement(prefix, localPart, namespace);
+                xmlWriter.writeNamespace(prefix, namespace);
+                xmlWriter.setPrefix(prefix, namespace);
+            }
+        }
+
+        /**
+         * Util method to write an attribute with the ns prefix
+         */
+        private void writeAttribute(java.lang.String prefix,
+            java.lang.String namespace, java.lang.String attName,
+            java.lang.String attValue,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String writerPrefix = xmlWriter.getPrefix(namespace);
+
+            if (writerPrefix != null) {
+                xmlWriter.writeAttribute(writerPrefix, namespace, attName,
+                    attValue);
+            } else {
+                xmlWriter.writeNamespace(prefix, namespace);
+                xmlWriter.setPrefix(prefix, namespace);
+                xmlWriter.writeAttribute(prefix, namespace, attName, attValue);
+            }
+        }
+
+        /**
+         * Util method to write an attribute without the ns prefix
+         */
+        private void writeAttribute(java.lang.String namespace,
+            java.lang.String attName, java.lang.String attValue,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            if (namespace.equals("")) {
+                xmlWriter.writeAttribute(attName, attValue);
+            } else {
+                xmlWriter.writeAttribute(registerPrefix(xmlWriter, namespace),
+                    namespace, attName, attValue);
+            }
+        }
+
+        /**
+         * Util method to write an attribute without the ns prefix
+         */
+        private void writeQNameAttribute(java.lang.String namespace,
+            java.lang.String attName, javax.xml.namespace.QName qname,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String attributeNamespace = qname.getNamespaceURI();
+            java.lang.String attributePrefix = xmlWriter.getPrefix(attributeNamespace);
+
+            if (attributePrefix == null) {
+                attributePrefix = registerPrefix(xmlWriter, attributeNamespace);
+            }
+
+            java.lang.String attributeValue;
+
+            if (attributePrefix.trim().length() > 0) {
+                attributeValue = attributePrefix + ":" + qname.getLocalPart();
+            } else {
+                attributeValue = qname.getLocalPart();
+            }
+
+            if (namespace.equals("")) {
+                xmlWriter.writeAttribute(attName, attributeValue);
+            } else {
+                registerPrefix(xmlWriter, namespace);
+                xmlWriter.writeAttribute(attributePrefix, namespace, attName,
+                    attributeValue);
+            }
+        }
+
+        /**
+         *  method to handle Qnames
+         */
+        private void writeQName(javax.xml.namespace.QName qname,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String namespaceURI = qname.getNamespaceURI();
+
+            if (namespaceURI != null) {
+                java.lang.String prefix = xmlWriter.getPrefix(namespaceURI);
+
+                if (prefix == null) {
+                    prefix = generatePrefix(namespaceURI);
+                    xmlWriter.writeNamespace(prefix, namespaceURI);
+                    xmlWriter.setPrefix(prefix, namespaceURI);
+                }
+
+                if (prefix.trim().length() > 0) {
+                    xmlWriter.writeCharacters(prefix + ":" +
+                        org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                            qname));
+                } else {
+                    // i.e this is the default namespace
+                    xmlWriter.writeCharacters(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                            qname));
+                }
+            } else {
+                xmlWriter.writeCharacters(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                        qname));
+            }
+        }
+
+        private void writeQNames(javax.xml.namespace.QName[] qnames,
+            javax.xml.stream.XMLStreamWriter xmlWriter)
+            throws javax.xml.stream.XMLStreamException {
+            if (qnames != null) {
+                // we have to store this data until last moment since it is not possible to write any
+                // namespace data after writing the charactor data
+                java.lang.StringBuffer stringToWrite = new java.lang.StringBuffer();
+                java.lang.String namespaceURI = null;
+                java.lang.String prefix = null;
+
+                for (int i = 0; i < qnames.length; i++) {
+                    if (i > 0) {
+                        stringToWrite.append(" ");
+                    }
+
+                    namespaceURI = qnames[i].getNamespaceURI();
+
+                    if (namespaceURI != null) {
+                        prefix = xmlWriter.getPrefix(namespaceURI);
+
+                        if ((prefix == null) || (prefix.length() == 0)) {
+                            prefix = generatePrefix(namespaceURI);
+                            xmlWriter.writeNamespace(prefix, namespaceURI);
+                            xmlWriter.setPrefix(prefix, namespaceURI);
+                        }
+
+                        if (prefix.trim().length() > 0) {
+                            stringToWrite.append(prefix).append(":")
+                                         .append(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                    qnames[i]));
+                        } else {
+                            stringToWrite.append(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                    qnames[i]));
+                        }
+                    } else {
+                        stringToWrite.append(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                qnames[i]));
+                    }
+                }
+
+                xmlWriter.writeCharacters(stringToWrite.toString());
+            }
+        }
+
+        /**
+         * Register a namespace prefix
+         */
+        private java.lang.String registerPrefix(
+            javax.xml.stream.XMLStreamWriter xmlWriter,
+            java.lang.String namespace)
+            throws javax.xml.stream.XMLStreamException {
+            java.lang.String prefix = xmlWriter.getPrefix(namespace);
+
+            if (prefix == null) {
+                prefix = generatePrefix(namespace);
+
+                javax.xml.namespace.NamespaceContext nsContext = xmlWriter.getNamespaceContext();
+
+                while (true) {
+                    java.lang.String uri = nsContext.getNamespaceURI(prefix);
+
+                    if ((uri == null) || (uri.length() == 0)) {
+                        break;
+                    }
+
+                    prefix = org.apache.axis2.databinding.utils.BeanUtil.getUniquePrefix();
+                }
+
+                xmlWriter.writeNamespace(prefix, namespace);
+                xmlWriter.setPrefix(prefix, namespace);
+            }
+
+            return prefix;
+        }
+
+        /**
+         *  Factory class that keeps the parse method
+         */
+        public static class Factory {
+            private static org.apache.commons.logging.Log log = org.apache.commons.logging.LogFactory.getLog(Factory.class);
+
+            /**
+             * static method to create the object
+             * Precondition:  If this object is an element, the current or next start element starts this object and any intervening reader events are ignorable
+             *                If this object is not an element, it is a complex type and the reader is at the event just after the outer start element
+             * Postcondition: If this object is an element, the reader is positioned at its end element
+             *                If this object is a complex type, the reader is positioned at the end element of its outer element
+             */
+            public static TransferResponse parse(
+                javax.xml.stream.XMLStreamReader reader)
+                throws java.lang.Exception {
+                TransferResponse object = new TransferResponse();
+
+                int event;
+                javax.xml.namespace.QName currentQName = null;
+                java.lang.String nillableValue = null;
+                java.lang.String prefix = "";
+                java.lang.String namespaceuri = "";
+
+                try {
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    currentQName = reader.getName();
+
+                    if (reader.getAttributeValue(
+                                "http://www.w3.org/2001/XMLSchema-instance",
+                                "type") != null) {
+                        java.lang.String fullTypeName = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "type");
+
+                        if (fullTypeName != null) {
+                            java.lang.String nsPrefix = null;
+
+                            if (fullTypeName.indexOf(":") > -1) {
+                                nsPrefix = fullTypeName.substring(0,
+                                        fullTypeName.indexOf(":"));
+                            }
+
+                            nsPrefix = (nsPrefix == null) ? "" : nsPrefix;
+
+                            java.lang.String type = fullTypeName.substring(fullTypeName.indexOf(
+                                        ":") + 1);
+
+                            if (!"transferResponse".equals(type)) {
+                                //find namespace for the prefix
+                                java.lang.String nsUri = reader.getNamespaceContext()
+                                                               .getNamespaceURI(nsPrefix);
+
+                                return (TransferResponse) ExtensionMapper.getTypeObject(nsUri,
+                                    type, reader);
+                            }
+                        }
+                    }
+
+                    // Note all attributes that were handled. Used to differ normal attributes
+                    // from anyAttributes.
+                    java.util.Vector handledAttributes = new java.util.Vector();
+
+                    reader.next();
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "GenericParams").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "GenericParams").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "GenericParams" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setGenericParams(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "ResponseCode").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "ResponseCode").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "ResponseCode" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setResponseCode(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                        // 1 - A start element we are not expecting indicates an invalid parameter was passed
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if ((reader.isStartElement() &&
+                            new javax.xml.namespace.QName(
+                                "http://www.tibco.com/schemas/HCPT_PROJECT/Shared_Resources/Schema/XML/ODP/Schema1.xsd2",
+                                "ResponseText").equals(reader.getName())) ||
+                            new javax.xml.namespace.QName("", "ResponseText").equals(
+                                reader.getName())) {
+                        nillableValue = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance",
+                                "nil");
+
+                        if ("true".equals(nillableValue) ||
+                                "1".equals(nillableValue)) {
+                            throw new org.apache.axis2.databinding.ADBException(
+                                "The element: " + "ResponseText" +
+                                "  cannot be null");
+                        }
+
+                        java.lang.String content = reader.getElementText();
+
+                        object.setResponseText(org.apache.axis2.databinding.utils.ConverterUtil.convertToString(
+                                content));
+
+                        reader.next();
+                    } // End of if for expected property start element
+
+                    else {
+                    }
+
+                    while (!reader.isStartElement() && !reader.isEndElement())
+                        reader.next();
+
+                    if (reader.isStartElement()) {
+                        // 2 - A start element we are not expecting indicates a trailing invalid property
+                        throw new org.apache.axis2.databinding.ADBException(
+                            "Unexpected subelement " + reader.getName());
+                    }
+                } catch (javax.xml.stream.XMLStreamException e) {
+                    throw new java.lang.Exception(e);
+                }
+
+                return object;
+            }
+        } //end of factory class
+    }
+}

@@ -1,0 +1,5 @@
+package id.gnvsolution.d3.api.security;
+
+public class ExpireToken extends Exception {
+
+}

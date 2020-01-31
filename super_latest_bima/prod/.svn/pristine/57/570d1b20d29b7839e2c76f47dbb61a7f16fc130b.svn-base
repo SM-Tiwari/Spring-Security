@@ -1,0 +1,728 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.Collection;
+
+@Entity
+@Table(name = "PRODUCT")
+public class Product {
+    private String productId;
+    private String productPrice;
+    private String productCallPlan;
+    private String productNameId;
+    private String productNameEn;
+    private String productDescriptionId;
+    private String productDescriptionEn;
+    private String productHowToId;
+    private String productHowToEn;
+    private String productOtherInfoId;
+    private String productOtherInfoEn;
+    private String priceDescriptionId;
+    private String priceDescriptionEn;
+    private int productRating;
+    private String productButtonBuyId;
+    private String productButtonBuyEn;
+    private String chargingMechanism;
+    private String labelDescriptionId;
+    private String labelDescriptionEn;
+    private String labelHowToId;
+    private String labelHowToEn;
+    private String labelPriceId;
+    private String labelPriceEn;
+    private String labelDetailsId;
+    private String labelDetailsEn;
+    private String labelOtherInfoEn;
+    private String labelOtherInfoId;
+    private int createdBy;
+    private Timestamp createdAt;
+    private Integer updatedBy;
+    private Timestamp updatedAt;
+    private boolean isActive;
+    private String productDdcUrl;
+    private boolean isPrepaid;
+    private boolean isPostpaid;
+    private boolean isHybrid;
+    private Collection<Broadcast> broadcastsByProductId;
+    private Collection<ProductCategory> productCategoriesByProductId;
+    private Collection<ProductCharging> productChargingsByProductId;
+    private Collection<ProductMetadata> productMetadataByProductId;
+    private Collection<ProductPriorityPromo> productPriorityPromosByProductId;
+    private ProductWidget productWidgetByProductId;
+    private SearchBlacklist searchBlacklistByProductId;
+    private Collection<TrxSubscriberPurchase> trxSubscriberPurchasesByProductId;
+
+    private boolean isFeatured;
+    private boolean isPreview;
+    private boolean isIphone;
+    private boolean isInappBrowser;
+    private boolean isTransfer;
+    
+    private boolean isStoppable;
+    private boolean isShareable;
+    private Boolean isAutoRenewable;
+    
+    private Integer featuredOrder;
+    
+    private Integer ratingTotal;
+    private Integer ratingNumber;
+    
+    private String accessRight;
+    private String searchKeywords;
+    
+  
+	private String extCode;
+	private String code;
+
+	
+	private String extProductName;
+	
+    @Id
+    @Column(name = "PRODUCT_ID", nullable = false, length = 50)
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+    @Column(name = "ext_code", length = 20, nullable = false)
+    public String getExtCode() {
+		return extCode;
+	}
+
+	public void setExtCode(String extCode) {
+		this.extCode = extCode;
+	}
+	@Column(name = "ext_product_name", length = 50)
+	public String getExtProductName() {
+		return extProductName;
+	}
+
+	public void setExtProductName(String extProductName) {
+		this.extProductName = extProductName;
+	}
+
+	@Basic
+    @Column(name = "PRODUCT_PRICE", nullable = false, precision = 0)
+    public String getProductPrice() {
+        return productPrice;
+    }
+
+    public void setProductPrice(String productPrice) {
+        this.productPrice = productPrice;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_NAME_ID", nullable = true, length = 100)
+    public String getProductNameId() {
+        return productNameId;
+    }
+
+    public void setProductNameId(String productNameId) {
+        this.productNameId = productNameId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_NAME_EN", nullable = true, length = 100)
+    public String getProductNameEn() {
+        return productNameEn;
+    }
+
+    public void setProductNameEn(String productNameEn) {
+        this.productNameEn = productNameEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_DESCRIPTION_ID", nullable = true)
+    public String getProductDescriptionId() {
+        return productDescriptionId;
+    }
+
+    public void setProductDescriptionId(String productDescriptionId) {
+        this.productDescriptionId = productDescriptionId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_DESCRIPTION_EN", nullable = true)
+    public String getProductDescriptionEn() {
+        return productDescriptionEn;
+    }
+
+    public void setProductDescriptionEn(String productDescriptionEn) {
+        this.productDescriptionEn = productDescriptionEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_RATING", nullable = false, precision = 0)
+    public int getProductRating() {
+        return productRating;
+    }
+
+    public void setProductRating(int productRating) {
+        this.productRating = productRating;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_BUTTON_BUY_ID", nullable = true, length = 20)
+    public String getProductButtonBuyId() {
+        return productButtonBuyId;
+    }
+
+    public void setProductButtonBuyId(String productButtonBuyId) {
+        this.productButtonBuyId = productButtonBuyId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_BUTTON_BUY_EN", nullable = true, length = 20)
+    public String getProductButtonBuyEn() {
+        return productButtonBuyEn;
+    }
+
+    public void setProductButtonBuyEn(String productButtonBuyEn) {
+        this.productButtonBuyEn = productButtonBuyEn;
+    }
+
+    @Basic
+    @Column(name = "\"CHARGING_MECHANISM\"", nullable = false, length = 20)
+    public String getChargingMechanism() {
+        return chargingMechanism;
+    }
+
+    public void setChargingMechanism(String chargingMechanism) {
+        this.chargingMechanism = chargingMechanism;
+    }
+
+    @Basic
+    @Column(name = "CREATED_BY", nullable = false, precision = 0)
+    public int getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(int createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_BY", nullable = true, precision = 0)
+    public Integer getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Integer updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE", nullable = false, precision = 0)
+    public boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_DDC_URL", nullable = true, length = 255)
+    public String getProductDdcUrl() {
+        return productDdcUrl;
+    }
+
+    public void setProductDdcUrl(String productDdcUrl) {
+        this.productDdcUrl = productDdcUrl;
+    }
+
+    @Basic
+    @Column(name = "IS_PREPAID", nullable = false, precision = 0)
+    public boolean getIsPrepaid() {
+        return isPrepaid;
+    }
+
+    public void setIsPrepaid(boolean isPrepaid) {
+        this.isPrepaid = isPrepaid;
+    }
+
+    @Basic
+    @Column(name = "IS_POSTPAID", nullable = false, precision = 0)
+    public boolean getIsPostpaid() {
+        return isPostpaid;
+    }
+
+    public void setIsPostpaid(boolean isPostpaid) {
+        this.isPostpaid = isPostpaid;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Product product = (Product) o;
+
+        if (productPrice != product.productPrice) return false;
+        if (productRating != product.productRating) return false;
+        if (createdBy != product.createdBy) return false;
+        if (isActive != product.isActive) return false;
+        if (isPrepaid != product.isPrepaid) return false;
+        if (isPostpaid != product.isPostpaid) return false;
+        if (productId != null ? !productId.equals(product.productId) : product.productId != null) return false;
+        if (productNameId != null ? !productNameId.equals(product.productNameId) : product.productNameId != null)
+            return false;
+        if (productNameEn != null ? !productNameEn.equals(product.productNameEn) : product.productNameEn != null)
+            return false;
+        if (productDescriptionId != null ? !productDescriptionId.equals(product.productDescriptionId) : product.productDescriptionId != null)
+            return false;
+        if (productDescriptionEn != null ? !productDescriptionEn.equals(product.productDescriptionEn) : product.productDescriptionEn != null)
+            return false;
+        if (productButtonBuyId != null ? !productButtonBuyId.equals(product.productButtonBuyId) : product.productButtonBuyId != null)
+            return false;
+        if (productButtonBuyEn != null ? !productButtonBuyEn.equals(product.productButtonBuyEn) : product.productButtonBuyEn != null)
+            return false;
+        if (chargingMechanism != null ? !chargingMechanism.equals(product.chargingMechanism) : product.chargingMechanism != null) return false;
+        if (createdAt != null ? !createdAt.equals(product.createdAt) : product.createdAt != null) return false;
+        if (updatedBy != product.updatedBy) return false;
+        if (updatedAt != null ? !updatedAt.equals(product.updatedAt) : product.updatedAt != null) return false;
+        if (productDdcUrl != null ? !productDdcUrl.equals(product.productDdcUrl) : product.productDdcUrl != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = productId != null ? productId.hashCode() : 0;
+        result = 31 * result + (productPrice != null ? productPrice.hashCode() : 0);
+        result = 31 * result + (productNameId != null ? productNameId.hashCode() : 0);
+        result = 31 * result + (productNameEn != null ? productNameEn.hashCode() : 0);
+        result = 31 * result + (productDescriptionId != null ? productDescriptionId.hashCode() : 0);
+        result = 31 * result + (productDescriptionEn != null ? productDescriptionEn.hashCode() : 0);
+        result = 31 * result + (int) (productRating ^ (productRating >>> 32));
+        result = 31 * result + (productButtonBuyId != null ? productButtonBuyId.hashCode() : 0);
+        result = 31 * result + (productButtonBuyEn != null ? productButtonBuyEn.hashCode() : 0);
+        result = 31 * result + (chargingMechanism != null ? chargingMechanism.hashCode() : 0);
+        result = 31 * result + (int) (createdBy ^ (createdBy >>> 32));
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (int) (updatedBy ^ (updatedBy >>> 32));
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        result = 31 * result + (int) ((isActive ? 1 : 0) ^ ((isActive ? 1 : 0) >>> 32));
+        result = 31 * result + (productDdcUrl != null ? productDdcUrl.hashCode() : 0);
+        result = 31 * result + (int) ((isPrepaid ? 1 : 0) ^ ((isPrepaid ? 1 : 0) >>> 32));
+        result = 31 * result + (int) ((isPostpaid ? 1 : 0) ^ ((isPostpaid ? 1 : 0) >>> 32));
+        return result;
+    }
+
+    @OneToMany(mappedBy = "productByProductId")
+    public Collection<Broadcast> getBroadcastsByProductId() {
+        return broadcastsByProductId;
+    }
+
+    public void setBroadcastsByProductId(Collection<Broadcast> broadcastsByProductId) {
+        this.broadcastsByProductId = broadcastsByProductId;
+    }
+
+    @OneToMany(mappedBy = "productByProductId")
+    public Collection<ProductCategory> getProductCategoriesByProductId() {
+        return productCategoriesByProductId;
+    }
+
+    public void setProductCategoriesByProductId(Collection<ProductCategory> productCategoriesByProductId) {
+        this.productCategoriesByProductId = productCategoriesByProductId;
+    }
+
+    @OrderBy(value = "price")
+    @OneToMany(mappedBy = "productByProductId")
+    public Collection<ProductCharging> getProductChargingsByProductId() {
+        return productChargingsByProductId;
+    }
+
+    public void setProductChargingsByProductId(Collection<ProductCharging> productChargingsByProductId) {
+        this.productChargingsByProductId = productChargingsByProductId;
+    }
+
+    @OneToMany(mappedBy = "productByProductId")
+    public Collection<ProductMetadata> getProductMetadataByProductId() {
+        return productMetadataByProductId;
+    }
+
+    public void setProductMetadataByProductId(Collection<ProductMetadata> productMetadataByProductId) {
+        this.productMetadataByProductId = productMetadataByProductId;
+    }
+
+    @OneToMany(mappedBy = "productByProductId")
+    public Collection<ProductPriorityPromo> getProductPriorityPromosByProductId() {
+        return productPriorityPromosByProductId;
+    }
+
+    public void setProductPriorityPromosByProductId(Collection<ProductPriorityPromo> productPriorityPromosByProductId) {
+        this.productPriorityPromosByProductId = productPriorityPromosByProductId;
+    }
+
+    @OneToOne(mappedBy = "productByProductId")
+    public ProductWidget getProductWidgetByProductId() {
+        return productWidgetByProductId;
+    }
+
+    public void setProductWidgetByProductId(ProductWidget productWidgetByProductId) {
+        this.productWidgetByProductId = productWidgetByProductId;
+    }
+
+    @OneToOne(mappedBy = "productByProductId")
+    public SearchBlacklist getSearchBlacklistByProductId() {
+        return searchBlacklistByProductId;
+    }
+
+    public void setSearchBlacklistByProductId(SearchBlacklist searchBlacklistByProductId) {
+        this.searchBlacklistByProductId = searchBlacklistByProductId;
+    }
+
+    @OneToMany(mappedBy = "productByProductId")
+    public Collection<TrxSubscriberPurchase> getTrxSubscriberPurchasesByProductId() {
+        return trxSubscriberPurchasesByProductId;
+    }
+
+    public void setTrxSubscriberPurchasesByProductId(Collection<TrxSubscriberPurchase> trxSubscriberPurchasesByProductId) {
+        this.trxSubscriberPurchasesByProductId = trxSubscriberPurchasesByProductId;
+    }
+
+    @Basic
+    @Column(name = "IS_HYBRID")
+    public boolean getIsHybrid() {
+        return isHybrid;
+    }
+
+    public void setIsHybrid(boolean hybrid) {
+        isHybrid = hybrid;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_HOWTO_ID")
+    public String getProductHowToId() {
+        return productHowToId;
+    }
+
+    public void setProductHowToId(String productHowToId) {
+        this.productHowToId = productHowToId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_HOWTO_EN")
+    public String getProductHowToEn() {
+        return productHowToEn;
+    }
+
+    public void setProductHowToEn(String productHowToEn) {
+        this.productHowToEn = productHowToEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_PRICE_ID")
+    public String getPriceDescriptionId() {
+        return priceDescriptionId;
+    }
+
+    public void setPriceDescriptionId(String priceDescriptionId) {
+        this.priceDescriptionId = priceDescriptionId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_PRICE_EN")
+    public String getPriceDescriptionEn() {
+        return priceDescriptionEn;
+    }
+
+    public void setPriceDescriptionEn(String priceDescriptionEn) {
+        this.priceDescriptionEn = priceDescriptionEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_DESC_ID")
+    public String getLabelDescriptionId() {
+        return labelDescriptionId;
+    }
+
+    public void setLabelDescriptionId(String labelDescriptionId) {
+        this.labelDescriptionId = labelDescriptionId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_DESC_EN")
+    public String getLabelDescriptionEn() {
+        return labelDescriptionEn;
+    }
+
+    public void setLabelDescriptionEn(String labelDescriptionEn) {
+        this.labelDescriptionEn = labelDescriptionEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_HOWTO_ID")
+    public String getLabelHowToId() {
+        return labelHowToId;
+    }
+
+    public void setLabelHowToId(String labelHowToId) {
+        this.labelHowToId = labelHowToId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_HOWTO_EN")
+    public String getLabelHowToEn() {
+        return labelHowToEn;
+    }
+
+    public void setLabelHowToEn(String labelHowToEn) {
+        this.labelHowToEn = labelHowToEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_PRICE_ID")
+    public String getLabelPriceId() {
+        return labelPriceId;
+    }
+
+    public void setLabelPriceId(String labelPriceId) {
+        this.labelPriceId = labelPriceId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_PRICE_EN")
+    public String getLabelPriceEn() {
+        return labelPriceEn;
+    }
+
+    public void setLabelPriceEn(String labelPriceEn) {
+        this.labelPriceEn = labelPriceEn;
+    }
+    
+    @Basic
+    @Column(name = "PRODUCT_LABEL_DETAILS_EN")
+    public String getLabelDetailsEn() {
+        return labelDetailsEn;
+    }
+
+    public void setLabelDetailsEn(String labelDetailsEn) {
+        this.labelDetailsEn = labelDetailsEn;
+    }
+    
+    @Basic
+    @Column(name = "PRODUCT_LABEL_DETAILS_ID")
+    public String getLabelDetailsId() {
+        return labelDetailsId;
+    }
+
+    public void setLabelDetailsId(String labelDetailsId) {
+        this.labelDetailsId = labelDetailsId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_CALL_PLAN")
+    public String getProductCallPlan() {
+        return productCallPlan;
+    }
+
+    public void setProductCallPlan(String productCallPlan) {
+        this.productCallPlan = productCallPlan;
+    }
+
+    @Basic
+    @Column(name = "IS_FEATURED")
+    public boolean getIsFeatured() {
+        return isFeatured;
+    }
+
+    public void setIsFeatured(boolean featured) {
+        isFeatured = featured;
+    }
+
+    @Basic
+    @Column(name = "IS_PREVIEW")
+    public boolean getIsPreview() {
+        return isPreview;
+    }
+
+    public void setIsPreview(boolean isPreview) {
+        this.isPreview = isPreview;
+    }
+
+    @Basic
+    @Column(name = "IS_IPHONE")
+    public boolean getIsIphone() {
+        return isIphone;
+    }
+
+    public void setIsIphone(boolean isIphone) {
+        this.isIphone = isIphone;
+    }
+
+    @Basic
+    @Column(name = "FEATURED_ORDER")
+    public Integer getFeaturedOrder() {
+        return featuredOrder;
+    }
+
+    public void setFeaturedOrder(Integer featuredOrder) {
+        this.featuredOrder = featuredOrder;
+    }
+    
+    @Basic
+    @Column(name = "IS_INAPP_BROWSER")
+    public boolean getIsInappBrowser() {
+        return isInappBrowser;
+    }
+
+    public void setIsInappBrowser(boolean isInappBrowser) {
+        this.isInappBrowser = isInappBrowser;
+    }
+
+    @Basic
+    @Column(name = "IS_TRANSFER")
+    public boolean getIsTransfer() {
+        return isTransfer;
+    }
+
+    public void setIsTransfer(boolean isTransfer) {
+        this.isTransfer = isTransfer;
+    }
+
+    @Basic
+    @Column(name = "IS_STOPPABLE")
+    public boolean getIsStoppable() {
+        return isStoppable;
+    }
+
+    public void setIsStoppable(boolean isStoppable) {
+        this.isStoppable = isStoppable;
+    }
+
+    @Basic
+    @Column(name = "IS_SHAREABLE")
+    public boolean getIsShareable() {
+        return isShareable;
+    }
+
+    public void setIsShareable(boolean isShareable) {
+        this.isShareable = isShareable;
+    }
+    
+    @Basic
+    @Column(name = "AUTO_RENEW_FLG")
+    public Boolean getIsAutoRenewable() {
+        return isAutoRenewable;
+    }
+
+    public void setIsAutoRenewable(Boolean isAutoRenewable) {
+        this.isAutoRenewable = isAutoRenewable;
+    }
+    
+    @Basic
+    @Column(name = "RATING_TOTAL")
+    public Integer getRatingTotal() {
+        return ratingTotal;
+    }
+
+    public void setRatingTotal(Integer ratingTotal) {
+        this.ratingTotal = ratingTotal;
+    }
+
+    @Basic
+    @Column(name = "RATING_NUMBER")
+    public Integer getRatingNumber() {
+        return ratingNumber;
+    }
+
+    public void setRatingNumber(Integer ratingNumber) {
+        this.ratingNumber = ratingNumber;
+    }
+    
+        @Basic
+    @Column(name = "ACCESS_RIGHT")
+    public String getAccessRight() {
+        return accessRight;
+    }
+
+    public void setAccessRight(String accessRight) {
+        this.accessRight = accessRight;
+    }
+
+    @Basic
+    @Column(name = "SEARCH_KEYWORDS")
+    public String getSearchKeywords() {
+        return searchKeywords;
+    }
+
+    public void setSearchKeywords(String searchKeywords) {
+        this.searchKeywords = searchKeywords;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_OTHER_INFO_ID")
+    public String getProductOtherInfoId() {
+        return productOtherInfoId;
+    }
+
+    public void setProductOtherInfoId(String productOtherInfoId) {
+        this.productOtherInfoId = productOtherInfoId;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_OTHER_INFO_EN")
+    public String getProductOtherInfoEn() {
+        return productOtherInfoEn;
+    }
+
+    public void setProductOtherInfoEn(String productOtherInfoEn) {
+        this.productOtherInfoEn = productOtherInfoEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_OTHER_INFO_EN")
+    public String getLabelOtherInfoEn() {
+        return labelOtherInfoEn;
+    }
+
+    public void setLabelOtherInfoEn(String labelOtherInfoEn) {
+        this.labelOtherInfoEn = labelOtherInfoEn;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT_LABEL_OTHER_INFO_ID")
+    public String getLabelOtherInfoId() {
+        return labelOtherInfoId;
+    }
+
+    public void setLabelOtherInfoId(String labelOtherInfoId) {
+        this.labelOtherInfoId = labelOtherInfoId;
+    }
+    @Basic
+    @Column(name = "CODE")
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+    
+    
+}

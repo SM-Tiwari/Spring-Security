@@ -1,0 +1,27 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.dto.request.PurchaseRequestDto;
+import id.gnvsolution.d3.api.model.CampaignReward;
+
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 23/04/2017.
+ */
+public interface WelcomeRewardService {
+
+    void saveOrUpdateReward(CampaignReward campaignReward);
+
+    CampaignReward saveReward(PurchaseRequestDto request);
+
+    Map<String, Object> doTibcoFulfilment(CampaignReward campaignReward, PurchaseRequestDto request);
+
+    Map<String, Object> getReward(BaseRequestDto request, boolean isFull);
+
+    Map<String, Object> redeemReward(PurchaseRequestDto request);
+
+    Map<String, Object> isAlreadyRedeem(BaseRequestDto request);
+
+}

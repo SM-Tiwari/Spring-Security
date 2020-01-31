@@ -1,0 +1,35 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.StarRatingDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Nov 2, 2017 2:34:21 PM
+ *
+ */
+public class StarRatingDto extends BaseRequestDto {
+
+    private String productId;
+    private Integer rating;
+
+    public StarRatingDto() {
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+}

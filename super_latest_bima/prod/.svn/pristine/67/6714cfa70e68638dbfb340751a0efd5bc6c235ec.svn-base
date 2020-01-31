@@ -1,0 +1,101 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.HomeScreenRequestDto;
+import id.gnvsolution.d3.api.dto.response.HomescreenProfileDto;
+import id.gnvsolution.d3.api.helper.enums.AppDefaultValues;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.CustomerUiTypeService;
+import id.gnvsolution.d3.api.service.HomeScreenProfileService;
+import id.gnvsolution.d3.api.service.ProductService;
+import id.gnvsolution.d3.api.service.SubscriberWhitelistService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import java.security.SignatureException;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 06/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/homescreen")
+public class HomeController extends BaseController {
+
+	 private final ProductService productService;
+	    private final SubscriberWhitelistService subscriberWhitelistService;
+	    private final CustomerUiTypeService customerUiTypeService;
+	    public static final Logger LOGGER = LoggerFactory.getLogger(HomeController.class);
+		@Autowired
+		private TokenExtractor tokenExtractor;
+	    private final HomeScreenProfileService homeScreenProfileService;
+
+	    @Autowired
+	    public HomeController(ProductService productService, SubscriberWhitelistService subscriberWhitelistService, CustomerUiTypeService customerUiTypeService, HomeScreenProfileService homeScreenProfileService){
+	        this.productService = productService;
+	        this.subscriberWhitelistService = subscriberWhitelistService;
+	        this.customerUiTypeService = customerUiTypeService;
+	        this.homeScreenProfileService = homeScreenProfileService;
+	    }
+
+	    @RequestMapping(value = "/home", method = RequestMethod.POST)
+	    public Object home(@RequestBody HomeScreenRequestDto request) {
+	    	LOGGER.info("Inside HomeController in home method::::::::::::");
+	    	return new ServiceResult(StatusCode.SUCCESS, productService.getHomeScreen(request, request.getLanguage(), request.getCallPlan(), subscriberWhitelistService.isWhitelist(request.getMsisdn()), accessRight(request.getImei()), customerUiTypeService.isFull(request.getIsFull())), "Success");
+	        //return productService.getHomeScreen(request, request.getLanguage(), request.getCallPlan(), subscriberWhitelistService.isWhitelist(request.getMsisdn()), accessRight(request.getImei()), customerUiTypeService.isFull(request.getIsFull()));
+	    }
+
+	    @RequestMapping(value = "/home-banner-all", method = RequestMethod.GET)
+	    public Object homeBannerAll(@ModelAttribute HomeScreenRequestDto request) {
+	    	LOGGER.info("Inside HomeController in homeBannerAll method::::::::::::");
+	    	return new ServiceResult(StatusCode.SUCCESS, productService.getHomeScreenBannerAll(request, request.getLanguage(), request.getPage(), request.getCallPlan(), subscriberWhitelistService.isWhitelist(request.getMsisdn()), accessRight(request.getImei()), customerUiTypeService.isFull(request.getIsFull())), "Success");
+	      //  return productService.getHomeScreenBannerAll(request, request.getLanguage(), request.getPage(), request.getCallPlan(), subscriberWhitelistService.isWhitelist(request.getMsisdn()), accessRight(request.getImei()), customerUiTypeService.isFull(request.getIsFull()));
+	    }
+	    
+	    
+	    
+	    
+	    @RequestMapping(value = "/profile", method = RequestMethod.POST)
+	    public Object profile(@RequestBody HomeScreenRequestDto request,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+	    	LOGGER.info("Inside HomeController in profile method::::::::::::");
+	    	try {
+				authToken = tokenExtractor.extract(authToken);
+				String msisdn=AppUtils.removeCountryCode(request.getMsisdn(), AppDefaultValues.COUNTRY_CODE);
+				request.setMsisdn(msisdn);
+				TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+				if (tokenDetails != null &&tokenDetails.getMsisdn().trim().equalsIgnoreCase(request.getMsisdn())) {
+					return new ServiceResult(StatusCode.SUCCESS, homeScreenProfileService.getHomescreenProfileDto(request), "Success");
+				} else {
+					return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+				}
+			} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+				LOGGER.error("Inside HomeController in profile method:::::: " + ex.getMessage());
+				return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+			} catch (ExpiredJwtException expiredEx) {
+				System.out.println("----ExpiredJwtException-----------");
+				LOGGER.error("Inside HomeController in profile method::::::" + expiredEx.getMessage());
+				return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+			} catch (Exception expiredEx) {
+				LOGGER.error("Inside HomeController in profile method::::::" + expiredEx.getMessage());
+				return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+			}
+	    
+	      //  return homeScreenProfileService.getHomescreenProfileDto(request);
+	    }
+}

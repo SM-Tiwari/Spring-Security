@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gnv.d3.fcm.scheduler.mapper.NotificationPushMapper" >
+  <resultMap id="BaseResultMap" type="com.gnv.d3.fcm.scheduler.bean.NotificationPush" >
+    <id column="UUID" property="uuid" jdbcType="VARCHAR" />
+    <result column="PUSH_MESSAGE" property="pushMessage" jdbcType="VARCHAR" />
+    <result column="GCM_URL" property="gcmUrl" jdbcType="VARCHAR" />
+    <result column="APN_URL" property="apnUrl" jdbcType="VARCHAR" />
+    <result column="APN_PAYLOAD" property="apnPayload" jdbcType="VARCHAR" />
+    <result column="GCM_PAYLOAD" property="gcmPayload" jdbcType="VARCHAR" />
+    <result column="IS_SEND" property="isSend" jdbcType="DECIMAL" />
+    <result column="LINK" property="link" jdbcType="VARCHAR" />
+    <result column="ICON" property="icon" jdbcType="VARCHAR" />
+    <result column="TOP_BANNER" property="topBanner" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    UUID, PUSH_MESSAGE, GCM_URL, APN_URL, APN_PAYLOAD, GCM_PAYLOAD, IS_SEND, LINK, ICON, TOP_BANNER
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPushExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from NOTIFICATION_PUSH
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from NOTIFICATION_PUSH
+    where UUID = #{uuid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from NOTIFICATION_PUSH
+    where UUID = #{uuid,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPushExample" >
+    delete from NOTIFICATION_PUSH
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPush" >
+    insert into NOTIFICATION_PUSH (UUID, PUSH_MESSAGE, GCM_URL, 
+      APN_URL, APN_PAYLOAD, GCM_PAYLOAD, 
+      IS_SEND, LINK, ICON, TOP_BANNER)
+    values (#{uuid,jdbcType=VARCHAR}, #{pushMessage,jdbcType=VARCHAR}, #{gcmUrl,jdbcType=VARCHAR}, 
+      #{apnUrl,jdbcType=VARCHAR}, #{apnPayload,jdbcType=VARCHAR}, #{gcmPayload,jdbcType=VARCHAR}, 
+      #{isSend,jdbcType=DECIMAL}, #{link,jdbcType=VARCHAR}, #{icon,jdbcType=VARCHAR}, #{topBanner,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPush" >
+    insert into NOTIFICATION_PUSH
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="uuid != null" >
+        UUID,
+      </if>
+      <if test="pushMessage != null" >
+        PUSH_MESSAGE,
+      </if>
+      <if test="gcmUrl != null" >
+        GCM_URL,
+      </if>
+      <if test="apnUrl != null" >
+        APN_URL,
+      </if>
+      <if test="apnPayload != null" >
+        APN_PAYLOAD,
+      </if>
+      <if test="gcmPayload != null" >
+        GCM_PAYLOAD,
+      </if>
+      <if test="isSend != null" >
+        IS_SEND,
+      </if>
+      <if test="link != null" >
+        LINK,
+      </if>
+      <if test="link != null" >
+        ICON,
+      </if>
+      <if test="link != null" >
+        TOP_BANNER,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="uuid != null" >
+        #{uuid,jdbcType=VARCHAR},
+      </if>
+      <if test="pushMessage != null" >
+        #{pushMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="gcmUrl != null" >
+        #{gcmUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="apnUrl != null" >
+        #{apnUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="apnPayload != null" >
+        #{apnPayload,jdbcType=VARCHAR},
+      </if>
+      <if test="gcmPayload != null" >
+        #{gcmPayload,jdbcType=VARCHAR},
+      </if>
+      <if test="isSend != null" >
+        #{isSend,jdbcType=DECIMAL},
+      </if>
+      <if test="link != null" >
+        #{link,jdbcType=VARCHAR},
+      </if>
+      <if test="link != null" >
+        #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="link != null" >
+        #{topBanner,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPushExample" resultType="java.lang.Integer" >
+    select count(*) from NOTIFICATION_PUSH
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update NOTIFICATION_PUSH
+    <set >
+      <if test="record.uuid != null" >
+        UUID = #{record.uuid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushMessage != null" >
+        PUSH_MESSAGE = #{record.pushMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gcmUrl != null" >
+        GCM_URL = #{record.gcmUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apnUrl != null" >
+        APN_URL = #{record.apnUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apnPayload != null" >
+        APN_PAYLOAD = #{record.apnPayload,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gcmPayload != null" >
+        GCM_PAYLOAD = #{record.gcmPayload,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isSend != null" >
+        IS_SEND = #{record.isSend,jdbcType=DECIMAL},
+      </if>
+      <if test="record.link != null" >
+        LINK = #{record.link,jdbcType=VARCHAR},
+      </if>
+      <if test="record.link != null" >
+        ICON = #{record.icon,jdbcType=VARCHAR},
+      </if>
+      <if test="record.link != null" >
+        TOP_BANNER = #{record.topBanner,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update NOTIFICATION_PUSH
+    set UUID = #{record.uuid,jdbcType=VARCHAR},
+      PUSH_MESSAGE = #{record.pushMessage,jdbcType=VARCHAR},
+      GCM_URL = #{record.gcmUrl,jdbcType=VARCHAR},
+      APN_URL = #{record.apnUrl,jdbcType=VARCHAR},
+      APN_PAYLOAD = #{record.apnPayload,jdbcType=VARCHAR},
+      GCM_PAYLOAD = #{record.gcmPayload,jdbcType=VARCHAR},
+      IS_SEND = #{record.isSend,jdbcType=DECIMAL},
+      LINK = #{record.link,jdbcType=VARCHAR},
+      ICON = #{record.icon,jdbcType=VARCHAR},
+      TOP_BANNER = #{record.topBanner,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPush" >
+    update NOTIFICATION_PUSH
+    <set >
+      <if test="pushMessage != null" >
+        PUSH_MESSAGE = #{pushMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="gcmUrl != null" >
+        GCM_URL = #{gcmUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="apnUrl != null" >
+        APN_URL = #{apnUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="apnPayload != null" >
+        APN_PAYLOAD = #{apnPayload,jdbcType=VARCHAR},
+      </if>
+      <if test="gcmPayload != null" >
+        GCM_PAYLOAD = #{gcmPayload,jdbcType=VARCHAR},
+      </if>
+      <if test="isSend != null" >
+        IS_SEND = #{isSend,jdbcType=DECIMAL},
+      </if>
+      <if test="link != null" >
+        LINK = #{link,jdbcType=VARCHAR},
+      </if>
+      <if test="link != null" >
+        ICON = #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="link != null" >
+        TOP_BANNER = #{topBanner,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where UUID = #{uuid,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPush" >
+    update NOTIFICATION_PUSH
+    set PUSH_MESSAGE = #{pushMessage,jdbcType=VARCHAR},
+      GCM_URL = #{gcmUrl,jdbcType=VARCHAR},
+      APN_URL = #{apnUrl,jdbcType=VARCHAR},
+      APN_PAYLOAD = #{apnPayload,jdbcType=VARCHAR},
+      GCM_PAYLOAD = #{gcmPayload,jdbcType=VARCHAR},
+      IS_SEND = #{isSend,jdbcType=DECIMAL},
+      LINK = #{link,jdbcType=VARCHAR},
+      ICON = #{icon,jdbcType=VARCHAR},
+      TOP_BANNER = #{topBanner,jdbcType=VARCHAR}
+    where UUID = #{uuid,jdbcType=VARCHAR}
+  </update>
+  <select resultMap="BaseResultMap" parameterType="com.gnv.d3.fcm.scheduler.bean.NotificationPushExample" id="selectByExampleWithRowbounds" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from NOTIFICATION_PUSH
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    FETCH FIRST 1000 ROWS ONLY 
+  </select>
+</mapper>

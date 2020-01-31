@@ -1,0 +1,38 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.model.Campaign;
+import id.gnvsolution.d3.api.model.CampaignReward;
+
+import java.util.List;
+
+public interface CampaignService {
+
+    boolean isAlreadyRedeemWelcomeReward(String msisdn, String imei);
+
+    boolean isAlreadyRedeemOrCancelWelcomeReward(String msisdn, String imei);
+
+    boolean isCampaignStillActive(String campaignId);
+
+    boolean isCampaignStillEligible(String campaignId, String msisdn, boolean isRedeem);
+
+    boolean isMsisdnWhitelisted(String campaignId, String msisdn);
+
+    boolean isMsisdnWhitelistedLimit(String campaignId, String msisdn, int limit);
+
+    long countCampaignReward(String campaignId, String msisdn, String imei, Short status);
+
+    Campaign getCampaign(String campaignId);
+
+    Campaign getCampaignWelcomeReward(String msisdn);
+
+    CampaignReward getCampaignReward(String campaignId, String msisdn, short claimStatus);
+
+    List<Campaign> getCampaignRfu(String msisdn);
+
+    List<Campaign> getCampaignRfuAll(String msisdn);
+
+    List<Campaign> getCampaignRfuCanceled(String msisdn);
+
+    List<Campaign> getCampaignShake(String msisdn);
+
+}

@@ -1,0 +1,53 @@
+package id.gnvsolution.d3.api.utils;
+
+import com.monitorjbl.json.JsonResult;
+import com.monitorjbl.json.JsonView;
+import com.monitorjbl.json.Match;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by Arie
+ * on 23/04/2017.
+ */
+public class JSONResultParser<T> {
+    private final JsonView<T> with;
+    private JsonResult json = JsonResult.instance();
+    Map<Class, Match> maps = new HashMap<>();
+
+    public JSONResultParser(T object) {
+        with = JsonView.with(object);
+    }
+
+    public JSONResultParser excludes(Class clazz, String... fields) {
+        Match match = maps.computeIfAbsent(clazz, k -> Match.match());
+        match.exclude(fields);
+        return this;
+    }
+
+    public JSONResultParser includes(Class clazz, String... fields) {
+        Match match = maps.computeIfAbsent(clazz, k -> Match.match());
+        match.include(fields);
+        return this;
+    }
+
+    public JSONResultParser excludeAll(Class clazz) {
+        Match match = maps.computeIfAbsent(clazz, k -> Match.match());
+        match.exclude("*");
+        return this;
+    }
+
+    public JSONResultParser includeAll(Class clazz) {
+        Match match = maps.computeIfAbsent(clazz, k -> Match.match());
+        match.include("*");
+        return this;
+    }
+
+    public T build() {
+        for (Map.Entry<Class, Match> classMatchEntry : maps.entrySet()) {
+            with.onClass(classMatchEntry.getKey(), classMatchEntry.getValue());
+        }
+        return json.use(with).returnValue();
+    }
+}

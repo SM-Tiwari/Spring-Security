@@ -1,0 +1,70 @@
+package id.gnvsolution.d3.api.dto.request;
+
+public class CmsCampaignOfferDto {
+
+	private String offerDescription;
+	private String offerID;
+	private String offerName;
+	private String offerStartDate;
+	private String offerEndDate;
+	private String offerValidity;
+	private String offerStatus;
+
+	
+	public String getOfferDescription() {
+		return offerDescription;
+	}
+
+	public void setOfferDescription(String offerDescription) {
+		this.offerDescription = offerDescription;
+	}
+
+	public String getOfferID() {
+		return offerID;
+	}
+
+	public void setOfferID(String offerID) {
+		this.offerID = offerID;
+	}
+
+	public String getOfferName() {
+		return offerName;
+	}
+
+	public void setOfferName(String offerName) {
+		this.offerName = offerName;
+	}
+
+	public String getOfferStartDate() {
+		return offerStartDate;
+	}
+
+	public void setOfferStartDate(String offerStartDate) {
+		this.offerStartDate = offerStartDate;
+	}
+
+	public String getOfferEndDate() {
+		return offerEndDate;
+	}
+
+	public void setOfferEndDate(String offerEndDate) {
+		this.offerEndDate = offerEndDate;
+	}
+
+	public String getOfferValidity() {
+		return offerValidity;
+	}
+
+	public void setOfferValidity(String offerValidity) {
+		this.offerValidity = offerValidity;
+	}
+
+	public String getOfferStatus() {
+		return offerStatus;
+	}
+
+	public void setOfferStatus(String offerStatus) {
+		this.offerStatus = offerStatus;
+	}
+
+}

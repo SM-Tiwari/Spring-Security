@@ -1,0 +1,28 @@
+package id.gnvsolution.d3.api.utils;
+
+import id.gnvsolution.d3.api.Constants;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
+public class H {
+
+    /**
+     * @apiNote use for format the string money to given currency format
+     */
+    public static String CF(String money, String language) {
+        if (language.equals(Constants.LANG_ID)) {
+            return "Rp " + NumberFormat.getInstance(Locale.GERMAN).format(Long.parseLong(money));
+        } else {
+            return "IDR " + NumberFormat.getInstance(Locale.US).format(Long.parseLong(money));
+        }
+    }
+
+    /**
+     * @apiNote use for which string should show based on language
+     */
+    public static String L(String language, String id, String en) {
+        return language.equals(Constants.LANG_ID) ? id : en;
+    }
+
+}

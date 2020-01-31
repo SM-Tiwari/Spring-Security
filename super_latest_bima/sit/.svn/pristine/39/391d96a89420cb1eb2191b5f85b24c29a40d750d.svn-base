@@ -1,0 +1,11 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+
+import java.util.Map;
+
+public interface HybridService {
+
+    Map<String, Object> getHybridInvoice(BaseRequestDto request) throws Exception;
+
+}

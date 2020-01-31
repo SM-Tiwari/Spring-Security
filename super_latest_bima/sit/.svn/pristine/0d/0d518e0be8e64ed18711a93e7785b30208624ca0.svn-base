@@ -1,0 +1,46 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.NSNResponseDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 25, 2017 4:57:51 PM
+ *
+ */
+public class NSNResponseDto implements DTO {
+
+    private Boolean status;
+    private String message;
+    private String downloadUrl;
+
+    public NSNResponseDto() {
+    }
+
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(Boolean status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getDownloadUrl() {
+        return downloadUrl;
+    }
+
+    public void setDownloadUrl(String downloadUrl) {
+        this.downloadUrl = downloadUrl;
+    }
+}

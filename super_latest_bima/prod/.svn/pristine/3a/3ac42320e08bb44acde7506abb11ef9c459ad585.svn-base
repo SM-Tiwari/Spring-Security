@@ -1,0 +1,53 @@
+package id.gnvsolution.d3.api.dto.response;
+
+/**
+ * Created by rips on 4/23/17.
+ */
+public class MenuDto {
+
+    private int id;
+    private String name;
+    private String icon;
+    private String iconSelected;
+
+    public MenuDto(){}
+
+    public MenuDto(int id, String name, String icon, String iconSelected) {
+        this.setId(id);
+        this.setName(name);
+        this.setIcon(icon);
+        this.setIconSelected(iconSelected);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public String getIconSelected() {
+        return iconSelected;
+    }
+
+    public void setIconSelected(String iconSelected) {
+        this.iconSelected = iconSelected;
+    }
+}

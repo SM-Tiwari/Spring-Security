@@ -1,0 +1,51 @@
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+							http://www.springframework.org/schema/context 
+							http://www.springframework.org/schema/context/spring-context.xsd 
+							http://www.springframework.org/schema/mvc 
+							http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    <mvc:annotation-driven/>
+    
+    <!--swagger api-->
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>
+    <mvc:resources mapping="/swagger-ui.html" location="classpath:/META-INF/resources/swagger-ui.html"/>
+    <mvc:resources mapping="/.well-known/**" location="/.well-known/"/>
+    
+    <context:component-scan base-package="id.gnvsolution.d3.api"/>
+    <context:component-scan base-package="id.gnvsolution.d3.api.component"/>
+    <context:component-scan base-package="id.gnvsolution.d3.api.controller"/>
+    <context:component-scan base-package="id.gnvsolution.d3.api.filter"/>
+    
+    <context:property-placeholder location="classpath:/app.properties" ignore-unresolvable="true"/>
+    
+    <mvc:resources mapping="/static/**" location="/static/assets/"  
+	cache-period="31556926"/>
+    <import resource="classpath*:applicationContext-service.xml"/>
+    
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+          p:prefix="/WEB-INF/jsp/"
+          p:suffix=".jsp" />
+
+    <bean id="jsonViewSupport" class="com.monitorjbl.json.JsonViewSupportFactoryBean"/>
+
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="10.101.33.8"/>
+        <property name="port" value="25"/>
+        <property name="username" value="odp.notification"/>
+        <property name="password" value="P@ssw0rd"/>
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.transport.protocol">smtp</prop>
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.starttls.enable">false</prop>
+                <prop key="mail.debug">true</prop>
+            </props>
+        </property>
+    </bean>
+</beans>

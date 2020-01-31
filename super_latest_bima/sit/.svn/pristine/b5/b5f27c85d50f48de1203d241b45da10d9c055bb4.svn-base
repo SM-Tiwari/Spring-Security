@@ -1,0 +1,221 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.io.IOException;
+import java.util.Date;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.jsmpp.InvalidResponseException;
+import org.jsmpp.PDUException;
+import org.jsmpp.bean.Alphabet;
+import org.jsmpp.bean.BindType;
+import org.jsmpp.bean.ESMClass;
+import org.jsmpp.bean.GeneralDataCoding;
+import org.jsmpp.bean.MessageClass;
+import org.jsmpp.bean.NumberingPlanIndicator;
+import org.jsmpp.bean.RegisteredDelivery;
+import org.jsmpp.bean.SMSCDeliveryReceipt;
+import org.jsmpp.bean.TypeOfNumber;
+import org.jsmpp.extra.NegativeResponseException;
+import org.jsmpp.extra.ResponseTimeoutException;
+import org.jsmpp.extra.SessionState;
+import org.jsmpp.session.BindParameter;
+import org.jsmpp.session.SMPPSession;
+
+import org.jsmpp.session.SessionStateListener;
+import org.jsmpp.util.AbsoluteTimeFormatter;
+import org.jsmpp.util.TimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.SmppService;
+import id.gnvsolution.d3.api.utils.SmppConstant;
+
+@Service
+public class SmppServiceImpl extends BaseService implements SmppService, SessionStateListener{
+
+	 @Autowired
+	 private AppConfigService applicationConfigurationService;
+	
+	 private static final Logger LOGGER = LoggerFactory.getLogger(SmppServiceImpl.class);
+	
+	 private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
+	 
+	 
+	public static final int RECONNECT_INTERVAL = 60;
+	public static final int MAX_RECONNECT_ATTEMPT = 10;
+	 SMPPSession session = new SMPPSession();
+	
+	public String sendSms(String MSISDN,String otp) {
+		 String messageId = "0";
+		try {
+			if (session == null || session.getSessionState().equals(SessionState.CLOSED)) {
+				System.out.println("session.getSessionState() :::: " + session.getSessionState());
+				session.unbindAndClose();
+				session = new SMPPSession();
+				reconnect(1000L);
+			} else {
+			byte[] message = otp.getBytes("UTF-16BE");
+	    	String SourceAdd = applicationConfigurationService.get("SOURCEMSISDN", "Bima");//SmppConstant.SOURCEMSISDN;
+			
+	    	 messageId = session.submitShortMessage("CMT",
+	                 TypeOfNumber.NATIONAL, NumberingPlanIndicator.ISDN, SourceAdd,
+	                 TypeOfNumber.NATIONAL, NumberingPlanIndicator.ISDN, MSISDN,
+	                 new ESMClass(), (byte)0, (byte)1,  TIME_FORMATTER.format(new Date()), null,
+	                 new RegisteredDelivery(SMSCDeliveryReceipt.DEFAULT), (byte)0, new GeneralDataCoding(Alphabet.ALPHA_UCS2, MessageClass.CLASS1, false), (byte)0,
+	                 message);
+            LOGGER.info("Message submitted, message_id is {}", messageId);
+			}
+        } catch (PDUException e) {
+            // Invalid PDU parameter
+            LOGGER.error("Invalid PDU parameter", e);
+        } catch (ResponseTimeoutException e) {
+            // Response timeout
+            LOGGER.error("Response timeout", e);
+        } catch (InvalidResponseException e) {
+            // Invalid response
+            LOGGER.error("Receive invalid response", e);
+        } catch (NegativeResponseException e) {
+            // Receiving negative response (non-zero command_status)
+            LOGGER.error("Receive negative response, e");
+        } catch (IOException e) {
+            LOGGER.error("IO error occured", e);
+        }
+		return messageId;
+
+	}
+	
+	
+	
+   @PostConstruct
+	public void Connect() {
+		System.out.println("******@PostConstruct");
+		String systemId = applicationConfigurationService.get("USERNAME", "selfcare"); //SmppConstant.USERNAME;
+    	String sysPass = applicationConfigurationService.get("PASSWORD", "S3lFc@re");//SmppConstant.PASSWORD;
+    	String host = applicationConfigurationService.get("IP", "10.6.2.33");//SmppConstant.IP;
+    	Integer port = Integer.parseInt(applicationConfigurationService.get("PORT", "2775"));//SmppConstant.PORT;
+       
+        try {
+            LOGGER.info("Connect and bind to {} port {}", host, port);
+            System.out.println("Connect and bind to {} port {}"+ host+"   "+ port);
+            String systemId_name = session.connectAndBind(host, port, new BindParameter(BindType.BIND_TRX,systemId,sysPass, "smpp", TypeOfNumber.UNKNOWN, NumberingPlanIndicator.INTERNET, null));
+            LOGGER.info("Connected with SMSC with system id {}", systemId_name);
+            System.out.println("Connected with SMSC with system id {}"+ systemId_name);
+            try { Thread.sleep(10000); } catch (InterruptedException e) {}
+        } catch (IOException e) {
+            // Failed connect and bind to SMSC
+            LOGGER.error("Failed connect and bind to host", e);
+            System.out.println("Failed connect and bind to host" + e);
+        }
+        
+    }
+	private void reconnect(final long timeInMillis) {
+		new Thread() {
+			@Override
+			public void run() {
+				LOGGER.info( "#recoverSmppConnection >> Scheduled to reconnect after " + timeInMillis + " millis");
+				
+				try {
+					Thread.sleep(timeInMillis);
+				} catch (InterruptedException e) {
+				}
+				int attempt = 0;
+				
+				while ( (session == null || session.getSessionState().equals(SessionState.CLOSED)) && attempt < MAX_RECONNECT_ATTEMPT) {
+					attempt++;
+
+					try {
+						LOGGER.info( "#recoverSmppConnection >> Reconnecting attempt #" + (attempt) + "...");
+						Connect();
+					} catch (Exception e) {
+						LOGGER.error("#recoverSmppConnection >> Failed to recover SMPP connection to " , e);
+						// wait for a second
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException ee) {}
+					}
+
+				}
+				if (session == null || session.getSessionState().equals(SessionState.CLOSED)) {
+					LOGGER.error("#recoverSmppConnection >> Failed to recover SMPP connection to  after " + attempt + " attempts");
+				}
+				attempt = 0; //reset attempt counter
+			}
+		}.start();
+	}
+	@PreDestroy
+	public void cleanUp() {
+
+		LOGGER.info("=============cleanUp the conection========= cleanUp() ");
+
+		if (session != null) {
+			LOGGER.info("=============Unbinding from smsc and release conection========= unbindAndClose() ");
+			session.unbindAndClose();
+			session = null;
+			LOGGER.info("=============Unbind Successfully======== ");
+		}
+	}
+	@Override
+	public void onStateChange(SessionState newState, SessionState oldState, Object source) {
+		LOGGER.debug("Inside SmppService method onStateChange");
+		if (newState.equals(SessionState.CLOSED)) {
+			LOGGER.info("SMPP Session closed, will try to reconnect.");
+			reconnect(RECONNECT_INTERVAL * 1000L);
+		}
+	}
+	
+	//========================= OLD SMPP Client
+	/*@Override
+	public String sendSms(String MSISDN,String otp) {  	
+    	
+    	String UserNanme = SmppConstant.USERNAME;
+    	String UserPass = SmppConstant.PASSWORD;
+    	String IP = SmppConstant.IP;
+    	Integer Port = SmppConstant.PORT;
+    	String SourceAdd = SmppConstant.SOURCEMSISDN;
+    	
+    	
+        // bind param instance is created with parameters for binding with SMSC
+        BindParameter bP = new BindParameter( BindType.BIND_TX, UserNanme, UserPass,"smpp",TypeOfNumber.UNKNOWN, NumberingPlanIndicator.INTERNET,null);
+
+        SMPPSession smppSession = null;
+        String msgId ="0";
+
+        try
+        {
+            // smpp session is created using the bindparam and the smsc ip address/port
+            smppSession = new SMPPSession(IP, Port, bP);
+        }
+        catch (Exception e1)
+        {
+            e1.printStackTrace();
+        }
+        
+        // Sample TextMessage
+        String message = otp;
+
+        GeneralDataCoding dataCoding = new GeneralDataCoding(Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false);
+
+        ESMClass esmClass = new ESMClass();
+
+        try
+        {
+            // submitShortMessage(..) method is parametrized with necessary
+            // elements of SMPP submit_sm PDU to send a short message
+            // the message length for short message is 140
+            msgId =  smppSession.submitShortMessage("CMT",TypeOfNumber.NATIONAL,  NumberingPlanIndicator.ISDN,
+                    SourceAdd, TypeOfNumber.NATIONAL, NumberingPlanIndicator.ISDN,  MSISDN,esmClass,(byte) 0,(byte) 0,TIME_FORMATTER.format(new Date()), null,
+                    new RegisteredDelivery(SMSCDeliveryReceipt.DEFAULT),(byte) 0,dataCoding,(byte) 0, message.getBytes());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+		return msgId;
+	}
+*/
+}

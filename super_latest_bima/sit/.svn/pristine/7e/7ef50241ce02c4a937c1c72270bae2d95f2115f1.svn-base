@@ -1,0 +1,845 @@
+package id.gnvsolution.d3.api.controller;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContextUtils;
+import org.apache.http.client.config.CookieSpecs;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.Bank;
+import com.gnv.vnm.selfcare.core.model.FinalResponse;
+import com.gnv.vnm.selfcare.core.model.NapasErrorCode;
+import com.gnv.vnm.selfcare.core.model.PGCallbackResponse;
+import com.gnv.vnm.selfcare.core.model.PGInitResponce;
+import com.gnv.vnm.selfcare.core.model.PGResponseCode;
+import com.gnv.vnm.selfcare.core.model.RedirectResponse;
+import com.gnv.vnm.selfcare.core.model.Responce;
+import com.gnv.vnm.selfcare.core.model.ServiceResult;
+import com.gnv.vnm.selfcare.core.model.ServiceResult.StatusCode;
+
+import id.gnvsolution.d3.api.helper.OrderIdNotFoundException;
+import id.gnvsolution.d3.api.helper.TransactionInProgressException;
+import id.gnvsolution.d3.api.helper.TransactionNotFoundException;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.helper.enums.ClientAppId;
+import id.gnvsolution.d3.api.helper.enums.TransactionStatus;
+import id.gnvsolution.d3.api.helper.enums.TransactionType;
+import id.gnvsolution.d3.api.security.securityutil.JWTConstant;
+import id.gnvsolution.d3.api.security.securityutil.TokenDetails;
+import id.gnvsolution.d3.api.security.securityutil.TokenExtractor;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.service.NapasPaymentService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import org.apache.http.NameValuePair;
+
+/**
+ * This rest controller is used for handling requests related to
+ * NapasPaymentGateWay
+ * 
+ */
+
+
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/napas")
+public class NapasPaymentGateWay extends BaseController {
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(NapasPaymentGateWay.class);
+	@Autowired
+	private NapasPaymentService napasPaymentService;
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+	
+	@Autowired
+	private TokenExtractor tokenExtractor;
+
+	static final String NAPAS_SUCCESS_RESP = "0";
+
+	static final String INIT_PG_VIEW = "InitPayment";
+	static final String PG_RESP_VIEW = "PaymentResponse";
+	static final String PAYMENT_RESULT = "PaymentResult";
+	static final String IMG_STRING = "_r/images/";
+
+	@Autowired
+	protected MessageSource messageSource;
+
+	@Value("${timestamp}")
+	private String timestamp;
+
+	@Value("${scm}")
+	private String scm;
+
+	/*
+	 * @Autowired public NapasPaymentGateWay(NapasPaymentService
+	 * napasPaymentService) { this.napasPaymentService = napasPaymentService; }
+	 */
+
+	@Autowired
+	private ExternalPayment externalPayment;
+
+	/*@RequestMapping(value = "/trx/initpayment", method = RequestMethod.GET)
+	public Object initPayment(@RequestParam Map<String, String> params,
+			@RequestHeader HttpHeaders httpHeaders, HttpServletRequest request, ModelMap modelMap,
+
+			@RequestParam(required = true) String AMOUNT, @RequestParam(required = true) String MSISDN,
+			@RequestParam(required = true) String trxType, @RequestParam(required = false) String BILLAMOUNT,@RequestParam(required = false) String loginmsisdn,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.debug("Inside NapasPaymentServiceImpl in initPayment method::::::::::::");
+		
+		try {
+			
+			authToken = tokenExtractor.extract(authToken);
+			MSISDN= AppUtils.removeCountryCode(MSISDN, AppDefaultValues.COUNTRY_CODE);
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+		    MSISDN=AppUtils.removeCountryCode(MSISDN, AppDefaultValues.COUNTRY_CODE);
+			
+			if (tokenDetails != null) {
+				String transactionId = null;
+				PGInitResponce responce = new PGInitResponce();
+				System.out.println("----init payment------ ");
+				transactionId = napasPaymentService.initTransaction(trxType, MSISDN, AMOUNT, BILLAMOUNT, modelMap, params,
+						httpHeaders, request,loginmsisdn);
+				if (transactionId.trim().isEmpty()) {
+					transactionId = null;
+				} else {
+					responce.setOrderId(transactionId);
+					responce.setTransecId(transactionId);
+				}
+				return new ServiceResult(StatusCode.SUCCESS, responce, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+		String transactionId = null;
+		PGInitResponce responce = new PGInitResponce();
+		System.out.println("----init payment------ ");
+		transactionId = napasPaymentService.initTransaction(trxType, MSISDN, AMOUNT, BILLAMOUNT, modelMap, params,
+				httpHeaders, request);
+		if (transactionId.trim().isEmpty()) {
+			transactionId = null;
+		} else {
+			responce.setOrderId(transactionId);
+			responce.setTransecId(transactionId);
+		}
+		return transactionId == null ? new ResponseEntity<>(responce, HttpStatus.INTERNAL_SERVER_ERROR)
+				: new ResponseEntity<>(responce, HttpStatus.OK);
+	}
+	*/
+	
+	@RequestMapping(value = "/trx/initpayment", method = RequestMethod.GET)
+	public Object initPayment(@RequestParam Map<String, String> params,
+			@RequestHeader HttpHeaders httpHeaders, HttpServletRequest request, ModelMap modelMap,
+			@RequestParam(required = true) String AMOUNT, @RequestParam(required = false) String Actual_AMOUNT, @RequestParam(required = true) String MSISDN,
+			@RequestParam(required = true) String trxType, @RequestParam(required = false) String BILLAMOUNT,@RequestParam(required = false) String loginmsisdn,@RequestParam(required = false) String DISCOUNT,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.debug("Inside NapasPaymentServiceImpl in initPayment method::::::::::::");
+		
+		try {
+			
+			//authToken = null;
+			authToken = tokenExtractor.extract(authToken);
+			System.out.println("authToken _____________" + authToken);
+			//TokenDetails tokenDetails = null;
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			System.out.println("token details::::"+ tokenDetails);
+		    MSISDN=AppUtils.removeCountryCode(MSISDN, AppDefaultValues.COUNTRY_CODE);
+		    System.out.println("Msisdn details::::"+ MSISDN);
+			if (tokenDetails!= null && tokenDetails.getMsisdn().trim().equalsIgnoreCase(loginmsisdn)) {
+				System.out.println("if block details::::"+ loginmsisdn);
+				String transactionId = null;
+				PGInitResponce responce = new PGInitResponce();
+				System.out.println("----init payment------ ");
+				transactionId = napasPaymentService.initTransaction(trxType, MSISDN, AMOUNT, Actual_AMOUNT, BILLAMOUNT,
+						modelMap, params, httpHeaders, request, loginmsisdn, DISCOUNT);
+				if (transactionId.trim().isEmpty()) {
+					transactionId = null;
+				} else {
+					responce.setOrderId(transactionId);
+					responce.setTransecId(transactionId);
+				}
+				return new ServiceResult(StatusCode.SUCCESS, responce, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+		/*String transactionId = null;
+		PGInitResponce responce = new PGInitResponce();
+		System.out.println("----init payment------ ");
+		transactionId = napasPaymentService.initTransaction(trxType, MSISDN, AMOUNT, BILLAMOUNT, modelMap, params,
+				httpHeaders, request);
+		if (transactionId.trim().isEmpty()) {
+			transactionId = null;
+		} else {
+			responce.setOrderId(transactionId);
+			responce.setTransecId(transactionId);
+		}
+		return transactionId == null ? new ResponseEntity<>(responce, HttpStatus.INTERNAL_SERVER_ERROR)
+				: new ResponseEntity<>(responce, HttpStatus.OK);*/
+	}
+	
+	
+	//added by siddhesh 13-01-2020
+	@RequestMapping(value = "/trx/jwtinitpayment", method = RequestMethod.GET)
+	public Object jwtInitPayment(@RequestParam Map<String, String> params,
+			@RequestHeader HttpHeaders httpHeaders, HttpServletRequest request, ModelMap modelMap,
+			@RequestParam(required = true) String AMOUNT, @RequestParam(required = false) String Actual_AMOUNT, @RequestParam(required = true) String MSISDN,
+			@RequestParam(required = true) String trxType, @RequestParam(required = false) String BILLAMOUNT,@RequestParam(required = false) String loginmsisdn,@RequestParam(required = false) String DISCOUNT,
+			@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		LOGGER.debug("Inside NapasPaymentServiceImpl in initPayment method::::::::::::");
+		
+		try {
+			
+			authToken = null;
+			//authToken = tokenExtractor.extract(authToken);
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = null;
+			//TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			System.out.println("token details::::"+ tokenDetails);
+		    MSISDN=AppUtils.removeCountryCode(MSISDN, AppDefaultValues.COUNTRY_CODE);
+		    System.out.println("Msisdn details::::"+ MSISDN);
+			if (tokenDetails== null) {
+				System.out.println("if block details::::"+ loginmsisdn);
+				String transactionId = null;
+				PGInitResponce responce = new PGInitResponce();
+				System.out.println("----init payment------ ");
+				transactionId = napasPaymentService.initTransaction(trxType, MSISDN, AMOUNT, Actual_AMOUNT, BILLAMOUNT,
+						modelMap, params, httpHeaders, request, loginmsisdn, DISCOUNT);
+				if (transactionId.trim().isEmpty()) {
+					transactionId = null;
+				} else {
+					responce.setOrderId(transactionId);
+					responce.setTransecId(transactionId);
+				}
+				return new ServiceResult(StatusCode.SUCCESS, responce, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside ProfileController in profile method :::::: " + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+		/*String transactionId = null;
+		PGInitResponce responce = new PGInitResponce();
+		System.out.println("----init payment------ ");
+		transactionId = napasPaymentService.initTransaction(trxType, MSISDN, AMOUNT, BILLAMOUNT, modelMap, params,
+				httpHeaders, request);
+		if (transactionId.trim().isEmpty()) {
+			transactionId = null;
+		} else {
+			responce.setOrderId(transactionId);
+			responce.setTransecId(transactionId);
+		}
+		return transactionId == null ? new ResponseEntity<>(responce, HttpStatus.INTERNAL_SERVER_ERROR)
+				: new ResponseEntity<>(responce, HttpStatus.OK);*/
+	}
+	
+	
+	@RequestMapping(value = "/pg/napasCallBackHandler", method = { RequestMethod.GET, RequestMethod.POST })
+	public ModelAndView napasCallBackHandler(HttpServletRequest request) {
+
+		ModelAndView mav = new ModelAndView(PAYMENT_RESULT);
+
+		LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+
+		CloseableHttpResponse response = null;
+		/* int connectTimeout =5; */
+		int connectTimeout = Integer.parseInt(applicationConfigurationService.get("pg.connecttimeout", "5").toString());
+		boolean success = false;
+		String extTrxId = "", cardType = null, bankCode = null;
+
+		try {
+			/*
+			 * String callbackURL =
+			 * "http://10.8.2.165:19091/VNPGUI/PGCallBackHandler";
+			 */
+			String callbackURL = applicationConfigurationService.get("pg.paymentdone.callbackurl", "").toString();
+			Enumeration<String> reqParamNames = request.getParameterNames();
+			List<NameValuePair> paramList = new ArrayList<>();
+			String status = "";
+
+			while (reqParamNames.hasMoreElements()) {
+				String pname = reqParamNames.nextElement();
+				String pvalue = request.getParameter(pname);
+				paramList.add(new BasicNameValuePair(pname, pvalue));
+
+				if (pname.equalsIgnoreCase("vpc_ResponseCode")) {
+					status = pvalue;
+
+				} else if (pname.equalsIgnoreCase("vpc_MerchTxnRef")) {
+					extTrxId = pvalue;
+
+				} else if (pname.equalsIgnoreCase("vpc_CardType")) {
+					cardType = pvalue;
+
+				} else if (pname.equalsIgnoreCase("vpc_AdditionalData")) {
+					bankCode = pvalue;
+				}
+			}
+			System.out.println("Status Is :::::" + status);
+			if (!StringUtils.hasText(cardType)) {
+				// this indicates transaction with Domestic bank
+				if (StringUtils.hasText(bankCode)) {
+					Bank bank = napasPaymentService.getBankDetails(bankCode);
+					if (bank != null) {
+						cardType = bank.getName();
+					}
+				}
+			}
+			LOGGER.debug("#napasCallBackHandler --- trxId= " + extTrxId + ", cardType= " + cardType + ", bankCode= "
+					+ bankCode + ", bankName= " + cardType);
+
+			paramList.add(new BasicNameValuePair("vpc_CardType", cardType));
+
+			CloseableHttpClient httpClient = HttpClients.custom()
+					.setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(connectTimeout * 1000)
+							.setConnectionRequestTimeout(connectTimeout * 1000).setCookieSpec(CookieSpecs.DEFAULT)
+							.build())
+					.setRedirectStrategy(new LaxRedirectStrategy()).build();
+
+			HttpClientContext context = HttpClientContext.create();
+			HttpPost post = new HttpPost(callbackURL);
+			post.setEntity(new UrlEncodedFormEntity(paramList));
+
+			LOGGER.debug("#napasCallBackHandler -- forwarding data from NAPAS to PG....");
+			System.out.println("#napasCallBackHandler -- forwarding data from NAPAS to PG....");
+			response = httpClient.execute(post, context);
+			System.out.println("#napasCallBackHandler -- receiving response from PG= " + response.getStatusLine());
+			LOGGER.debug("#napasCallBackHandler -- receiving response from PG= " + response.getStatusLine());
+
+			// TODO update payment_history status, paramName/value=
+			// vpc_ResponseCode=0, vpc_MerchTxnRef=orderId
+			// commented out as final update needs to come from PG
+			// paymentGatewayService.confirmTransaction(orderId,
+			// status.equals(NAPAS_SUCCESS_RESP) ? TransactionStatus.SUCCESS :
+			// TransactionStatus.FAIL);
+
+			success = status.equals(NAPAS_SUCCESS_RESP) ? true : false;
+
+			httpClient.close();
+
+		} catch (Exception e) {
+			LOGGER.error("#napasCallBackHandler -- error occurred when processing data from NAPAS!", e);
+
+		} finally {
+			try {
+				if (response != null)
+					response.close();
+			} catch (IOException e) {
+			}
+		}
+
+		String message = "";
+		if (success) {
+
+			message = resolveMessage(messageSource, "Message.api.TransactionSuccess", null,
+					"Your transaction is being processed.", localeResolver.resolveLocale(request));
+		} else {
+			message = resolveMessage(messageSource, "Message.api.TransactionFailed", null,
+					"Your transaction could not be processed.", localeResolver.resolveLocale(request));
+		}
+
+		mav.addObject("orderId", externalPayment.getOrderIdByExtTrxId(extTrxId));
+		mav.addObject("resultFlag", success ? TransactionStatus.SUCCESS.ordinal() : TransactionStatus.FAIL.ordinal());
+		mav.addObject("message", message);
+
+		return mav;
+	}
+
+	@RequestMapping(value = "/pg/executepayment", method = { RequestMethod.POST, RequestMethod.GET })
+	public ModelAndView executePayment(@RequestParam String orderId,
+			@RequestParam(defaultValue = "") String clientAppId, @RequestParam(defaultValue = "") String lang,
+			HttpServletRequest request, HttpServletResponse resp) {
+		resp.setCharacterEncoding("UTF-8");
+		ModelAndView view = new ModelAndView();
+		System.out.println("Order Id Is :::::" + orderId);
+		
+		String response = "";
+		LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+		ClientAppId cai = ClientAppId.MOBILE_APP;
+		try {
+			cai = ClientAppId.valueOf(clientAppId.toUpperCase());
+		} catch (Exception e) {
+		}
+		try {
+			response = napasPaymentService.executeTransaction(orderId, cai, lang);
+			System.out.println("response response  " + response);
+		} catch (OrderIdNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransactionInProgressException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (StringUtils.hasText(response)) {
+			view.setViewName(INIT_PG_VIEW);
+			view.addObject("pgResponse", modifyResponse(response, request));
+
+		} else {
+			view.setViewName(PAYMENT_RESULT);
+			view.addObject("resultFlag", TransactionStatus.FAIL.ordinal());
+			view.addObject("message", "");
+		}
+
+		return view;
+	}
+
+	/*
+	 * @RequestMapping(value = "/pg/executePaymentForWebs", method =
+	 * {RequestMethod.GET}) public Map<String, Object>
+	 * executePaymentForWeb(@RequestParam String orderId,
+	 * 
+	 * @RequestParam(defaultValue = "") String
+	 * clientAppId, @RequestParam(defaultValue = "") String lang,
+	 * HttpServletRequest request, HttpServletResponse resp) {
+	 * //resp.setCharacterEncoding("UTF-8"); Map map = new HashMap();
+	 * map.put("status", true); return map; }
+	 */
+	/*
+	 * @RequestMapping(value = "/pg/executePaymentForWebs", method =
+	 * RequestMethod.GET)
+	 */
+	/*
+	 * @RequestMapping(value = "/version", method = RequestMethod.GET) public
+	 * Map<String, Object> getVersion() { Map map = new HashMap();
+	 * 
+	 * // 1493365026548 if(timestamp.length() == 13) timestamp = new
+	 * SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new
+	 * Date(Long.parseLong(timestamp)));
+	 * 
+	 * map.put("buildDate", timestamp); map.put("sourceVersion", scm);
+	 * 
+	 * return map; }
+	 */
+
+	/*
+	 * @RequestMapping(value = "/pg/executePaymentForWebs", method =
+	 * {RequestMethod.GET}) public Map<String, Object> getVersion() { Map map =
+	 * new HashMap();
+	 * 
+	 * // 1493365026548 if(timestamp.length() == 13) timestamp = new
+	 * SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new
+	 * Date(Long.parseLong(timestamp)));
+	 * 
+	 * map.put("buildDate", timestamp); map.put("sourceVersion", scm);
+	 * 
+	 * return map; }
+	 */
+
+	@RequestMapping(value = "/pg/executePaymentForWebs", method = { RequestMethod.GET })
+	public Map<String, Object> executePaymentForWeb(@RequestParam String orderId,
+			@RequestParam(defaultValue = "") String clientAppId, @RequestParam(defaultValue = "") String lang,
+			HttpServletRequest request, HttpServletResponse resp) {
+		resp.setCharacterEncoding("UTF-8");
+
+		ModelAndView view = new ModelAndView();
+		Responce responce = new Responce();
+		System.out.println("Order Id Is :::::" + orderId);
+		String response = "";
+		LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+		ClientAppId cai = ClientAppId.MOBILE_APP;
+		try {
+			cai = ClientAppId.valueOf(clientAppId.toUpperCase());
+		} catch (Exception e) {
+		}
+		try {
+			response = napasPaymentService.executeTransaction(orderId, cai, lang);
+			System.out.println("response response is :::::::: " + response);
+		} catch (OrderIdNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransactionInProgressException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (StringUtils.hasText(response)) {
+
+			response = modifyResponse(response, request);
+			responce.setResponce(response);
+
+		} else {
+
+		}
+		Map map = new HashMap();
+		/*
+		 * return new ResponseEntity<String>(response, HttpStatus.OK);
+		 */
+
+		map.put("sourceVersion", responce);
+
+		return map;
+	}
+
+	@PostMapping(value = "/pg/callback")
+	public ResponseEntity<PGCallbackResponse> confirmPayment(@RequestBody FinalResponse finalResponse,
+			HttpServletResponse response) {
+		LOGGER.debug("#callback --- start processing= " + finalResponse);
+		PGCallbackResponse commonResponse = null;
+		try {
+			boolean confirmed = napasPaymentService.confirmTransaction(finalResponse);
+			commonResponse = confirmed ? new PGCallbackResponse(PGResponseCode.SUCCESS.getCode())
+					: new PGCallbackResponse(PGResponseCode.INTERNAL_SYSTEM_ERROR.getCode());
+
+		} catch (TransactionNotFoundException e) {
+			commonResponse = new PGCallbackResponse(PGResponseCode.TRANSACTION_NOT_FOUND.getCode());
+
+			LOGGER.error("#callback -- " + e.getMessage());
+
+		} catch (Exception e) {
+			commonResponse = new PGCallbackResponse(PGResponseCode.INTERNAL_SYSTEM_ERROR.getCode());
+
+			LOGGER.error("#callback -- error processing call back from PG!", e);
+		}
+
+		LOGGER.debug("#callback --- end of processing= " + finalResponse);
+		return new ResponseEntity<PGCallbackResponse>(commonResponse, HttpStatus.OK);
+
+	}
+
+	protected String resolveMessage(MessageSource messageSource, String key, Object[] args, String defaultMessage,
+			Locale locale) {
+		return messageSource.getMessage(key, args, defaultMessage, locale);
+	}
+
+	private String modifyResponse(String response, HttpServletRequest request) {
+		try {
+			String modifiedResponse = response.replace(IMG_STRING, request.getContextPath() + "/static/assets/image/");
+
+			return modifiedResponse;
+		} catch (Exception e) {
+			LOGGER.error("#modifyResponse --- error modifying response string!", e);
+		}
+		return response;
+	}
+
+	@PostMapping(value = "/pg/paymentresp")
+	public ModelAndView paymentResponse(@RequestBody String pgResponse) {
+
+		ModelAndView mv = new ModelAndView(PG_RESP_VIEW);
+
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			RedirectResponse redirectResponse = mapper.readValue(pgResponse, RedirectResponse.class);
+			mv.addObject("redirectResponse", redirectResponse);
+
+		} catch (Exception e) {
+			LOGGER.error("#paymentResponse -- error reading redirect response from PG!", e);
+
+			mv.addObject("redirectResponse", new RedirectResponse());
+		}
+		return mv;
+	}
+
+	@GetMapping(value = "/trx/paymentstatus/{orderId}/{msisdn}") //added msisdn by siddhesh on 09-01-2020
+	public Object getPaymentStatus(@PathVariable String orderId, @PathVariable String msisdn, @RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		try {
+			LOGGER.debug("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::");
+			authToken = tokenExtractor.extract(authToken);
+		   
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails!= null && tokenDetails.getMsisdn().trim().equalsIgnoreCase(msisdn)) {
+				
+				return new ServiceResult(StatusCode.SUCCESS, napasPaymentService.getPaymentHistoryStatus(orderId, msisdn), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method:::::::::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+	}
+	
+	@GetMapping(value = "/trx/paymentstatus/{orderId}")
+	public Object getPaymentStatus(@PathVariable String orderId,@RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		try {
+			LOGGER.debug("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::");
+			authToken = tokenExtractor.extract(authToken);
+		   
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null) {
+				
+				return new ServiceResult(StatusCode.SUCCESS, napasPaymentService.getPaymentHistoryStatus(orderId), "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method:::::::::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+		
+	}
+
+	@GetMapping(value = "/trx/paymentstatusfoeweb/{orderId}/{msisdn}") //added msisdn by siddhesh
+	public Object getPaymentStatusForWeb(@PathVariable String orderId, @PathVariable String msisdn, @RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		
+		try {
+			LOGGER.debug("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::");
+			authToken = tokenExtractor.extract(authToken);
+		   
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails!= null && tokenDetails.getMsisdn().trim().equalsIgnoreCase(msisdn)) {
+				Map map = new HashMap();
+				map.put("status", napasPaymentService.getPaymentHistoryStatus(orderId, msisdn).getStatus());
+				return new ServiceResult(StatusCode.SUCCESS,map, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method:::::::::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	
+	}
+	
+	@GetMapping(value = "/trx/paymentstatusfoeweb/{orderId}")
+	public Object getPaymentStatusForWeb(@PathVariable String orderId, @RequestHeader(value=JWTConstant.JWT_HEADER_NAME, required = false) String authToken) {
+		
+		try {
+			LOGGER.debug("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::");
+			authToken = tokenExtractor.extract(authToken);
+		   
+			System.out.println("authToken _____________" + authToken);
+			TokenDetails tokenDetails = getJwtTokenUtil().getUserDetailsFromToken(authToken);
+			if (tokenDetails != null) {
+				Map map = new HashMap();
+				map.put("status", napasPaymentService.getPaymentHistoryStatus(orderId).getStatus());
+				return new ServiceResult(StatusCode.SUCCESS,map, "Success");
+			} else {
+				return new ServiceResult(StatusCode.UNAUTHORIZED, "", "UNAUTHORIZED User ");
+			}
+		} catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method:::::::::::: " + ex.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+
+		} catch (ExpiredJwtException expiredEx) {
+			System.out.println("----ExpiredJwtException-----------");
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.JWT_TOKEN_EXPIRE, "", "Jwt token expire ");
+
+		} catch (Exception expiredEx) {
+			LOGGER.error("Inside NapasPaymentServiceImpl in getPaymentStatus method::::::::::::" + expiredEx.getMessage());
+			return new ServiceResult(StatusCode.BAD_REQUEST, "", "Bad Request");
+		}
+	
+	}
+
+	@RequestMapping(value = "/pg/cancelPayment", method = { RequestMethod.GET, RequestMethod.POST })
+	public ModelAndView cancelPayment(@RequestParam String orderId, HttpServletRequest request) {
+
+		ModelAndView mav = new ModelAndView(PAYMENT_RESULT);
+		LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+
+		String[] callbackParamNames = getFinalCallbackParamNames();
+
+		String callbackURL = applicationConfigurationService.get("pg.paymentdone.callbackurl", "").toString();
+		// String callbackURL
+		// ="http://10.8.2.165:19091/VNPGUI/PGCallBackHandler";
+		CloseableHttpResponse response = null;
+		int connectTimeout = 5;
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+				.setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(connectTimeout * 1000)
+						.setConnectionRequestTimeout(connectTimeout * 1000).setCookieSpec(CookieSpecs.DEFAULT).build())
+				.setRedirectStrategy(new LaxRedirectStrategy()).build();
+
+		String message = "";
+
+		try {
+			String extTrxId = napasPaymentService.confirmTransaction(orderId, TransactionStatus.CANCELED);
+
+			String mid = "938425";
+
+			List<NameValuePair> paramList = new ArrayList<>();
+			for (String pname : callbackParamNames) {
+				if (pname.equals("vpc_MerchTxnRef")) {
+					paramList.add(new BasicNameValuePair(pname, extTrxId));// was
+																			// orderId
+				} else {
+					if (pname.equals("vpc_Merchant")) {
+						paramList.add(new BasicNameValuePair(pname, mid));
+					} else {
+						if (pname.equals("vpc_ResponseCode")) {
+							paramList.add(new BasicNameValuePair(pname, NapasErrorCode.TRANSACTION_TIMEOUT.code()));
+						} else {
+							if (pname.equals("vpc_TransactionNo")) {
+								paramList.add(new BasicNameValuePair(pname, extTrxId)); // was
+																						// extTrxId
+							} else {
+								paramList.add(new BasicNameValuePair(pname, ""));
+							}
+						}
+					}
+				}
+			}
+
+			LOGGER.debug("#cancelPayment --- param list= " + paramList);
+
+			HttpClientContext context = HttpClientContext.create();
+			HttpPost post = new HttpPost(callbackURL);
+			post.setEntity(new UrlEncodedFormEntity(paramList));
+
+			LOGGER.debug("#cancelPayment -- forwarding data from NAPAS to PG....");
+			response = httpClient.execute(post, context);
+
+			LOGGER.debug("#cancelPayment -- receiving response from PG= " + response.getStatusLine());
+
+			message = resolveMessage(messageSource, "Message.api.TransactionCanceled", null,
+					"Your transaction has been canceled.", localeResolver.resolveLocale(request));
+
+			EntityUtils.consume(response.getEntity());
+
+		} catch (TransactionNotFoundException e) {
+			LOGGER.error("#cancelPayment -- " + e.getMessage());
+
+			message = resolveMessage(messageSource, "Message.api.TransactionFailed", null,
+					"Your transaction could not be processed. Please try again.",
+					localeResolver.resolveLocale(request));
+
+		} catch (Exception e) {
+			LOGGER.error("#cancelPayment -- error forwarding data to PG! ", e);
+
+			message = resolveMessage(messageSource, "Message.api.TransactionFailed", null,
+					"Your transaction could not be processed. Please try again.",
+					localeResolver.resolveLocale(request));
+
+		} finally {
+			try {
+				if (response != null)
+					response.close();
+				httpClient.close();
+			} catch (IOException e) {
+			}
+		}
+
+		mav.addObject("orderId", orderId);
+		mav.addObject("resultFlag", TransactionStatus.CANCELED.ordinal());
+		mav.addObject("message", message);
+
+		return mav;
+	}
+
+	private String[] getFinalCallbackParamNames() {
+		return "vpc_AdditionalData;vpc_Amount;vpc_BatchNo;vpc_Command;vpc_CurrencyCode;vpc_Locale;vpc_MerchTxnRef;vpc_Merchant;vpc_OrderInfo;vpc_ResponseCode;vpc_TransactionNo;vpc_Version;vpc_SecureHash"
+				.toString().split(";");
+
+	}
+}
+
+

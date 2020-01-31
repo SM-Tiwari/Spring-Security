@@ -1,0 +1,115 @@
+/**
+ * GenricTIBODPservicesCallbackHandler.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis2 version: 1.7.8  Built on : May 19, 2018 (07:06:11 BST)
+ */
+package id.gnvsolution.d3.api.wsdl;
+
+
+/**
+ *  GenricTIBODPservicesCallbackHandler Callback class, Users can extend this class and implement
+ *  their own receiveResult and receiveError methods.
+ */
+public abstract class GenricTIBODPservicesCallbackHandler {
+    protected Object clientData;
+
+    /**
+     * User can pass in any object that needs to be accessed once the NonBlocking
+     * Web service call is finished and appropriate method of this CallBack is called.
+     * @param clientData Object mechanism by which the user can pass in user data
+     * that will be avilable at the time this callback is called.
+     */
+    public GenricTIBODPservicesCallbackHandler(Object clientData) {
+        this.clientData = clientData;
+    }
+
+    /**
+     * Please use this constructor if you don't want to set any clientData
+     */
+    public GenricTIBODPservicesCallbackHandler() {
+        this.clientData = null;
+    }
+
+    /**
+     * Get the client data
+     */
+    public Object getClientData() {
+        return clientData;
+    }
+
+    /**
+     * auto generated Axis2 call back method for purchaseMusicNSN method
+     * override this method for handling normal response from purchaseMusicNSN operation
+     */
+    public void receiveResultpurchaseMusicNSN(
+        id.gnvsolution.d3.api.wsdl.GenricTIBODPservicesStub.PurchaseMusicNSNResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from purchaseMusicNSN operation
+     */
+    public void receiveErrorpurchaseMusicNSN(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for cLMOffers method
+     * override this method for handling normal response from cLMOffers operation
+     */
+    public void receiveResultcLMOffers(
+        id.gnvsolution.d3.api.wsdl.GenricTIBODPservicesStub.SendOfferResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from cLMOffers operation
+     */
+    public void receiveErrorcLMOffers(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for sendOTP method
+     * override this method for handling normal response from sendOTP operation
+     */
+    public void receiveResultsendOTP(
+        id.gnvsolution.d3.api.wsdl.GenricTIBODPservicesStub.SendOTPResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from sendOTP operation
+     */
+    public void receiveErrorsendOTP(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for linkSocialID method
+     * override this method for handling normal response from linkSocialID operation
+     */
+    public void receiveResultlinkSocialID(
+        id.gnvsolution.d3.api.wsdl.GenricTIBODPservicesStub.LinkSocialIDResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from linkSocialID operation
+     */
+    public void receiveErrorlinkSocialID(java.lang.Exception e) {
+    }
+
+    /**
+     * auto generated Axis2 call back method for buyPulsaEVC method
+     * override this method for handling normal response from buyPulsaEVC operation
+     */
+    public void receiveResultbuyPulsaEVC(
+        id.gnvsolution.d3.api.wsdl.GenricTIBODPservicesStub.BuyPulsaEVCResponse result) {
+    }
+
+    /**
+     * auto generated Axis2 Error handler
+     * override this method for handling error response from buyPulsaEVC operation
+     */
+    public void receiveErrorbuyPulsaEVC(java.lang.Exception e) {
+    }
+}

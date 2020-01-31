@@ -1,0 +1,79 @@
+package id.gnvsolution.d3.api.component.social;
+
+import id.gnvsolution.d3.api.Constants;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.social.InvalidAuthorizationException;
+import org.springframework.social.connect.Connection;
+import org.springframework.social.facebook.api.Facebook;
+import org.springframework.social.facebook.api.User;
+import org.springframework.social.facebook.connect.FacebookConnectionFactory;
+import org.springframework.social.oauth2.AccessGrant;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Created by aswzen on 10/8/2018.
+ */
+@Component
+@Transactional
+public class FacebookComponent {
+
+    private final Logger logger = LoggerFactory.getLogger("social");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private Long ms;
+    
+    private String apiVersion = "3.1";
+
+    public Facebook generateFacebookInterface(String accessToken) {
+        ms = System.currentTimeMillis();
+        FacebookConnectionFactory facebookConnectionFactory = new FacebookConnectionFactory(Constants.FACEBOOK_API_KEY, Constants.FACEBOOK_API_SECRET);
+        AccessGrant ag = new AccessGrant(accessToken);
+        Connection<Facebook> connection = facebookConnectionFactory.createConnection(ag);
+        return connection.getApi();
+    }
+    
+    public Map loadUserDetails(String token){
+        Map<String, Object> data = new HashMap();
+        data.put("status", false);
+        data.put("id", "");
+        data.put("name", "");
+        
+        /* field to fetch */ 
+        String [] fields = { "id, name" };
+        String error = "-";
+        String ep = "-";
+        try {
+            Facebook fbApi = generateFacebookInterface(token);
+            User f = fbApi.fetchObject("me", User.class, fields);
+            
+            data.put("status", true);
+            data.put("id", f.getId());
+            data.put("name", f.getName());
+            
+            ep = fbApi.getBaseGraphApiUrl();
+        } catch (InvalidAuthorizationException e) {
+            error = "Fetching facebook data InvalidAuthorizationException: "+e.getMessage();
+        } catch (Exception e) {
+            error = "Fetching facebook data Exception: "+e.getMessage();
+        } finally {
+            final StringBuilder sb=new StringBuilder();    
+            sb.append("\r\n========== START =============== \r\n"); 
+            sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+            sb.append("Destination\t:\t").append("Facebook Graph").append("\r\n");
+            sb.append("Base\t\t:\t").append(ep).append("\r\n");
+            sb.append("Token\t\t:\t").append(token).append("\r\n");
+            sb.append("Fields\t\t:\t").append(String.join(",", fields)).append("\r\n");
+            sb.append("Error\t\t:\t").append(error).append("\r\n");
+            sb.append("Time\t\t:\t").append(System.currentTimeMillis()-ms).append("ms \r\n");
+            sb.append("==========  END  =============== \r\n"); 
+            System.out.println("  >>>>>>>>>>>>>facebook   "+sb.toString());
+            logger.debug(sb.toString());
+        }
+        return data;
+    }
+}

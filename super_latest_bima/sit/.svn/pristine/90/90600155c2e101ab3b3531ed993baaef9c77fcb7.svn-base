@@ -1,0 +1,14 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [                
+            {
+                "appID": "NW3EE56P7F.com.bimatri.hutchison",
+                "paths": [ "*" ]
+            }
+        ]
+    },
+    "webcredentials": {
+       "apps": [ "NW3EE56P7F.com.bimatri.hutchison" ]
+    }
+}

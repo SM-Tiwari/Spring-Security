@@ -1,0 +1,95 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gnv.vnm.selfcare.core.enums.CallDirection;
+import com.gnv.vnm.selfcare.core.enums.CallType;
+
+public class CallRecord implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5393321631319510182L;
+	
+	@JsonIgnore
+	private Date startTime;
+	private String startTimeAsString;
+	@JsonIgnore
+	private Date endTime;
+	private String endTimeAsString;
+	private String calledNumber;
+	private String duration;
+	private CallDirection direction;
+	private CallType callType;
+	public Date getStartTime() {
+		return startTime;
+	}
+	public void setStartTime(Date startTime) {
+		this.startTime = startTime;
+	}
+	public String getStartTimeAsString() {
+		return startTimeAsString;
+	}
+	public void setStartTimeAsString(String startTimeAsString) {
+		this.startTimeAsString = startTimeAsString;
+	}
+	public Date getEndTime() {
+		return endTime;
+	}
+	public void setEndTime(Date endTime) {
+		this.endTime = endTime;
+	}
+	public String getEndTimeAsString() {
+		return endTimeAsString;
+	}
+	public void setEndTimeAsString(String endTimeAsString) {
+		this.endTimeAsString = endTimeAsString;
+	}
+	public String getCalledNumber() {
+		return calledNumber;
+	}
+	public void setCalledNumber(String calledNumber) {
+		this.calledNumber = calledNumber;
+	}
+	
+	public String getDuration() {
+		return duration;
+	}
+	public void setDuration(String duration) {
+		this.duration = duration;
+	}
+	/*public long getDuration() {
+		return duration;
+	}
+	public void setDuration(long duration) {
+		this.duration = duration;
+	}*/
+	public CallDirection getDirection() {
+		return direction;
+	}
+	public void setDirection(CallDirection direction) {
+		this.direction = direction;
+	}
+	public CallType getCallType() {
+		return callType;
+	}
+	public void setCallType(CallType callType) {
+		this.callType = callType;
+	}
+	@Override
+	public String toString() {
+		return "CallRecord [startTime=" + startTime + ", startTimeAsString=" + startTimeAsString + ", endTime="
+				+ endTime + ", endTimeAsString=" + endTimeAsString + ", calledNumber=" + calledNumber + ", duration="
+				+ duration + ", direction=" + direction + ", callType=" + callType + "]";
+	}
+	
+	
+	
+	
+	
+	
+
+}

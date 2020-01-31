@@ -1,0 +1,166 @@
+package id.gnvsolution.d3.api.model;
+
+import javax.persistence.*;
+import java.security.SecureRandom;
+import java.sql.Timestamp;
+
+/**
+ * Created by rips on 4/15/17.
+ */
+@Entity
+@Table(name = "SUBSCRIBER_OTP")
+public class SubscriberOTP {
+    private long id;
+    private String msisdn;
+    private String otp;
+    private Timestamp expiredAt;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private boolean isActive;
+
+    public SubscriberOTP(){}
+
+    public SubscriberOTP(String msisdn) {
+        setMsisdn(msisdn);
+        setOtp(OTPHelper.randomString(6));
+        this.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        this.setExpiredAt(new Timestamp(System.currentTimeMillis() + (1000 * 60 * 5)));
+        this.setIsActive(true);
+    }
+
+    public SubscriberOTP(String msisdn, String otp) {
+        setMsisdn(msisdn);
+        setOtp(otp);
+        this.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        this.setExpiredAt(new Timestamp(System.currentTimeMillis() + (1000 * 60 * 5)));
+        this.setIsActive(true);
+    }
+
+    public SubscriberOTP(String msisdn, String otp, Timestamp expiredAt, Timestamp createdAt, Timestamp updatedAt, boolean isActive) {
+        setMsisdn(msisdn);
+        setOtp(otp);
+        this.setExpiredAt(expiredAt);
+        this.setCreatedAt(createdAt);
+        this.setUpdatedAt(updatedAt);
+        this.setIsActive(isActive);
+    }
+
+    @Id
+    @SequenceGenerator(name = "SEQ_SUBSCRIBER_OTP", sequenceName = "SEQ_SUBSCRIBER_OTP", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_SUBSCRIBER_OTP")
+    @Column(name = "ID", nullable = false, precision = 0)
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    @Basic
+    @Column(name = "MSISDN", nullable = false, length = 15)
+    public String getMsisdn() {
+    	if (msisdn != null && msisdn.startsWith("0")) {
+           /* msisdn = String.format("62%s", msisdn.substring(1));*/
+        }
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    @Basic
+    @Column(name = "OTP", nullable = false, length = 6)
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+
+    @Basic
+    @Column(name = "EXPIRED_AT", nullable = false)
+    public Timestamp getExpiredAt() {
+        return expiredAt;
+    }
+
+    public void setExpiredAt(Timestamp expiredAt) {
+        this.expiredAt = expiredAt;
+    }
+
+    @Basic
+    @Column(name = "CREATED_AT", nullable = false)
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "UPDATED_AT", nullable = true)
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Basic
+    @Column(name = "IS_ACTIVE", nullable = false, precision = 0)
+    public boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SubscriberOTP that = (SubscriberOTP) o;
+
+        if (id != that.id) return false;
+        if (isActive != that.isActive) return false;
+        if (msisdn != null ? !msisdn.equals(that.msisdn) : that.msisdn != null) return false;
+        if (otp != null ? !otp.equals(that.otp) : that.otp != null) return false;
+        if (expiredAt != null ? !expiredAt.equals(that.expiredAt) : that.expiredAt != null) return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (msisdn != null ? msisdn.hashCode() : 0);
+        result = 31 * result + (otp != null ? otp.hashCode() : 0);
+        result = 31 * result + (expiredAt != null ? expiredAt.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        result = 31 * result + (int) ((isActive ? 1 : 0) ^ ((isActive ? 1 : 0) >>> 32));
+        return result;
+    }
+
+    public static class OTPHelper {
+        private static final String AB = "0123456789";
+        private static SecureRandom rnd = new SecureRandom();
+
+        public static String randomString(int len) {
+            StringBuilder sb = new StringBuilder(len);
+            for (int i = 0; i < len; i++) {
+                sb.append(AB.charAt(rnd.nextInt(AB.length())));
+            }
+            return sb.toString();
+        }
+
+    }
+}

@@ -1,0 +1,167 @@
+package id.gnvsolution.d3.api.model;
+
+import id.gnvsolution.d3.api.Constants;
+
+import javax.persistence.*;
+
+@Entity
+@Table(name = "PROFILE_FLASH_COLOR")
+public class ProfileFlashColor {
+    private long id;
+    private Long balanceMin;
+    private Long balanceMax;
+    private Long quotaMin;
+    private Long quotaMax;
+    private String color = Constants.DEFAULT_COLOR_FLASH_PROFILE;
+    private String times = Constants.DEFAULT_COLOR_FLASH_TIMES.toString();
+    private String category;
+    private String subCategory;
+    private String product;
+    private int operand;
+
+    @Id
+    @Column(name = "ID", nullable = false, precision = 0)
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    @Basic
+    @Column(name = "BALANCE_MIN", nullable = true, length = 20)
+    public Long getBalanceMin() {
+        return balanceMin;
+    }
+
+    public void setBalanceMin(Long balanceMin) {
+        this.balanceMin = balanceMin;
+    }
+
+    @Basic
+    @Column(name = "BALANCE_MAX", nullable = true, length = 20)
+    public Long getBalanceMax() {
+        return balanceMax;
+    }
+
+    public void setBalanceMax(Long balanceMax) {
+        this.balanceMax = balanceMax;
+    }
+
+    @Basic
+    @Column(name = "QUOTA_MIN", nullable = true, length = 20)
+    public Long getQuotaMin() {
+        return quotaMin;
+    }
+
+    public void setQuotaMin(Long quotaMin) {
+        this.quotaMin = quotaMin;
+    }
+
+    @Basic
+    @Column(name = "QUOTA_MAX", nullable = true, length = 20)
+    public Long getQuotaMax() {
+        return quotaMax;
+    }
+
+    public void setQuotaMax(Long quotaMax) {
+        this.quotaMax = quotaMax;
+    }
+
+    @Basic
+    @Column(name = "COLOR", nullable = true, length = 20)
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    @Basic
+    @Column(name = "TIMES", nullable = true, length = 3)
+    public String getTimes() {
+        return times;
+    }
+
+    public void setTimes(String times) {
+        this.times = times;
+    }
+
+    @Basic
+    @Column(name = "CATEGORY", nullable = true, length = 100)
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    @Basic
+    @Column(name = "SUB_CATEGORY", nullable = true, length = 100)
+    public String getSubCategory() {
+        return subCategory;
+    }
+
+    public void setSubCategory(String subCategory) {
+        this.subCategory = subCategory;
+    }
+
+    @Basic
+    @Column(name = "PRODUCT", nullable = true, length = 100)
+    public String getProduct() {
+        return product;
+    }
+
+    public void setProduct(String product) {
+        this.product = product;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProfileFlashColor that = (ProfileFlashColor) o;
+
+        if (id != that.id) return false;
+        if (balanceMin != null ? !balanceMin.equals(that.balanceMin) : that.balanceMin != null) return false;
+        if (balanceMax != null ? !balanceMax.equals(that.balanceMax) : that.balanceMax != null) return false;
+        if (quotaMin != null ? !quotaMin.equals(that.quotaMin) : that.quotaMin != null) return false;
+        if (quotaMax != null ? !quotaMax.equals(that.quotaMax) : that.quotaMax != null) return false;
+        if (color != null ? !color.equals(that.color) : that.color != null) return false;
+        if (times != null ? !times.equals(that.times) : that.times != null) return false;
+        if (category != null ? !category.equals(that.category) : that.category != null) return false;
+        if (subCategory != null ? !subCategory.equals(that.subCategory) : that.subCategory != null) return false;
+        if (product != null ? !product.equals(that.product) : that.product != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (balanceMin != null ? balanceMin.hashCode() : 0);
+        result = 31 * result + (balanceMax != null ? balanceMax.hashCode() : 0);
+        result = 31 * result + (quotaMin != null ? quotaMin.hashCode() : 0);
+        result = 31 * result + (quotaMax != null ? quotaMax.hashCode() : 0);
+        result = 31 * result + (color != null ? color.hashCode() : 0);
+        result = 31 * result + (times != null ? times.hashCode() : 0);
+        result = 31 * result + (category != null ? category.hashCode() : 0);
+        result = 31 * result + (subCategory != null ? subCategory.hashCode() : 0);
+        result = 31 * result + (product != null ? product.hashCode() : 0);
+        return result;
+    }
+
+    @Basic
+    @Column(name = "OPERAND")
+    public int getOperand() {
+        return operand;
+    }
+
+    public void setOperand(int operand) {
+        this.operand = operand;
+    }
+}

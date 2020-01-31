@@ -1,0 +1,28 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.InAppNotificationDto;
+import id.gnvsolution.d3.api.dto.request.InAppReadNotificationDto;
+import java.util.Map;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.InAppNotificationService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 24, 2017 4:15:02 PM
+ *
+ */
+public interface InAppNotificationService {
+
+    Map getInAppNotifications(InAppNotificationDto dto);
+    Map readInAppNotifications(InAppReadNotificationDto dto);
+    Map deleteNotification(InAppReadNotificationDto dto);
+    void saveToInAppNotifications(String subscriberMsisdn, 
+                                        String transactionId, 
+                                        String trxTransactionId, 
+                                        Long trxTransactionId2, 
+                                        String notificationTitle, 
+                                        String notificationMessage, String image, String link, String product);
+    
+}

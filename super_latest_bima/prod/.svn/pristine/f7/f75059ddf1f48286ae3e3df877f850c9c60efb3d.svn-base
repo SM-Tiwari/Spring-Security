@@ -1,0 +1,220 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.model.PaymentMethod;
+import id.gnvsolution.d3.api.model.Product;
+import id.gnvsolution.d3.api.model.Subscriber;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.httpclient.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.ExternalPaymentGateway 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 2, 2017 5:45:59 PM
+ *
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Controller
+@RequestMapping("/api/v1/payment-gateway")
+@ApiIgnore
+public class ExternalPaymentGatewayController {
+
+    @Autowired
+    private ExternalPayment externalPayment;
+    
+    /**
+     * 
+     * 
+     * @param modelMap
+     * @param PRODUCTNAME
+     * @param AMOUNT
+     * @param PAYMENTMETHODCODE
+     * @param MSISDN
+     * @param PRODUCTID
+     * @param VENDORID
+     * @param SERVICEPLAN
+     * @param NAME
+     * @param SUBCATEGORY
+     * @param httpResponse
+     * @param DEVICE
+     * @param CATEGORY
+     * @param EMAIL
+     * @return 
+     */
+    @RequestMapping(value = "/product", method = RequestMethod.GET)
+    public String product(ModelMap modelMap, @RequestParam(required = true) String PRODUCTNAME,
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String PAYMENTMETHODCODE, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String PRODUCTID, 
+                                        @RequestParam(required = true) String VENDORID, 
+                                        @RequestParam(required = true) String SERVICEPLAN, 
+                                        @RequestParam(required = true) String NAME, 
+                                        @RequestParam(required = false) String SUBCATEGORY, 
+                                        @RequestParam(required = false) String CATEGORY, 
+                                        @RequestParam(required = false) String DEVICE, 
+                                        HttpServletResponse httpResponse, 
+                                        @RequestParam(required = true) String EMAIL) {
+        
+        PaymentMethod paymentMethod = externalPayment.getPaymentMethod(PAYMENTMETHODCODE);
+        if(paymentMethod == null || paymentMethod.getPaymentGatewayUrl() == null) {
+            httpResponse.setStatus(HttpStatus.SC_NOT_FOUND);
+            return "error";
+        }
+        
+        if(MSISDN.startsWith("0"))
+            MSISDN = MSISDN.replaceFirst("0", "62");
+        
+        Subscriber subscriber = externalPayment.getSubscriber(MSISDN);
+        if(subscriber == null ) {
+            httpResponse.setStatus(HttpStatus.SC_NOT_FOUND);
+            return "error";
+        }
+        
+        Product product = externalPayment.getProduct(PRODUCTID);
+        if(product == null ) {
+            httpResponse.setStatus(HttpStatus.SC_NOT_FOUND);
+            return "error";
+        }
+        
+        String param = "PRODUCTNAME="+PRODUCTNAME+
+                        "&AMOUNT="+AMOUNT+
+                        "&MSISDN="+MSISDN+
+                        "&PRODUCTID="+PRODUCTID+
+                        "&VENDORID="+VENDORID+
+                        "&PAYMENTMETHOD="+PAYMENTMETHODCODE+
+                        "&SERVICEPLAN="+SERVICEPLAN+
+                        "&SUBCATEGORY="+SUBCATEGORY+
+                        "&CATEGORY="+CATEGORY+
+                        "&NAME="+NAME+
+                        "&EMAIL="+EMAIL;
+        return "redirect:"+paymentMethod.getPaymentGatewayUrl()+"?"+param;
+    }
+    
+    /**
+     * 
+     *  ?msisdn=6289505232323&secretKey=SECRET_KEY&subscriberType=Postpaid&accountNumber=SV-ACC-0000371546&accountAmountBill=55000&accountAmountPaid=5000&accountName=Person a Name&accountEmail=mail.name@mail.com&paymentMethod=01
+     * 
+     * @param modelMap
+     * 
+     * @param AMOUNT
+     * @param AMOUNTPAID
+     * @param PAYMENTMETHODCODE
+     * @param MSISDN
+     * @param SUBSCRIBERTYPE
+     * @param ACCOUNTNUMBER
+     * @param NAME
+     * @param httpResponse
+     * @param EMAIL
+     * @return 
+     */
+    @RequestMapping(value = "/postpaid", method = RequestMethod.GET)
+    public String postpaid(ModelMap modelMap, 
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String AMOUNTPAID, 
+                                        @RequestParam(required = true) String PAYMENTMETHODCODE, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String SUBSCRIBERTYPE, 
+                                        @RequestParam(required = true) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = true) String NAME, 
+                                        HttpServletResponse httpResponse, 
+                                        @RequestParam(required = true) String EMAIL) {
+        
+        PaymentMethod paymentMethod = externalPayment.getPaymentMethod(PAYMENTMETHODCODE);
+        if(paymentMethod == null || paymentMethod.getPaymentGatewayUrl() == null) {
+            httpResponse.setStatus(HttpStatus.SC_NOT_FOUND);
+            return "error";
+        }
+        
+        if(MSISDN.startsWith("0"))
+            MSISDN = MSISDN.replaceFirst("0", "62");
+        
+        Subscriber subscriber = externalPayment.getSubscriber(MSISDN);
+        if(subscriber == null ) {
+            httpResponse.setStatus(HttpStatus.SC_NOT_FOUND);
+            return "error";
+        }
+        
+        String param = "PRODUCTNAME=Postpaid Payment "+MSISDN+
+                        "&AMOUNT="+AMOUNTPAID+
+                        "&BILLAMOUNT="+AMOUNT+
+                        "&MSISDN="+MSISDN+
+                        "&NAME="+NAME+
+                        "&PAYMENTMETHOD="+PAYMENTMETHODCODE+
+                        "&PRODUCTID=1"+
+                        "&VENDORID=1"+
+                        "&SERVICEPLAN=1"+
+                        "&POSTPAID=1"+
+                        "&ACCOUNTNUMBER="+ACCOUNTNUMBER+
+                        "&EMAIL="+EMAIL;
+        return "redirect:"+paymentMethod.getPaymentGatewayUrl()+"?"+param;
+    }
+    
+    /**
+     * 
+     * @param modelMap
+     * @param AMOUNT
+     * @param AMOUNTPAID
+     * @param PAYMENTMETHODCODE
+     * @param MSISDN
+     * @param SUBSCRIBERTYPE
+     * @param ACCOUNTNUMBER
+     * @param NAME
+     * @param httpResponse
+     * @param EMAIL
+     * @return 
+     */
+    @RequestMapping(value = "/hybrid", method = RequestMethod.GET)
+    public String hybrid(ModelMap modelMap, 
+                                        @RequestParam(required = true) String AMOUNT, 
+                                        @RequestParam(required = true) String AMOUNTPAID, 
+                                        @RequestParam(required = true) String PAYMENTMETHODCODE, 
+                                        @RequestParam(required = true) String MSISDN, 
+                                        @RequestParam(required = true) String SUBSCRIBERTYPE, 
+                                        @RequestParam(required = true) String ACCOUNTNUMBER, 
+                                        @RequestParam(required = true) String NAME, 
+                                        HttpServletResponse httpResponse, 
+                                        @RequestParam(required = true) String EMAIL) {
+        
+        PaymentMethod paymentMethod = externalPayment.getPaymentMethod(PAYMENTMETHODCODE);
+        if(paymentMethod == null || paymentMethod.getPaymentGatewayUrl() == null) {
+            httpResponse.setStatus(HttpStatus.SC_NOT_FOUND);
+            return "error";
+        }
+        
+        if(MSISDN.startsWith("0"))
+            MSISDN = MSISDN.replaceFirst("0", "62");
+        
+        Subscriber subscriber = externalPayment.getSubscriber(MSISDN);
+        if(subscriber == null ) {
+            httpResponse.setStatus(HttpStatus.SC_NOT_FOUND);
+            return "error";
+        }
+        
+        String param = "PRODUCTNAME=Hybrid Payment "+MSISDN+
+                        "&AMOUNT="+AMOUNTPAID+
+                        "&BILLAMOUNT="+AMOUNT+
+                        "&MSISDN="+MSISDN+
+                        "&NAME="+NAME+
+                        "&PAYMENTMETHOD="+PAYMENTMETHODCODE+
+                        "&PRODUCTID=1"+
+                        "&VENDORID=1"+
+                        "&SERVICEPLAN=1"+
+                        "&HYBRID=1"+
+                        "&ACCOUNTNUMBER="+ACCOUNTNUMBER+
+                        "&EMAIL="+EMAIL;
+        return "redirect:"+paymentMethod.getPaymentGatewayUrl()+"?"+param;
+    }
+    
+}

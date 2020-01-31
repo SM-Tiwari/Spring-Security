@@ -1,0 +1,134 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.component.transid.Module;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.TransferPulsaDto;
+import id.gnvsolution.d3.api.dto.response.ErrorMessageDto;
+import id.gnvsolution.d3.api.dto.response.SuccessMessageDto;
+import id.gnvsolution.d3.api.model.TrxTransferPulsa;
+import id.gnvsolution.d3.api.service.InAppNotificationService;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+import id.gnvsolution.d3.api.service.TransferPulsaService;
+import id.gnvsolution.d3.api.utils.JSONResultFilter;
+import id.gnvsolution.d3.api.wsdl.Receive__Request__From__BIMAStub;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.TransferPulsaServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 11, 2018 2:54:45 PM
+ *
+ */
+@Service
+@Transactional
+public class TransferPulsaServiceImpl extends BaseService implements TransferPulsaService {
+
+    public Logger logger = LoggerFactory.getLogger(TransferPulsaServiceImpl.class);
+    private static String SOURCE = "ODP_GNV";
+    
+    @Autowired
+    private ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Autowired
+    private InAppNotificationService inAppNotificationService;
+    
+    @Autowired
+    private NotificationMasterService notificationMasterService;
+
+    @Autowired
+    private NotificationWorker notificationWorker;
+    
+    @Override
+    public Map transfer(TransferPulsaDto transferPulsaDto) {
+    	logger.info("#transfer-----msisdn==",transferPulsaDto.getMsisdn() );
+        try {
+            if(!isMsisdnValid(transferPulsaDto.getMsisdn(), transferPulsaDto.getSecretKey())) {
+                return JSONResultFilter.filter(new ErrorMessageDto(false, notificationMasterService.getMessageText(0, transferPulsaDto.getLanguage()))).all().build();
+            }
+            
+            String trxId = moduleTransactionIDGenerator.generate(Module.TRF);
+            
+            Receive__Request__From__BIMAStub stub = new Receive__Request__From__BIMAStub(Constants.TIBCO_URL_TRANSFER_PULSA);
+            Receive__Request__From__BIMAStub.TransferRequest transferRequest = new Receive__Request__From__BIMAStub.TransferRequest();
+            transferRequest.setTransactionID(trxId);
+            transferRequest.setCurrentDate(new Date().getTime() + "");
+            transferRequest.setMSISDN(transferPulsaDto.getMsisdn());
+            transferRequest.setTO_MSISDN(transferPulsaDto.getTargetMsisdn());
+            transferRequest.setSource(SOURCE);
+            transferRequest.setRequest_Type("TPULSA");
+            transferRequest.setAmount(transferPulsaDto.getAmount() + "");
+            
+            Receive__Request__From__BIMAStub.TransferResponse transferResponse = stub.transferODPTIB(transferRequest);
+            
+            TrxTransferPulsa trxTransferPulsa = new TrxTransferPulsa();
+            trxTransferPulsa.setAmount(new BigDecimal(transferPulsaDto.getAmount()));
+            trxTransferPulsa.setMsisdnFrom(transferPulsaDto.getMsisdn());
+            trxTransferPulsa.setMsisdnTo(transferPulsaDto.getTargetMsisdn());
+            trxTransferPulsa.setStatus(transferResponse.getGenericParams());
+            trxTransferPulsa.setStatus2(transferResponse.getResponseCode());
+            trxTransferPulsa.setStatusText(transferResponse.getResponseText());
+            trxTransferPulsa.setTrxDate(new Date());
+            trxTransferPulsa.setTrxId(trxId);
+            trxTransferPulsa.setUuid(UUID.randomUUID().toString());
+            logger.info("#transfer-----saving TrxTransferPulsa data msisdn==",transferPulsaDto.getMsisdn() );
+            BaseDao<TrxTransferPulsa> baseDao = new BaseDao<>(sessionFactoryDef, TrxTransferPulsa.class);
+            baseDao.save(trxTransferPulsa);
+            if (("6344").equals(transferResponse.getGenericParams())) {
+            	String successMessage = notificationMasterService.getMessageText(6344, transferPulsaDto.getLanguage()).replace("{getAmount}", transferPulsaDto.getAmount().toString()).replace("{getTargetMsisdn}", transferPulsaDto.getTargetMsisdn());
+            	logger.info("#transfer-----saving AppNotification data msisdn==",transferPulsaDto.getMsisdn() );		
+                inAppNotificationService.saveToInAppNotifications(transferPulsaDto.getMsisdn(), null, null, null, "Berhasil", successMessage, "", "", "");
+                inAppNotificationService.saveToInAppNotifications(transferPulsaDto.getTargetMsisdn(), null, null, null, "Berhasil", successMessage, "", "", "");
+            	logger.info("#transfer-----send  Notification data msisdn==",transferPulsaDto.getMsisdn() );
+                notificationWorker.sendNotification(transferPulsaDto.getMsisdn(), successMessage);
+                
+                return JSONResultFilter.filter(new SuccessMessageDto()).all().build();
+            } else {
+                String error;
+                if(null == transferResponse.getGenericParams()) {
+                    error = notificationMasterService.getMessageText(0, transferPulsaDto.getLanguage());
+                }
+                else
+                    error = notificationMasterService.getMessageText(Integer.valueOf(transferResponse.getGenericParams()), transferPulsaDto.getLanguage());
+                
+                sendErrorMessage(transferPulsaDto.getMsisdn(), error);
+                return JSONResultFilter.filter(new ErrorMessageDto(false, error)).all().build();
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        
+        return JSONResultFilter.filter(new ErrorMessageDto(false, notificationMasterService.getMessageText(0, transferPulsaDto.getLanguage()))).all().build();
+    }
+    
+    private void sendErrorMessage(String msisdn, String msg) {
+    	
+    	logger.info("#sendErrorMessage-----save  InAppNotifications data msisdn=="+msisdn+"------message=="+ msg);
+        inAppNotificationService.saveToInAppNotifications(msisdn, null, 
+                                    null, null, 
+                                    "Gagal", msg, "", 
+                                    "", "");
+        logger.info("#sendErrorMessage-----send  InAppNotifications data msisdn=="+msisdn+"------message=="+ msg);
+        notificationWorker.sendNotification(msisdn, msg);
+    }
+
+}

@@ -1,0 +1,20 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.VersionDto;
+import id.gnvsolution.d3.api.dto.response.VersionResponseDto;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.VersionService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Oct 2, 2017 8:50:03 PM
+ *
+ */
+public interface VersionService {
+
+    public VersionResponseDto getVersionResponseDto(VersionDto versionDto) throws Exception;
+    public void save(VersionDto versionDto);
+    
+}

@@ -1,0 +1,25 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ *
+ * @author RA0C68364
+ */
+public class CustomerUiTypeDto extends BaseRequestDto{
+   
+    private String uiType;
+    
+    public CustomerUiTypeDto() {
+    }
+
+    public CustomerUiTypeDto(String uiType) {
+        this.uiType = uiType;
+    }
+    
+    public String getUiType() {
+        return uiType;
+    }
+
+    public void setUiType(String uiType) {
+        this.uiType = uiType;
+    }
+}

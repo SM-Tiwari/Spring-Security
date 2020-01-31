@@ -1,0 +1,13 @@
+package id.gnvsolution.d3.api.utils;
+
+public class SmppConstant {
+
+	public static final String IP ="10.6.2.33"; 
+	public static final Integer PORT =2775; 
+	/*public static final String USERNAME ="TechM_SC"; 
+	public static final String PASSWORD ="tech@SC";*/
+	public static final String USERNAME ="selfcare"; 
+	public static final String PASSWORD ="S3lFc@re";
+/*	public static final String SOURCEMSISDN ="9876543210";*/
+	public static final String SOURCEMSISDN ="Bima";
+}

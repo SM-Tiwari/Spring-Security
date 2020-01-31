@@ -1,0 +1,12 @@
+package id.gnvsolution.d3.api.utils;
+
+public class EmailTest {
+
+    public static void main(String[] args) {
+//        EmailServiceImpl emailService = new EmailServiceImpl(null, null, null);
+//        emailService.requestUnsubscribe(new SubscribeProductRequestDto() {{
+//            setMsisdn("6289505232323");
+//        }});
+    }
+
+}

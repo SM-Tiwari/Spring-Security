@@ -1,0 +1,20 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.ChangeEmailDto;
+import id.gnvsolution.d3.api.dto.request.HybridSubscriptionDto;
+import id.gnvsolution.d3.api.dto.request.ResendInvoiceEmailDto;
+import id.gnvsolution.d3.api.dto.request.SubscribeProductRequestDto;
+
+import java.util.Map;
+
+public interface EmailService {
+
+    void requestUnsubscribe(SubscribeProductRequestDto request);
+
+    Map<String, Object> changeEmail(ChangeEmailDto changeEmailDto);
+
+    Map<String, Object> changeSubscription(HybridSubscriptionDto request);
+
+    Map<String, Object> resendInvoice(ResendInvoiceEmailDto request);
+
+}

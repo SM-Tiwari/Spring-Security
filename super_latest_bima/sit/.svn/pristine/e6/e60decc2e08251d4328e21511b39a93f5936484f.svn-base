@@ -1,0 +1,105 @@
+package id.gnvsolution.d3.api.filter;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.filter.RequestLoggingFilter 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 28, 2017 3:13:21 PM
+ *
+ */
+public class RequestLoggingFilter implements Filter  {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestLoggingFilter.class);
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
+
+    @Override
+    public void destroy() {
+    }
+    
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        
+        // excluding */inbound/*
+        if(request instanceof HttpServletRequest) {
+            if(((HttpServletRequest)request).getRequestURL().toString().toLowerCase().contains("inbound")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
+        
+        StringBuffer stringBuffer = new StringBuffer("");
+        RequestLoggingWrapper requestLoggingWrapper = new RequestLoggingWrapper((HttpServletRequest) request, stringBuffer);
+        ResponseLoggingWrapper responseLoggingWrapper = new ResponseLoggingWrapper((HttpServletResponse) response);
+        
+        Long ms = System.currentTimeMillis();
+        
+        try {
+            filterChain.doFilter(requestLoggingWrapper, responseLoggingWrapper);
+            responseLoggingWrapper.flushBuffer();
+        } catch (Exception ex) {
+            LOGGER.error(ex.toString(), ex);
+            filterChain.doFilter(request, response);
+        } finally {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Thread t = new Thread() { 
+                    @Override
+                    public void run() {
+                        try {
+                            HashMap<String, String> mapHeaderInfo = new HashMap<>();
+                            Enumeration headerNames = ((HttpServletRequest)request).getHeaderNames();
+                            while (headerNames.hasMoreElements()) {
+                                String key = (String) headerNames.nextElement();
+                                String value = ((HttpServletRequest)request).getHeader(key);
+                                mapHeaderInfo.put(key, value);
+                            }
+
+                            byte[] copy = responseLoggingWrapper.getCopy();
+                            final StringBuilder sb=new StringBuilder();    
+                            sb.append("\r\n========== START =============== \r\n"); 
+                            sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+                            sb.append("Real IP\t\t:\t").append(((HttpServletRequest) request).getHeader("X-Forwarded-For")).append("\r\n");
+                            sb.append("Header\t\t:\t").append(mapHeaderInfo).append("\r\n");
+                            sb.append(stringBuffer);
+                            sb.append("Response\t:\t").append(new String(copy, response.getCharacterEncoding())).append("\r\n");
+                            sb.append("Time\t\t:\t").append(System.currentTimeMillis()-ms).append("ms \r\n");
+                            sb.append("==========  END  =============== \r\n"); 
+                            LOGGER.debug(sb.toString());
+                        } catch (Exception e) {
+                            LOGGER.error(e.getMessage(), e);
+                        }
+                    }
+            };
+            
+            executor.execute(t);
+            executor.shutdown();
+            while(!executor.isTerminated()) {
+            }
+        }
+    }
+}

@@ -1,0 +1,6 @@
+package com.gnv.vnm.selfcare.core.enums;
+
+public enum CallDirection {
+
+	INCOMING, OUTGOING
+}

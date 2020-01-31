@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<appender name="console" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{ISO8601} [%t] %-5p %c - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="selfcare" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="~/Temp/selfcare/selfcare-tst.log" />
+		<param name="Append" value="false" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{ISO8601} [%t] %-5p %c - %m%n" />
+		</layout>
+	</appender>
+	
+	<logger name="com.gnv.vnm">
+		<level value="debug" />
+	</logger>
+
+	<logger name="org.springframework">
+		<level value="debug" />
+	</logger>
+	
+	<logger name="org.displaytag">
+		<level value="warn" />
+	</logger>
+		
+	<logger name="org.hibernate">
+		<level value="info" />
+	</logger>
+
+	<logger name="com.mysema">
+		<level value="info" />
+	</logger>
+
+	<logger name="org.apache.tiles">
+		<level value="warn" />
+	</logger>
+	
+	<logger name="org.apache.commons">
+		<level value="warn" />
+	</logger>
+
+	<!-- 
+	<logger name="httpclient.wire">
+		<level value="warn" />
+	</logger>
+	-->
+	
+	<root>
+		<priority value="debug" />
+		<appender-ref ref="console" />
+	</root>
+	
+</log4j:configuration>

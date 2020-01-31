@@ -1,0 +1,98 @@
+package id.gnvsolution.d3.api.dto.response;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.MetadataDto
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 24, 2017 12:04:19 PM
+ *
+ */
+public class MetadataDto {
+
+    private String top12;
+    private String rfu6;
+    private String VID_BANNER;
+    private String rfu12;
+    private String IMG_PRODUCT_PORTRAIT;
+    private String potrait12;
+    private String IMG_BANNER;
+    private String breaker12;
+    private String IMG_BREAKER;
+
+    public MetadataDto() {
+    }
+
+    public String getTop12() {
+        return top12;
+    }
+
+    public void setTop12(String top12) {
+        this.top12 = top12;
+    }
+
+    public String getRfu6() {
+        return rfu6;
+    }
+
+    public void setRfu6(String rfu6) {
+        this.rfu6 = rfu6;
+    }
+
+    public String getVID_BANNER() {
+        return VID_BANNER;
+    }
+
+    public void setVID_BANNER(String VID_BANNER) {
+        this.VID_BANNER = VID_BANNER;
+    }
+
+    public String getRfu12() {
+        return rfu12;
+    }
+
+    public void setRfu12(String rfu12) {
+        this.rfu12 = rfu12;
+    }
+
+    public String getIMG_PRODUCT_PORTRAIT() {
+        return IMG_PRODUCT_PORTRAIT;
+    }
+
+    public void setIMG_PRODUCT_PORTRAIT(String IMG_PRODUCT_PORTRAIT) {
+        this.IMG_PRODUCT_PORTRAIT = IMG_PRODUCT_PORTRAIT;
+    }
+
+    public String getPotrait12() {
+        return potrait12;
+    }
+
+    public void setPotrait12(String potrait12) {
+        this.potrait12 = potrait12;
+    }
+
+    public String getIMG_BANNER() {
+        return IMG_BANNER;
+    }
+
+    public void setIMG_BANNER(String IMG_BANNER) {
+        this.IMG_BANNER = IMG_BANNER;
+    }
+
+    public String getBreaker12() {
+        return breaker12;
+    }
+
+    public void setBreaker12(String breaker12) {
+        this.breaker12 = breaker12;
+    }
+
+    public String getIMG_BREAKER() {
+        return IMG_BREAKER;
+    }
+
+    public void setIMG_BREAKER(String IMG_BREAKER) {
+        this.IMG_BREAKER = IMG_BREAKER;
+    }
+}

@@ -1,0 +1,65 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.model.TrxSubscriberPurchase;
+import id.gnvsolution.d3.api.model.TrxTibcoResponse;
+import id.gnvsolution.d3.api.service.TrxTibcoResponseService;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.impl.TrxTibcoResponseServiceImpl 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Oct 9, 2017 6:09:42 PM
+ *
+ */
+@Service
+@Transactional
+public class TrxTibcoResponseServiceImpl implements TrxTibcoResponseService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(TrxTibcoResponseServiceImpl.class);
+
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Async
+    @Override
+    public void save(TrxTibcoResponse response) {
+    	
+    	logger.info("save method of TrxTibcoResponseServiceImpl+++++++++msisdn:::::", response.getMsisdn());
+    	
+        response.setTrxDate(new Date());
+        response.setUuid(UUID.randomUUID().toString());
+        
+        BaseDao<TrxTibcoResponse> baseDao = new BaseDao<>(sessionFactoryDef, TrxTibcoResponse.class);
+        baseDao.save(response);
+        
+        // dont forget to update TrxSubscriberPurchase for the respective trxid
+        BaseDao<TrxSubscriberPurchase> trxSubscriberPurchaseDao = new BaseDao<>(sessionFactoryDef, TrxSubscriberPurchase.class);
+        List<TrxSubscriberPurchase> list = trxSubscriberPurchaseDao.find("transactionId = :transactionId", new HashMap<String, Object>() {{
+            put("transactionId", response.getTrxId());
+        }});
+        
+        if(!list.isEmpty()) {
+            TrxSubscriberPurchase trxSubscriberPurchase = list.get(0);
+            trxSubscriberPurchase.setTransactionStatus(Constants.TIBCO_RESPONSE_CODE_SUCCESS.equals(response.getTrxResponseCode())?1l:0l);
+            trxSubscriberPurchaseDao.update(trxSubscriberPurchase);
+        }
+    }
+
+}

@@ -1,0 +1,144 @@
+package id.gnvsolution.d3.api.model;
+
+import java.math.BigInteger;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+@Entity
+@Table(name = "INFO_WORDING")
+public class InfoWording {
+
+	@Id
+	@Column(name = "INFO_ID")
+	private BigInteger id;
+	
+	@Column(name = "INFO_KEY")
+	private String key;
+
+	@Column(name = "INFO_DESC_HDR")
+	private String descHdr;
+
+	@Column(name = "INFO_DESC_HDR_EN")
+	private String descHdrEn;
+
+	@Column(name = "INFO_DESC")
+	private String desc;
+
+	@Column(name = "INFO_DESC_EN")
+	private String descEn;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean active;
+	
+	@Column(name = "CREATED_BY")
+	private BigInteger createdBy;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_AT")
+	private Date createdAt;
+
+	@Column(name = "UPDATED_BY")
+	private BigInteger updatedBy;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "UPDATED_AT")
+	private Date updatedAt;
+	
+	public InfoWording() {
+		
+	}
+
+	public BigInteger getId() {
+		return id;
+	}
+
+	public void setId(BigInteger id) {
+		this.id = id;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public String getDescHdr() {
+		return descHdr;
+	}
+
+	public void setDescHdr(String descHdr) {
+		this.descHdr = descHdr;
+	}
+
+	public String getDescHdrEn() {
+		return descHdrEn;
+	}
+
+	public void setDescHdrEn(String descHdrEn) {
+		this.descHdrEn = descHdrEn;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+
+	public String getDescEn() {
+		return descEn;
+	}
+
+	public void setDescEn(String descEn) {
+		this.descEn = descEn;
+	}
+
+	public Boolean getActive() {
+		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
+
+	public BigInteger getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(BigInteger createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public BigInteger getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(BigInteger updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+}

@@ -1,0 +1,220 @@
+package id.gnvsolution.d3.api.dao;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by rips on 4/11/17.
+ */
+public class BaseDao<T> {
+
+    private static String QRY_COUNT_TEMPLATE_FORMAT = "select count(*) from %1s";
+    private static String QRY_TEMPLATE_FORMAT = "from %1s";
+    private static String QRY_WHERE_TEMPLATE_FORMAT = "%1s where  %2s";
+    private final Class<T> genericType;
+
+    private SessionFactory sessionFactory;
+
+    public BaseDao(SessionFactory session, Class classType) {
+        this.sessionFactory = session;
+        this.genericType = classType;
+    }
+
+    public Object save(T item) {
+        Session session = sessionFactory.getCurrentSession();
+        Object result = null;
+        try {
+            result = session.save(item);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return result;
+    }
+
+    public boolean saveOrUpdate(T item) {
+        Session session = sessionFactory.getCurrentSession();
+        boolean result = false;
+        try {
+            session.saveOrUpdate(item);
+            result = true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return result;
+    }
+
+    public boolean update(T item) {
+        Session session = sessionFactory.getCurrentSession();
+        boolean result = false;
+        try {
+            session.update(item);
+            result = true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return result;
+    }
+
+    public boolean delete(T item) {
+        Session session = sessionFactory.getCurrentSession();
+        boolean result = false;
+        try {
+            session.delete(item);
+            result = true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return result;
+    }
+
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    public List<T> find(String where) {
+        return listData(String.format(QRY_WHERE_TEMPLATE_FORMAT, generateQuery(), where));
+    }
+
+    public List<T> find(String where, int offset, int count) {
+        return listData(String.format(QRY_WHERE_TEMPLATE_FORMAT, generateQuery(), where), offset, count);
+    }
+
+    public List<T> find(String where, Map<String, Object> param) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, String.format(QRY_WHERE_TEMPLATE_FORMAT, generateQuery(), where));
+        param.forEach((s, o) -> setParam(queryObj, s, o));
+        return listData(queryObj);
+    }
+
+    public List<T> find(String where, Map<String, Object> param, int offset, int count) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, String.format(QRY_WHERE_TEMPLATE_FORMAT, generateQuery(), where));
+        queryObj.setFirstResult(offset);
+        queryObj.setMaxResults(count);
+        param.forEach((s, o) -> setParam(queryObj, s, o));
+        return listData(queryObj);
+    }
+
+    public long count() {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, String.format(QRY_COUNT_TEMPLATE_FORMAT, this.genericType.getName()));
+        return (long) queryObj.uniqueResult();
+    }
+
+    public long count(String where) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, String.format(QRY_WHERE_TEMPLATE_FORMAT, String.format(QRY_COUNT_TEMPLATE_FORMAT, this.genericType.getName()), where));
+        return (long) queryObj.uniqueResult();
+    }
+
+    public long count(String where, Map<String, Object> param) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, String.format(QRY_WHERE_TEMPLATE_FORMAT, String.format(QRY_COUNT_TEMPLATE_FORMAT, this.genericType.getName()), where));
+        param.forEach((s, o) -> setParam(queryObj, s, o));
+        return (long) queryObj.uniqueResult();
+    }
+
+    public List<T> listData() {
+        return listData(generateQuery());
+    }
+
+    public List<T> listData(int offset, int limit) {
+        return listData(generateQuery(), offset, limit);
+    }
+
+    public List<T> listData(String query, Map<String, Object> param) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, query);
+        param.forEach((s, o) -> setParam(queryObj, s, o));
+        return listData(queryObj);
+    }
+
+    public List<T> listData(String query, Map<String, Object> param, int offset, int count) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, query);
+        queryObj.setFirstResult(offset);
+        queryObj.setMaxResults(count);
+        param.forEach((s, o) -> setParam(queryObj, s, o));
+        return listData(queryObj);
+    }
+    
+    /**
+     * added by edw
+     * 
+     * @param query
+     * @param param
+     * @param offset
+     * @param count
+     * @return 
+     */
+    public List listDataUsingNativeSQL(String query, Map<String, Object> param, int offset, int count) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = session.createSQLQuery(query);
+        queryObj.setFirstResult(offset);
+        queryObj.setMaxResults(count);
+        param.forEach((s, o) -> setParam(queryObj, s, o));
+        return queryObj.list();
+    }
+    
+    public List listDataUsingNativeSQL(String query, Map<String, Object> param) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = session.createSQLQuery(query);
+        param.forEach((s, o) -> setParam(queryObj, s, o));
+        return queryObj.list();
+    }
+
+
+    public List<T> listData(String query) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, query);
+        return listData(queryObj);
+    }
+
+    public List<T> listData(String query, int offset, int count) {
+        Session session = sessionFactory.getCurrentSession();
+        Query queryObj = generateQuery(session, query);
+        queryObj.setFirstResult(offset);
+        queryObj.setMaxResults(count);
+        return listData(queryObj);
+    }
+
+    public List<T> listData(Query query) {
+        return (List<T>) query.list();
+    }
+
+    public Query getFindQuery(String where) {
+        Session session = sessionFactory.getCurrentSession();
+        return generateQuery(session, String.format(QRY_WHERE_TEMPLATE_FORMAT, generateQuery(), where));
+    }
+
+    protected Query setParam(Query query, String fieldName, Object value){
+        if(query != null){
+            if (value instanceof Collections || value instanceof List) {
+                query.setParameterList(fieldName, (Collection) value);
+            } else {
+                query.setParameter(fieldName, value);
+            }
+        }
+        return query;
+    }
+
+    protected String generateQuery() {
+        return String.format(QRY_TEMPLATE_FORMAT, this.genericType.getName());
+    }
+
+    protected Query generateQuery(Session session) {
+        return generateQuery(session, generateQuery());
+    }
+
+    protected Query generateQuery(Session session, String qry) {
+        return session.createQuery(qry);
+    }
+
+}

@@ -1,0 +1,701 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+import com.gnv.vnm.selfcare.core.model.CurrentBalance;
+import com.gnv.vnm.selfcare.core.model.SubscriberInfoFromTibco;
+import com.tibco.Selfcare_InboundStub;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.AttribDtl_type0;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.Attribute_type0;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.MsgParam_type0;
+import com.tibco.www.schemas.vnm_project.shared_resources.schema.xml.xsd.subcriberquery_response_xsd.SubscriberQuery_Response;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd.BalanceQuery_Request;
+import com.tibco.www.schemas.vnm_project_uat.shared_resources.schema.xml.xsd.selfcare.schema_xsd2.BalanceQuery_Response;
+
+import id.gnvsolution.d3.api.Constants;
+import id.gnvsolution.d3.api.component.transid.ModuleTransactionIDGenerator;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.HomeScreenRequestDto;
+import id.gnvsolution.d3.api.dto.response.HomescreenProfileDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.helper.enums.TibcoResponse;
+import id.gnvsolution.d3.api.model.DataUsesEntity;
+import id.gnvsolution.d3.api.model.DynamicButton;
+import id.gnvsolution.d3.api.model.ProfileColor;
+import id.gnvsolution.d3.api.model.ProfileMapping;
+import id.gnvsolution.d3.api.model.SubscriberUserProfile;
+import id.gnvsolution.d3.api.model.helper.BonusInfo;
+import id.gnvsolution.d3.api.model.helper.BonusInfoObject;
+import id.gnvsolution.d3.api.model.helper.SMSAndVoiceBean;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.BonstriService;
+import id.gnvsolution.d3.api.service.HomeScreenProfileService;
+import id.gnvsolution.d3.api.service.ProfileService;
+import id.gnvsolution.d3.api.service.TibcoService;
+import id.gnvsolution.d3.api.utils.Languages;
+import id.gnvsolution.d3.api.wsdl.TIBODPHomePageStub;
+
+/**
+ * <pre>
+ * id.gnvsolution.d3.api.service.impl.HomeScreenProfileServiceImpl
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com > Jan 25, 2018 4:40:14 PM
+ *
+ */
+@Service
+@Transactional
+public class HomeScreenProfileServiceImpl extends BaseService implements HomeScreenProfileService {
+
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Autowired
+	private BonstriService sonstriService;
+
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+
+	@Autowired
+	private ModuleTransactionIDGenerator moduleTransactionIDGenerator;
+
+	private final Logger logger = LoggerFactory.getLogger(HomeScreenProfileServiceImpl.class);
+
+	private static String SOURCE = "ODP_GNV";
+
+	@Autowired
+	private TibcoService tibcoService;
+	
+	@Autowired
+	private ProfileService profileService;
+	
+
+	@Override
+	public HomescreenProfileDto getHomescreenProfileDto(HomeScreenRequestDto request) {
+
+		/*change msisdn by Vimal*/
+		String msisdn1 = AppUtils.removeCountryCode(request.getMsisdn(),AppDefaultValues.COUNTRY_CODE);
+		request.setMsisdn(msisdn1);
+		// do not forget to validate msisdn + secretKey
+		if (!isMsisdnValid(request.getMsisdn(), request.getSecretKey())) {
+			return new HomescreenProfileDto(false);
+		}
+
+		try {
+			/*
+			 * String subscriberId =
+			 * AppUtils.prependCountryCodeToMsisdn(request.getMsisdn(),
+			 * AppDefaultValues.COUNTRY_CODE);
+			 */
+			logger.info("Invoking method of tibcoService for getting current balance and subscriber info from tibco inside getHomescreenProfileDto method of HomeScreenProfileServiceImpl class");
+			CurrentBalance currentBalance = tibcoService.getCurrentBalance(request.getMsisdn(), request.getLanguage());
+			logger.info("#getHomescreenProfileDto-------Current Balance is: "+ currentBalance);
+			SubscriberInfoFromTibco subscriberInfoFromTibco = tibcoService
+					.getSubscriberInfoFromDownSystem(request.getMsisdn(), request.getLanguage());
+			logger.info("#getHomescreenProfileDto-----------subscriberInfoFromTibco is: "+ subscriberInfoFromTibco);
+			/*
+			 * TIBODPHomePageStub.TibcoODPHmPageRequest tibcoODPHmPageRequest =
+			 * new TIBODPHomePageStub.TibcoODPHmPageRequest();
+			 * tibcoODPHmPageRequest.setTRANSACTION_ID(
+			 * moduleTransactionIDGenerator.generate(Module.PROFILE));
+			 * tibcoODPHmPageRequest.setMSISDN(request.getMsisdn());
+			 * tibcoODPHmPageRequest.setSOURCE(SOURCE);
+			 * tibcoODPHmPageRequest.setSUBSCRIBER_TYPE(request.
+			 * getSubscriberType());
+			 * 
+			 * TIBODPHomePageStub.TibcoODPHmPageResponse response = new
+			 * TIBODPHomePageStub(Constants.TIBCO_URL_BIMAHOMEPAGE_ENDPOINT).
+			 * operation(tibcoODPHmPageRequest);
+			 */
+
+			HomescreenProfileDto homescreenProfileDto = new HomescreenProfileDto();
+			DynamicButton dynamicButton = getDynamicButton();
+
+			// clubbing quota
+			/* Map map = calculatePackageSummary(response); */
+			if (Constants.SUBSCRIBER_TYPE_POSTPAID.equals(subscriberInfoFromTibco.getSIM_TYPE())) {
+				DataUsesEntity datauses=profileService.getDataSmsvoice(request.getMsisdn());
+				// long
+				// usageValue=currentBalance.getDataBalance().getTotalValue()-currentBalance.getDataBalance().getAvailableValue();
+				if (currentBalance.isUnlimtedStatus()) {
+					if (request.getLanguage().equals("1")) {
+						homescreenProfileDto.setSumOfInternet("Unlimited");
+					} else {
+						homescreenProfileDto.setSumOfInternet("không giới hạn");
+					}
+
+				} else {
+					if(datauses!=null)
+					{
+						homescreenProfileDto
+						.setSumOfInternet(formatData((double) ((datauses.getData()))));
+					}
+					else
+					{
+						homescreenProfileDto
+						.setSumOfInternet(formatData((double) ((currentBalance.getDataBalance().getTotalValue()
+								- currentBalance.getDataBalance().getAvailableValue()))));
+					}
+					
+					/*
+					 * homescreenProfileDto
+					 * .setSumOfInternet(formatData((double)
+					 * ((currentBalance.getDataBalance().getAvailableValue()))))
+					 * ;
+					 */
+				}
+                if(datauses!=null)
+                {
+                	int voice=0;
+                	if(datauses.getVoice()!=0)
+                	{
+                		voice = (int) (datauses.getVoice() / 60);
+                	}
+                	homescreenProfileDto.setSumOfVoice(((voice) + "").replace(".00", "").replace(".0",
+    								""));
+    				homescreenProfileDto.setSumOfSms((((datauses.getSms())) + "").replace(".00", "").replace(".0",
+    								""));
+                }
+                else{
+				homescreenProfileDto.setSumOfVoice(((currentBalance.getVoiceBalance().getTotalValue()
+						- currentBalance.getVoiceBalance().getAvailableValue()) + "").replace(".00", "").replace(".0",
+								""));
+				homescreenProfileDto.setSumOfSms((((currentBalance.getSmsBalance().getTotalValue()
+						- currentBalance.getSmsBalance().getAvailableValue())) + "").replace(".00", "").replace(".0",
+								""));
+                }
+				/*
+				 * homescreenProfileDto.setSumOfVoice(((currentBalance.
+				 * getVoiceBalance().getAvailableValue()) + "").replace(".00",
+				 * "").replace(".0", ""));
+				 * homescreenProfileDto.setSumOfSms((((currentBalance.
+				 * getSmsBalance().getAvailableValue())) + "").replace(".00",
+				 * "").replace(".0", ""));
+				 */
+			} else {
+				if (currentBalance.isUnlimtedStatus()) {
+					if (request.getLanguage().equals("1")) {
+						homescreenProfileDto.setSumOfInternet("Unlimited");
+					} else {
+						homescreenProfileDto.setSumOfInternet("không giới hạn");
+					}
+				}
+				else
+				{
+					homescreenProfileDto
+					.setSumOfInternet(formatData((double) (currentBalance.getDataBalance().getAvailableValue())));
+				}
+				
+				homescreenProfileDto.setSumOfVoice((currentBalance.getVoiceBalance().getAvailableValue() + "")
+						.replace(".00", "").replace(".0", ""));
+				homescreenProfileDto.setSumOfSms((((currentBalance.getSmsBalance().getAvailableValue())) + "")
+						.replace(".00", "").replace(".0", ""));
+			}
+
+			Map map = new HashMap();
+			map.put("sumOfSMS", String.valueOf(currentBalance.getSmsBalance().getTotalValue()));
+			map.put("sumOfVoice", String.valueOf(currentBalance.getVoiceBalance().getTotalValue()));
+			map.put("sumOfInternet", String.valueOf(currentBalance.getDataBalance().getTotalValue()));
+			// button
+			homescreenProfileDto.setColorButton(getDynamicButtonColor(dynamicButton, currentBalance));
+			homescreenProfileDto.setDeeplinkButton(dynamicButton.getButtonUrl());
+			homescreenProfileDto.setLabelButtton(request.getLanguage().equals(Constants.LANG_ID)
+					? dynamicButton.getButtonCaption() : dynamicButton.getButtonCaptionEn());
+
+			// profile
+			homescreenProfileDto.setColorOfInternet(
+					getColor("DATA", (double) (currentBalance.getDataBalance().getTotalValue()), "PROFILE"));
+			homescreenProfileDto.setColorOfSms(
+					getColor("SMS", (double) (currentBalance.getSmsBalance().getTotalValue()), "PROFILE"));
+			homescreenProfileDto.setColorOfVoice(
+					getColor("VOICE", (double) (currentBalance.getVoiceBalance().getTotalValue()), "PROFILE"));
+
+			// subscriber
+			/*
+			 * Comments because in vnm tibco name is not coming . String nama =
+			 * responseSubscriber.getDukcapilInfo().getSubscriberName();
+			 */
+			String nama = null;
+			if (nama == null)
+				nama = "";
+			if ("!Name".equals(nama)) {
+				if (request.getLanguage().equals(Constants.LANG_ID))
+					nama = "Lengkapi data";
+				else
+					nama = "Complete data";
+				homescreenProfileDto.setSubscriberName(nama);
+				homescreenProfileDto.setUrl(Constants.REGISTRASI_ULANG_URL);
+			} else {
+				homescreenProfileDto.setSubscriberName(nama.split(" ", -1)[0]);
+				homescreenProfileDto.setUrl(Constants.REGISTRASI_ULANG_URL_HOMEPAGE);
+			}
+
+			homescreenProfileDto.setProfileName(currentBalance.getFullName());
+
+			// credit balance
+			String CURRENCY = request.getLanguage().equals(Constants.LANG_ID) ? Languages.ID.CURRENCY_VIETNA
+					: Languages.EN.CURRENCY_VND;
+			if (currentBalance.getCoreBalance() == null) {
+				homescreenProfileDto.setCreditBalance(" 0" + " " + CURRENCY);
+			} else {
+				if (Constants.SUBSCRIBER_TYPE_POSTPAID.equals(subscriberInfoFromTibco.getSIM_TYPE())) {
+					logger.debug("#getHomescreenProfileDto------------post paid");
+					BalanceQuery_Request balanceQuery_Request = new BalanceQuery_Request();
+					balanceQuery_Request.setAccountNumber(currentBalance.getAccountNumber());
+					String msisdn = AppUtils.prependCountryCodeToMsisdn(request.getMsisdn(),
+							AppDefaultValues.COUNTRY_CODE);
+					balanceQuery_Request.setMSISDN(msisdn);
+					Selfcare_InboundStub stub2 = new Selfcare_InboundStub(applicationConfigurationService
+							.get("adapter.tibco.endpoint", "http://10.8.8.52:45010/Business_Process/Selfcare")
+							.toString());
+					BalanceQuery_Response billedQuery_Response = stub2.postpaidBalanceEnquiry(balanceQuery_Request);
+					if (billedQuery_Response.getStatus().equalsIgnoreCase(TibcoResponse.SUCCESS.code())) {
+						logger.info("#getHomescreenProfileDto----------- bill query");
+						homescreenProfileDto.setCreditBalance(String.format(" %,.0f",
+								Double.valueOf(billedQuery_Response.getTotalOutstandingBalance())) + " " + CURRENCY);
+						homescreenProfileDto.setActiveUntil(billedQuery_Response.getDueDate());
+						homescreenProfileDto.setUnbilledAmount(
+								String.format(" %,.0f", Double.valueOf(billedQuery_Response.getTotalUnbilledUsage()))
+										+ " " + CURRENCY);
+
+					}
+
+				} else {
+
+					if((subscriberInfoFromTibco.getCALL_PLAN().toUpperCase().contains("EXTRA"))){
+						homescreenProfileDto
+								.setCreditBalance(String.format(" %,.0f",
+										Double.valueOf(currentBalance.getCoreBalance().getAvailableValue()
+												+ currentBalance.getPromotionBalance().getTotalValue()))
+										+ " " + CURRENCY);
+					} else {
+						homescreenProfileDto.setCreditBalance(String.format(" %,.0f",
+								Double.valueOf(currentBalance.getCoreBalance().getAvailableValue())) + " " + CURRENCY);
+					}
+
+					homescreenProfileDto.setActiveUntil(currentBalance.getCoreBalance().getExpiryDateAsString());
+				}
+
+			}
+			/*
+			 * System.out.println(" getSubscriberType"
+			 * +request.getSubscriberType());
+			 * if(Constants.SUBSCRIBER_TYPE_POSTPAID.equals(request.
+			 * getSubscriberType())) { // Get expiry date if
+			 * (currentBalance.getCoreBalance().getExpiryDateAsString() != null
+			 * &&
+			 * currentBalance.getCoreBalance().getExpiryDateAsString().length()
+			 * >= 10) { System.out.println("--if--");
+			 * homescreenProfileDto.setActiveUntil(currentBalance.getCoreBalance
+			 * ().getExpiryDateAsString()); } } else {
+			 * 
+			 * Comment bima tibco request for credit limit.
+			 * TibcoODPSingleQueryProcessStub.TibcoODPRequest reqPayload = new
+			 * TibcoODPSingleQueryProcessStub.TibcoODPRequest();
+			 * reqPayload.setMSISDN(request.getMsisdn());
+			 * reqPayload.setSOURCE(SOURCE); reqPayload.setSUBSCRIBER_TYPE("0");
+			 * reqPayload.setTRANSACTION_ID(moduleTransactionIDGenerator.
+			 * generate(Module.PROFILE));
+			 * 
+			 * TibcoODPSingleQueryProcessStub stub = new
+			 * TibcoODPSingleQueryProcessStub(Constants.
+			 * TIBCO_URL_PROFILE_ENDPOPINT);
+			 * TibcoODPSingleQueryProcessStub.TibcoODPResponse response2 =
+			 * stub.tIbcoODPOp(reqPayload);
+			 * 
+			 * TibcoODPSingleQueryProcessStub.SubsriberInfo_type0 subscriberInfo
+			 * = response2.getSubsriberInfo();
+			 * TibcoODPSingleQueryProcessStub.CreditLimitInfo_type0
+			 * creditLimitInfo = response2.getCreditLimitInfo() == null ? new
+			 * TibcoODPSingleQueryProcessStub.CreditLimitInfo_type0() :
+			 * response2.getCreditLimitInfo();
+			 * 
+			 * if (currentBalance.getCoreBalance().getExpiryDateAsString() !=
+			 * null)
+			 * homescreenProfileDto.setActiveUntil(currentBalance.getCoreBalance
+			 * ().getExpiryDateAsString()); }
+			 */
+
+			// get stotalPoint
+			/*
+			 * BonstriRequestDto bonstriRequestDto = new BonstriRequestDto();
+			 * bonstriRequestDto.setMsisdn(request.getMsisdn());
+			 * bonstriRequestDto.setSecretKey(request.getSecretKey());
+			 * 
+			 * Map bonstriMap =
+			 * sonstriService.getBonstriPoin(bonstriRequestDto); String bonstri
+			 * = "";
+			 * 
+			 * if(bonstriMap.get("stotalPoin") != null ) { bonstri =
+			 * bonstriMap.get("stotalPoin").toString(); }
+			 */
+
+			homescreenProfileDto.setStotalPoin(String.valueOf(currentBalance.getLoyalityPoint()));
+			//hidePromotionnalBalenceForSpecificPlan(currentBalance.getPromotionBalance());
+			homescreenProfileDto.setStatus(Boolean.TRUE);
+			homescreenProfileDto.setPromotionBalance(currentBalance.getPromotionBalance());
+			homescreenProfileDto.setStoreList(Constants.STORELIST);
+
+			return homescreenProfileDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error(e.getMessage(), e);
+		}
+
+		return new HomescreenProfileDto(false);
+	}
+   
+	
+	
+	private String getColor(String imageType, Double condition, String type) throws Exception {
+		BaseDao<ProfileColor> baseDao = new BaseDao<>(sessionFactoryDef, ProfileColor.class);
+		logger.info("#getColor------getting data from ProfileColor based on condition::"+ condition+" ::image type::"+imageType+" :: type::"+type);
+		List<ProfileColor> profileColors = baseDao.find(
+				"imageType = :imageType and condition1 <= :condition and condition2 > :condition and type = :type",
+				new HashMap<String, Object>() {
+					{
+						put("imageType", imageType);
+						put("condition", new BigDecimal(condition));
+						put("type", type);
+					}
+				});
+
+		if (profileColors.isEmpty()) {
+			return "Green";
+		}
+		return profileColors.get(0).getColor();
+	}
+
+	private String getColor(Integer condition, String type) throws Exception {
+		logger.info("#getColor------getting data from ProfileColor based on condition::"+ condition+"  :: type::"+type);
+		BaseDao<ProfileColor> baseDao = new BaseDao<>(sessionFactoryDef, ProfileColor.class);
+		List<ProfileColor> profileColors = baseDao.find(
+				"condition1 <= :condition and condition2 > :condition and type = :type", new HashMap<String, Object>() {
+					{
+						put("condition", condition);
+						put("type", type);
+					}
+				});
+
+		if (profileColors.isEmpty()) {
+			return "Green";
+		}
+		return profileColors.get(0).getColor();
+	}
+
+	private DynamicButton getDynamicButton() throws Exception {
+		BaseDao<DynamicButton> baseDao = new BaseDao<>(sessionFactoryDef, DynamicButton.class);
+		List<DynamicButton> dynamicButtons = baseDao.find("buttonName = :buttonName", new HashMap<String, Object>() {
+			{
+				put("buttonName", "RELOAD_BUTTON");
+			}
+		});
+
+		if (dynamicButtons.isEmpty()) {
+			return new DynamicButton();
+		}
+		return dynamicButtons.get(0);
+	}
+
+	private String getDynamicButtonColor(DynamicButton dynamicButton, CurrentBalance currentBalance) throws Exception {
+		final Double condition;
+
+		if ("SMS".equals(dynamicButton.getParameter())) {
+			condition = (double) currentBalance.getSmsBalance().getTotalValue();
+		} else if ("VOICE".equals(dynamicButton.getParameter())) {
+			condition = (double) currentBalance.getVoiceBalance().getTotalValue();
+		} else if ("DATA".equals(dynamicButton.getParameter())) {
+			condition = (double) currentBalance.getDataBalance().getTotalValue();
+		} else {
+			condition = 0d;
+		}
+
+		BaseDao<ProfileColor> baseDao = new BaseDao<>(sessionFactoryDef, ProfileColor.class);
+		List<ProfileColor> profileColors = baseDao.find(
+				"imageType = :imageType and condition1 <= :condition and condition2 > :condition and type = :type",
+				new HashMap<String, Object>() {
+					{
+						put("imageType", dynamicButton.getParameter());
+						put("condition", new BigDecimal(condition));
+						put("type", "BUTTON");
+					}
+				});
+
+		if (!profileColors.isEmpty())
+			return profileColors.get(0).getColor();
+
+		return "#ff6400";
+	}
+
+	private String getProfileDetails(String msisdn, String field) throws Exception {
+
+		BaseDao<SubscriberUserProfile> baseDao = new BaseDao<>(sessionFactoryDef, SubscriberUserProfile.class);
+		List<SubscriberUserProfile> profileBios = baseDao.find("MSISDN = :msisdn", new HashMap<String, Object>() {
+			{
+				put("msisdn", msisdn);
+			}
+		});
+
+		if (!profileBios.isEmpty()) {
+			if (field.equals("name"))
+				return profileBios.get(0).getName();
+			if (field.equals("hobby"))
+				return profileBios.get(0).getHobby();
+		}
+
+		return "-";
+	}
+
+	private Map<String, String> parsePackageInfo(String packageInfo) {
+		Map<String, String> result = new HashMap<>();
+		String[] packageInfos = packageInfo.split(";");
+		for (String item : packageInfos) {
+			if (!item.isEmpty() && item.contains(":")) {
+				result.put(item.substring(0, item.indexOf(':')).trim(), item.substring(item.indexOf(':') + 1).trim());
+			}
+		}
+		return result;
+	}
+
+	private Map calculatePackageSummary(TIBODPHomePageStub.TibcoODPHmPageResponse response) {
+
+		BaseDao<ProfileMapping> profileMappingDao = new BaseDao(sessionFactoryDef, ProfileMapping.class);
+		List<ProfileMapping> profileMappingList = profileMappingDao
+				.listData("select p from ProfileMapping p " + "where p.isRoaming = false");
+		Map<String, String[]> profileMap = new HashMap<>();
+		profileMappingList
+				.forEach(profileMapping -> profileMap.put(profileMapping.getBillingProductName().toLowerCase(),
+						new String[] { profileMapping.getDisplayPackages(), profileMapping.getBillingRegistrationKey(),
+								(profileMapping.getIsShareQuota() ? "1" : "0") }));
+
+		double sumOfInternet = 0;
+		double sumOfVoice = 0;
+		double sumOfSMS = 0;
+
+		TIBODPHomePageStub.BONUS_INFO_type0[] bonusInfoList = response.getBONUS_INFO();
+		for (TIBODPHomePageStub.BONUS_INFO_type0 bonusInfo : bonusInfoList) {
+			if (bonusInfo.getStatusCode().equals("00000")) {
+				List<SMSAndVoiceBean> smsavbs = new ArrayList<>();
+
+				BonusInfo bi = new BonusInfo();
+				List<BonusInfo> bonusInfos = new ArrayList<>();
+				for (int i = 0; i < bonusInfo.getAttribute().length; i++) {
+					TIBODPHomePageStub.Attribute_type0 attribute = bonusInfo.getAttribute()[i];
+
+					// QTANAME - SRVNAME - QTAVALUE - QTABALANCE
+					if ("QTANAME".equals(attribute.getAttribDtl().getName())) {
+						bi = new BonusInfo();
+						bi.setQtaName(attribute.getAttribDtl().getString());
+					}
+					if ("SRVNAME".equals(attribute.getAttribDtl().getName())) {
+						bi.setSrvName(attribute.getAttribDtl().getString());
+					}
+					if ("QTAVALUE".equals(attribute.getAttribDtl().getName())) {
+						bi.setQtaValue(attribute.getAttribDtl().getString());
+					}
+					if ("QTABALANCE".equals(attribute.getAttribDtl().getName())) {
+						bi.setQtaBalance(attribute.getAttribDtl().getString());
+
+						if (!bonusInfos.contains(bi))
+							bonusInfos.add(bi);
+					}
+
+					SMSAndVoiceBean smsavb = new SMSAndVoiceBean();
+					smsavb.setI(i);
+					smsavb.setName(attribute.getAttribDtl().getName());
+					smsavb.setValue(attribute.getAttribDtl().getString());
+
+					smsavbs.add(smsavb);
+				}
+
+				for (SMSAndVoiceBean smsavb : smsavbs) {
+					if (profileMap.containsKey(smsavb.getName().toLowerCase())) {
+						Map<String, String> mapPackage = parsePackageInfo(smsavb.getValue());
+						if ("Package".equals(mapPackage.get("BONUS_TYPE"))) {
+							if ("SMS".equals(mapPackage.get("BONUS_UOM"))) {
+								sumOfSMS += Double.parseDouble((String) mapPackage.get("REMAINING_AMOUNT"));
+							}
+							if ("Minutes".equals(mapPackage.get("BONUS_UOM"))) {
+								sumOfVoice += Double.parseDouble((String) mapPackage.get("REMAINING_AMOUNT"));
+							}
+						}
+					}
+				}
+
+				for (BonusInfo bi1 : bonusInfos) {
+					if (profileMap.containsKey(bi1.getQtaName().toLowerCase()))
+						sumOfInternet += (Double.parseDouble(bi1.getQtaBalance()));
+				}
+			}
+		}
+
+		Map map = new HashMap();
+		map.put("sumOfSMS", sumOfSMS);
+		map.put("sumOfVoice", sumOfVoice);
+		map.put("sumOfInternet", sumOfInternet);
+
+		return map;
+	}
+
+	private Map calculatePackageSummary1(SubscriberQuery_Response responseSubscriber) {
+
+		BaseDao<ProfileMapping> profileMappingDao = new BaseDao(sessionFactoryDef, ProfileMapping.class);
+		List<ProfileMapping> profileMappingList = profileMappingDao
+				.listData("select p from ProfileMapping p " + "where p.isRoaming = false");
+		Map<String, String[]> profileMap = new HashMap<>();
+		profileMappingList
+				.forEach(profileMapping -> profileMap.put(profileMapping.getBillingProductName().toLowerCase(),
+						new String[] { profileMapping.getDisplayPackages(), profileMapping.getBillingRegistrationKey(),
+								(profileMapping.getIsShareQuota() ? "1" : "0") }));
+
+		double sumOfInternet = 0;
+		double sumOfVoice = 0;
+		double sumOfSMS = 0;
+		int lmsPoint = 0;
+		if (responseSubscriber.getStatus_Code().equals("00000")) {
+			MsgParam_type0 msgParam_type0 = responseSubscriber.getMsgParam();
+
+			List<BonusInfoObject> bonusInfos = new ArrayList<>();
+			for (int index = 0; index < msgParam_type0.getAttribute().length; index++) {
+				Attribute_type0 attribute = msgParam_type0.getAttribute()[index];
+				AttribDtl_type0[] attribDtl_type_array = attribute.getAttribDtl();
+				BonusInfoObject bi = new BonusInfoObject();
+				for (int dtlindex = 0; dtlindex < attribDtl_type_array.length; dtlindex++) {
+					AttribDtl_type0 attribDtl_type0 = attribDtl_type_array[dtlindex];
+					if ("BONUS_SUB_TYPE".equals(attribDtl_type0.getName())) {
+						bi.setBonusSubType(attribDtl_type0.getString());
+					}
+					if ("ALLOCATED_AMOUNT".equals(attribDtl_type0.getName())) {
+						bi.setAllocatedAmount(attribDtl_type0.getString());
+						if (!bonusInfos.contains(bi))
+							bonusInfos.add(bi);
+					}
+					if ("BONUS_TYPE".equals(attribDtl_type0.getName())) {
+						bi.setBonusType(attribDtl_type0.getString());
+					}
+					if ("LMS Points".equals(attribDtl_type0.getName())) {
+						logger.debug("#calculatePackageSummary1----lms point is ---" + attribDtl_type0.getString());
+						lmsPoint += Integer.parseInt(attribDtl_type0.getString());
+					}
+
+				}
+			}
+			/*
+			 * for (SMSAndVoiceBean smsavb : smsavbs) { if
+			 * (profileMap.containsKey(smsavb.getName().toLowerCase())) {
+			 * Map<String, String> mapPackage =
+			 * parsePackageInfo(smsavb.getValue()); if
+			 * ("Package".equals(mapPackage.get("BONUS_TYPE"))) { if
+			 * ("SMS".equals(mapPackage.get("BONUS_UOM"))) { sumOfSMS +=
+			 * Double.parseDouble((String) mapPackage.get("REMAINING_AMOUNT"));
+			 * } if ("Minutes".equals(mapPackage.get("BONUS_UOM"))) { sumOfVoice
+			 * += Double.parseDouble((String)
+			 * mapPackage.get("REMAINING_AMOUNT")); } } } }
+			 */
+
+			for (BonusInfoObject bi1 : bonusInfos) {
+				if ("DATA".equals(bi1.getBonusSubType().toUpperCase()))
+					sumOfInternet += (Double.parseDouble(bi1.getAllocatedAmount()));
+			}
+		}
+
+		/**
+		 * Comments on 12-02-2019 intrigate vnm tibco
+		 */
+		/*
+		 * TIBODPHomePageStub.BONUS_INFO_type0[] bonusInfoList =
+		 * response.getBONUS_INFO(); for (TIBODPHomePageStub.BONUS_INFO_type0
+		 * bonusInfo : bonusInfoList) { if
+		 * (bonusInfo.getStatusCode().equals("00000")) { List<SMSAndVoiceBean>
+		 * smsavbs = new ArrayList<>();
+		 * 
+		 * BonusInfo bi = new BonusInfo(); List<BonusInfo> bonusInfos = new
+		 * ArrayList<>(); for (int i = 0; i < bonusInfo.getAttribute().length;
+		 * i++) { TIBODPHomePageStub.Attribute_type0 attribute =
+		 * bonusInfo.getAttribute()[i];
+		 * 
+		 * // QTANAME - SRVNAME - QTAVALUE - QTABALANCE
+		 * if("QTANAME".equals(attribute.getAttribDtl().getName())) { bi = new
+		 * BonusInfo(); bi.setQtaName(attribute.getAttribDtl().getString()); }
+		 * if("SRVNAME".equals(attribute.getAttribDtl().getName())) {
+		 * bi.setSrvName(attribute.getAttribDtl().getString()); }
+		 * if("QTAVALUE".equals(attribute.getAttribDtl().getName())) {
+		 * bi.setQtaValue(attribute.getAttribDtl().getString()); }
+		 * if("QTABALANCE".equals(attribute.getAttribDtl().getName())) {
+		 * bi.setQtaBalance(attribute.getAttribDtl().getString());
+		 * 
+		 * if(!bonusInfos.contains(bi)) bonusInfos.add(bi); }
+		 * 
+		 * SMSAndVoiceBean smsavb = new SMSAndVoiceBean(); smsavb.setI(i);
+		 * smsavb.setName(attribute.getAttribDtl().getName());
+		 * smsavb.setValue(attribute.getAttribDtl().getString());
+		 * 
+		 * smsavbs.add(smsavb); }
+		 * 
+		 * for (SMSAndVoiceBean smsavb : smsavbs) { if
+		 * (profileMap.containsKey(smsavb.getName().toLowerCase())) {
+		 * Map<String, String> mapPackage = parsePackageInfo(smsavb.getValue());
+		 * if ("Package".equals(mapPackage.get("BONUS_TYPE"))) { if
+		 * ("SMS".equals(mapPackage.get("BONUS_UOM"))) { sumOfSMS +=
+		 * Double.parseDouble((String) mapPackage.get("REMAINING_AMOUNT")); } if
+		 * ("Minutes".equals(mapPackage.get("BONUS_UOM"))) { sumOfVoice +=
+		 * Double.parseDouble((String) mapPackage.get("REMAINING_AMOUNT")); } }
+		 * } }
+		 * 
+		 * for (BonusInfo bi1 : bonusInfos) {
+		 * if(profileMap.containsKey(bi1.getQtaName().toLowerCase()))
+		 * sumOfInternet += (Double.parseDouble(bi1.getQtaBalance())); } } }
+		 */
+		Map map = new HashMap();
+		map.put("sumOfSMS", sumOfSMS);
+		map.put("sumOfVoice", sumOfVoice);
+		map.put("sumOfInternet", sumOfInternet);
+		map.put("lmspoint", lmsPoint);
+
+		return map;
+	}
+
+	private String formatData(Double bytes) {
+
+		String[] dictionary = {"KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+		int index = 0;
+		for (index = 0; index < dictionary.length; index++) {
+			if (bytes < 1024) {
+				break;
+			}
+			bytes = bytes / 1024;
+		}
+		String str = String.format("%." + 2 + "f", bytes) + " " + dictionary[index];
+		if (str.contains("bytes") || str.contains("KB")) {
+			str = "0 MB";
+		}
+		return str;
+	}
+
+	public static String format(double bytes) {
+		String[] dictionary = {"KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+		int index = 0;
+		for (index = 0; index < dictionary.length; index++) {
+			if (bytes < 1024) {
+				break;
+			}
+			bytes = bytes / 1024;
+		}
+		return String.format("%." + 2 + "f", bytes) + " " + dictionary[index];
+	}
+
+}

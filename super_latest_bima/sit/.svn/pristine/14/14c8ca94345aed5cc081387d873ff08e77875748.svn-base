@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by rips on 7/9/17.
+ */
+public class SubscribeProductRequestDto extends BaseRequestDto {
+
+    private String productId;
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+}

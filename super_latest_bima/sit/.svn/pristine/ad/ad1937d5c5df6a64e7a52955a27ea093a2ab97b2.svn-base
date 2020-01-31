@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration strict="true" status="OFF" Log4jContextSelector="org.apache.logging.log4j.core.async.AsyncLoggerContextSelector">
+    <appenders>
+        <RollingRandomAccessFile name="accessAppender" fileName="/log/jboss_access.log"
+                                 filePattern="/log/$${date:yyyy-MM}/jboss_access-%d{yyyy-MM-dd-HH}.log.gz">
+            <PatternLayout>
+                <pattern>%m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingRandomAccessFile>        
+        
+        <RollingRandomAccessFile name="datalogAppender" fileName="/log/jboss_data.log"
+                                 filePattern="/log/$${date:yyyy-MM}/jboss_data-%d{yyyy-MM-dd-HH}.log.gz">
+            <PatternLayout>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1} - %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" /> 
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingRandomAccessFile>     
+		
+        <RollingRandomAccessFile name="defAppender" fileName="/log/jboss_def.log"
+                                         filePattern="/log/$${date:yyyy-MM}/jboss_def-%d{yyyy-MM-dd-HH}.log.gz">
+            <PatternLayout>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1} - %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" /> 
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingRandomAccessFile>     
+		
+        <RollingRandomAccessFile name="msgAppender" fileName="/log/jboss_msgs.log"
+                                         filePattern="/log/$${date:yyyy-MM}/jboss_msgs-%d{yyyy-MM-dd-HH}.log.gz">
+            <PatternLayout>
+                <pattern>%m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingRandomAccessFile>     
+		
+        <RollingRandomAccessFile name="pgAppender" fileName="/log/jboss_pg.log"
+                                         filePattern="/log/$${date:yyyy-MM}/jboss_pg-%d{yyyy-MM-dd-HH}.log.gz">
+            <PatternLayout>
+                <pattern>%m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingRandomAccessFile>   
+        
+        <RollingRandomAccessFile name="mailAppender" fileName="/log/jboss_mail.log"
+                                         filePattern="/log/$${date:yyyy-MM}/jboss_mail-%d{yyyy-MM-dd-HH}.log.gz">
+            <PatternLayout>
+                <pattern>%m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingRandomAccessFile>   
+        
+        <RollingRandomAccessFile name="socialAppender" fileName="/log/jboss_soc.log"
+                                         filePattern="/log/$${date:yyyy-MM}/jboss_soc-%d{yyyy-MM-dd-HH}.log.gz">
+            <PatternLayout>
+                <pattern>%m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingRandomAccessFile>     
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="%highlight{&lt;%d&gt;,[%t]>>[%p] [%c:%L] %m%throwable%n}"/>
+        </Console>
+    </appenders>
+    <loggers>
+        <!-- DATALOG -->
+        <asyncLogger name="datalogAppender" level="DEBUG" additivity="false">
+            <appender-ref ref="datalogAppender"/>        
+        </asyncLogger>
+
+        <!-- defAppender -->
+        <asyncLogger name="defAppender" level="DEBUG" additivity="false">
+            <appender-ref ref="defAppender"/>        
+        </asyncLogger>
+        <asyncLogger name="org.hibernate.SQL" level="WARN" additivity="false">
+            <appender-ref ref="defAppender"/>
+        </asyncLogger>
+        <asyncLogger name="org.hibernate.type" level="WARN" additivity="false">
+            <appender-ref ref="defAppender"/>
+        </asyncLogger>
+		
+        <!-- id.gnvsolution.d3.api.filter -->
+        <asyncLogger name="id.gnvsolution.d3.api.filter" level="DEBUG" additivity="false">
+            <appender-ref ref="accessAppender"/>        
+        </asyncLogger>
+		
+        <!-- pg -->
+        <asyncLogger name="pg" level="DEBUG" additivity="false">
+            <appender-ref ref="pgAppender"/>        
+        </asyncLogger>
+		
+        <!-- mailer -->
+        <asyncLogger name="mail" level="DEBUG" additivity="false">
+            <appender-ref ref="mailAppender"/>        
+        </asyncLogger>
+		
+        <!-- social -->
+        <asyncLogger name="social" level="DEBUG" additivity="false">
+            <appender-ref ref="socialAppender"/>        
+        </asyncLogger>
+		
+        <!-- proxy -->
+        <asyncLogger name="proxy" level="INFO" additivity="false">
+            <appender-ref ref="msgAppender"/>        
+        </asyncLogger>
+		
+        <!-- id.gnvsolution -->
+        <asyncLogger name="id.gnvsolution" level="INFO" additivity="false" includeLocation="true">
+            <appender-ref ref="STDOUT"/>        
+        </asyncLogger>
+        
+        <root additivity="false" level="WARN" includeLocation="true">
+            <appender-ref ref="STDOUT"/>                        
+        </root>        
+    </loggers>        
+</configuration>

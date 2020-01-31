@@ -1,0 +1,92 @@
+package id.gnvsolution.d3.api.dto.request;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/8/17.
+ */
+public class BaseRequestDto implements DTO {
+
+    private String msisdn;
+    private String secretKey;
+    private String language;
+    private String imei;
+    private String callPlan;
+    private String deviceOs;
+    private String deviceModel;
+    private String deviceManufacture;
+
+    public String getMsisdn() {
+       /* if (msisdn != null && msisdn.startsWith("0")) {
+            msisdn = String.format("84%s", msisdn.substring(1));
+        }*/
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secreetKey) {
+        this.secretKey = secreetKey;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getImei() {
+        return imei==null?"":imei;
+    }
+
+    public void setImei(String imei) {
+        this.imei = imei;
+    }
+
+    public String getCallPlan() {
+        return callPlan;
+    }
+
+    public void setCallPlan(String callPlan) {
+        this.callPlan = callPlan;
+    }
+
+    public String getDeviceOs() {
+        return deviceOs;
+    }
+
+    public void setDeviceOs(String deviceOs) {
+        this.deviceOs = deviceOs;
+    }
+
+    public String getDeviceModel() {
+        return deviceModel;
+    }
+
+    public void setDeviceModel(String deviceModel) {
+        this.deviceModel = deviceModel;
+    }
+
+    public String getDeviceManufacture() {
+        return deviceManufacture;
+    }
+
+    public void setDeviceManufacture(String deviceManufacture) {
+        this.deviceManufacture = deviceManufacture;
+    }
+    
+    public boolean isIPhone() {
+        if(getImei() == null) {
+            return false;
+        }
+        return getImei().contains("-");
+    }
+}

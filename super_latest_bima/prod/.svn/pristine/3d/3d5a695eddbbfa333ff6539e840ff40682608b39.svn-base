@@ -1,0 +1,18 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.List;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.service.CLMService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * May 3, 2017 1:08:57 PM
+ *
+ */
+public interface CLMService {
+
+    public List<String> getApiClmOfferIdList(String transactionId, String msisdn) ;
+    
+}

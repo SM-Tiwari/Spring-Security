@@ -1,0 +1,205 @@
+package id.gnvsolution.d3.api.controller.inbound;
+
+import id.gnvsolution.d3.api.Constants;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import id.gnvsolution.d3.api.model.RptPgUt;
+import id.gnvsolution.d3.api.service.ExternalPayment;
+import id.gnvsolution.d3.api.utils.Helpers;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.controller.inbound.E2PayInboundController 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Apr 22, 2017 2:34:49 PM
+ *
+ */
+@Controller
+@RequestMapping("/api/v1/inbound/e2pay")
+@ApiIgnore
+public class E2PayInboundController extends PaymentGatewayInboundController {
+
+    private final ExternalPayment externalPayment;
+    
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    
+    private final Logger logger = LoggerFactory.getLogger("pg");
+    
+    @Autowired
+    public E2PayInboundController(ExternalPayment externalPayment) {
+        this.externalPayment = externalPayment;
+    }
+    
+    /**
+     * 
+     * @param httpHeaders
+     * @param params
+     * @param request
+     * @param MerchantCode
+     * @param PaymentId
+     * @param RefNo
+     * @param Amount
+     * @param Currency
+     * @param Remark
+     * @param TransId
+     * @param AuthCode
+     * @param Status
+     * @param ErrDesc
+     * @param Signature
+     * @return 
+     */
+    @RequestMapping(value = "/notify", method = RequestMethod.POST)
+    public @ResponseBody String notifyEndpoint(@RequestHeader HttpHeaders httpHeaders,
+                                @RequestParam Map<String, String> params,
+                                HttpServletRequest request,
+                                String MerchantCode,
+                                String PaymentId,
+                                String RefNo,
+                                String Amount,
+                                String Currency,
+                                String Remark,
+                                String TransId,
+                                String AuthCode,
+                                String Status,
+                                String ErrDesc,
+                                String Signature) {
+        
+        HashMap<String, String> mapHeaderInfo = new HashMap<>();
+        Enumeration headerNames = ((HttpServletRequest)request).getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = ((HttpServletRequest)request).getHeader(key);
+            mapHeaderInfo.put(key, value);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n========== START =============== \r\n"); 
+        sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+        sb.append("Real IP\t\t:\t").append(httpHeaders.get("X-Forwarded-For")).append("\r\n");
+        sb.append("Accessing\t:\t").append(((HttpServletRequest)request).getRequestURI()).append("\r\n");
+        sb.append("PG\t\t:\t").append("E2PAY").append("\r\n");
+        sb.append("Ref No\t\t:\t").append(RefNo).append("\r\n");
+        sb.append("Amount\t\t:\t").append(Amount.substring(0, Amount.length()-2)).append("\r\n");
+        sb.append("Status\t\t:\t").append(Status).append("\r\n");
+        sb.append("Parameters\t:\t").append(params).append("\r\n");
+        sb.append("Headers\t\t:\t").append(mapHeaderInfo).append("\r\n");
+        sb.append("Response\t:\t").append("OK").append("\r\n");
+        sb.append("==========  END  =============== \r\n"); 
+        logger.debug(sb.toString());
+        
+        RptPgUt rptPgUt = new RptPgUt();
+        rptPgUt.setAmount(new BigDecimal(Amount.substring(0, Amount.length()-2)));
+        rptPgUt.setChannel("E2PAY");
+        rptPgUt.setInvoiceNo(RefNo);
+        rptPgUt.setMetadata01(""+params);
+        rptPgUt.setStatus("NOTIFY");
+        rptPgUt.setApprovalcode(AuthCode);
+        save(rptPgUt);
+        
+        return "OK";
+    }
+    
+    /**
+     *
+     * @param modelMap
+     * @param ErrDesc
+     * @param RefNo
+     * @param Status
+     * @param Amount
+     * @param Signature
+     * @param PaymentId
+     * @param httpHeaders
+     * @param request
+     * @param params
+     * @return 
+     */
+    @RequestMapping(value = "/thankyou")
+    public String thankYou(ModelMap modelMap,
+                            String ErrDesc, 
+                            String RefNo, 
+                            String Status, 
+                            String Amount, 
+                            String Signature, 
+                            String PaymentId, 
+                            @RequestHeader HttpHeaders httpHeaders,
+                            HttpServletRequest request,
+                            @RequestParam Map<String, String> params) {
+        
+        String responseSignature = Helpers.getHex(Helpers.getSHA1(Constants.E2PAY_MERCHANT_KEY + Constants.E2PAY_MERCHANT_ID + PaymentId + RefNo + Amount + "IDR"+Status));
+        Amount = Amount.substring(0, Amount.length()-2);
+        
+        boolean success = false;
+        if(Status == null || !"1".equals(Status) || !responseSignature.equals(Signature))
+            modelMap.put("ErrDesc", "Transaksi Gagal Diproses "+ErrDesc);
+        else {
+            try {
+                // validate first for malicious request
+                RptPgUt rptPgUt = select(RefNo);
+                if(rptPgUt != null) {
+                    externalPayment.purchaseProduct(RefNo);
+                    success = true;
+                } else {
+                    logger.error("MALICIOUS REQUEST FOR: "+RefNo);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        
+        HashMap<String, String> mapHeaderInfo = new HashMap<>();
+        Enumeration headerNames = ((HttpServletRequest)request).getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = ((HttpServletRequest)request).getHeader(key);
+            mapHeaderInfo.put(key, value);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\r\n========== START =============== \r\n"); 
+        sb.append("Timestamp\t:\t").append(sdf.format(new Date())).append("\r\n");
+        sb.append("Real IP\t\t:\t").append(httpHeaders.get("X-Forwarded-For")).append("\r\n");
+        sb.append("Accessing\t:\t").append(((HttpServletRequest)request).getRequestURI()).append("\r\n");
+        sb.append("PG\t\t:\t").append("E2PAY").append("\r\n");
+        sb.append("Ref No\t\t:\t").append(RefNo).append("\r\n");
+        sb.append("Amount\t\t:\t").append(Amount).append("\r\n");
+        sb.append("Status\t\t:\t").append(Status).append("\r\n");
+        sb.append("Parameters\t:\t").append(params).append("\r\n");
+        sb.append("Headers\t\t:\t").append(mapHeaderInfo).append("\r\n");
+        sb.append("Response\t:\t").append(success?"SUCCESS PURCHASE":"FAILED PURCHASE").append("\r\n");
+        sb.append("==========  END  =============== \r\n"); 
+        logger.debug(sb.toString());
+        
+        RptPgUt rptPgUt = new RptPgUt();
+        rptPgUt.setAmount(new BigDecimal(Amount.substring(0, Amount.length()-2)));
+        rptPgUt.setChannel("E2PAY");
+        rptPgUt.setInvoiceNo(RefNo);
+        rptPgUt.setMetadata02(""+params);
+        rptPgUt.setStatus(success?"SUCCESS PURCHASE":"FAILED PURCHASE");
+        save(rptPgUt);
+        
+        return "thankyou";
+    }
+    
+}

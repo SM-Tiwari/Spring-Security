@@ -1,0 +1,12 @@
+package id.gnvsolution.d3.api.service;
+
+import java.util.Map;
+
+import id.gnvsolution.d3.api.dto.request.BillingHistoryDto;
+
+public interface PostPaidPaymentHistoryService2 {
+
+	Map<String, Object> HistoryDetails(BillingHistoryDto billingHistoryDto);
+	Map<String , String> sendMail(BillingHistoryDto billingHistoryDto);
+	
+}

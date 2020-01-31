@@ -1,0 +1,91 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.NotificationMessageDto;
+import id.gnvsolution.d3.api.model.NotificationMaster;
+import id.gnvsolution.d3.api.model.NotificationMasterId;
+import id.gnvsolution.d3.api.service.NotificationMasterService;
+
+@Service
+@Transactional
+public class NotificationMasterServiceImpl implements NotificationMasterService {
+	
+	public static Logger logger = LoggerFactory.getLogger(NotificationMasterServiceImpl.class);
+    
+    @Autowired
+    @Qualifier("sessionFactory_Def")
+    private SessionFactory sessionFactoryDef;
+    
+    @Override
+//    @Cacheable(value = "cache1", key = "getMessageText" + "#messageId + #languageId")
+    public String getMessageText(Integer messageId, String languageId) {
+    	logger.info("#getMessageText---------messageId=="+messageId+"---------languageId=="+languageId);
+    	BaseDao<NotificationMaster> notificationMasterDao = new BaseDao<>(sessionFactoryDef, NotificationMaster.class);
+        List<String> results = new ArrayList<>();
+        
+        if (languageId == null || languageId.isEmpty())
+        	languageId = "0";
+        
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("messageId", messageId);
+        params.put("languageId", Integer.valueOf(languageId));
+        
+        notificationMasterDao.find("id.messageId = :messageId and id.languageId = :languageId order by updatedAt desc", params).forEach(notificationMaster -> results.add(notificationMaster.getMessageText()));
+        
+        if (results.size() > 0)
+        	return results.get(0);
+        else
+        	return "No message available!";
+        
+//        try {
+//    		BaseDao<NotificationMaster> notificationMasterDao = new BaseDao<>(sessionFactoryDef, NotificationMaster.class);
+//            List<String> results = new ArrayList<>();
+//            
+//            notificationMasterDao.find("id.messageId = :messageId and id.languageId = :languageId order by updatedAt desc", new HashMap<String, Object>() {{
+//                put("messageId", messageId);
+//                put("languageId", languageId);
+//            }}).forEach(notificationMaster -> results.add(notificationMaster.getMessageText()));
+//            
+//            return results.get(0);
+//		} catch (Exception e) {
+//			return "No message available!";
+//		}
+    }
+    
+    @Override
+    public List<NotificationMaster> getList(Integer limit, Integer offset) {
+    	logger.info("#getList---------limit=="+limit+"---------offset=="+offset);
+    	BaseDao<NotificationMaster> notificationMasterDao = new BaseDao<>(sessionFactoryDef, NotificationMaster.class);
+    	return notificationMasterDao.find("id.messageId is not null", offset, limit);
+    }
+    
+    @Override
+    public NotificationMessageDto saveOrUpdate(NotificationMessageDto request) {
+    	logger.info("#saveOrUpdate---saving data------messageId=="+request.getMessageId());
+    	BaseDao<NotificationMaster> notificationMasterDao = new BaseDao<>(sessionFactoryDef, NotificationMaster.class);
+    	NotificationMaster notificationMaster = new NotificationMaster();
+    	
+    	notificationMaster.setId(new NotificationMasterId(request.getMessageId(), request.getMessageId()));
+    	notificationMaster.setMessageText(request.getMessageText());
+    	notificationMaster.setCreatedAt(new Date());
+    	notificationMaster.setUpdatedAt(new Date());
+    	notificationMasterDao.saveOrUpdate(notificationMaster);
+    	
+    	return request;
+    }
+}

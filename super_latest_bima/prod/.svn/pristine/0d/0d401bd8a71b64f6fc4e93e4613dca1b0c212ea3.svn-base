@@ -1,0 +1,55 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/28/17.
+ */
+public class PostPaidInfoDto implements DTO {
+
+    private boolean status;
+    private String accountNumber;
+    private String amountLastInvoice;
+    private String amountInvoice;
+    private String amountOver;
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getAmountInvoice() {
+        return amountInvoice;
+    }
+
+    public void setAmountInvoice(String amountInvoice) {
+        this.amountInvoice = amountInvoice;
+    }
+
+    public String getAmountOver() {
+        return amountOver;
+    }
+
+    public void setAmountOver(String amountOver) {
+        this.amountOver = amountOver;
+    }
+
+    public String getAmountLastInvoice() {
+        return amountLastInvoice;
+    }
+
+    public void setAmountLastInvoice(String amountLastInvoice) {
+        this.amountLastInvoice = amountLastInvoice;
+    }
+}

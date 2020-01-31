@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.model.Parameter;
+
+import java.util.Map;
+
+/**
+ * Created by rips on 4/30/17.
+ */
+public interface StaticService {
+
+    Map<String, Object> getFaq(BaseRequestDto request);
+
+    Parameter getParameter(String key);
+
+}

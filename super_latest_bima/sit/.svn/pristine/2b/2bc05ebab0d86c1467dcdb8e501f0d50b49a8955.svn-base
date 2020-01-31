@@ -1,0 +1,76 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.*;
+
+/**
+ * Created by rips on 5/4/17.
+ * output example
+ * <product>
+ *      <offerID>S6993</offerID>
+ *      <interactive>Y</interactive>
+ *      <name>2GB 7hari (30rb) skrg 20rb</name>
+ *      <priority>1</priority>
+ * </product>
+ */
+@XmlRootElement(name = "product")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"offerID", "interactive", "name", "priority"})
+public class ClmProduct {
+
+    @XmlElement(name = "offerID")
+    private String offerID;
+
+    @XmlElement(name = "interactive")
+    private String interactive;
+
+    @XmlElement(name = "name")
+    private String name;
+
+    @XmlElement(name = "priority")
+    private String priority;
+
+    public String getOfferID() {
+        return offerID;
+    }
+
+    public void setOfferID(String offerID) {
+        this.offerID = offerID;
+    }
+
+    public String getInteractive() {
+        return interactive;
+    }
+
+    public void setInteractive(String interactive) {
+        this.interactive = interactive;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public boolean isInteractive(){
+        return interactive != null && interactive.equals("Y");
+    }
+
+    public void isInteractive(boolean isInteractive){
+        this.setInteractive(isInteractive ? "Y" : "N");
+    }
+
+    @Override
+    public String toString() {
+        return "ClmProduct{" + "offerID=" + offerID + ", interactive=" + interactive + ", name=" + name + ", priority=" + priority + '}';
+    }
+}

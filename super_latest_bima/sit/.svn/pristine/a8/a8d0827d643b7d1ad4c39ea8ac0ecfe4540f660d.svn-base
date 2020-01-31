@@ -1,0 +1,19 @@
+package id.gnvsolution.d3.api.utils;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.utils.RegexTest 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 21, 2017 11:35:40 AM
+ *
+ */
+public class RegexTest {
+    public static void main(String[] args) {
+        String value = "{\"callPlan\":\"PACUAN 3GB\",\"balance\":\"Rp. 63,715\",\"secretKey\":\"7/+0NwI6zRJ/aygo1xBSuQ==9wlA1FKQQiGSxUtQoj912RjhRZ6FcUZpQkD\",\"subscriberType\":\"Prepaid\",\"language\":\"0\",\"msisdn\":\"6289505232323\",\"profileColor\":\"#ff8000\",\"status\":true}";
+        String value2 = "{\"callPlan\":\"CUG Corporate Postpaid 100K\",\"balance\":\"-\",\"secretKey\":\"jOqMA2dfKHocIM4ZZLTqZw==acQ0YMrT52iOv8ctIwUN71pAAWDTM2sKYWa5xlt\",\"subscriberType\":\"Postpaid\",\"language\":\"1\",\"msisdn\":\"6289684005216\",\"profileColor\":\"#009310\",\"status\":true}";
+        System.out.println(value.replaceAll("\"(secretKey)\"\\s*:\\s*\"((\\\\\"|[^\"])*)\"", "\"secretKey\": \"***\""));
+        System.out.println(value2.replaceAll("\"(secretKey)\"\\s*:\\s*\"((\\\\\"|[^\"])*)\"", "\"secretKey\": \"***\""));
+    }
+}

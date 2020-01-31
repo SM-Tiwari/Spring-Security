@@ -1,0 +1,36 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.CustomerUiTypeDto;
+import id.gnvsolution.d3.api.dto.response.CustomerUiTypeResponseDto;
+import id.gnvsolution.d3.api.service.CustomerUiTypeService;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ *
+ * @author RA0C68364
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/")
+public class CustomerUiTypeController {
+    
+    @Autowired
+    private CustomerUiTypeService customerUiTypeService;
+    
+    @RequestMapping(value = "/ui-version", method = RequestMethod.POST)
+    public CustomerUiTypeResponseDto getCurrentUiType(@RequestBody CustomerUiTypeDto customerUiTypeDto) {
+        return customerUiTypeService.getCustomerUiTypeResponseDto(customerUiTypeDto);
+    }
+    
+    @RequestMapping(value = "/ui-save", method = RequestMethod.POST)
+    public Map save(@RequestBody CustomerUiTypeDto customerUiTypeDto) {
+        return customerUiTypeService.save(customerUiTypeDto);
+    }
+    
+}

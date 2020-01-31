@@ -1,0 +1,47 @@
+package id.gnvsolution.d3.api.filter;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.filter.SwaggerConfig 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jul 14, 2017 9:06:21 PM
+ *
+ */
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.any())
+                .paths(PathSelectors.any())
+                .build().apiInfo(apiInfo());
+    }
+    
+    private ApiInfo apiInfo() {
+        ApiInfo apiInfo = new ApiInfo("H3I BimaPlus Bima 3+ API", 
+                                        "Contains List of API Services provided by H3I BimaPlus", 
+                                        "1.0", 
+                                        "", 
+                                        "", 
+                                        "", 
+                                        "");
+        return apiInfo;
+    }
+    
+}

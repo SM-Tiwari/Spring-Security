@@ -1,0 +1,120 @@
+package id.gnvsolution.d3.api.dto.request;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "customercare")
+public class CustomerCareDto {	
+	
+	
+	private String cEmail;
+	private String cEmailSubject;
+	private String cPhone;
+	private String chatURL;
+	
+	
+	private Integer id;
+	
+	@Id
+	@Column(name = "id", nullable = false, length = 50)
+	public Integer getId() {
+		return id;
+	}
+	
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	
+	 @Column(name = "EMAIL", nullable = true)
+	public String getcEmail() {
+		return cEmail;
+	}
+	public void setcEmail(String cEmail) {
+		this.cEmail = cEmail;
+	}
+	
+	//EMAIL_SUBJECT
+	@Column(name = "EMAIL_SUBJECT", nullable = true)
+	public String getcEmailSubject() {
+		return cEmailSubject;
+	}
+	public void setcEmailSubject(String cEmailSubject) {
+		this.cEmailSubject = cEmailSubject;
+	}
+	
+	@Column(name = "PHONE", nullable = true)
+	public String getcPhone() {
+		return cPhone;
+	}
+	public void setcPhone(String cPhone) {
+		this.cPhone = cPhone;
+	}
+	
+	@Column(name = "CHAT_URL", nullable = true)
+	public String getChatURL() {
+		return chatURL;
+	}
+	public void setChatURL(String chatURL) {
+		this.chatURL = chatURL;
+	} 
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((cEmail == null) ? 0 : cEmail.hashCode());
+		result = prime * result + ((cEmailSubject == null) ? 0 : cEmailSubject.hashCode());
+		result = prime * result + ((cPhone == null) ? 0 : cPhone.hashCode());
+		result = prime * result + ((chatURL == null) ? 0 : chatURL.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CustomerCareDto other = (CustomerCareDto) obj;
+		if (cEmail == null) {
+			if (other.cEmail != null)
+				return false;
+		} else if (!cEmail.equals(other.cEmail))
+			return false;
+		if (cEmailSubject == null) {
+			if (other.cEmailSubject != null)
+				return false;
+		} else if (!cEmailSubject.equals(other.cEmailSubject))
+			return false;
+		if (cPhone == null) {
+			if (other.cPhone != null)
+				return false;
+		} else if (!cPhone.equals(other.cPhone))
+			return false;
+		if (chatURL == null) {
+			if (other.chatURL != null)
+				return false;
+		} else if (!chatURL.equals(other.chatURL))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "CustomerCareDto [cEmail=" + cEmail + ", cEmailSubject=" + cEmailSubject + ", cPhone=" + cPhone
+				+ ", chatURL=" + chatURL + ", id=" + id + "]";
+	}
+	
+	
+}

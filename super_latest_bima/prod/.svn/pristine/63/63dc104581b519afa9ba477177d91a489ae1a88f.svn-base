@@ -1,0 +1,63 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ *
+ * @author RA0C68364
+ */
+public class ProductUpsellRequestDto extends BaseRequestDto {
+    private String productId;
+    private String productIdChild;
+    private Integer priority;
+    private Integer page;
+    private String subscriberType;
+    
+    public ProductUpsellRequestDto() {
+    }
+    
+    public ProductUpsellRequestDto(String productId, String productIdChild, Integer priority) {
+        this.productId = productId;
+        this.productIdChild = productIdChild;
+        this.priority = priority;
+    }
+    
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+    
+    public String getProductIdChild() {
+        return productIdChild;
+    }
+
+    public void setProductIdChild(String productIdChild) {
+        this.productIdChild = productIdChild;
+    }
+    
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+    
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+    
+    public String getSubscriberType() {
+        return subscriberType;
+    }
+
+    public void setSubscriberType(String subscriberType) {
+        this.subscriberType = subscriberType;
+    }
+    
+}

@@ -1,0 +1,85 @@
+package com.gnv.h3i.bima3.imagecaching.service;
+
+import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+/**
+ * <pre>
+ *  com.gnv.h3i.bima3.imagecaching.service.ReloadService 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jun 15, 2017 3:34:30 PM
+ *
+ */
+@Service
+public class ReloadService {
+
+    @Autowired
+    private ImageService imageService;
+    
+    private final Logger logger = Logger.getLogger(ReloadService.class);
+    
+    @Async(value = "taskExecutor")
+    public void reloadAllImages() {
+        File[] files = new File("/app/fusionmobapp/images/").listFiles();
+        ExecutorService executor = Executors.newFixedThreadPool(500);
+        for (final File file : files) {
+                // concurrency
+                Thread t = new Thread() { 
+                    @Override
+                    public void run() {
+                        try {
+                            imageService.getImage(file.getName());
+                            logger.debug("done processing "+file.getName());
+                        } catch (Exception e) {
+                            logger.error(e.getMessage());
+                        }
+                    }
+                };
+                executor.execute(t);
+        }
+        executor.shutdown();
+        while(!executor.isTerminated()) {
+        }
+        
+        logger.debug("done processing all images");
+    }
+    
+    @Async(value = "taskExecutor")
+    public void reloadLastOneHourImage() {
+        File[] files = new File("/app/fusionmobapp/images/").listFiles();
+        ExecutorService executor = Executors.newFixedThreadPool(500);
+        
+        final long lastOneHour = System.currentTimeMillis() - (60 * 60 *1000);
+        
+        for (final File file : files) {
+                // concurrency
+                Thread t = new Thread() { 
+                    @Override
+                    public void run() {
+                        try {
+                            if(file.lastModified() > lastOneHour) {
+                                imageService.getImage(file.getName());
+                                logger.debug("done processing "+file.getName());
+                            }
+                        } catch (Exception e) {
+                            logger.error(e.getMessage());
+                        }
+                    }
+                };
+                executor.execute(t);
+        }
+        executor.shutdown();
+        while(!executor.isTerminated()) {
+        }
+        
+        logger.debug("done processing all images");
+    }
+    
+}

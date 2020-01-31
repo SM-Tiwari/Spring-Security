@@ -1,0 +1,20 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by rips on 4/8/17.
+ */
+public class ProductMetaDataDto implements DTO {
+
+    private String imageBanner;
+    private String imageProduct;
+
+    public String getImageProduct() {
+        return imageProduct;
+    }
+
+    public void setImageProduct(String imageProduct) {
+        this.imageProduct = imageProduct;
+    }
+}

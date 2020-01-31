@@ -1,0 +1,95 @@
+package id.gnvsolution.d3.api.model;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ *
+ * @author RA0C68364
+ */
+@Entity
+@Table(name = "PRODUCT_UPSELL")
+public class ProductUpsell implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @Basic(optional = false)
+    @Column(name = "UUID")
+    private String uuid;
+    @Column(name = "PRODUCT_ID")
+    private String productId;
+    @Column(name = "PRODUCT_ID_CHILD")
+    private String productIdChild;
+    @Column(name = "PRIORITY")
+    private Integer priority;
+
+    public ProductUpsell() {
+    }
+
+    public ProductUpsell(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getProductIdChild() {
+        return productIdChild;
+    }
+
+    public void setProductIdChild(String productIdChild) {
+        this.productIdChild = productIdChild;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (uuid != null ? uuid.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof ProductUpsell)) {
+            return false;
+        }
+        ProductUpsell other = (ProductUpsell) object;
+        if ((this.uuid == null && other.uuid != null) || (this.uuid != null && !this.uuid.equals(other.uuid))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "id.gnvsolution.d3.api.model.ProductUpsell[ uuid=" + uuid + " ]";
+    }
+    
+}

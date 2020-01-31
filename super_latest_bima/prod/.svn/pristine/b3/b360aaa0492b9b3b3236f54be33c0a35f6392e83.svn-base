@@ -1,0 +1,78 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.*;
+
+/**
+ * Created by rips on 4/27/17.
+ */
+@XmlRootElement(name = "DuePatmentInfo")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"subscriberMsisdn", "sourceName", "statusCode", "statusText", "outstandingDetails"})
+public class DuePaymentInfo {
+
+    public DuePaymentInfo(){
+        setSubscriberMsisdn("");
+        setSourceName("ODP_GNV");
+        setStatusCode("");
+        setStatusText("");
+        setOutstandingDetails(new OutstandingDetails());
+    }
+
+    @XmlElement(name = "Subscriber_msisdn")
+    private String subscriberMsisdn;
+
+    @XmlElement(name = "Source_Name")
+    private String sourceName;
+
+    @XmlElement(name = "Status_Code")
+    private String statusCode;
+
+    @XmlElement(name = "Status_Text")
+    private String statusText;
+
+    @XmlElement(name = "OutstandingDetails", nillable = true)
+    private OutstandingDetails outstandingDetails;
+
+    public String getSubscriberMsisdn() {
+        return subscriberMsisdn;
+    }
+
+    public void setSubscriberMsisdn(String subscriberMsisdn) {
+        this.subscriberMsisdn = subscriberMsisdn;
+    }
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    public void setSourceName(String sourceName) {
+        this.sourceName = sourceName;
+    }
+
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(String statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public OutstandingDetails getOutstandingDetails() {
+        return outstandingDetails;
+    }
+
+    public void setOutstandingDetails(OutstandingDetails outstandingDetails) {
+        this.outstandingDetails = outstandingDetails;
+    }
+
+}
+
+

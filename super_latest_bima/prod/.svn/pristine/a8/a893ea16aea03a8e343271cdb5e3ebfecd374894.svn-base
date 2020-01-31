@@ -1,0 +1,12 @@
+package id.gnvsolution.d3.api.service;
+
+import id.gnvsolution.d3.api.dto.request.BonstriRequestDto;
+
+import java.util.Map;
+
+public interface BonstriService {
+    Map getBonstriPoin(BonstriRequestDto bonstriReqDto);
+    Map getBonstriUrl(BonstriRequestDto bonstriReqDto);
+    Map getHaxUrl(BonstriRequestDto bonstriReqDto);
+	Map getV2UUrl(BonstriRequestDto bonstriReqDto);
+}

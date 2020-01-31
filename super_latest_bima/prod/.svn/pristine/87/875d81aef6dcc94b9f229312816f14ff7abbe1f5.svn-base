@@ -1,0 +1,10 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+public class StaticController implements DTO {
+}

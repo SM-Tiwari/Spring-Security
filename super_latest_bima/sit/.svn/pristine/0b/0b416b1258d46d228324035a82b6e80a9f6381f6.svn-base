@@ -1,0 +1,254 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Date;
+import java.util.List;
+
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gnv.vnm.selfcare.core.AppDefaultValues;
+
+import id.gnvsolution.d3.api.component.notif.NotificationWorker;
+import id.gnvsolution.d3.api.dao.BaseDao;
+import id.gnvsolution.d3.api.dto.request.FattyRequestDto;
+import id.gnvsolution.d3.api.helper.enums.AppUtils;
+import id.gnvsolution.d3.api.service.AppConfigService;
+import id.gnvsolution.d3.api.service.FattyService;
+
+@Service
+@Transactional
+@Configuration
+@PropertySources({ @PropertySource("classpath:app-config.properties"),
+
+})
+public class FattyServiceImpl implements FattyService {
+
+	@Autowired
+	@Qualifier("sessionFactory_Def")
+	private SessionFactory sessionFactoryDef;
+
+	@Autowired
+	private AppConfigService applicationConfigurationService;
+
+	@Value(value = "${connection.username}")
+	String connection_username;
+
+	@Value(value = "${connection.password}")
+	public String connection_password;
+
+	@Value(value = "${connection.ip}")
+	public String ipAddress;
+
+	@Value(value = "${connection.port}")
+	public String port;
+
+	@Value(value = "${connection.url}")
+	public String connection_url;
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(PushedScheduledForRtbsSystem.class);
+
+	Connection connection = null;
+	Statement stmt = null;
+	ResultSet rs = null;
+
+	@Autowired
+	private NotificationWorker notificationWorker;
+
+	@Autowired
+	private AppConfigService applicationConfig;
+
+	/*
+	 * @Scheduled(fixedRate = 300000) public void runCronValue() { BaseDao<CronJob>
+	 * cronJobDao = new BaseDao<>(sessionFactoryDef, CronJob.class);
+	 * 
+	 * List<CronJob> cronJobList =
+	 * sessionFactoryDef.getCurrentSession().createSQLQuery(
+	 * "select TO_CHAR(cronjob_timestamp, 'dd mm YYYY HH24:MI:SS') from cron_scheduler WHERE TO_CHAR(cronjob_timestamp, 'dd mm YYYY HH24:MI:SS') BETWEEN TO_CHAR(sysdate -65/1440,'dd mm YYYY HH24:MI:SS') AND TO_CHAR(sysdate,'dd mm YYYY HH24:MI:SS')"
+	 * ) .list();
+	 * 
+	 * List<BigDecimal> cronJobList =
+	 * sessionFactoryDef.getCurrentSession().createSQLQuery(
+	 * "select  round((extract (day from (sysdate - cronjob_timestamp))*24*60*60 +   extract (hour   from (sysdate - cronjob_timestamp))*60*60 +   extract (minute from (sysdate - cronjob_timestamp))*60 +   extract (second from (sysdate - cronjob_timestamp)))/60,0)  as ts_diff_minutes from cron_scheduler"
+	 * ).list(); int mins = Integer.parseInt(cronJobList.get(0).toString());
+	 * System.out.println("result is in mins:   =  "+ mins); if(mins>0 && mins<=5) {
+	 * getMinfattyPoint(); }
+	 * 
+	 * 
+	 * if (cronJobList.executeUpdate()) { getMinfattyPoint(); }
+	 * 
+	 * }
+	 */
+
+	@Override
+	public int getMinfattyPoint() {
+		String minPoint = "0";
+		String msgVi = "NA";
+		String msgEn = "NA";
+		BaseDao<FattyRequestDto> fattyMappingDao = new BaseDao<>(sessionFactoryDef, FattyRequestDto.class);
+		List<FattyRequestDto> msisdnDetail = fattyMappingDao.listData();
+		minPoint = msisdnDetail.get(0).getMinPoint().toString();
+		ByteBuffer msgVim = StandardCharsets.UTF_8.encode(msisdnDetail.get(0).getMessageVi().toString());
+		msgVi = StandardCharsets.UTF_8.decode(msgVim).toString();
+		msgEn = msisdnDetail.get(0).getMessageEn().toString();
+		//minPoint = applicationConfigurationService.get("FattyMinPoint", "0");
+		System.out.println("minPoint ----- " + minPoint);
+		System.out.println("msgVi ----- " + msgVi);
+		System.out.println("msgEn ----- " + msgEn);
+		try {
+			getSubscriberList(minPoint, msgVi, msgEn);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return Integer.parseInt(minPoint);
+	}
+	//@Scheduled(cron = "*/300 * * * * ?")
+	// @Scheduled(cron = "*/30 * * * * ?")
+	@Scheduled(cron = "0 0 04 * * *")
+	public void initPushedScheduledForFatty() {
+		try {
+			String ipAddress = getIpAdress();
+			System.out.println("time is ::" + new Date());
+			// if (ipAddress.equalsIgnoreCase("10.6.3.104")) {
+
+			getMinfattyPoint();
+			LOGGER.info("Inside PushedScheduledForFatty method initPushedScheduledForFatty ::Scheduled time is :"
+					+ new Date());
+			// }
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+
+	private String getSubscriberList(String minPoint, String msgVi, String msgEn) throws SQLException {
+		String msisdn = null;
+		connection = getDataBaseConection();
+		try {
+
+			String query = "select subscriber_id from stage.rtbs_sub_hist@MISDBP a where BALANCE1 <'" + minPoint
+					+ "' and mis_load_date>trunc(sysdate)-2";
+			System.out.println("MSISDN Query ----" + query);
+			rs = stmt.executeQuery(query);
+			while (rs.next()) {
+
+				msisdn = rs.getString(1).toString();
+				System.out.println("msisdn is : "+msisdn);
+				msisdn = "0522700316";
+				msisdn = AppUtils.removeCountryCode(msisdn, AppDefaultValues.COUNTRY_CODE);
+				String language = getsubscriberLanguage(msisdn);
+				if (language.equalsIgnoreCase("0")) {
+					notificationWorker.sendNotification(msisdn, msgVi);
+				} else {
+					notificationWorker.sendNotification(msisdn, msgEn);
+				}
+
+				System.out.println("MSISDN  ----" + msisdn + "msgEn ---" + msgEn);
+			}
+
+		} catch (Exception e) {
+			// e.printStackTrace();
+			if (rs != null)
+				rs.close();
+
+			/*
+			 * try { if (connection != null) connection.close(); if (stmt != null)
+			 * stmt.close(); } catch (Exception e2) { e2.printStackTrace(); }
+			 */
+		} finally {
+
+			try {
+
+				if (stmt != null)
+					stmt.close();
+				if (connection != null)
+					connection.close();
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		return msisdn;
+
+	}
+
+	private String getsubscriberLanguage(String msisdn) {
+
+		String language = "0";
+		String query = "select SUBSCRIBER_LANG_CODE from subscriber where SUBSCRIBER_MSISDN ='" + msisdn + "'";
+
+		try {
+			ResultSet rs1 = stmt.executeQuery(query);
+			while (rs1.next()) {
+				language = rs1.getString(1).toString();
+				System.out.println("Language  " + language);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return language;
+	}
+
+	/**
+	 * This method used for get ip address .
+	 * 
+	 * @return ipAddress {@link String}
+	 */
+	@Override
+	public String getIpAdress() {
+		InetAddress ip;
+		String ipAdress = "";
+
+		try {
+			LOGGER.info("Inside PushedScheduledForFatty method getIpAdress");
+			ip = InetAddress.getLocalHost();
+			ipAdress = ip.getHostAddress();
+			System.out.println("Current IP address : " + ip.getHostAddress());
+
+		} catch (UnknownHostException e) {
+
+			e.printStackTrace();
+
+		}
+		return ipAdress;
+	}
+
+	@Override
+	public Connection getDataBaseConection() {
+		try {
+			Class.forName("oracle.jdbc.OracleDriver");
+			/*
+			 * System.out.println("connection_url---" + connection_url);
+			 * System.out.println("connection_username---" + connection_username);
+			 * System.out.println("connection_password---" + connection_password);
+			 */
+			connection = DriverManager.getConnection(connection_url, connection_username, connection_password);
+			stmt = connection.createStatement();
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		return connection;
+	}
+
+}

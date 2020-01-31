@@ -1,0 +1,5 @@
+<root>
+    <item name='javax.xml.bind.JAXBException'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>

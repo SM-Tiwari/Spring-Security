@@ -1,0 +1,81 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * Created by Arie
+ * on 04/04/2017.
+ */
+public class LoginInDto extends BaseRequestDto {
+    private String otp;
+    private String imsi;
+    private String imei;
+    private String secretKey;
+    
+    private String deviceOs;
+    private String deviceModel;
+    private String deviceManufacture;
+    private String deviceManufactur;
+
+    public String getDeviceManufactur() {
+        return deviceManufactur;
+    }
+
+    public void setDeviceManufactur(String deviceManufactur) {
+        this.deviceManufactur = deviceManufactur;
+    }
+
+    public String getDeviceOs() {
+        return deviceOs;
+    }
+
+    public void setDeviceOs(String deviceOs) {
+        this.deviceOs = deviceOs;
+    }
+
+    public String getDeviceModel() {
+        return deviceModel;
+    }
+
+    public void setDeviceModel(String deviceModel) {
+        this.deviceModel = deviceModel;
+    }
+    
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+
+    public String getImsi() {
+        return imsi;
+    }
+
+    public void setImsi(String imsi) {
+        this.imsi = imsi;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public String getImei() {
+        return imei;
+    }
+
+    public void setImei(String imei) {
+        this.imei = imei;
+    }
+
+    public String getDeviceManufacture() {
+        return getDeviceManufactur();
+    }
+
+    public void setDeviceManufacture(String deviceManufacture) {
+        this.deviceManufacture = deviceManufacture;
+    }
+}

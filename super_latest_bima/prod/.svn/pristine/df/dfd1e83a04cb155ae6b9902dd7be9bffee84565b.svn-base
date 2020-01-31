@@ -1,0 +1,203 @@
+package id.gnvsolution.d3.api.dto.response;
+
+import com.gnv.vnm.selfcare.core.model.MyPromotionBalance;
+
+import id.gnvsolution.d3.api.dto.DTO;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.response.HomescreenProfileDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Jan 23, 2018 4:54:14 PM
+ *
+ */
+public class HomescreenProfileDto implements DTO {
+
+    private String sumOfInternet;
+    private String sumOfVoice;
+    private String sumOfSms;
+    
+    private String colorOfInternet;
+    private String colorOfVoice;
+    private String colorOfSms;
+    
+    private String labelButtton;
+    private String colorButton;
+    private String deeplinkButton;
+    
+    private String subscriberName;
+    private String creditBalance;
+    private String activeUntil;
+    private String url;
+    private String unbilledAmount;
+    private String storeList;
+    
+    public String getStoreList() {
+		return storeList;
+	}
+
+	public void setStoreList(String storeList) {
+		this.storeList = storeList;
+	}
+
+	public String getUnbilledAmount() {
+		return unbilledAmount;
+	}
+
+	public void setUnbilledAmount(String unbilledAmount) {
+		this.unbilledAmount = unbilledAmount;
+	}
+
+	private Boolean status;
+    
+    private String stotalPoin;
+    private String profileName;
+    
+    private MyPromotionBalance promotionBalance;
+    
+    public MyPromotionBalance getPromotionBalance() {
+		return promotionBalance;
+	}
+
+	public void setPromotionBalance(MyPromotionBalance promotionBalance) {
+		this.promotionBalance = promotionBalance;
+	}
+
+	public HomescreenProfileDto() {
+    }
+
+    public void setStotalPoin(String stotalPoin) {
+		this.stotalPoin = stotalPoin;
+	}
+    
+    public String getStotalPoin() {
+		return stotalPoin;
+	}
+    
+    public HomescreenProfileDto(Boolean status) {
+        this.status = status;
+    }
+
+    public String getSumOfInternet() {
+        return sumOfInternet;
+    }
+
+    public void setSumOfInternet(String sumOfInternet) {
+        this.sumOfInternet = sumOfInternet;
+    }
+
+    public String getSumOfVoice() {
+        return sumOfVoice;
+    }
+
+    public void setSumOfVoice(String sumOfVoice) {
+        this.sumOfVoice = sumOfVoice;
+    }
+
+    public String getSumOfSms() {
+        return sumOfSms;
+    }
+
+    public void setSumOfSms(String sumOfSms) {
+        this.sumOfSms = sumOfSms;
+    }
+
+    public String getColorOfInternet() {
+        return colorOfInternet;
+    }
+
+    public void setColorOfInternet(String colorOfInternet) {
+        this.colorOfInternet = colorOfInternet;
+    }
+
+    public String getColorOfVoice() {
+        return colorOfVoice;
+    }
+
+    public void setColorOfVoice(String colorOfVoice) {
+        this.colorOfVoice = colorOfVoice;
+    }
+
+    public String getColorOfSms() {
+        return colorOfSms;
+    }
+
+    public void setColorOfSms(String colorOfSms) {
+        this.colorOfSms = colorOfSms;
+    }
+
+    public String getLabelButtton() {
+        return labelButtton;
+    }
+
+    public void setLabelButtton(String labelButtton) {
+        this.labelButtton = labelButtton;
+    }
+
+    public String getColorButton() {
+        return colorButton;
+    }
+
+    public void setColorButton(String colorButton) {
+        this.colorButton = colorButton;
+    }
+
+    public String getDeeplinkButton() {
+        return deeplinkButton;
+    }
+
+    public void setDeeplinkButton(String deeplinkButton) {
+        this.deeplinkButton = deeplinkButton;
+    }
+
+    public String getSubscriberName() {
+        return subscriberName;
+    }
+
+    public void setSubscriberName(String subscriberName) {
+        this.subscriberName = subscriberName;
+    }
+
+    public String getCreditBalance() {
+        return creditBalance;
+    }
+
+    public void setCreditBalance(String creditBalance) {
+        this.creditBalance = creditBalance;
+    }
+
+    public String getActiveUntil() {
+        return activeUntil;
+    }
+
+    public void setActiveUntil(String activeUntil) {
+        this.activeUntil = activeUntil;
+    }
+
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(Boolean status) {
+        this.status = status;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getProfileName() {
+        return profileName;
+    }
+
+    public void setProfileName(String profileName) {
+        this.profileName = profileName;
+    }
+    
+}

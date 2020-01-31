@@ -1,0 +1,89 @@
+package id.gnvsolution.d3.api.model.purchasing;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+
+/**
+ * Created by rips on 4/27/17.
+ */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"accountNumber", "msisdn", "lastBillCycleOutstandingAmmount", "totalOutstandingAmount", "accountType", "overPaymentAmount"})
+public class OutstandingDetails{
+
+    public OutstandingDetails(){
+        setAccountNumber("");
+        setMsisdn("");
+        setLastBillCycleOutstandingAmmount("");
+        setTotalOutstandingAmount("");
+        setAccountType("");
+        setOverPaymentAmount("");
+    }
+
+    @XmlElement(name = "Account_number")
+    private String accountNumber;
+
+    @XmlElement(name = "Msisdn")
+    private String msisdn;
+
+    @XmlElement(name = "Last_bill_cylce_outstanding_amt")
+    private String lastBillCycleOutstandingAmmount;
+
+    @XmlElement(name = "Total_outstanding_amt")
+    private String totalOutstandingAmount;
+
+    @XmlElement(name = "Account_Type")
+    private String accountType;
+
+    @XmlElement(name = "OverPaymentAmount")
+    private String overPaymentAmount;
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getLastBillCycleOutstandingAmmount() {
+        return lastBillCycleOutstandingAmmount;
+    }
+
+    public void setLastBillCycleOutstandingAmmount(String lastBillCycleOutstandingAmmount) {
+        this.lastBillCycleOutstandingAmmount = lastBillCycleOutstandingAmmount;
+    }
+
+    public String getTotalOutstandingAmount() {
+        return totalOutstandingAmount;
+    }
+
+    public void setTotalOutstandingAmount(String totalOutstandingAmount) {
+        this.totalOutstandingAmount = totalOutstandingAmount;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public String getOverPaymentAmount() {
+        return overPaymentAmount;
+    }
+
+    public void setOverPaymentAmount(String overPaymentAmount) {
+        this.overPaymentAmount = overPaymentAmount;
+    }
+}

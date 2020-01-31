@@ -1,0 +1,35 @@
+package id.gnvsolution.d3.api.dto.request;
+
+/**
+ * <pre>
+ *  id.gnvsolution.d3.api.dto.request.VersionDto 
+ * </pre>
+ *
+ * @author edwin < edwinkun at gmail dot com >
+ * Oct 2, 2017 8:44:45 PM
+ *
+ */
+public class ProductPerformanceDto extends BaseRequestDto {
+
+    private String type;
+    private String productId;
+
+    public ProductPerformanceDto() {
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+}

@@ -1,0 +1,40 @@
+package id.gnvsolution.d3.api.controller;
+
+import id.gnvsolution.d3.api.dto.request.BaseRequestDto;
+import id.gnvsolution.d3.api.service.WidgetService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * Created by Arie
+ * on 07/04/2017.
+ */
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RestController
+@RequestMapping("/api/v1/widget")
+public class WidgetController {
+
+    private WidgetService widgetService;
+
+    @Autowired
+    public WidgetController(WidgetService widgetService){
+        this.widgetService = widgetService;
+    }
+
+    @RequestMapping(value = "/profile", method = RequestMethod.POST)
+    public Map profile(@RequestBody BaseRequestDto request){
+        return widgetService.getProfile(request);
+    }
+
+    @RequestMapping(value = "products", method = RequestMethod.POST)
+    public Map products(@RequestBody BaseRequestDto request){
+        return widgetService.getProducts(request);
+    }
+
+}

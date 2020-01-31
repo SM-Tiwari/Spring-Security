@@ -1,0 +1,17 @@
+package id.gnvsolution.d3.api.service.impl;
+
+import java.sql.Connection;
+
+import com.gnv.vnm.selfcare.core.model.SVAndRtbsData;
+
+public interface PushedScheduledForRtbsSystemService {
+	Connection getDataBaseConection();
+
+	SVAndRtbsData getVoiceSmsAndDataFromSVAndRtbsSystem(String msisdn);
+
+	void getAllPostPaidUsers();
+
+	String getIpAdress();
+
+	
+}
