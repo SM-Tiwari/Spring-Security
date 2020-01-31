@@ -41,7 +41,7 @@
 		<httpcore.version>4.4.6</httpcore.version>
 		<commons-fileupload.version>1.3.1</commons-fileupload.version>
 		<querydsl.version>4.1.4</querydsl.version>
-		<spring-data.version>1.10.4.RELEASE</spring-data.version>
+		<spring-data.version>1.11.23.RELEASE</spring-data.version>
 		<hibernate-entitymanager.version>5.1.3.Final</hibernate-entitymanager.version>
 		<hibernate-core.version>5.1.3.Final</hibernate-core.version>
 		<hibernate-validator.version>5.1.3.Final</hibernate-validator.version>
