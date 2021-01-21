@@ -28,7 +28,7 @@
 		<spring-security.version>4.2.0.RELEASE</spring-security.version>
 		<spring-ws.version>2.4.0.RELEASE</spring-ws.version>
 		<jackson.mapper.version>1.9.13</jackson.mapper.version>
-		<jackson-databind.version>2.4.4</jackson-databind.version>
+		<jackson-databind.version>2.9.10.7</jackson-databind.version>
 		<tiles.version>3.0.1</tiles.version>
 		<tiles-request-api.version>1.0.3</tiles-request-api.version>
 		<taglibs.version>1.1.2</taglibs.version>
