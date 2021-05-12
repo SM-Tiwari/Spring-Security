@@ -25,7 +25,7 @@
 		<org.slf4j.version>1.7.5</org.slf4j.version>
 		<org.slf4j-log4j.version>1.7.5</org.slf4j-log4j.version>
 		<spring-framework.version>4.3.2.RELEASE</spring-framework.version>
-		<spring-security.version>4.2.0.RELEASE</spring-security.version>
+		<spring-security.version>5.2.10.RELEASE</spring-security.version>
 		<spring-ws.version>2.4.0.RELEASE</spring-ws.version>
 		<jackson.mapper.version>1.9.13</jackson.mapper.version>
 		<jackson-databind.version>2.4.4</jackson-databind.version>
